@@ -1,0 +1,9 @@
+buildarchtranslate: athlon: i686
+buildarchtranslate: geode: i686
+buildarchtranslate: pentium4: i686
+buildarchtranslate: pentium3: i686
+buildarchtranslate: i686: i686
+buildarchtranslate: i586: i686
+buildarchtranslate: i486: i686
+buildarchtranslate: i386: i686
+optflags: i686 -O3 -g -march=i686

@@ -1,0 +1,6 @@
+# List of ignore files when you do git status
+
+build
+dist
+node_modules
+test-results

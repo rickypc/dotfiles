@@ -1,0 +1,9 @@
+%_topdir %(echo $HOME)/Libraries/src/rpm
+%_tmppath /tmp/%(echo $USER)/rpm
+%_arch i686
+%_signature gpg
+%_gpg_path %(echo $HOME)/.gnupg
+%_gpg_name Richard Huang (GPG Key Signature) <rickypc@users.noreply.github.com>
+%_gpgbin /usr/bin/gpg
+%distribution CentOS release 6.2 (Final)
+%vendor Richard Huang

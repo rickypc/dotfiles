@@ -1,0 +1,80 @@
+## urxvt
+URxvt*loginShell: true
+
+## geometry and font
+##URxvt*geometry: 106x42+0+0
+##URxvt*font: xft:Droid Sans Mono:pixelsize=19
+##URxvt*boldFont: xft:Droid Sans Mono:pixelsize=19
+##URxvt*geometry: 116x42+10+10
+##URxvt*font: xft:Inconsolata:pixelsize=21
+##URxvt*boldFont: xft:Inconsolata:pixelsize=21
+##URxvt*geometry: 102x36+0+0
+URxvt*geometry: 128x46+10+10
+URxvt*font: xft:Inconsolata:pixelsize=19
+URxvt*boldFont: xft:Inconsolata:pixelsize=19
+
+## how many lines you want it to save per session
+URxvt*saveLines: 5000
+
+## with this set to true, when an app sends a bell to the terminal,
+## hilights the appropriate tag(s) 
+URxvt*urgentOnBell: true
+URxvt*scrollBar_right: true
+
+URxvt*perl-ext-common: default,tabbed,matcher,-option-popup,-selection-popup,-readline
+
+## any scripts placed here will override global ones with the same name
+URxvt.perl-lib: ~/.urxvt/
+
+## tab
+URxvt*tabbed.saveLines: 5000
+URxvt*tabbed.tabbar-fg: 4
+URxvt*tabbed.tabbar-bg: 7
+URxvt*tabbed.tab-fg: 7
+URxvt*tabbed.tab-bg: 4
+
+## link handler - no browser support yet
+#URxvt*urlLauncher: ~/bin/chrome
+URxvt*matcher.button: 2
+URxvt*matcher.pattern.1: \\b(mailto|http|https|ftp|file):[/]*[\\w-]\\.[\\w./?&@#-]*[\\w/-]
+URxvt*matcher.pattern.2: \\bwww\\.[\\w-]\\.[\\w./?&@#-]*[\\w/-]
+
+## Zenburn color-scheme
+urxvt*depth: 32
+## [100] can be change to lower value (85) to provide opacity to the window
+urxvt*background: [100]#3f3f3f
+urxvt*foreground: #dcdccc
+
+## black + red
+##urxvt*color0:     #1e2320
+urxvt*color0:     #3f3f3f
+urxvt*color1:     #705050
+
+## green + yellow
+urxvt*color2:     #60b48a
+urxvt*color3:     #dfaf8f
+
+## blue + purple
+urxvt*color4:     #506070
+urxvt*color5:     #dc8cc3
+
+## cyan + white
+urxvt*color6:     #8cd0d3
+urxvt*color7:     #dcdccc
+
+## bright-black + bright-red
+urxvt*color8:     #709080
+urxvt*color9:     #dca3a3
+
+## bright-green + bright-yellow
+##urxvt*color10:    #c3bf9f
+urxvt*color10:    #c6dda7
+urxvt*color11:    #f0dfaf
+
+## bright-blue + bright-purple
+urxvt*color12:    #94bff3
+urxvt*color13:    #ec93d3
+
+## bright-cyan + bright-white
+urxvt*color14:    #93e0e3
+urxvt*color15:    #ffffff
