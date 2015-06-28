@@ -67,14 +67,14 @@ colorscheme zenburn
 
 if has("autocmd")
     filetype plugin on
+    " json files
+    au! BufRead,BufNewFile *.json set filetype=json
+    " markdown files
+    au BufNewFile,BufRead *.md set filetype=markdown
     " *.t files.
     au BufNewFile,BufRead *.t set filetype=perl
     " *.tt files.
     au BufNewFile,BufRead *.tt set filetype=tt2html
-    " markdown files
-    au BufNewFile,BufRead *.md set filetype=markdown
-    " json files
-    au! BufRead,BufNewFile *.json set filetype=json
 endif
 
 "au BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>80v.\+', -1)
@@ -92,12 +92,10 @@ let g:git_branch_status_ignore_remotes=1
 let g:git_branch_status_nogit=''
 let g:git_branch_status_text=' '
 
-map ,l :!perl -I "${PERL5LIB//:/ }" -cwT %<CR>
-
-map ,w :mkview<CR>:w<CR>
-map ,v :loadview<CR>
-
 map ,fs /^sub <CR>V/{<CR>%zfj
+map ,l :!perl -I "${PERL5LIB//:/ }" -cwT %<CR>
+map ,v :loadview<CR>
+map ,w :mkview<CR>:w<CR>
 
 map \jh :JSHint<CR>
 map \ve :VSTreeExplore<CR>

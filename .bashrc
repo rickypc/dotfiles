@@ -46,6 +46,9 @@ if [ -f /etc/bash_completion.d/git ]; then
 elif [ -f /etc/bash_completion.d/git-prompt.sh ]; then
     . /etc/bash_completion.d/git-prompt.sh
     PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
+elif [ -f ~/bin/git-prompt.sh ]; then
+    . ~/bin/git-prompt.sh
+    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
 else
     PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w${BY}\$${NONE} "
 fi
