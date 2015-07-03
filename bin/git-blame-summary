@@ -1,0 +1,92 @@
+#!/usr/bin/env perl
+
+#    Git Blame Summary - Show total LOC, author list, contribution percentage, and timestamp.
+#    Copyright (C) 2011-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use Term::ANSIColor qw(:constants);
+$Term::ANSIColor::AUTORESET = 1;
+use warnings;
+no warnings;
+use strict;
+use Data::Dumper;
+use List::Util qw( max );
+
+-f $ARGV[0] or die "Usage: $0 <file_to_blame>\n";
+
+my $authors = {};
+my $dates = {};
+
+open my $fh, "git blame $ARGV[0] |" or die "Failed to run git blame: $!";
+
+while (<$fh>) {
+    my ($author) = /\w+\s+[\(](.+?)\s*\d{4}/;
+    $authors->{$author}++;
+    my ($date) = /(\d{4}-\d{2}-\d{2})/;
+    $dates->{$author} = defined $dates->{author} ?
+        ( $date > $dates->{$author} ? $date : $dates->{$author} ) : $date;
+}
+my $lines = $.;
+
+close $fh;
+
+my $date_order = {};
+my $n=1;
+map { $date_order->{$_} = $n++ } reverse sort { $dates->{$a} cmp $dates->{$b} }
+    keys %$authors;
+
+my ($last_author) = sort { $date_order->{$a} cmp $date_order->{$b} } keys %$authors;
+
+print BOLD MAGENTA $ARGV[0] . " $lines lines";
+
+if ($last_author) {
+    print BOLD MAGENTA ", last touched by ";
+    print BOLD RED $last_author;
+    print BOLD MAGENTA " on ";
+    print YELLOW $dates->{$last_author} . "\n";
+}
+
+map {
+    my $percent = $authors->{$_} / $lines * 100;
+    my $space = $percent < 10  ? '  ' : $percent < 100 ? ' ' : '';
+    my $result = sprintf( "  %s %-02.1f %% %20s", $space, $percent, $_ );
+
+    if ($percent > 50) {
+        print BOLD RED $result;
+    } elsif ($percent > 25) {
+        print BOLD YELLOW $result;
+    } elsif ($percent > 10) {
+        print BOLD GREEN $result;
+    } else {
+        print BLUE $result;
+    }
+
+    my $result_date = sprintf( "   %s\n", $dates->{$_} );
+    my $order = $date_order->{$_};
+
+    if ($order == 1) {
+        print RED $result_date;
+    } elsif ($order < 4) {
+        print YELLOW $result_date;
+    } elsif ($order < 10) {
+        print GREEN $result_date;
+    } else {
+        print MAGENTA $result_date;
+    }
+
+} sort { $authors->{$b} <=> $authors->{$a} } keys %$authors;
+print "\n";
+
+1;

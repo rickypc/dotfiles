@@ -1,0 +1,60 @@
+#!/bin/bash -x
+
+#    Slack - Pull and rebase the code.
+#    Copyright (C) 2007-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# "slack" as in "take up the slack": pull and rebase the code.
+# slack script is part of the "slack and slip" (TM) process improvement,
+# an innovation by Richard Huang.
+
+function usage {
+    echo -e "Usage: $0 -h <target_branch>\n"
+    echo "Command line switches are optional. The following switches are recognized."
+    echo "   -h  -- Show this usage."
+    exit 1
+}
+
+while getopts ":h" o; do
+    case "$o" in
+        h) usage;;
+    esac
+done
+
+TARGET=$1
+# get the topic branch name
+# - using git name-rev failed
+TOPIC=`git branch | grep '\*' | awk '{print $2}'`
+
+if [ -z "$TARGET" ]; then
+    TARGET=master
+fi
+
+if [[ $TOPIC != "$TARGET" ]]; then
+    git pull origin $TOPIC
+    # change to local target branch
+    git checkout $TARGET
+fi
+
+# get latest update from remote tracked branch
+git pull origin $TARGET
+
+if [[ $TOPIC != "$TARGET" ]]; then
+    # return back to topic branch
+    git checkout $TOPIC
+
+    # get latest update from local target branch
+    git rebase $TARGET
+fi
