@@ -1,0 +1,104 @@
+#!/bin/bash
+
+#    Git Stat Cache - Store and apply file / folder ownership and permissions in git.
+#    Copyright (C) 2009-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+: ${GIT_STAT_CACHE_FILE:=.gitstatcache}
+PROGRAM_NAME="${0##*/}"
+
+function apply {
+    if [ -f $GIT_STAT_CACHE_FILE ]; then
+        if [ "$DRY_RUN" = true ]; then
+            cat $GIT_STAT_CACHE_FILE
+        else
+            bash $GIT_STAT_CACHE_FILE
+        fi
+    else
+        echo "$PROGRAM_NAME Error: $GIT_STAT_CACHE_FILE does not exist."
+    fi
+}
+
+function get_commands {
+    CHMOD="chmod %p '%N'"
+
+    case $(uname) in
+        'Darwin')
+            CHOWN="chown %Su:%Sg '%N'"
+            STAT="stat -f"
+            ;;
+        #'FreeBSD') ;;
+        'Linux')
+            CHOWN="chown %U:%G '%N'"
+            STAT="stat -c"
+            ;;
+    esac
+}
+
+function store {
+    get_commands
+
+    COMMAND="git ls-tree -rt --name-only HEAD | xargs -I{} $STAT"
+
+    if [ "$CHMOD_ONLY" = true ]; then
+        COMMAND="$COMMAND \"$CHMOD\" {}"
+    elif [ "$CHOWN_ONLY" = true ]; then
+        COMMAND="$COMMAND \"$CHOWN\" {}"
+    else
+        COMMAND="$COMMAND \"$CHOWN;$CHMOD\" {}"
+    fi
+
+    if [ ! "$DRY_RUN" = true ]; then
+        COMMAND="$COMMAND > $GIT_STAT_CACHE_FILE"
+    fi
+
+    eval $COMMAND
+}
+
+function usage {
+    echo -e "Usage: $0 -a -d -h -m -o -r -s\n"
+    echo "Command line switches are optional. The following switches are recognized."
+    echo "   -a  -- Apply stored stat information. This option takes precedence over the others."
+    echo "   -d  -- Dry run only, render to stdout. This is only work in combination with -a | -m | -o | -s."
+    echo "   -h  -- Show this usage."
+    echo "   -m  -- Store chmod information only. This option takes precedence over -o and -s."
+    echo "   -o  -- Store chown information only. This option takes precedence over -s."
+    echo "   -r  -- Remove stored stat information."
+    echo "   -s  -- Store both chmod and chown information. This option yields to -m and -o."
+    exit 1
+}
+
+while getopts ":adhmors" o; do
+    case "$o" in
+        a) APPLY=true;;
+        d) DRY_RUN=true;;
+        h) usage;;
+        m) CHMOD_ONLY=true;;
+        o) CHOWN_ONLY=true;;
+        r) REMOVE=true;;
+        s) STORE=true;;
+    esac
+done
+
+if [ "$APPLY" = true ]; then
+    apply
+elif [ "$CHMOD_ONLY" = true ] || [ "$CHOWN_ONLY" = true ] || [ "$STORE" = true ]; then
+    store
+elif [ "$REMOVE" = true ]; then
+    rm -f $GIT_STAT_CACHE_FILE
+    echo "$PROGRAM_NAME: $GIT_STAT_CACHE_FILE is removed."
+else
+    usage
+fi

@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#    FLAC Bits - Get real and advertise FLAC bits.
+#    Copyright (C) 2004-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+PROGRAM_NAME="${0##*/}"
+
+checkbits () {
+    create_temp_file
+
+    local bps abps tbps=0 n=0
+    bps="$( metaflac --show-bps "$1" )"
+    flac -ac "$1" 2>/dev/null | fgrep 'wasted_bits' | cut -d '=' -f 3 | cut -f 1 > "$TEMP"
+
+    while read wb; do
+        tbps=$(( tbps + ( bps - wb ) ))
+        ((n++))
+    done < "$TEMP"
+
+    abps=$(( ( ( tbps * 10 / n) + 5 ) / 10 )) # (* 10 + 5) / 10 for proper rounding 
+    printf "%2u/%2u bits\t%s\n" "$abps" "$bps" "$1"
+}
+
+create_temp_file () {
+    get_temp_dir
+
+    TEMP="$( TMPDIR="$TEMP_DIR" mktemp "${TEMP_DIR}${PROGRAM_NAME}.$(date +%s)" 2>/dev/null )"
+
+    if [ -z "$TEMP" ]; then
+        echo "$PROGRAM_NAME - Error: Can't create temporary file" 1>&2; exit 2
+    fi
+}
+
+get_temp_dir () {
+    if [ -w "$TMPDIR" ]; then
+        TEMP_DIR="$TMPDIR"
+    elif [ -w '/tmp' ]; then
+        TEMP_DIR='/tmp'
+    elif [ -w "$HOME" ]; then
+        TEMP_DIR="$HOME"
+    elif [ -w "$PWD" ]; then
+        TEMP_DIR="$PWD"
+    else
+        echo "$PROGRAM_NAME - Error: Can't find a writable directory for creating the temporary file" 1>&2; exit 1
+    fi
+}
+
+for f in "$@"; do
+    case "$f" in
+        *.flac) checkbits "$f";;
+        *) continue;;
+    esac
+done
+
+rm -f "$TEMP"

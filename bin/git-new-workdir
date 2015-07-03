@@ -1,0 +1,89 @@
+#!/bin/sh
+
+#    Create New Git Working Folder - Create new git working folder.
+#    Copyright (C) 2011-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+usage () {
+    echo "Usage: $@"
+    exit 127
+}
+
+die () {
+    echo $@
+    exit 128
+}
+
+if test $# -lt 2 || test $# -gt 3; then
+    usage "$0 <repository> <new_workdir> [branch]"
+fi
+
+repository=$1
+new_workdir=$2
+branch=$3
+
+# ensure the repository has a .git folder
+git_dir=$(cd "$repository" 2>/dev/null && git rev-parse --git-dir 2>/dev/null) ||
+    die "Not a git repository: \"$repository\""
+
+case "$git_dir" in
+    .git)
+	git_dir="$repository/.git";;
+    .)
+	git_dir=$repository;;
+esac
+
+# ensure the repository is not bare repository
+is_bare_repository=$(git --git-dir="$git_dir" config --bool --get core.bare)
+if test ztrue = z$is_bare_repository; then
+    die "\"$git_dir\" has core.bare set to true," \
+        " remove from \"$git_dir/config\" to use $0"
+fi
+
+# ensure the repository is a complete repository
+if test -L "$git_dir/config"; then
+    die "\"$repository\" is a working directory only, please specify" \
+	" a complete repository."
+fi
+
+# ensure target working folder is not exist
+if test -e "$new_workdir"; then
+    die "Destination directory '$new_workdir' already exists."
+fi
+
+# ensure we have the full path
+git_dir=$(cd "$git_dir"; pwd)
+
+# create the target working folder
+mkdir -p "$new_workdir/.git" || die "Unable to create \"$new_workdir\"!"
+
+# create symbolic links between source repository and target working folder
+# that can share the repository information.
+for item in config refs logs/refs objects info hooks packed-refs remotes rr-cache; do
+    case $item in
+        */*)
+	    mkdir -p "$(dirname "$new_workdir/.git/$item")";;
+    esac
+    ln -s "$git_dir/$item" "$new_workdir/.git/$item"
+done
+
+# now setup the target working folder
+cd "$new_workdir"
+
+# copy the HEAD from the soruce repository as a default branch
+cp "$git_dir/HEAD" .git/HEAD
+
+# checkout the branch with HEAD from source repository or requested branch
+git checkout -f $branch

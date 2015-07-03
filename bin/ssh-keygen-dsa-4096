@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#    SSH DSA-4096 Key Generator - Generate SSH DSA key with 4096 length.
+#    Copyright (C) 2000-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+read -p "DSA keys are not recommended. Continue? [y/N] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    FILE_NAME=id_dsa
+    LENGTH=4096
+    # this is to make sure we don't override existing keys. safety first.
+    OUTPUT_DIR=~
+
+    openssl dsaparam -out $OUTPUT_DIR/dsaparam.pem $LENGTH
+    openssl gendsa -aes256 -out $OUTPUT_DIR/$FILE_NAME $OUTPUT_DIR/dsaparam.pem
+    openssl dsa -in $OUTPUT_DIR/$FILE_NAME -pubout -out $OUTPUT_DIR/$FILE_NAME.pub
+
+    chmod 400 $OUTPUT_DIR/$FILE_NAME $OUTPUT_DIR/$FILE_NAME.pub
+
+    rm -rf $OUTPUT_DIR/dsaparam.pem
+
+    echo "You can find your generated DSA-$LENGTH SSH keys in $OUTPUT_DIR/$FILE_NAME and $OUTPUT_DIR/$FILE_NAME.pub"
+fi

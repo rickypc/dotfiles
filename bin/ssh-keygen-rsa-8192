@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#    SSH RSA-8192 Key Generator - Generate SSH RSA key with 8192 length.
+#    Copyright (C) 2000-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+FILE_NAME=id_rsa
+LENGTH=8192
+# this is to make sure we don't override existing keys. safety first.
+OUTPUT_DIR=~
+
+ssh-keygen -b $LENGTH -t rsa -f $OUTPUT_DIR/$FILE_NAME
+echo "You can find your generated RSA-$LENGTH SSH keys in $OUTPUT_DIR/$FILE_NAME and $OUTPUT_DIR/$FILE_NAME.pub"

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#    Colinux Build Script - Build Colinux kernel and its module.
+#    Copyright (C) 2012-2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+WORKSPACE=~/colinux
+BUILD_DIR=$WORKSPACE/build
+LOG_DIR=$WORKSPACE/log
+# Colinux package
+PACKAGE_DIR=$WORKSPACE/colinux-devel
+# Windows share folder
+WINDOWS_DIR=$WORKSPACE/windows
+
+CO_VERSION=`cat $PACKAGE_DIR/src/colinux/VERSION`
+KERNEL_VERSION=`ls $PACKAGE_DIR/patch/series-* | sed -n -e 's/^.*series-\([0-9\.]*\)$/\1/' -e '$p'`
+COMPLETE_KERNEL_NAME=$KERNEL_VERSION-co-$CO_VERSION
+
+rm -rf $LOG_DIR/*
+
+if [ ! -z $1 ]; then
+    cd $BUILD_DIR/linux-$KERNEL_VERSION-source
+    make mrproper
+fi
+
+cd $BUILD_DIR/linux-$KERNEL_VERSION-build
+if [ ! -z $1 ]; then
+    make mrproper
+fi
+cp $PACKAGE_DIR/conf/linux-$KERNEL_VERSION-config .config
+make menuconfig
+
+# sync back after make menuconfig changes
+cp .config $PACKAGE_DIR/conf/linux-$KERNEL_VERSION-config
+
+# should be inside PACKAGE_DIR bin folder to execute this
+cd $PACKAGE_DIR/bin
+./build-kernel.sh --no-download
+
+cd /lib/modules
+sudo rm -rf $COMPLETE_KERNEL_NAME.last.known.good.txz
+sudo XZ_OPT=-9e tar -cJf $COMPLETE_KERNEL_NAME.last.known.good.txz $COMPLETE_KERNEL_NAME
+sudo rm -rf $COMPLETE_KERNEL_NAME
+sudo tar -xzf $BUILD_DIR/linux-$KERNEL_VERSION-build/vmlinux-modules.tar.gz -C /
+
+#cp $BUILD_DIR/linux-$KERNEL_VERSION-build/vmlinux $BUILD_DIR/linux-$KERNEL_VERSION-build/vmlinux-modules.tar.gz $WINDOWS_DIR
+cp $BUILD_DIR/linux-$KERNEL_VERSION-build/vmlinux $WINDOWS_DIR
