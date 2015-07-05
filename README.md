@@ -9,7 +9,7 @@ Platforms: [GNU/Linux](https://www.gnu.org/gnu/linux-and-gnu.en.html) ([RHEL](ht
 
 Installation
 -
-You can git clone dotfiles into your non-empty home directory with one command (no [symlink](https://en.wikipedia.org/wiki/Symbolic_link) business needed):
+You can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
 
 ```bash
 $ cd; git init; git remote add origin https://github.com/rickypc/dotfiles.git; git pull
@@ -23,10 +23,18 @@ $ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git p
 
 Apply Stored Stat Information
 -
-You can apply back any stored stat information for files / directories ownership and permissions:
+You can apply back any stored stat information for files/directories ownership and/or permissions.
+
+[git-stat-cache](bin/git-stat-cache) in your ``$PATH``:
 
 ```bash
 $ git stat-cache -a
+```
+
+Or, not:
+
+```bash
+$ bin/git-stat-cache -a
 ```
 
 Script and Tool List
