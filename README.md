@@ -32,30 +32,30 @@ $ git stat-cache -a
 Script and Tool List
 -
 
-Script Name                                                     | Language | Description
-----------------------------------------------------------------|----------|------------
-[chmod-fix](blob/master/bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
-[colinux-build](blob/master/bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
-[cpan-uninstall](blob/master/bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
-[download-site](blob/master/bin/download-site)                  | Bash     | Download any site for offline fair use.
-[download-site-partial](blob/master/bin/download-site-partial)  | Bash     | Download any site partially for offline fair use.
-[flac-bits](blob/master/bin/flac-bits)                          | Bash     | Get real and advertise [FLAC](https://en.wikipedia.org/wiki/FLAC) bits.
-[getinfo.sh](blob/master/bin/getinfo.sh)                        | Bash     | Collects [CentOS](https://www.centos.org/) system hardware and software information.
-[git-author-fix](blob/master/bin/git-author-fix)                | Bash     | Fix author name and email in git history.
-[git-blame-summary](blob/master/bin/git-blame-summary)          | Perl     | Show total [LOC](https://en.wikipedia.org/wiki/Source_lines_of_code), author list, contribution percentage, and timestamp.
-[git-new-workdir](blob/master/bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
-[git-prompt.sh](blob/master/bin/git-prompt.sh)                  | Bash     | Show repository status in your shell prompt.
-[git-stat-cache](blob/master/bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
-[mvn-deps](blob/master/bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
-[replace-in-place](blob/master/bin/replace-in-place)            | Bash     | Replace file content in-place.
-[rm-svn](blob/master/bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
-[search](blob/master/bin/search)                                | Bash     | Search keyword inside the files. 
-[slack](blob/master/bin/slack)                                  | Bash     | Pull and rebase the code for git repository.
-[slip](blob/master/bin/slip)                                    | Bash     | Merge and push the code back to git repository.
-[ssh-keygen-dsa-4096](blob/master/bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
-[ssh-keygen-rsa-8192](blob/master/bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length. 
-[x-launcher-client.c](blob/master/bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
-[x-launcher.c](blob/master/bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
+Script Name                                         | Language | Description
+----------------------------------------------------|----------|------------
+[chmod-fix](bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
+[colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
+[cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
+[download-site](bin/download-site)                  | Bash     | Download any site for offline fair use.
+[download-site-partial](bin/download-site-partial)  | Bash     | Download any site partially for offline fair use.
+[flac-bits](bin/flac-bits)                          | Bash     | Get real and advertise [FLAC](https://en.wikipedia.org/wiki/FLAC) bits.
+[getinfo.sh](bin/getinfo.sh)                        | Bash     | Collects [CentOS](https://www.centos.org/) system hardware and software information.
+[git-author-fix](bin/git-author-fix)                | Bash     | Fix author name and email in git history.
+[git-blame-summary](bin/git-blame-summary)          | Perl     | Show total [LOC](https://en.wikipedia.org/wiki/Source_lines_of_code), author list, contribution percentage, and timestamp.
+[git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
+[git-prompt.sh](bin/git-prompt.sh)                  | Bash     | Show repository status in your shell prompt.
+[git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
+[mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
+[replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
+[rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
+[search](bin/search)                                | Bash     | Search keyword inside the files. 
+[slack](bin/slack)                                  | Bash     | Pull and rebase the code for git repository.
+[slip](bin/slip)                                    | Bash     | Merge and push the code back to git repository.
+[ssh-keygen-dsa-4096](bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
+[ssh-keygen-rsa-8192](bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length. 
+[x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
+[x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
 
 License
 -
