@@ -1,6 +1,9 @@
 # List of ignore files when you do git status
 
+.DS_Store
 build
 dist
 node_modules
+project.xcworkspace
 test-results
+xcuserdata

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Keyword Finder - Search keyword inside the files.
+#    CRLF Finder - Search Carriage Return and Line Feed (CRLF) inside the files.
 #    Copyright (C) 1995-2015  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function usage {
-    echo -e "Usage: $0 [-e <exclude folder> ...] -h <keyword>\n"
+    echo -e "Usage: $0 [-e <exclude folder> ...] -h\n"
     echo "Command line switches are optional. The following switches are recognized."
     echo "   -e  -- Folder to be excluded from the search path."
     echo "   -h  -- Show this usage."
@@ -33,7 +33,7 @@ done
 
 shift $((OPTIND-1))
 
-FIND_ARGS+="-not \( -path '*.git/*' -prune \)"
+FIND_ARGS+="-not \( -path '*.git/*' -prune \) -not \( -path '*node_modules*' -prune \)"
 
 if [ ! -z "$EXCLUDES" ]; then
     for EXCLUDE in "${EXCLUDES[@]}"; do
@@ -41,4 +41,4 @@ if [ ! -z "$EXCLUDES" ]; then
     done
 fi
 
-eval "find . -type f $FIND_ARGS -print0" | xargs -0 grep --color=always --line-buffered -HIinrs $1
+eval "find . -type f $FIND_ARGS -exec file '{}' ';'" | grep --color=always --line-buffered -Ins CRLF
