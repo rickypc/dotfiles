@@ -59,7 +59,7 @@ Script Name                                         | Language | Description
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
 [search](bin/search)                                | Bash     | Search keyword inside the files.
 [search-crlf](bin/search-crlf)                      | Bash     | Search CRLF inside the files.
-[slack](bin/slack)                                  | Bash     | Pull and rebase the code for git repository.
+[slack](bin/slack)                                  | Bash     | Pull and rebase the code from git repository.
 [slip](bin/slip)                                    | Bash     | Merge and push the code back to git repository.
 [ssh-keygen-dsa-4096](bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
 [ssh-keygen-rsa-8192](bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length.
