@@ -54,6 +54,8 @@ Script Name                                         | Language | Description
 [git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
 [git-prompt.sh](bin/git-prompt.sh)                  | Bash     | Show repository status in your shell prompt.
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
+[json-prettifier](bin/json-prettifier)              | Bash     | Pretty print JSON document.
+[json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from JSON document.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
