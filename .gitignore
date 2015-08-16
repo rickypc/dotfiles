@@ -1,6 +1,7 @@
 # List of ignore files when you do git status
 
 .DS_Store
+.searchignore
 build
 dist
 node_modules
