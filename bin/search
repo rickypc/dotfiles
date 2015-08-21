@@ -49,4 +49,4 @@ if [ ! -z "$EXCLUDES" ]; then
     done
 fi
 
-eval "find . -type f $FIND_ARGS -print0" | xargs -0 grep --color=always --line-buffered -HIinrs $1
+eval "find . -type f $FIND_ARGS -print0" | xargs -0 grep --color=always --line-buffered -HIinrs "$1"
