@@ -16,4 +16,10 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-du -smh $(find . -maxdepth 1 -type d -xdev) | sort -g
+SORT="sort"
+
+if [[ "$(uname)" == 'Darwin' ]]; then
+    SORT="gsort"
+fi
+
+find . -maxdepth 1 -type d -print0 | xargs -0 du -sh | $SORT -h
