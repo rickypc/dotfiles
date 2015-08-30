@@ -43,6 +43,7 @@ Script and Tool List
 Script Name                                         | Language | Description
 ----------------------------------------------------|----------|------------
 [chmod-fix](bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
+[clean-hists-and-logs](bin/clean-hists-and-logs)    | Bash     | Clean histories and logs.
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
 [disk-usage](bin/disk-usage)                        | Bash     | Get disk space usage for current folder.
