@@ -58,6 +58,7 @@ Script Name                                         | Language | Description
 [git-prompt.sh](bin/git-prompt.sh)                  | Bash     | Show repository status in your shell prompt.
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
 [gpg-verify](bin/gpg-verify)                        | Bash     | Verify [GPG](https://www.gnupg.org/) signature from specified document path.
+[git-what-branch](bin/git-what-branch)              | Perl     | Show the earliest path of git commits.
 [json-prettifier](bin/json-prettifier)              | Bash     | Pretty print JSON document.
 [json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from JSON document.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
