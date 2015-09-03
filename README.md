@@ -62,7 +62,7 @@ Script Name                                         | Language | Description
 [json-prettifier](bin/json-prettifier)              | Bash     | Pretty print JSON document.
 [json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from JSON document.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
-[polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about Polygon.
+[polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about Polygon geometry.
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
 [search](bin/search)                                | Bash     | Search keyword inside the files.
