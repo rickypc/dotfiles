@@ -39,7 +39,6 @@ $ bin/git-stat-cache -a
 
 Script and Tool List
 -
-
 Script Name                                         | Language | Description
 ----------------------------------------------------|----------|------------
 [chmod-fix](bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
