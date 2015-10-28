@@ -126,7 +126,8 @@ function! GitBranchInfoTokens()
 		if exists("g:git_branch_status_head_current")
 			let l:heads	= []
 		else		
-			let l:heads	= split(glob(b:gbi_git_dir."/refs/heads/*"),"\n")
+			let l:heads	= split(glob(b:gbi_git_dir."/refs/heads/**"),"\n")
+			let l:heads	= filter(l:heads, "!isdirectory(v:val)")
 			call map(l:heads,'substitute(v:val,b:gbi_git_dir."/refs/heads/","","")')
 			call sort(filter(l:heads,'v:val !~ s:current'))
 		endif		
@@ -152,7 +153,7 @@ endfunction
 " *****************************************************************************
 " functions called from menu
 " *****************************************************************************
-function! <SID>:GitBranchInfoCheckout(branch)
+function! s:GitBranchInfoCheckout(branch)
 	let l:tokens	= GitBranchInfoTokens()
 	let l:checkout	= "git\ checkout\ ".a:branch 
 	let l:where		= substitute(b:gbi_git_dir,".git$","","")
@@ -161,7 +162,7 @@ function! <SID>:GitBranchInfoCheckout(branch)
 	call s:GitBranchInfoRenewMenu(l:tokens[0],l:tokens[1],l:tokens[2])
 endfunction
 
-function! <SID>:GitBranchInfoFetch(remote)
+function! s:GitBranchInfoFetch(remote)
 	let l:tokens	= GitBranchInfoTokens()
 	let l:fetch		=  "git\ fetch\ ".a:remote
 	let l:where		= substitute(b:gbi_git_dir,".git$","","")
@@ -244,6 +245,12 @@ function! s:GitBranchInfoFindDir()
 		if !empty(finddir(l:path))
 			let b:gbi_git_dir = l:path
 			break
+		elseif filereadable(l:path)
+			let l:line = get(readfile(l:path, '', 1), 0, '')
+			if l:line =~# '^gitdir: ' && !empty(finddir(line[8:-1]))
+				let b:gbi_git_dir = line[8:-1]
+				break
+			endif
 		endif
 		call remove(l:buflist,-1)
 	endwhile
