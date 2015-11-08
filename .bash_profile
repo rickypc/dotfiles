@@ -15,7 +15,11 @@ MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
 
 gcc_process() {
     # tty will print out tty{\d} and virtual terminal will print out nothing
-    IS_TTY=`ps --no-headers --format tty $$ | grep tty`
+    if [[ "$(uname)" == 'Darwin' ]]; then
+        IS_TTY=`ps -o tty $$ | grep tty`
+    else
+        IS_TTY=`ps --no-headers --format tty $$ | grep tty`
+    fi
 
     if [ -z $IS_TTY ]; then
         echo -e "\ngcc version changes.\nPlease open a tty terminal and follow the instruction.\n"
@@ -76,7 +80,9 @@ if [[ -d /usr/local/bin && $PATH != */usr/local/bin* ]]; then
 fi
 
 # Initialize Perl bash completion plugins
-. /usr/local/bin/setup-bash-complete
+if [ -f /usr/local/bin/setup-bash-complete ]; then
+    . /usr/local/bin/setup-bash-complete
+fi
 
 if [ -d $ANDROID_SDK ]; then
     if [[ $ANDROID_HOME != *${ANDROID_SDK}* ]]; then
