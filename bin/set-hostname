@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#    Set Hostname - Set hostname to requested name.
+#    Copyright (C) 2015  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+function usage {
+    echo -e "Usage: $0 -n <new_hostname> -h\n"
+    echo "Command line switch is required, except -h. The following switch is recognized."
+    echo "    -n  -- New hostname."
+    echo "    -h  -- Show this usage."
+    exit 1
+}
+
+while getopts ":hn:" o; do
+    case "$o" in
+        n) NAME=$OPTARG;;
+        *) usage;;
+    esac
+done
+
+if [[ -z "$NAME" ]]; then
+    usage
+fi
+
+sudo scutil --set ComputerName "$NAME"
+sudo scutil --set HostName "$NAME"
+sudo scutil --set LocalHostName "${NAME%%.*}"
+dscacheutil -flushcache

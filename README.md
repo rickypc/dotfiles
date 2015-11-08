@@ -12,13 +12,13 @@ Installation
 You can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
 
 ```bash
-$ cd; git init; git remote add origin https://github.com/rickypc/dotfiles.git; git pull
+$ cd; git init; git remote add origin https://github.com/rickypc/dotfiles.git; git checkout -b master origin/master; git pull origin
 ```
 
 Or, if you would like to use SSH clone URL, like myself:
 
 ```bash
-$ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git pull
+$ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git checkout -b master origin/master; git pull origin
 ```
 
 Apply Stored Stat Information
@@ -66,6 +66,7 @@ Script Name                                         | Language | Description
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
 [search](bin/search)                                | Bash     | Search keyword inside the files.
 [search-crlf](bin/search-crlf)                      | Bash     | Search CRLF inside the files.
+[set-hostname](bin/set-hostname)                    | Bash     | Set hostname.
 [slack](bin/slack)                                  | Bash     | Pull and rebase the code from git repository.
 [slip](bin/slip)                                    | Bash     | Merge and push the code back to git repository.
 [ssh-keygen-dsa-4096](bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
