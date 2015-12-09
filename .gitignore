@@ -1,7 +1,10 @@
 # List of ignore files when you do git status
 
+.bash_history
 .DS_Store
+.gcc-version
 .searchignore
+.viminfo
 build
 dist
 node_modules
