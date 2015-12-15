@@ -42,6 +42,7 @@ Script and Tool List
 Script Name                                         | Language | Description
 ----------------------------------------------------|----------|------------
 [chmod-fix](bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
+[chown-fix](bin/chown-fix)                          | Bash     | Fix folder and file owner to current login user and group.
 [clean-hists-and-logs](bin/clean-hists-and-logs)    | Bash     | Clean histories and logs.
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
