@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #    Get Python Virtual Environment - Install Python 2.x and 3.x virtual environment
-#    alongside each other and set it to the path.
+#    alongside each other and set those to the path.
 #    Copyright (C) 2015-2016  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -18,10 +18,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOCAL_BIN=/usr/local/bin
-PYTHON3_BASE=$(python3 -c "from distutils.sysconfig import BASE_PREFIX;print(BASE_PREFIX)")
+PYTHON2_BASE=$(python2 -c "from distutils.sysconfig import PREFIX;print(PREFIX)")
+PYTHON3_BASE=$(python3 -c "from distutils.sysconfig import PREFIX;print(PREFIX)")
 
-sudo pip install -U virtualenv
-sudo cp $LOCAL_BIN/virtualenv $LOCAL_BIN/virtualenv2
+sudo ln -sf ${PYTHON2_BASE}/bin/pip2 $LOCAL_BIN/pip2
+sudo ln -sf ${PYTHON3_BASE}/bin/pip3 $LOCAL_BIN/pip3
+sudo pip2 install -U virtualenv
 sudo pip3 install -U virtualenv
+sudo ln -sf ${PYTHON2_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv2
 sudo ln -sf ${PYTHON3_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv3
-sudo ln -sf /usr/bin/python $LOCAL_BIN/python2
