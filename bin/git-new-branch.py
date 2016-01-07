@@ -124,7 +124,7 @@ class FeatureBranch():
     def user_want_to_discard_changes(self):
         message = ('This program will discard any changes in %s permanently. Continue [y]? '
                    % self.cwd)
-        response = False
+        response = True
         if not self.repo.is_dirty():
             return response
         try:
@@ -181,7 +181,7 @@ def main():
         sys.exit(feature_branch.exit_code)
 
     if not feature_branch.user_want_to_discard_changes():
-        print('User canceled out of discard changes in working directory.')
+        print('User cancelled out of discard changes in working directory.')
         sys.exit(0)
 
     feature_branch.fetch()
