@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #    Git Create New Branch - Create new branch from base branch in git repository.
 #    Copyright (C) 2010-2016  Richard Huang <rickypc@users.noreply.github.com>
@@ -38,7 +38,11 @@ class FeatureBranch():
         self.repo = None
         self.success = False
         self.user = getuser()
-        self.user_prefix = kwargs.pop('user_prefix', True)
+        self.user_prefix = kwargs.pop('user_prefix', None)
+        try:
+            self.user_prefix = strtobool(self.user_prefix.lower())
+        except ValueError:
+            self.user_profile = True
         if not self.base:
             base_default = '%s/' % self.origin if self.origin else ''
             self.base = raw_input('Please enter remote branch name without git remote name [%s]: '
@@ -118,6 +122,8 @@ class FeatureBranch():
         message = ('This program will discard any changes in %s permanently. Continue [y]? '
                    % self.cwd)
         response = False
+        if not self.repo.is_dirty():
+            return response
         try:
             choice = raw_input(message) or 'y'
             response = strtobool(choice.lower())
@@ -156,7 +162,7 @@ def main():
     parser.add_argument('-n', '--name', help="Feature branch name without user prefix.")
     parser.add_argument('-o', '--origin', default='origin',
                         help="Git remote name. Default: 'origin'")
-    parser.add_argument('-u', '--user_prefix', default=True,
+    parser.add_argument('-u', '--user_prefix',
                         help="Prefix feature branch name with current user. Default: True")
 
     feature_branch = FeatureBranch(**vars(parser.parse_args()))
@@ -165,15 +171,15 @@ def main():
         print('Aborted.')
         sys.exit(feature_branch.exit_code)
 
-    if not feature_branch.user_want_to_discard_changes():
-        print('User canceled out of discard changes in working directory.')
-        sys.exit(0)
-
     feature_branch.get_repo()
     feature_branch.validate_repo()
     if feature_branch.exit_code != 0:
         print('Aborted.')
         sys.exit(feature_branch.exit_code)
+
+    if not feature_branch.user_want_to_discard_changes():
+        print('User canceled out of discard changes in working directory.')
+        sys.exit(0)
 
     feature_branch.fetch()
     feature_branch.prune()
