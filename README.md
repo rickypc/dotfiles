@@ -54,6 +54,7 @@ Script Name                                         | Language | Description
 [git-author-fix](bin/git-author-fix)                | Bash     | Fix author name and email in git history.
 [git-blame-summary](bin/git-blame-summary)          | Perl     | Show total [LOC](https://en.wikipedia.org/wiki/Source_lines_of_code), author list, contribution percentage, and timestamp.
 [git-maintenance](bin/git-maintenance)              | Bash     | Sync with remote, clean, and optimize git repository.
+[git-new-branch.py](bin/git-new-branch.py)          | Python   | Create git new branch from base branch, push to remote and track.
 [git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
 [git-prompt.sh](bin/git-prompt.sh)                  | Bash     | Show repository status in your shell prompt.
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
