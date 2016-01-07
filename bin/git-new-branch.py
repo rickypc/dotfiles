@@ -39,10 +39,13 @@ class FeatureBranch():
         self.success = False
         self.user = getuser()
         self.user_prefix = kwargs.pop('user_prefix', None)
-        try:
-            self.user_prefix = strtobool(self.user_prefix.lower())
-        except ValueError:
-            self.user_profile = True
+        if self.user_prefix is None:
+            self.user_prefix = True
+        else:
+            try:
+                self.user_prefix = strtobool(self.user_prefix.lower())
+            except ValueError:
+                self.user_profile = True
         if not self.base:
             base_default = '%s/' % self.origin if self.origin else ''
             self.base = raw_input('Please enter remote branch name without git remote name [%s]: '
