@@ -1,13 +1,26 @@
 # List of ignore files when you do git status
 
 .bash_history
+.bash_sessions
+.cache
+.config
 .DS_Store
 .gcc-version
+.python_history
 .searchignore
 .viminfo
+Applications
 build
+Desktop
 dist
+Documents
+Downloads
+Library
+Movies
+Music
 node_modules
+Pictures
 project.xcworkspace
+Public
 test-results
 xcuserdata
