@@ -1,27 +1,57 @@
 " Richard Huang's .vimrc
-"
-set nocompatible
-set laststatus=2
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                 Vim Behavior
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" I want vim - better safe than sorry
+set nocompatible
+
+" sane backspace
 set backspace=indent,eol,start
 
+set encoding=utf-8
+
+" search
+set hlsearch incsearch ignorecase smartcase
+
+" don't unload buffer when switching away
 " set hidden
-set noautoindent
-set linebreak
 
-" Highly recommended to set tab keys to 4 spaces
-set expandtab
-"set tabstop=4
-set shiftwidth=4
-set softtabstop=4
+" always show status bar
+set laststatus=2
 
+set matchtime=3 showmatch
+
+" allow per-file settings via modeline
+set modeline
+
+" show absolute line number of the current line
+set number
+
+" use letter as the print output format
+set printoptions=paper:letter
+
+" scroll the window so we can always see 2 lines around
+set scrolloff=2
+
+" disable unsafe commands in local .vimrc files
+set secure
+
+" no-wrap
 set textwidth=0
 "set textwidth=78
 
-set showmatch
-set matchtime=3
+" auto save
+autocmd BufLeave,CursorHold,CursorHoldI,FocusLost * silent! wa
 
-set incsearch
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                  Appearance
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+syntax on
+set background=dark
+colorscheme zenburn
 
 "set term=xterm
 "set t_Co=256
@@ -34,24 +64,6 @@ if &term =~ "xterm-xfree86"
     set t_Sb=^[[4%dm
 endif
 
-" keep a copy of last edit - make sure the backup dir exists
-set backup
-
-if version >= 700
-    set backupdir=~/.vim/backup/
-    set statusline=%<%f%{GitBranchInfoString()}\%h%m%r%=%-20.(\ line=%l\ \ col=%c%V\ \ totlin=%L%)\ \ \%h%m%r%=%-40(bytval=0x%B,%n%Y%)\%P
-    let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
-    map \ne :NERDTree<CR>
-else
-    let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
-    set backupdir=~/.vim6/backup/
-    set statusline=%<%f\%h%m%r%=%-20.(\ line=%l\ \ col=%c%V\ \ totlin=%L%)\ \ \%h%m%r%=%-40(bytval=0x%B,%n%Y%)\%P
-    map \cv :GITDiff<CR>
-endif
-
-syntax on
-set hlsearch
-
 if has("gui_running")
     if has("gui_gtk2")
       set guifont=Inconsolata\ 12
@@ -62,8 +74,24 @@ if has("gui_running")
     endif
 endif
 
-set background=dark
-colorscheme zenburn
+" show right margin at 80, 100 and 120+ column.
+if exists('+colorcolumn')
+    " 7.3+
+    let &colorcolumn='80,100,'.join(range(120,500), ',')
+"    highlight ColorColumn ctermbg=235 guibg=#2c2d27
+else
+    autocmd BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>80v.\+', -1)
+endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                  Formatting
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+set noautoindent linebreak
+
+" Highly recommended to set tab keys to 4 spaces
+set expandtab shiftwidth=4 softtabstop=4
+"set tabstop=4
 
 if has("autocmd")
     filetype plugin on
@@ -77,20 +105,41 @@ if has("autocmd")
     au BufNewFile,BufRead *.tt set filetype=tt2html
 endif
 
-"au BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>80v.\+', -1)
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                    Backup
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-set ignorecase
-set smartcase
-set number
+" keep a copy of last edit - make sure the backup dir exists
+set backup
 
-set scrolloff=2
+if version >= 700
+    set backupdir=~/.vim/backup/
+else
+    set backupdir=~/.vim6/backup/
+endif
 
-set encoding=utf-8
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                             Plugin Configuration
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 let g:git_branch_status_head_current=1
 let g:git_branch_status_ignore_remotes=1
 let g:git_branch_status_nogit=''
 let g:git_branch_status_text=' '
+
+if version >= 700
+    set statusline=%<%f%{GitBranchInfoString()}\%h%m%r%=%-20.(\ line=%l\ \ col=%c%V\ \ totlin=%L%)\ \ \%h%m%r%=%-40(bytval=0x%B,%n%Y%)\%P
+    let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
+    map \ne :NERDTree<CR>
+else
+    let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
+    set statusline=%<%f\%h%m%r%=%-20.(\ line=%l\ \ col=%c%V\ \ totlin=%L%)\ \ \%h%m%r%=%-40(bytval=0x%B,%n%Y%)\%P
+    map \cv :GITDiff<CR>
+endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                   Mappings
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 map ,fs /^sub <CR>V/{<CR>%zfj
 map ,l :!perl -I "${PERL5LIB//:/ }" -cwT %<CR>
