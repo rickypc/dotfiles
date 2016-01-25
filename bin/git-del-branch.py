@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#    Git Create New Branch - Create new branch from base branch in git repository.
+#    Git Delete Branch - Delete local, remote-tracking and remote branch in git repository.
 #    Copyright (C) 2010-2016  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -17,11 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Git Create New Branch - Create new branch from base branch in git repository.
+Git Delete Branch - Delete local, remote-tracking and remote branch in git repository.
 """
 
 from __future__ import print_function
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 from getpass import getuser
 from os import getcwd
 from traceback import format_exception_only
@@ -233,9 +233,9 @@ class FeatureBranch(object):
 
 
 def main():
-    """Create feature branch from base branch in git repository."""
+    """Delete feature local, remote-tracking, and remote branch in git repository."""
     parser = ArgumentParser(description=main.__doc__)
-    parser.add_argument('-b', '--base', help="Base remote branch name without git remote name.")
+    parser.add_argument('-d', '--delete', action='store_true', default=True, help=SUPPRESS)
     parser.add_argument('-n', '--name', help="Feature branch name without user prefix.")
     parser.add_argument('-o', '--origin', default='origin',
                         help="Git repository alias. Default: 'origin'")
@@ -254,14 +254,16 @@ def main():
         print('Aborted.')
         sys.exit(feature_branch.outputs['exit_code'])
 
-    if not feature_branch.user_want_to_discard_changes():
-        print('User cancelled out of discard changes in working directory.')
-        sys.exit(0)
+    if feature_branch.get_current_branch() == feature_branch.target:
+        if not feature_branch.user_want_to_discard_changes():
+            print('User cancelled out of discard changes in working directory.')
+            sys.exit(0)
+        feature_branch.checkout('master')
 
     feature_branch.fetch()
-    feature_branch.create()
-    feature_branch.get_relationship()
-    feature_branch.notify_ready()
+    feature_branch.delete()
+    feature_branch.notify_delete()
+    feature_branch.notify_current_branch()
 
 
 if __name__ == "__main__":

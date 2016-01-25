@@ -54,6 +54,7 @@ Script Name                                         | Language | Description
 [getinfo.sh](bin/getinfo.sh)                        | Bash     | Collects [CentOS](https://www.centos.org/) system hardware and software information.
 [git-author-fix](bin/git-author-fix)                | Bash     | Fix author name and email in git history.
 [git-blame-summary](bin/git-blame-summary)          | Perl     | Show total [LOC](https://en.wikipedia.org/wiki/Source_lines_of_code), author list, contribution percentage, and timestamp.
+[git-del-branch.py](bin/git-del-branch.py)          | Python   | Delete git local, remote-tracking, and remote branch.
 [git-maintenance](bin/git-maintenance)              | Bash     | Sync with remote, clean, and optimize git repository.
 [git-new-branch.py](bin/git-new-branch.py)          | Python   | Create git new branch from base branch, push to remote and track.
 [git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
