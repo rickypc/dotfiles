@@ -3,11 +3,14 @@
 .bash_history
 .bash_sessions
 .cache
+.CFUserTextEncoding
 .config
 .DS_Store
 .gcc-version
+.MacOSX
 .python_history
 .searchignore
+.Trash
 .viminfo
 Applications
 build
