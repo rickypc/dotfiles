@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# pylint: disable=invalid-name
 
 #    Git Create New Branch - Create new branch from base branch in git repository.
 #    Copyright (C) 2010-2016  Richard Huang <rickypc@users.noreply.github.com>

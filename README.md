@@ -69,6 +69,7 @@ Script Name                                         | Language | Description
 [polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about Polygon geometry.
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
+[robot-parallel.py](bin/robot-parallel.py)          | Python   | Run Robot Framework data sources in parallel.
 [search](bin/search)                                | Bash     | Search keyword inside the files.
 [search-crlf](bin/search-crlf)                      | Bash     | Search CRLF inside the files.
 [set-hostname](bin/set-hostname)                    | Bash     | Set hostname.

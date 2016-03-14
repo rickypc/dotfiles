@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# pylint: disable=invalid-name
 
 #    Git Delete Branch - Delete local, remote-tracking and remote branch in git repository.
 #    Copyright (C) 2010-2016  Richard Huang <rickypc@users.noreply.github.com>
