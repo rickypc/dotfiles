@@ -31,11 +31,38 @@ from os.path import abspath, basename, dirname, isdir, isfile, join, splitext
 from subprocess import PIPE, Popen, STDOUT
 # pylint: disable=redefined-builtin
 from sys import argv, executable, exit
+from robot.api import ResultWriter, SuiteVisitor
 from robot.conf import RebotSettings
-from robot.model import SuiteVisitor
-from robot.reporting import ResultWriter
+from robot.output.console import ConsoleOutput
+from robot.reporting.resultwriter import Results
+from robot.result import TestSuite
 from robot.run import USAGE
 from robot.utils.argumentparser import ArgumentParser
+
+
+class ParallelTestSuite(TestSuite):
+    """Overrides test suite model to support parallel statistics."""
+
+    def __init__(self, name='', doc='', metadata=None, source=None, message='',
+                 starttime=None, endtime=None, statistics=None):
+        TestSuite.__init__(self, name, doc, metadata, source, message,
+                           starttime, endtime)
+        self._statistics = statistics
+
+    @property
+    def statistics(self):
+        """Suite statistics as
+        a :class:`~robot.model.totalstatistics.TotalStatistics` object.
+
+        Recreated every time this property is accessed, so saving the results
+        to a variable and inspecting it is often a good idea::
+
+            stats = suite.statistics
+            print stats.critical.failed
+            print stats.all.total
+            print stats.message
+        """
+        return self._statistics
 
 
 class RenameTestSuite(SuiteVisitor):
@@ -68,6 +95,7 @@ class RobotParallel(object):
             'shell': sep == '\\',
             'start_time': self._get_timestamp()
         }
+        self.logger = None
         self.responses = None
 
     def execute(self, processor, processes=None, max_tasks=4):
@@ -99,6 +127,7 @@ class RobotParallel(object):
                 if self.inputs['shell']:
                     output = output.replace('\r\n', '\n')
                 print(output)
+                #self.logger.console(output)
 
     def merge_results(self):
         """Merges all output results into one output."""
@@ -112,12 +141,21 @@ class RobotParallel(object):
         }
         if self.inputs['rerun']:
             options['prerebotmodifier'] = RenameTestSuite(root_name)
-        return ResultWriter(*self.inputs['outputs']).\
-            write_results(RebotSettings(**options))
+        settings = RebotSettings(**options)
+        result = Results(settings, *self.inputs['outputs']).result
+        suite = ParallelTestSuite(name=options['name'],
+                                  statistics=result.statistics.total)
+        self.logger._writer.suite_separator()
+        self.logger.end_suite(suite)
+        return ResultWriter(*(result,)).write_results(settings)
 
     def parse_arguments(self, cli_args):
         """Parses data inputs dictionary from given CLI arguments."""
         options, arguments = self._ap.parse_args(cli_args)
+        self.logger = ConsoleOutput(colors=options.get('consolecolors',
+                                                       'AUTO'),
+                                    stderr=options.get('stderr', None),
+                                    stdout=options.get('stdout', None))
         self.inputs['root_name'] = options.get('name',
                                                self._get_name(arguments[0]))
         self.inputs['output'] = options.pop('output', 'output.xml')
@@ -200,7 +238,7 @@ def main(cli_args):
     robot_parallel = RobotParallel()
     try:
         robot_parallel.parse_arguments(cli_args)
-        robot_parallel.execute(worker, cpu_count() * 2)
+        robot_parallel.execute(worker, (cpu_count() * 2) - 1)
         robot_parallel.flush_stdout()
     # pylint: disable=broad-except
     except Exception:
