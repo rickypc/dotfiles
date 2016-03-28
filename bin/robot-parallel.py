@@ -43,10 +43,8 @@ from robot.utils.argumentparser import ArgumentParser
 class ParallelTestSuite(TestSuite):
     """Overrides test suite model to support parallel statistics."""
 
-    def __init__(self, name='', doc='', metadata=None, source=None, message='',
-                 starttime=None, endtime=None, statistics=None):
-        TestSuite.__init__(self, name, doc, metadata, source, message,
-                           starttime, endtime)
+    def __init__(self, statistics=None, **kwargs):
+        TestSuite.__init__(self, **kwargs)
         self._statistics = statistics
 
     @property
@@ -127,7 +125,7 @@ class RobotParallel(object):
                 if self.inputs['shell']:
                     output = output.replace('\r\n', '\n')
                 print(output)
-                #self.logger.console(output)
+                # self.logger.console(output)
 
     def merge_results(self):
         """Merges all output results into one output."""
@@ -145,6 +143,7 @@ class RobotParallel(object):
         result = Results(settings, *self.inputs['outputs']).result
         suite = ParallelTestSuite(name=options['name'],
                                   statistics=result.statistics.total)
+        # pylint: disable=protected-access
         self.logger._writer.suite_separator()
         self.logger.end_suite(suite)
         return ResultWriter(*(result,)).write_results(settings)

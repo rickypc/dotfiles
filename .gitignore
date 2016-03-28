@@ -1,5 +1,8 @@
 # List of ignore files when you do git status
 
+__pycache__/
+*.egg-info
+*.py[cod]
 .bash_history
 .bash_sessions
 .cache
