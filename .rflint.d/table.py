@@ -95,7 +95,7 @@ class TooFewTableBlankLines(GeneralRule):
 
     def configure(self, max_allowed):
         """Configures the rule."""
-        self.max_allowed=int(max_allowed)
+        self.max_allowed = int(max_allowed)
 
 
 class TooManyTableBlankLines(GeneralRule):
@@ -119,4 +119,4 @@ class TooManyTableBlankLines(GeneralRule):
 
     def configure(self, max_allowed):
         """Configures the rule."""
-        self.max_allowed=int(max_allowed)
+        self.max_allowed = int(max_allowed)

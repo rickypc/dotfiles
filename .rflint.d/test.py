@@ -72,7 +72,7 @@ class TooFewTestCaseBlankLines(TestRule):
 
     def configure(self, max_allowed):
         """Configures the rule."""
-        self.max_allowed=int(max_allowed)
+        self.max_allowed = int(max_allowed)
 
 
 class TooManyTestCaseBlankLines(TestRule):
@@ -94,4 +94,4 @@ class TooManyTestCaseBlankLines(TestRule):
 
     def configure(self, max_allowed):
         """Configures the rule."""
-        self.max_allowed=int(max_allowed)
+        self.max_allowed = int(max_allowed)

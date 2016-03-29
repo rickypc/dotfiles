@@ -72,7 +72,7 @@ class TooFewKeywordBlankLines(KeywordRule):
 
     def configure(self, max_allowed):
         """Configures the rule."""
-        self.max_allowed=int(max_allowed)
+        self.max_allowed = int(max_allowed)
 
 
 class TooManyKeywordBlankLines(KeywordRule):
@@ -94,4 +94,4 @@ class TooManyKeywordBlankLines(KeywordRule):
 
     def configure(self, max_allowed):
         """Configures the rule."""
-        self.max_allowed=int(max_allowed)
+        self.max_allowed = int(max_allowed)
