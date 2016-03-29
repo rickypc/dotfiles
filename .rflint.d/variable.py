@@ -26,6 +26,18 @@ from rflint.parser import VariableTable
 from rflint.parser.tables import SimpleTableMixin
 
 
+def _is_breakline(statement):
+    """Returns True if statement is a breakline, False otherwise."""
+    return len(statement) == 1 and statement[0].strip() == ''
+
+
+def _is_invalid(statement):
+    """Returns True if statement is invalid, False otherwise."""
+    return (not statement.is_comment() and
+            not _is_breakline(statement) and
+            statement.startline == statement.endline)
+
+
 class VariableTableHelper(SimpleTableMixin):
     """A table made up of zero or more rows."""
 
@@ -40,22 +52,15 @@ class SplitUpVariableNameValue(GeneralRule):
     Variable name and value on the same line can lead to source control
     merging problem.
     """
+    message = 'Variable name "%s" and its value ' + \
+              'should be on two different lines.'
     severity = WARNING
 
     def apply(self, robot_file):
         """Apply the rule to given robot file."""
-        for table in robot_file.tables:
-            if isinstance(table, VariableTable):
-                for statement in VariableTableHelper(table.rows).statements:
-                    if not statement.is_comment() and \
-                       not self._is_breakline(statement):
-                        if statement.startline == statement.endline:
-                            self.report(robot_file,
-                                        ('Variable name "%s" and its value ' +
-                                        'should be on two different lines.') %
-                                        statement[0], statement.startline)
-
-    @staticmethod
-    def _is_breakline(statement):
-        """Returns True if statement is a breakline, False otherwise."""
-        return len(statement) == 1 and statement[0].strip() == ''
+        # pylint: disable=expression-not-assigned
+        [[self.report(robot_file, self.message % statement[0],
+                      statement.startline)
+          for statement in VariableTableHelper(table.rows).statements
+          if _is_invalid(statement)]
+         for table in robot_file.tables if isinstance(table, VariableTable)]

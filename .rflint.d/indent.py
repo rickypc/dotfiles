@@ -22,6 +22,7 @@ Robot Lint Rules - Lint rules for Robot Framework data files.
 """
 
 from difflib import ndiff
+from re import sub
 from rflint.common import GeneralRule, KeywordRule, TestRule, WARNING
 from rflint.parser import SettingTable, VariableTable
 
@@ -42,7 +43,7 @@ def _get_expected(row, delimiter, initial=''):
         if '|' in delimiter:
             expected = '| %s |' % expected
         elif delimiter.strip() == '':
-            expected = expected.replace(delimiter, initial, 1)
+            expected = sub(r'^\s*', initial, expected, 1)
     return expected
 
 
@@ -51,9 +52,17 @@ def _is_comment(cells):
     for cell in cells:
         if cell.strip() == '':
             continue
-        if cell.lstrip().startswith('#'):
-            return True
+        return cell.lstrip().startswith('#')
     return False
+
+
+def _verify_rows_indent(rows, delimiter, initial, reporter):
+    """Verifies every row indentation."""
+    for row in rows:
+        expected = _get_expected(row, delimiter, initial)
+        diffs = _get_diffs(row.raw_text, expected)
+        if len(diffs) > 0:
+            reporter(row.linenumber, diffs[0])
 
 
 class KeywordIndentSize(KeywordRule):
@@ -61,16 +70,14 @@ class KeywordIndentSize(KeywordRule):
     """
     delimiter = '  '
     initial = '    '
+    message = 'Keyword indent size does not match.'
     severity = WARNING
 
     def apply(self, keyword):
         """Apply the rule to given keyword."""
-        for row in keyword.rows:
-            expected = _get_expected(row, self.delimiter, self.initial)
-            diffs = _get_diffs(row.raw_text, expected)
-            if len(diffs) > 0:
-                message = 'Keyword indent size does not match.'
-                self.report(keyword, message, row.linenumber, diffs[0])
+        _verify_rows_indent(keyword.rows, self.delimiter, self.initial,
+                            lambda line, col:
+                            self.report(keyword, self.message, line, col))
 
     def configure(self, delimiter, initial):
         """Configures the rule."""
@@ -84,19 +91,15 @@ class SettingIndentSize(GeneralRule):
     """Warn about setting indent size.
     """
     delimiter = '  '
+    message = 'Setting indent size does not match.'
     severity = WARNING
 
     def apply(self, robot_file):
         """Apply the rule to given robot file."""
-        for table in robot_file.tables:
-            if isinstance(table, SettingTable):
-                for row in table.rows:
-                    expected = _get_expected(row, self.delimiter)
-                    diffs = _get_diffs(row.raw_text, expected)
-                    if len(diffs) > 0:
-                        message = 'Setting indent size does not match.'
-                        self.report(robot_file, message, row.linenumber,
-                                    diffs[0])
+        # pylint: disable=expression-not-assigned
+        [_verify_rows_indent(table.rows, self.delimiter, '', lambda line, col:
+                             self.report(robot_file, self.message, line, col))
+         for table in robot_file.tables if isinstance(table, SettingTable)]
 
     def configure(self, delimiter):
         """Configures the rule."""
@@ -110,16 +113,14 @@ class TestIndentSize(TestRule):
     """
     delimiter = '  '
     initial = '    '
+    message = 'Test indent size does not match.'
     severity = WARNING
 
     def apply(self, test):
         """Apply the rule to given test."""
-        for row in test.rows:
-            expected = _get_expected(row, self.delimiter, self.initial)
-            diffs = _get_diffs(row.raw_text, expected)
-            if len(diffs) > 0:
-                message = 'Test indent size does not match.'
-                self.report(test, message, row.linenumber, diffs[0])
+        _verify_rows_indent(test.rows, self.delimiter, self.initial,
+                            lambda line, col:
+                            self.report(test, self.message, line, col))
 
     def configure(self, delimiter, initial):
         """Configures the rule."""
@@ -133,19 +134,15 @@ class VariableIndentSize(GeneralRule):
     """Warn about variable indent size.
     """
     delimiter = '  '
+    message = 'Variable indent size does not match.'
     severity = WARNING
 
     def apply(self, robot_file):
         """Apply the rule to given robot file."""
-        for table in robot_file.tables:
-            if isinstance(table, VariableTable):
-                for row in table.rows:
-                    expected = _get_expected(row, self.delimiter)
-                    diffs = _get_diffs(row.raw_text, expected)
-                    if len(diffs) > 0:
-                        message = 'Variable indent size does not match.'
-                        self.report(robot_file, message, row.linenumber,
-                                    diffs[0])
+        # pylint: disable=expression-not-assigned
+        [_verify_rows_indent(table.rows, self.delimiter, '', lambda line, col:
+                             self.report(robot_file, self.message, line, col))
+         for table in robot_file.tables if isinstance(table, VariableTable)]
 
     def configure(self, delimiter):
         """Configures the rule."""

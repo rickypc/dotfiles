@@ -57,6 +57,7 @@ class TooFewKeywordBlankLines(KeywordRule):
     """Warn about keyword without blank lines between each other.
     """
     max_allowed = 1
+    message = 'Too few trailing blank lines in "%s" keyword.'
     severity = WARNING
 
     def apply(self, keyword):
@@ -66,9 +67,8 @@ class TooFewKeywordBlankLines(KeywordRule):
             total = _get_total(keyword)
             if count < self.max_allowed:
                 linenumber = keyword.linenumber + total
-                message = 'Too few trailing blank lines in "%s" keyword.' % \
-                    keyword.name
-                self.report(keyword, message, linenumber + self.max_allowed, 0)
+                self.report(keyword, self.message % keyword.name,
+                            linenumber + self.max_allowed, 0)
 
     def configure(self, max_allowed):
         """Configures the rule."""
@@ -79,6 +79,7 @@ class TooManyKeywordBlankLines(KeywordRule):
     """Warn about keyword with extra blank lines between each other.
     """
     max_allowed = 1
+    message = 'Too many trailing blank lines in "%s" keyword.'
     severity = WARNING
 
     def apply(self, keyword):
@@ -88,9 +89,8 @@ class TooManyKeywordBlankLines(KeywordRule):
             total = _get_total(keyword)
             if count > self.max_allowed:
                 linenumber = (keyword.linenumber + total) - count
-                message = 'Too many trailing blank lines in "%s" keyword.' % \
-                    keyword.name
-                self.report(keyword, message, linenumber + self.max_allowed, 0)
+                self.report(keyword, self.message % keyword.name,
+                            linenumber + self.max_allowed, 0)
 
     def configure(self, max_allowed):
         """Configures the rule."""

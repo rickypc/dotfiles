@@ -57,6 +57,7 @@ class TooFewTestCaseBlankLines(TestRule):
     """Warn about test case without blank lines between each other.
     """
     max_allowed = 1
+    message = 'Too few trailing blank lines in "%s" test case.'
     severity = WARNING
 
     def apply(self, test):
@@ -66,9 +67,8 @@ class TooFewTestCaseBlankLines(TestRule):
             total = _get_total(test)
             if count < self.max_allowed:
                 linenumber = test.linenumber + total
-                message = 'Too few trailing blank lines in "%s" test case.' % \
-                    test.name
-                self.report(test, message, linenumber + self.max_allowed, 0)
+                self.report(test, self.message % test.name,
+                            linenumber + self.max_allowed, 0)
 
     def configure(self, max_allowed):
         """Configures the rule."""
@@ -79,6 +79,7 @@ class TooManyTestCaseBlankLines(TestRule):
     """Warn about test case with extra blank lines between each other.
     """
     max_allowed = 1
+    message = 'Too many trailing blank lines in "%s" test case.'
     severity = WARNING
 
     def apply(self, test):
@@ -88,9 +89,8 @@ class TooManyTestCaseBlankLines(TestRule):
             total = _get_total(test)
             if count > self.max_allowed:
                 linenumber = (test.linenumber + total) - count
-                message = 'Too many trailing blank lines in "%s" test case.' %\
-                    test.name
-                self.report(test, message, linenumber + self.max_allowed, 0)
+                self.report(test, self.message % test.name,
+                            linenumber + self.max_allowed, 0)
 
     def configure(self, max_allowed):
         """Configures the rule."""

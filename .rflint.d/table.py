@@ -59,7 +59,7 @@ def _get_rows(table):
     else:
         response['rows'] = table.rows
     return response
-    
+
 
 def _get_total(rows, has_steps=False):
     """Returns total rows and steps if applicable."""
@@ -78,6 +78,7 @@ class TooFewTableBlankLines(GeneralRule):
     """Warn about tables without blank lines between each other.
     """
     max_allowed = 1
+    message = 'Too few trailing blank lines in "%s" table.'
     severity = WARNING
 
     def apply(self, robot_file):
@@ -88,10 +89,8 @@ class TooFewTableBlankLines(GeneralRule):
             total = _get_total(**response)
             if count < self.max_allowed:
                 linenumber = table.linenumber + total
-                message = 'Too few trailing blank lines in "%s" table.' % \
-                    table.name
-                self.report(robot_file, message, linenumber + self.max_allowed,
-                            0)
+                self.report(robot_file, self.message % table.name,
+                            linenumber + self.max_allowed, 0)
 
     def configure(self, max_allowed):
         """Configures the rule."""
@@ -102,6 +101,7 @@ class TooManyTableBlankLines(GeneralRule):
     """Warn about tables with extra blank lines between each other.
     """
     max_allowed = 1
+    message = 'Too many trailing blank lines in "%s" table.'
     severity = WARNING
 
     def apply(self, robot_file):
@@ -112,10 +112,8 @@ class TooManyTableBlankLines(GeneralRule):
             total = _get_total(**response)
             if count > self.max_allowed:
                 linenumber = (table.linenumber + total) - count
-                message = 'Too many trailing blank lines in "%s" table.' % \
-                    table.name
-                self.report(robot_file, message, linenumber + self.max_allowed,
-                            0)
+                self.report(robot_file, self.message % table.name,
+                            linenumber + self.max_allowed, 0)
 
     def configure(self, max_allowed):
         """Configures the rule."""
