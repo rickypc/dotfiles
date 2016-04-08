@@ -8,9 +8,11 @@ __pycache__/
 .cache
 .CFUserTextEncoding
 .config
+.cups
 .DS_Store
 .gcc-version
 .MacOSX
+.pylint.d
 .python_history
 .searchignore
 .Trash

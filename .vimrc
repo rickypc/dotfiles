@@ -114,8 +114,10 @@ set backup
 
 if version >= 700
     set backupdir=~/.vim/backup/
+    let g:netrw_home=$HOME.'/.vim/backup/'
 else
     set backupdir=~/.vim6/backup/
+    let g:netrw_home=$HOME.'/.vim6/backup/'
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
