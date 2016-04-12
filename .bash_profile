@@ -4,14 +4,25 @@ unset COLORFGBG COLORTERM CVS_RSH WINDOWID
 
 CHECKSUM_PATH=~/.gcc-version
 GCC_VERSION=`gcc -dumpversion`
-LIB_DIR=~/Libraries
+LIB_DIR=~/Library
 ANDROID_SDK=$LIB_DIR/android-sdk
 ANT_DIR=$LIB_DIR/apache-ant-1.8.4
 APPIUM_PATH=~/node_modules/appium
-#AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
-AXIS2C_DIR=/usr
+AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
 AXIS2JAVA_DIR=$LIB_DIR/axis2-1.6.2
+CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
+GRADLE_DIR=$LIB_DIR/gradle-2.12
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
+
+export_to_path() {
+    if [[ -n "$1" && $PATH != *$1* ]]; then
+        if [ -z $PATH ]; then
+            export PATH=$1
+        else
+            export PATH=$PATH:$1
+        fi
+    fi
+}
 
 gcc_process() {
     # tty will print out tty{\d} and virtual terminal will print out nothing
@@ -44,9 +55,6 @@ else
     gcc_process
 fi
 
-export CATALINA_HOME=$LIB_DIR/apache-tomcat-7.0.37
-export CATALINA_BASE=$CATALINA_HOME
-
 #if [ "$(ps x | grep ssh-agent | grep -v grep | wc -l)" -le 0 ]; then
 #    eval "$(/usr/bin/ssh-agent -t 32400)"
 #else
@@ -60,23 +68,20 @@ if [ -f ~/.bashrc ]; then
 fi
 
 # User specific environment and startup programs
-if [[ -d ~/bin && $PATH != *~/bin* ]]; then
-    if [[ -z $PATH ]]; then
-        PATH=~/bin
-    else
-        PATH=$PATH:~/bin
+if [ -d ~/bin ]; then
+    export_to_path  "$HOME/bin"
+
+    if [[ $PERL5LIB != *$HOME/bin* ]]; then
+        if [ -z $PERL5LIB ]; then
+            export PERL5LIB=$HOME/bin
+        else
+            export PERL5LIB=$HOME/bin:$PERL5LIB
+        fi
     fi
-    export PATH
 fi
 
-if [[ -d ~/bin && $PERL5LIB != *~/bin* ]]; then
-    PERL5LIB=~/bin:$PERL5LIB
-    export PERL5LIB
-fi
-
-if [[ -d /usr/local/bin && $PATH != */usr/local/bin* ]]; then
-    PATH=$PATH:/usr/local/bin
-    export PATH
+if [ -d /usr/local/bin ]; then
+    export_to_path  "/usr/local/bin"
 fi
 
 # Initialize Perl bash completion plugins
@@ -89,19 +94,19 @@ if [ -d $ANDROID_SDK ]; then
         export ANDROID_HOME=$ANDROID_SDK
     fi
 
-    if [[ -d $ANDROID_SDK/platform-tools && $PATH != *$ANDROID_SDK/platform-tools* ]]; then
-        export PATH=$PATH:$ANDROID_SDK/platform-tools
+    if [ -d $ANDROID_SDK/platform-tools ]; then
+        export_to_path  "$ANDROID_SDK/platform-tools"
     fi
 
-    if [[ -d $ANDROID_SDK/tools && $PATH != *$ANDROID_SDK/tools* ]]; then
-        export PATH=$PATH:$ANDROID_SDK/tools
+    if [ -d $ANDROID_SDK/tools ]; then
+        export_to_path  "$ANDROID_SDK/tools"
     fi
 fi
 
 # Ant specific environment
 if [ -d $ANT_DIR ]; then
     export ANT_HOME=$ANT_DIR
-    export PATH=$PATH:$ANT_HOME/bin
+    export_to_path  "$ANT_HOME/bin"
 fi
 
 if [[ -d $APPIUM_PATH && $APPIUM_HOME != *${APPIUM_PATH}* ]]; then
@@ -121,12 +126,16 @@ if [ -d $AXIS2JAVA_DIR ]; then
 fi
 
 # Catalina specific environment
-if [[ $PATH != *$CATALINA_HOME/bin* ]]; then
-    if [ -z $PATH ]; then
-        export PATH=$CATALINA_HOME/bin
-    else
-        export PATH=$PATH:$CATALINA_HOME/bin
-    fi
+if [ -d $CATALINA_DIR ]; then
+    export CATALINA_BASE=$CATALINA_DIR
+    export CATALINA_HOME=$CATALINA_DIR
+    export_to_path  "$CATALINA_HOME/bin"
+fi
+
+# Gradle specific environment
+if [ -d $GRADLE_DIR ]; then
+    export GRADLE_HOME=$GRADLE_DIR
+    export_to_path  "$GRADLE_HOME/bin"
 fi
 
 if [[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]]; then
@@ -146,5 +155,5 @@ if [ -d $MAVEN_DIR ]; then
     export M2_HOME=$MAVEN_DIR
     export M2=$M2_HOME/bin
     export MAVEN_OPTS="-Xms32m -Xmx128m"
-    export PATH=$PATH:$M2
+    export_to_path  "$M2"
 fi

@@ -11,6 +11,7 @@ __pycache__/
 .cups
 .DS_Store
 .gcc-version
+.gradle
 .MacOSX
 .pylint.d
 .python_history
