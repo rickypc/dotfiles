@@ -33,3 +33,7 @@ project.xcworkspace
 Public
 test-results
 xcuserdata
+
+# Except this files
+!.config/Code/User/settings.json
+!Library/Application Support/Code/User/settings.json
