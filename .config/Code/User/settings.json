@@ -8,6 +8,9 @@
     // Controls the font size.
     "editor.fontSize": 14,
 
+    // Columns at which to show vertical rulers
+    "editor.rulers": [80, 100, 120],
+
     // Controls after how many characters the editor will wrap to the next line. Setting this to 0 turns on viewport width wrapping
     "editor.wrappingColumn": -1,
 
