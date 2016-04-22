@@ -18,6 +18,7 @@ __pycache__/
 .searchignore
 .Trash
 .viminfo
+.vscode
 Applications
 build
 Desktop
