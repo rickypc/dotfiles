@@ -12,6 +12,7 @@ AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
 AXIS2JAVA_DIR=$LIB_DIR/axis2-1.6.2
 CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
 GRADLE_DIR=$LIB_DIR/gradle-2.12
+MAMP_DIR=/Applications/MAMP/Library
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
 
 export_to_path() {
@@ -69,7 +70,7 @@ fi
 
 # User specific environment and startup programs
 if [ -d ~/bin ]; then
-    export_to_path  "$HOME/bin"
+    export_to_path "$HOME/bin"
 
     if [[ $PERL5LIB != *$HOME/bin* ]]; then
         if [ -z $PERL5LIB ]; then
@@ -81,7 +82,7 @@ if [ -d ~/bin ]; then
 fi
 
 if [ -d /usr/local/bin ]; then
-    export_to_path  "/usr/local/bin"
+    export_to_path "/usr/local/bin"
 fi
 
 # Initialize Perl bash completion plugins
@@ -95,18 +96,18 @@ if [ -d $ANDROID_SDK ]; then
     fi
 
     if [ -d $ANDROID_SDK/platform-tools ]; then
-        export_to_path  "$ANDROID_SDK/platform-tools"
+        export_to_path "$ANDROID_SDK/platform-tools"
     fi
 
     if [ -d $ANDROID_SDK/tools ]; then
-        export_to_path  "$ANDROID_SDK/tools"
+        export_to_path "$ANDROID_SDK/tools"
     fi
 fi
 
 # Ant specific environment
 if [ -d $ANT_DIR ]; then
     export ANT_HOME=$ANT_DIR
-    export_to_path  "$ANT_HOME/bin"
+    export_to_path "$ANT_HOME/bin"
 fi
 
 if [[ -d $APPIUM_PATH && $APPIUM_HOME != *${APPIUM_PATH}* ]]; then
@@ -129,13 +130,13 @@ fi
 if [ -d $CATALINA_DIR ]; then
     export CATALINA_BASE=$CATALINA_DIR
     export CATALINA_HOME=$CATALINA_DIR
-    export_to_path  "$CATALINA_HOME/bin"
+    export_to_path "$CATALINA_HOME/bin"
 fi
 
 # Gradle specific environment
 if [ -d $GRADLE_DIR ]; then
     export GRADLE_HOME=$GRADLE_DIR
-    export_to_path  "$GRADLE_HOME/bin"
+    export_to_path "$GRADLE_HOME/bin"
 fi
 
 if [[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]]; then
@@ -150,10 +151,15 @@ if [[ -d /usr/share/java && $CLASSPATH != */usr/share/java* ]]; then
     fi
 fi
 
+# MAMP specific environment
+if [ -d $MAMP_DIR ]; then
+    export_to_path "$MAMP_DIR/bin"
+fi
+
 # Maven specific environment
 if [ -d $MAVEN_DIR ]; then
     export M2_HOME=$MAVEN_DIR
     export M2=$M2_HOME/bin
     export MAVEN_OPTS="-Xms32m -Xmx128m"
-    export_to_path  "$M2"
+    export_to_path "$M2"
 fi
