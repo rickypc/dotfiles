@@ -12,8 +12,17 @@ AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
 AXIS2JAVA_DIR=$LIB_DIR/axis2-1.6.2
 CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
 GRADLE_DIR=$LIB_DIR/gradle-2.12
-MAMP_DIR=/Applications/MAMP/Library
+MAMP_DIR=/Applications/MAMP
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
+PHP_VERSION=5.6.10
+
+composer() {
+    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/composer.phar $@
+}
+
+drush() {
+    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/drush.phar $@
+}
 
 export_to_path() {
     if [[ -n "$1" && $PATH != *$1* ]]; then
@@ -133,6 +142,21 @@ if [ -d $CATALINA_DIR ]; then
     export_to_path "$CATALINA_HOME/bin"
 fi
 
+# Include Drush bash customizations.
+#if [ -f "$HOME/.drush/drush.bashrc" ] ; then
+#  source $HOME/.drush/drush.bashrc
+#fi
+
+# Include Drush completion.
+if [ -f "$HOME/.drush/drush.complete.sh" ] ; then
+  source $HOME/.drush/drush.complete.sh
+fi
+
+# Include Drush prompt customizations.
+#if [ -f "$HOME/.drush/drush.prompt.sh" ] ; then
+#  source $HOME/.drush/drush.prompt.sh
+#fi
+
 # Gradle specific environment
 if [ -d $GRADLE_DIR ]; then
     export GRADLE_HOME=$GRADLE_DIR
@@ -153,7 +177,9 @@ fi
 
 # MAMP specific environment
 if [ -d $MAMP_DIR ]; then
-    export_to_path "$MAMP_DIR/bin"
+    export -f composer
+    export -f drush
+    export_to_path "$MAMP_DIR/Library/bin"
 fi
 
 # Maven specific environment
