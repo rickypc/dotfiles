@@ -58,7 +58,6 @@ Script Name                                         | Language | Description
 [git-maintenance](bin/git-maintenance)              | Bash     | Sync with remote, clean, and optimize git repository.
 [git-new-branch.py](bin/git-new-branch.py)          | Python   | Create git new branch from base branch, push to remote and track.
 [git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
-[git-prompt.sh](bin/git-prompt.sh)                  | Bash     | Show repository status in your shell prompt.
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
 [gpg-verify](bin/gpg-verify)                        | Bash     | Verify [GPG](https://www.gnupg.org/) signature from specified document path.
 [git-what-branch](bin/git-what-branch)              | Perl     | Show the earliest path of git commits.

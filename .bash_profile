@@ -94,9 +94,9 @@ if [ -d /usr/local/bin ]; then
     export_to_path "/usr/local/bin"
 fi
 
-# Initialize Perl bash completion plugins
-if [ -f /usr/local/bin/setup-bash-complete ]; then
-    . /usr/local/bin/setup-bash-complete
+# Initialize bash completions
+if [[ "$(uname)" == 'Darwin' && -f $HOME/.bash_completion ]]; then
+    . $HOME/.bash_completion
 fi
 
 if [ -d $ANDROID_SDK ]; then
@@ -146,11 +146,6 @@ fi
 #if [ -f "$HOME/.drush/drush.bashrc" ] ; then
 #  source $HOME/.drush/drush.bashrc
 #fi
-
-# Include Drush completion.
-if [ -f "$HOME/.drush/drush.complete.sh" ] ; then
-  source $HOME/.drush/drush.complete.sh
-fi
 
 # Include Drush prompt customizations.
 #if [ -f "$HOME/.drush/drush.prompt.sh" ] ; then
