@@ -1,0 +1,63 @@
+// Place your settings in this file to overwrite the default settings
+{
+    //-------- Editor configuration --------
+
+    // Controls the font family.
+    "editor.fontFamily": "Inconsolata",
+
+    // Controls the font size.
+    "editor.fontSize": 14,
+
+    // Columns at which to show vertical rulers
+    "editor.rulers": [80, 100, 120],
+
+    // Controls after how many characters the editor will wrap to the next line. Setting this to 0 turns on viewport width wrapping
+    "editor.wrappingColumn": -1,
+
+    // Controls whether the editor should render whitespace characters
+    "editor.renderWhitespace": true,
+
+    //-------- Files configuration --------
+
+    // Configure glob patterns for excluding files and folders.
+    "files.exclude": {
+        "**/.idea": true,
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true
+    },
+
+    // When enabled, will trim trailing whitespace when you save a file.
+    "files.trimTrailingWhitespace": true,
+
+    //-------- Telemetry configuration --------
+
+    // Enable crash reports to be sent to Microsoft.
+    // This option requires restart to take effect.
+    "telemetry.enableCrashReporter": false,
+
+    // Enable usage data and errors to be sent to Microsoft.
+    "telemetry.enableTelemetry": false,
+
+    //-------- Python Configuration --------
+
+    // Whether to lint Python files using flake8
+    "python.linting.flake8Enabled": false,
+
+    //-------- Extension Manager Configuration --------
+
+    "extension-manager.extensions": [
+        "ms-vscode.csharp",
+        "donjayamanne.python",
+        "lukehoban.Go",
+        "msjsdiag.debugger-for-chrome",
+        "johnpapa.Angular2",
+        "eg2.tslint",
+        "EditorConfig.EditorConfig",
+        "dbankier.vscode-instant-markdown",
+        "WallabyJs.wallaby-vscode",
+        "tushortz.java-snippets",
+        "gerane.Theme-Zenburn",
+        "tushortz.java-imports-snippets"
+    ]
+}

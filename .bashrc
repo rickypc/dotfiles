@@ -38,16 +38,10 @@ B='\[\033[0;34m\]'    # blue
 BY='\[\033[1;33m\]'   # bold yellow
 BB='\[\033[1;34m\]'   # bold blue
 
-if [ -f /etc/bash_completion.d/git ]; then
+if [ -f ~/.bash_completion.d/git.bash-completion ]; then
     #GIT_PS1_SHOWDIRTYSTATE=true
     #GIT_PS1_SHOWSTASHSTATE=true
     #GIT_PS1_SHOWUNTRACKEDFILES=true
-    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
-elif [ -f /etc/bash_completion.d/git-prompt.sh ]; then
-    . /etc/bash_completion.d/git-prompt.sh
-    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
-elif [ -f ~/bin/git-prompt.sh ]; then
-    . ~/bin/git-prompt.sh
     PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
 else
     PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w${BY}\$${NONE} "

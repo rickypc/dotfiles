@@ -3,21 +3,29 @@
 __pycache__/
 *.egg-info
 *.py[cod]
+.aws
 .bash_history
 .bash_sessions
 .cache
 .CFUserTextEncoding
+.composer
 .config
 .cups
+.drush
 .DS_Store
 .gcc-version
 .gradle
 .MacOSX
+.node_repl_history
+.npm
+.oracle_jre_usage
 .pylint.d
 .python_history
+.rnd
 .searchignore
 .Trash
 .viminfo
+.vscode
 Applications
 build
 Desktop
@@ -33,3 +41,8 @@ project.xcworkspace
 Public
 test-results
 xcuserdata
+
+# Except this files
+!.config/Code/User/settings.json
+!.drush/drush.complete.sh
+!Library/Application Support/Code/User/settings.json

@@ -12,7 +12,17 @@ AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
 AXIS2JAVA_DIR=$LIB_DIR/axis2-1.6.2
 CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
 GRADLE_DIR=$LIB_DIR/gradle-2.12
+MAMP_DIR=/Applications/MAMP
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
+PHP_VERSION=5.6.10
+
+composer() {
+    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/composer.phar $@
+}
+
+drush() {
+    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/drush.phar $@
+}
 
 export_to_path() {
     if [[ -n "$1" && $PATH != *$1* ]]; then
@@ -69,7 +79,7 @@ fi
 
 # User specific environment and startup programs
 if [ -d ~/bin ]; then
-    export_to_path  "$HOME/bin"
+    export_to_path "$HOME/bin"
 
     if [[ $PERL5LIB != *$HOME/bin* ]]; then
         if [ -z $PERL5LIB ]; then
@@ -81,12 +91,12 @@ if [ -d ~/bin ]; then
 fi
 
 if [ -d /usr/local/bin ]; then
-    export_to_path  "/usr/local/bin"
+    export_to_path "/usr/local/bin"
 fi
 
-# Initialize Perl bash completion plugins
-if [ -f /usr/local/bin/setup-bash-complete ]; then
-    . /usr/local/bin/setup-bash-complete
+# Initialize bash completions
+if [[ "$(uname)" == 'Darwin' && -f $HOME/.bash_completion ]]; then
+    . $HOME/.bash_completion
 fi
 
 if [ -d $ANDROID_SDK ]; then
@@ -95,18 +105,18 @@ if [ -d $ANDROID_SDK ]; then
     fi
 
     if [ -d $ANDROID_SDK/platform-tools ]; then
-        export_to_path  "$ANDROID_SDK/platform-tools"
+        export_to_path "$ANDROID_SDK/platform-tools"
     fi
 
     if [ -d $ANDROID_SDK/tools ]; then
-        export_to_path  "$ANDROID_SDK/tools"
+        export_to_path "$ANDROID_SDK/tools"
     fi
 fi
 
 # Ant specific environment
 if [ -d $ANT_DIR ]; then
     export ANT_HOME=$ANT_DIR
-    export_to_path  "$ANT_HOME/bin"
+    export_to_path "$ANT_HOME/bin"
 fi
 
 if [[ -d $APPIUM_PATH && $APPIUM_HOME != *${APPIUM_PATH}* ]]; then
@@ -129,13 +139,23 @@ fi
 if [ -d $CATALINA_DIR ]; then
     export CATALINA_BASE=$CATALINA_DIR
     export CATALINA_HOME=$CATALINA_DIR
-    export_to_path  "$CATALINA_HOME/bin"
+    export_to_path "$CATALINA_HOME/bin"
 fi
+
+# Include Drush bash customizations.
+#if [ -f "$HOME/.drush/drush.bashrc" ] ; then
+#  source $HOME/.drush/drush.bashrc
+#fi
+
+# Include Drush prompt customizations.
+#if [ -f "$HOME/.drush/drush.prompt.sh" ] ; then
+#  source $HOME/.drush/drush.prompt.sh
+#fi
 
 # Gradle specific environment
 if [ -d $GRADLE_DIR ]; then
     export GRADLE_HOME=$GRADLE_DIR
-    export_to_path  "$GRADLE_HOME/bin"
+    export_to_path "$GRADLE_HOME/bin"
 fi
 
 if [[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]]; then
@@ -150,10 +170,17 @@ if [[ -d /usr/share/java && $CLASSPATH != */usr/share/java* ]]; then
     fi
 fi
 
+# MAMP specific environment
+if [ -d $MAMP_DIR ]; then
+    export -f composer
+    export -f drush
+    export_to_path "$MAMP_DIR/Library/bin"
+fi
+
 # Maven specific environment
 if [ -d $MAVEN_DIR ]; then
     export M2_HOME=$MAVEN_DIR
     export M2=$M2_HOME/bin
     export MAVEN_OPTS="-Xms32m -Xmx128m"
-    export_to_path  "$M2"
+    export_to_path "$M2"
 fi
