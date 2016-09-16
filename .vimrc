@@ -97,6 +97,8 @@ if has("autocmd")
     filetype plugin on
     " json files
     au! BufRead,BufNewFile *.json set filetype=json
+    " sublime setting files
+    au! BufRead,BufNewFile *.sublime-settings set filetype=json
     " markdown files
     au BufNewFile,BufRead *.md set filetype=markdown
     " *.t files.

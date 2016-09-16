@@ -32,8 +32,9 @@ def _get_diffs(items, reporter, is_keyword=False):
         name = item.name if is_keyword else item[0].strip() or ''
         if name !='' and name != '...' and not name.startswith('#'):
             if ((name > last['name']) - (name < last['name'])) < 0:
-                reporter('"%s" comes before "%s".' % (last['name'], name),
-                         last['line'])
+                if len(name) <= len(last['name']):
+                    reporter('"%s" comes before "%s".' % (last['name'], name),
+                             last['line'])
             last['line'] = item.linenumber
             last['name'] = name
 

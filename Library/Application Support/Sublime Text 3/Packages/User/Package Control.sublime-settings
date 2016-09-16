@@ -6,6 +6,7 @@
 	"installed_packages":
 	[
 		"Emmet",
+		"FileHeader",
 		"GitGutter",
 		"Package Control",
 		"SideBarEnhancements",
