@@ -24,6 +24,10 @@ drush() {
     $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/drush.phar $@
 }
 
+phpmd() {
+    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpmd.phar $@
+}
+
 export_to_path() {
     if [[ -n "$1" && $PATH != *$1* ]]; then
         if [ -z $PATH ]; then
