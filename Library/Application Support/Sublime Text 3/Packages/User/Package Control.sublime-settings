@@ -12,6 +12,7 @@
 		"SideBarEnhancements",
 		"SublimeLinter",
 		"SublimeLinter-csslint",
-		"SublimeLinter-jshint"
+		"SublimeLinter-jshint",
+		"TypeScript"
 	]
 }
