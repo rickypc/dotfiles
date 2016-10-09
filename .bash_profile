@@ -24,6 +24,10 @@ drush() {
     $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/drush.phar $@
 }
 
+phpcbf() {
+    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpcbf.phar $@
+}
+
 phpcs() {
     $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpcs.phar $@
 }
