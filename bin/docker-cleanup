@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#    Docker cleanup - Cleanup Docker containers and images
+#    Copyright (C) 2013-2017  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Remove all exited containers
+CONTAINER_IDS=$(docker ps -qf status=exited)
+if [ -n "$CONTAINER_IDS" ]; then
+    docker rm -f $CONTAINER_IDS
+fi
+
+# Remove dangling images
+IMAGE_IDS=$(docker images -qf dangling=true)
+if [ -n "$IMAGE_IDS" ]; then
+    docker rmi -f $IMAGE_IDS
+fi
+
+# Remove all untagged images
+IMAGE_IDS=$(docker images -a --format '{{.ID}}' | grep "^<none>")
+if [ -n "$IMAGE_IDS" ]; then
+    docker rmi -f $IMAGE_IDS
+fi

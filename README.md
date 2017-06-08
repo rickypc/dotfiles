@@ -47,6 +47,7 @@ Script Name                                         | Language | Description
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
 [disk-usage](bin/disk-usage)                        | Bash     | Get disk space usage for current folder.
+[docker-cleanup](bin/docker-cleanup)                | Bash     | Remove exited Docker containers and untagged Docker images.
 [download-site](bin/download-site)                  | Bash     | Download any site for offline fair use.
 [download-site-partial](bin/download-site-partial)  | Bash     | Download any site partially for offline fair use.
 [flac-bits](bin/flac-bits)                          | Bash     | Get actual and advertised [FLAC](https://en.wikipedia.org/wiki/FLAC) bits.
