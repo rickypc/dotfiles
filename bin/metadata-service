@@ -18,37 +18,12 @@
 
 INTERFACE=lo0
 IP_ADDR=169.254.169.254
-ADDR_ALIAS=/Library/LaunchDaemons/me.richardhuang.$IP_ADDR.plist
+LAUNCHER=/Library/LaunchDaemons/me.richardhuang.$IP_ADDR.plist
 METADATA_SERVICE=me.richardhuang.$IP_ADDR
 PORT_FWD=/etc/pf.conf
 SERVICE_PORT_FWD=/etc/pf.anchors/$METADATA_SERVICE
 
 if [[ "$(uname)" == 'Darwin' ]]; then
-    if [ ! -f $ADDR_ALIAS ]; then
-        cat << EOF | sudo tee -a $ADDR_ALIAS
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>Label</key>
-    <string>me.richardhuang.$IP_ADDR.plist</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/sbin/ifconfig</string>
-        <string>$INTERFACE</string>
-        <string>alias</string>
-        <string>$IP_ADDR</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-  </dict>
-</plist>
-EOF
-        sudo launchctl load $ADDR_ALIAS
-    fi
-
-    [ -z "$(/sbin/ifconfig $INTERFACE | grep $IP_ADDR)" ] && sudo launchctl load $ADDR_ALIAS
-
     if [ ! -f $SERVICE_PORT_FWD ]; then
         cat << EOF | sudo tee -a $SERVICE_PORT_FWD
 rdr pass on $INTERFACE inet proto tcp from any to $IP_ADDR port 80 -> $IP_ADDR port 8111
@@ -59,5 +34,28 @@ EOF
     grep -q "^anchor \"$METADATA_SERVICE\"" $PORT_FWD || sudo sed -i '' $'/^anchor "com.apple\/*/a\\\nanchor "'$METADATA_SERVICE$'"\\\n' $PORT_FWD
     grep -q "^load anchor \"$METADATA_SERVICE\" from \"$SERVICE_PORT_FWD\"" $PORT_FWD || sudo sed -i '' $'/^load anchor "com.apple" from .*/a\\\nload anchor "'$METADATA_SERVICE$'" from "'$SERVICE_PORT_FWD$'"\\\n' $PORT_FWD
 
-    [ -z "$(sudo pfctl -qsr | grep $METADATA_SERVICE)" ] && sudo pfctl -EF all -f $PORT_FWD
+    if [ ! -f $LAUNCHER ]; then
+        cat << EOF | sudo tee -a $LAUNCHER
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>me.richardhuang.$IP_ADDR.plist</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>/sbin/ifconfig $INTERFACE alias $IP_ADDR; /sbin/pfctl -e -f $PORT_FWD;</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+  </dict>
+</plist>
+EOF
+        sudo launchctl load $LAUNCHER
+    fi
+
+    [ -z "$(/sbin/ifconfig $INTERFACE | grep $IP_ADDR)" ] && sudo launchctl load $LAUNCHER
+    [ -z "$(sudo pfctl -qsr | grep $METADATA_SERVICE)" ] && sudo launchctl load $LAUNCHER
 fi
