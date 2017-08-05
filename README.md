@@ -64,6 +64,7 @@ Script Name                                         | Language | Description
 [git-what-branch](bin/git-what-branch)              | Perl     | Show the earliest path of git commits.
 [json-prettifier](bin/json-prettifier)              | Bash     | Pretty print JSON document.
 [json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from JSON document.
+[metadata-service](bin/metadata-service)            | Bash     | Advertise local machine as AWS EC2 instance.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [osx-show-all-files](bin/osx-show-all-files)        | Bash     | Set OSX to show all files (dot files) in Finder and file dialog permanently.
 [polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about Polygon geometry.

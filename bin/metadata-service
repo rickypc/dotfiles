@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#    Fake AWS EC2 Metadata Service - Advertise local machine as AWS EC2 instance.
+#    Copyright (C) 2015-2017  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+INTERFACE=lo0
+IP_ADDR=169.254.169.254
+ADDR_ALIAS=/Library/LaunchDaemons/me.richardhuang.$IP_ADDR.plist
+METADATA_SERVICE=me.richardhuang.$IP_ADDR
+PORT_FWD=/etc/pf.conf
+SERVICE_PORT_FWD=/etc/pf.anchors/$METADATA_SERVICE
+
+if [[ "$(uname)" == 'Darwin' ]]; then
+    if [ ! -f $ADDR_ALIAS ]; then
+        cat << EOF | sudo tee -a $ADDR_ALIAS
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>me.richardhuang.$IP_ADDR.plist</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/sbin/ifconfig</string>
+        <string>$INTERFACE</string>
+        <string>alias</string>
+        <string>$IP_ADDR</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+  </dict>
+</plist>
+EOF
+        sudo launchctl load $ADDR_ALIAS
+    fi
+
+    [ -z "$(/sbin/ifconfig $INTERFACE | grep $IP_ADDR)" ] && sudo launchctl load $ADDR_ALIAS
+
+    if [ ! -f $SERVICE_PORT_FWD ]; then
+        cat << EOF | sudo tee -a $SERVICE_PORT_FWD
+rdr pass on $INTERFACE inet proto tcp from any to $IP_ADDR port 80 -> $IP_ADDR port 8111
+EOF
+    fi
+
+    grep -q "^rdr-anchor \"$METADATA_SERVICE\"" $PORT_FWD || sudo sed -i '' $'/^rdr-anchor "com.apple\/*/a\\\nrdr-anchor "'$METADATA_SERVICE$'"\\\n' $PORT_FWD
+    grep -q "^anchor \"$METADATA_SERVICE\"" $PORT_FWD || sudo sed -i '' $'/^anchor "com.apple\/*/a\\\nanchor "'$METADATA_SERVICE$'"\\\n' $PORT_FWD
+    grep -q "^load anchor \"$METADATA_SERVICE\" from \"$SERVICE_PORT_FWD\"" $PORT_FWD || sudo sed -i '' $'/^load anchor "com.apple" from .*/a\\\nload anchor "'$METADATA_SERVICE$'" from "'$SERVICE_PORT_FWD$'"\\\n' $PORT_FWD
+
+    [ -z "$(sudo pfctl -qsr | grep $METADATA_SERVICE)" ] && sudo pfctl -EF all -f $PORT_FWD
+fi
