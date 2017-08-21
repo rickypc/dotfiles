@@ -11,10 +11,13 @@ __pycache__/
 .composer
 .config
 .cups
+.docker
 .drush
 .DS_Store
+.eclipse
 .gcc-version
 .gradle
+.m2
 .MacOSX
 .node_repl_history
 .npm
@@ -23,7 +26,10 @@ __pycache__/
 .python_history
 .rnd
 .searchignore
+.sonarlint
+.sqlworkbench
 .Trash
+.v8flags.*
 .viminfo
 .vscode
 Applications

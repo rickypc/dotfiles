@@ -95,16 +95,6 @@ set expandtab shiftwidth=4 softtabstop=4
 
 if has("autocmd")
     filetype plugin on
-    " json files
-    au! BufRead,BufNewFile *.json set filetype=json
-    " sublime setting files
-    au! BufRead,BufNewFile *.sublime-settings set filetype=json
-    " markdown files
-    au BufNewFile,BufRead *.md set filetype=markdown
-    " *.t files.
-    au BufNewFile,BufRead *.t set filetype=perl
-    " *.tt files.
-    au BufNewFile,BufRead *.tt set filetype=tt2html
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
