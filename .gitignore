@@ -10,6 +10,7 @@ __pycache__/
 .CFUserTextEncoding
 .composer
 .config
+.cpan
 .cups
 .docker
 .drush
@@ -19,6 +20,7 @@ __pycache__/
 .gradle
 .m2
 .MacOSX
+.node-gyp
 .node_repl_history
 .npm
 .oracle_jre_usage
