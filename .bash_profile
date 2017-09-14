@@ -14,6 +14,7 @@ CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
 GRADLE_DIR=$LIB_DIR/gradle-3.4
 MAMP_DIR=/Applications/MAMP
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
+PERL_DIR=$LIB_DIR/perl5
 PHP_VERSION=5.6.10
 
 composer() {
@@ -195,4 +196,13 @@ if [ -d $MAVEN_DIR ]; then
     export M2=$M2_HOME/bin
     export MAVEN_OPTS="-Xms32m -Xmx128m"
     export_to_path "$M2"
+fi
+
+# Perl5 specific environment
+if [ -d $PERL_DIR ]; then
+    export PERL_LOCAL_LIB_ROOT=$PERL_DIR
+    export PERL5LIB=$PERL_DIR/lib/perl5
+    export PERL_MB_OPT="--install_base \"$PERL_DIR\""
+    export PERL_MM_OPT="INSTALL_BASE=$PERL_DIR"
+    export_to_path "$PERL_DIR/bin"
 fi
