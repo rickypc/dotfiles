@@ -206,3 +206,7 @@ if [ -d $PERL_DIR ]; then
     export PERL_MM_OPT="INSTALL_BASE=$PERL_DIR"
     export_to_path "$PERL_DIR/bin"
 fi
+
+if [ -d ~/.virtualenvs ]; then
+    export WORKON_HOME=~/.virtualenvs
+fi
