@@ -30,6 +30,7 @@ __pycache__/
 .sqlworkbench
 .Trash
 .v8flags.*
+.virtualenvs
 .viminfo
 .vscode
 Applications
