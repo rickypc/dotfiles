@@ -1,4 +1,5 @@
 chmod 100600 '.Xdefaults'
+chmod 40700 '.atom'
 chmod 100600 '.bash_aliases'
 chmod 100600 '.bash_completion'
 chmod 40700 '.bash_completion.d'
