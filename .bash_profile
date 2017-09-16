@@ -25,17 +25,17 @@ drush() {
     $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/drush.phar $@
 }
 
-phpcbf() {
-    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpcbf.phar $@
-}
+#phpcbf() {
+#    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpcbf.phar $@
+#}
 
-phpcs() {
-    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpcs.phar $@
-}
+#phpcs() {
+#    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpcs.phar $@
+#}
 
-phpmd() {
-    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpmd.phar $@
-}
+#phpmd() {
+#    $MAMP_DIR/bin/php/php${PHP_VERSION}/bin/php $HOME/bin/phpmd.phar $@
+#}
 
 export_to_path() {
     if [[ -n "$1" && $PATH != *$1* ]]; then
@@ -188,6 +188,7 @@ if [ -d $MAMP_DIR ]; then
     export -f composer
     export -f drush
     export_to_path "$MAMP_DIR/Library/bin"
+    export_to_path "$HOME/.composer/vendor/bin"
 fi
 
 # Maven specific environment

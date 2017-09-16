@@ -1,0 +1,75 @@
+@import "syntax-variables";
+
+// style the background color of the tree view
+.tree-view {
+  // background-color: whitesmoke;
+}
+
+// style the background and foreground colors on the atom-text-editor-element itself
+atom-text-editor {
+  // color: white;
+  // background-color: hsl(180, 24%, 12%);
+}
+
+// style UI elements inside atom-text-editor
+atom-text-editor .cursor {
+  // border-color: red;
+}
+
+.list-tree li.list-item.status-added > .name,
+.list-tree li.list-nested-item.status-added > .list-item {
+  color: #704f50;
+}
+
+.list-tree li.list-item.selected.status-added > .name,
+.list-tree li.list-nested-item.selected.status-added > .list-item {
+  color: #dca2a3;
+}
+
+.list-tree li.list-item.status-ignored > .name,
+.list-tree li.list-nested-item.status-ignored > .list-item {
+  color: #506070;
+}
+
+.list-tree li.list-item.status-modified > .name,
+.list-tree li.list-nested-item.status-modified > .list-item {
+  color: #dfaf8f;
+}
+
+.list-tree li.list-item.selected.status-modified > .name,
+.list-tree li.list-nested-item.selected.status-modified > .list-item {
+  color: #f0dfaf;
+}
+
+.list-tree li.list-item.status-removed > .name,
+.list-tree li.list-nested-item.status-removed > .list-item {
+  color: #dc7ebb;
+}
+
+.list-tree li.list-item.selected.status-removed > .name,
+.list-tree li.list-nested-item.selected.status-removed > .list-item {
+  color: #ebafdc;
+}
+
+.list-tree li.list-item.status-renamed > .name,
+.list-tree li.list-nested-item.status-renamed > .list-item {
+  color: #8cd0d2;
+}
+
+.list-tree li.list-item.selected.status-renamed > .name,
+.list-tree li.list-nested-item.selected.status-renamed > .list-item {
+  color: #93e0e3;
+}
+
+.platformio-ide-terminal .xterm {
+  background-color: @syntax-background-color;
+  color: @syntax-text-color;
+
+  ::selection {
+    background-color: @syntax-selection-color;
+  }
+
+  .terminal-cursor {
+    background-color: @syntax-cursor-color;
+  }
+}
