@@ -1,4 +1,5 @@
 packages: [
+  "atom-beautify"
   "atom-ide-ui"
   "atom-python-virtualenv"
   "autocomplete-python"
@@ -7,6 +8,7 @@ packages: [
   "busy-signal"
   "editorconfig"
   "file-icons"
+  "highlight-selected"
   "hyperclick"
   "hyperclick-robot-framework"
   "ide-flowtype"
@@ -19,6 +21,7 @@ packages: [
   "language-docker"
   "language-gitignore"
   "language-gradle"
+  "language-ini"
   "language-restructuredtext"
   "language-robot-framework"
   "language-twig"
