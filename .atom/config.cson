@@ -18,7 +18,6 @@
     userId: "04f06dcc-b813-4b0f-91fc-66b568d2dcd7"
   "linter-ui-default":
     panelHeight: 235
-    showPanel: true
   "package-sync":
     createOnChange: true
     forceOverwrite: true
