@@ -2,6 +2,7 @@
   "autocomplete-python":
     useKite: false
   core:
+    destroyEmptyPanes: false
     disabledPackages: [
       "linter"
     ]
