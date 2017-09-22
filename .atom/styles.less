@@ -16,6 +16,29 @@ atom-text-editor .cursor {
   // border-color: red;
 }
 
+.tab-bar {
+  background: #3c3f41;
+}
+
+.tab-bar li.tab.active, .tab-bar li.tab.active::before, .tab-bar li.tab.active::after {
+  border-bottom: 2px solid #487988;
+}
+
+.atom-dock-resize-handle {
+  background: #323232;
+}
+
+.atom-dock-resize-handle.left, .atom-dock-resize-handle.right {
+  width: 2px;
+}
+
+/*
+.list-tree li.list-item.selected::before {
+  background-color: #4182C4;
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.05);
+}
+*/
+
 .list-tree li.list-item.status-added > .name,
 .list-tree li.list-nested-item.status-added > .list-item {
   color: #704f50;
