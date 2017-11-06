@@ -2,7 +2,11 @@
 
 // style the background color of the tree view
 .tree-view {
-  // background-color: whitesmoke;
+  background-color: #3f3f3f;
+}
+
+.tree-view .selected:before {
+  background-color: #2b62cd;
 }
 
 // style the background and foreground colors on the atom-text-editor-element itself
@@ -30,6 +34,10 @@ atom-text-editor .cursor {
 
 .atom-dock-resize-handle.left, .atom-dock-resize-handle.right {
   width: 2px;
+}
+
+.list-tree li.list-item.selected > span.name {
+  color: #ffffff;
 }
 
 /*
