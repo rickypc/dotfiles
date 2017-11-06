@@ -6,6 +6,8 @@
     disabledPackages: [
       "linter"
     ]
+    openEmptyEditorOnStart: false
+    restorePreviousWindowsOnStart: "always"
     telemetryConsent: "no"
     themes: [
       "zenburn-ui"
