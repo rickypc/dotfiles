@@ -21,6 +21,14 @@
     userId: "04f06dcc-b813-4b0f-91fc-66b568d2dcd7"
   "linter-ui-default":
     panelHeight: 235
+  minimap:
+    plugins:
+      cursorline: true
+      cursorlineDecorationsZIndex: 0
+      "highlight-selected": true
+      "highlight-selectedDecorationsZIndex": 0
+      "minimap-autohide": true
+      "minimap-autohideDecorationsZIndex": 0
   "package-sync":
     createOnChange: true
     forceOverwrite: true
