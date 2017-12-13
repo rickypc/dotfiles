@@ -19,6 +19,8 @@
     showInvisibles: true
   "exception-reporting":
     userId: "04f06dcc-b813-4b0f-91fc-66b568d2dcd7"
+  "file-watcher":
+    promptWhenChange: true
   "linter-flake8":
     maxComplexity: 10
   "linter-ui-default":
