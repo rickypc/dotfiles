@@ -9,6 +9,7 @@ packages: [
   "editorconfig"
   "emmet"
   "file-icons"
+  "file-watcher"
   "highlight-selected"
   "hyperclick"
   "hyperclick-robot-framework"
