@@ -19,17 +19,19 @@
 : ${SEARCH_IGNORE_FILE:=.searchignore}
 
 function usage {
-    echo -e "Usage: $0 [-e <exclude folder> ...] -h <keyword>\n"
+    echo -e "Usage: $0 [-e <exclude folder> ...] -h <keyword> -s\n"
     echo "Command line switches are optional. The following switches are recognized."
     echo "   -e  -- Folder to be excluded from the search path."
     echo "   -h  -- Show this usage."
+    echo "   -s  -- Skip .searchignore file."
     exit 1
 }
 
-while getopts ":e:h" o; do
+while getopts ":e:hs" o; do
     case "$o" in
         e) EXCLUDES+=("$OPTARG");;
         h) usage;;
+        s) SKIP_IGNORE=true;;
     esac
 done
 
@@ -37,10 +39,12 @@ shift $((OPTIND-1))
 
 FIND_ARGS+="-not \( -path '*.git/*' -prune \)"
 
-if [ -f $SEARCH_IGNORE_FILE ]; then
-    while read EXCLUDE; do
-        FIND_ARGS+=" -not \( -path '*$EXCLUDE*' -prune \)"
-    done < $SEARCH_IGNORE_FILE
+if [ "$SKIP_IGNORE" != true ]; then
+    if [ -f $SEARCH_IGNORE_FILE ]; then
+        while read EXCLUDE; do
+            FIND_ARGS+=" -not \( -path '*$EXCLUDE*' -prune \)"
+        done < $SEARCH_IGNORE_FILE
+    fi
 fi
 
 if [ ! -z "$EXCLUDES" ]; then
