@@ -1,10 +1,14 @@
 "*":
+  "atom-python-virtualenv": {}
   "autocomplete-python":
     useKite: false
   core:
     destroyEmptyPanes: false
     disabledPackages: [
       "linter"
+      "whitespace"
+      "welcome"
+      "metrics"
     ]
     openEmptyEditorOnStart: false
     restorePreviousWindowsOnStart: "always"
