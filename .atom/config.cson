@@ -3,6 +3,7 @@
   "autocomplete-python":
     useKite: false
   core:
+    closeDeletedFileTabs: true
     destroyEmptyPanes: false
     disabledPackages: [
       "linter"
