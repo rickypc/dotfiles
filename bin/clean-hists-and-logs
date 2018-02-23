@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #    Clean History and Logs - Remove all logs and histories.
-#    Copyright (C) 1995-2015  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 1995-2018  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -26,10 +26,8 @@ sudo rm -f /var/log/*.gz /var/log/*.old /var/log/*/*.gz
 [ -f ~/.mysql_history ] && :>~/.mysql_history
 
 # clear vim history
-rm -rf ~/.vim/backup/*
-#rm -rf ~/.vim/backup/.??*
-[ -d ~/.vim6 ] && rm -rf ~/.vim6/backup/*
-#[ -d ~/.vim6 ] && rm -rf ~/.vim6/backup/.??*
+find ~/.vim/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+[ -d ~/.vim6 ] && find ~/.vim6/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
 :>~/.viminfo
 
 # clear bash history
