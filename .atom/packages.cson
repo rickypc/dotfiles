@@ -49,6 +49,7 @@ packages: [
   "rst-preview"
   "script"
   "sort-lines"
+  "teletype"
   "tree-view-git-status"
   "zenburn-syntax"
   "zenburn-ui"
