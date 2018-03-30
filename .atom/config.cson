@@ -1,8 +1,11 @@
 "*":
+  "atom-ide-ui":
+    use: {}
   "atom-python-virtualenv": {}
   "autocomplete-python":
     useKite: false
   core:
+    allowPendingPaneItems: false
     closeDeletedFileTabs: true
     destroyEmptyPanes: false
     disabledPackages: [
