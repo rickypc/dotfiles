@@ -13,6 +13,7 @@ packages: [
   "highlight-selected"
   "hyperclick"
   "hyperclick-robot-framework"
+  "ide-csharp"
   "ide-flowtype"
   "ide-java"
   "ide-php"
