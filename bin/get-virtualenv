@@ -21,9 +21,18 @@ LOCAL_BIN=/usr/local/bin
 PYTHON2_BASE=$(python2 -c "from distutils.sysconfig import PREFIX;print(PREFIX)")
 PYTHON3_BASE=$(python3 -c "from distutils.sysconfig import PREFIX;print(PREFIX)")
 
+# Update pip to the latest to fix Brownout issue.
+curl -s https://bootstrap.pypa.io/get-pip.py | python2 -
+curl -s https://bootstrap.pypa.io/get-pip.py | python3 -
+
+# Symlink pip to the PATH.
 sudo ln -sf ${PYTHON2_BASE}/bin/pip2 $LOCAL_BIN/pip2
 sudo ln -sf ${PYTHON3_BASE}/bin/pip3 $LOCAL_BIN/pip3
-sudo pip2 install -U virtualenv
-sudo pip3 install -U virtualenv
+
+# Install virtualenv.
+sudo -H pip2 install -U virtualenv
+sudo -H pip3 install -U virtualenv
+
+# Symlink virtualenv to the PATH.
 sudo ln -sf ${PYTHON2_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv2
 sudo ln -sf ${PYTHON3_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv3
