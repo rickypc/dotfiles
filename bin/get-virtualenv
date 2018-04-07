@@ -25,13 +25,13 @@ PYTHON3_BASE=$(python3 -c "from distutils.sysconfig import PREFIX;print(PREFIX)"
 curl -s https://bootstrap.pypa.io/get-pip.py | python2 -
 curl -s https://bootstrap.pypa.io/get-pip.py | python3 -
 
+# Install virtualenv.
+pip2 install -U virtualenv
+pip3 install -U virtualenv
+
 # Symlink pip to the PATH.
 sudo ln -sf ${PYTHON2_BASE}/bin/pip2 $LOCAL_BIN/pip2
 sudo ln -sf ${PYTHON3_BASE}/bin/pip3 $LOCAL_BIN/pip3
-
-# Install virtualenv.
-sudo -H pip2 install -U virtualenv
-sudo -H pip3 install -U virtualenv
 
 # Symlink virtualenv to the PATH.
 sudo ln -sf ${PYTHON2_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv2
