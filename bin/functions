@@ -1,0 +1,122 @@
+#    Common Functions - Common functions to be used by all other shell scripts.
+#    Copyright (C) 2015-2018  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Make sure umask is sane
+umask 022
+
+# Configurations
+RES_COL=60
+MOVE_TO_COL="echo -en \\033[${RES_COL}G"
+SET_COLOR_BOLD="echo -en \\033[1m"       # White Bold
+SET_COLOR_DIM="echo -en \\033[2m"        # White Dim
+SET_COLOR_FAILURE="echo -en \\033[1;31m" # Green
+SET_COLOR_NORMAL="echo -en \\033[0m"     # White
+SET_COLOR_SUCCESS="echo -en \\033[1;32m" # Red
+SET_COLOR_WARNING="echo -en \\033[1;33m" # Yellow
+SPIN='-\|/'
+[ -z "${TMPDIR:-}" ] && TMPDIR=/tmp/
+STEP_FILE=${TMPDIR}step.$$
+[[ $(tput colors 2>/dev/null) -ge 8 ]] && USE_COLOR=true || USE_COLOR=false
+
+_echo_status() {
+    # COLOR is byref
+    local COLOR=${!1} STATUS=$2
+    [ "$USE_COLOR" = true ] && $MOVE_TO_COL
+    echo -n "["
+    [ "$USE_COLOR" = true ] && $COLOR
+    echo -n $STATUS
+    [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
+    echo -n "]"
+    echo -en "\r"
+    echo
+}
+
+error() {
+    local EXIt_CODE=$1 LINE=$2 COMMAND="$3"
+    # Check if command failed
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        # Update the exit code in the step file
+        [[ -w $TMPDIR ]] && echo $EXIT_CODE > $STEP_FILE
+        local FILE=$(readlink "${BASH_SOURCE[1]}" || echo "$(echo "$0" | sed -e 's,\\,/,g')")
+        echo "$FILE: line $LINE: \`$COMMAND\` failed: $EXIT_CODE."
+    fi
+}
+
+failure() {
+    local TITLE STATUS
+    [[ -z $2 ]] && STATUS="FAILED" || STATUS=$2
+    _echo_status SET_COLOR_FAILURE $STATUS
+}
+
+next() {
+    [[ -f $STEP_FILE ]] && { EXIT_CODE=$(< $STEP_FILE); rm -f $STEP_FILE; }
+    [[ $EXIT_CODE -eq 0 ]]  && success || failure
+    return $EXIT_CODE
+}
+
+output() {
+    local OUTPUT="$@"
+    if [[ -n $OUTPUT ]]; then
+        echo
+        [ "$USE_COLOR" = true ] && $SET_COLOR_DIM
+        echo "$OUTPUT"
+        [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
+    fi
+}
+
+passed() {
+    local TITLE STATUS
+    [[ -z $2 ]] && STATUS="PASSED" || STATUS=$2
+    _echo_status SET_COLOR_WARNING $STATUS
+}
+
+step() {
+    # Render step title
+    title $@
+    # Set initial exit code in the step file
+    [[ -w $TMPDIR ]] && echo 0 > $STEP_FILE
+}
+
+success() {
+    local TITLE STATUS
+    [[ -z $2 ]] && STATUS="  OK  " || STATUS=$2
+    _echo_status SET_COLOR_SUCCESS $STATUS
+}
+
+title() {
+    local TITLE="$@"
+    [ "$USE_COLOR" = true ] && $SET_COLOR_BOLD
+    printf '\r * %s' "$TITLE" | fold -s -w 59
+    [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
+}
+
+try() {
+    # Run the command
+    COMMAND_OUTPUT=$(($@) 2>&1)
+    # Capture the exit code
+    local EXIT_CODE=$?
+    # Render command output
+    output "$COMMAND_OUTPUT"
+    # Render error message and update the step file if exit code is not 0
+    error $EXIT_CODE ${BASH_LINENO[0]} "$*"
+    return $EXIT_CODE
+}
+
+warning() {
+    local TITLE STATUS
+    [[ -z $2 ]] && STATUS="WARNING" || STATUS=$2
+    _echo_status SET_COLOR_WARNING $STATUS
+}
