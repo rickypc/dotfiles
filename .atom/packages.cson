@@ -39,7 +39,7 @@ packages: [
   "linter-ui-default"
   "markdown-scroll-sync"
   "minimap"
-  "minimap-autohide"
+  "minimap-autohider"
   "minimap-cursorline"
   "minimap-highlight-selected"
   "package-sync"
