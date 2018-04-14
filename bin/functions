@@ -105,7 +105,7 @@ title() {
 
 try() {
     # Run the command
-    COMMAND_OUTPUT=$(($@) 2>&1)
+    local COMMAND_OUTPUT=$(($@) 2>&1)
     # Capture the exit code
     local EXIT_CODE=$?
     # Render command output
