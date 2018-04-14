@@ -107,6 +107,10 @@ if [ -d /usr/local/bin ]; then
     export_to_path "/usr/local/bin"
 fi
 
+if [ -d /usr/local/sbin ]; then
+    export_to_path "/usr/local/sbin"
+fi
+
 # Initialize bash completions
 if [[ "$(uname)" == 'Darwin' && -f $HOME/.bash_completion ]]; then
     . $HOME/.bash_completion
