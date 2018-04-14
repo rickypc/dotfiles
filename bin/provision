@@ -1,0 +1,137 @@
+#!/bin/bash
+
+#    Environment Provisioner - Provision development environment.
+#    Copyright (C) 2015-2018  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Source function library.
+. functions
+
+# xcode-select --install
+
+step "Install latest brew"
+try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+try brew doctor
+try brew prune
+next
+
+step "Install latest jq"
+try brew reinstall jq
+next
+
+step "Download latest ChromeDriver"
+CD_URL="https://chromedriver.storage.googleapis.com"
+CD_ZIP="chromedriver_mac64.zip"
+CD_VERSION=$(curl -Ls "$CD_URL/LATEST_RELEASE")
+try curl -Lso $CD_ZIP "$CD_URL/$CD_VERSION/$CD_ZIP"
+try unzip -oq $CD_ZIP -d ~/bin && rm -f $CD_ZIP
+try chmod +x ~/bin/chromedriver
+next
+
+step "Download latest Composer"
+C_URL="https://getcomposer.org"
+C_PATH=$(curl -Ls "$C_URL/versions" | jq -r '.stable[0].path')
+cd ~/bin
+try curl -Lso composer.phar "${C_URL}${C_PATH}"
+try chmod -x composer.phar
+cd
+next
+
+step "Download Drush 8"
+# Drush 9 will supercede this
+D_URL="https://github.com/drush-ops/drush/releases/download/8.1.16/drush.phar"
+cd ~/bin
+try curl -Lso drush.phar "$D_URL"
+try chmod -x drush.phar
+cd
+next
+
+step "Download latest GeckoDriver"
+GD_URL=$(curl -Ls https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r '.assets[].browser_download_url | select(contains("macos"))')
+cd ~/bin
+try $(curl -Ls "$GD_URL" | tar -xz)
+try chmod +x geckodriver
+cd
+next
+
+step "Download latest jTDS JDBC driver"
+JTDS_URL=$(curl -Ls https://api.github.com/repos/milesibastos/jTDS/releases/latest | jq -r '.assets[].browser_download_url | select(contains("dist"))')
+JTDS_ZIP="jtds.zip"
+# Remove previous version of jTDS JDBC driver
+try rm -f ~/bin/jtds-*.jar
+try curl -Lso $JTDS_ZIP "$JTDS_URL"
+try unzip -oqj $JTDS_ZIP "jtds-*.jar" -d ~/bin && rm -f $JTDS_ZIP
+next
+
+step "Download latest Phan static analyzer"
+# Phan doesn't have latest release documented, manual process for now
+P_VERSION=0.12.5
+P_URL="https://github.com/phan/phan/releases/download/$P_VERSION/phan.phar"
+cd ~/bin
+try curl -Lso phan.phar "$P_URL"
+try chmod -x phan.phar
+cd
+next
+
+step "Download latest PHP Code Sniffer static analyzer"
+PHPCS_LATEST=$(curl -Ls https://api.github.com/repos/squizlabs/PHP_CodeSniffer/releases/latest)
+PHPCBF_URL=$(echo "$PHPCS_LATEST" | jq -r '.assets[].browser_download_url | select(endswith("phpcbf.phar"))')
+PHPCS_URL=$(echo "$PHPCS_LATEST" | jq -r '.assets[].browser_download_url | select(endswith("phpcs.phar"))')
+cd ~/bin
+try curl -Lso phpcbf.phar "$PHPCBF_URL"
+try chmod -x phpcbf.phar
+try curl -Lso phpcs.phar "$PHPCS_URL"
+try chmod -x phpcs.phar
+cd
+next
+
+step "Download latest PHP Mess Detector"
+cd ~/bin
+try curl -Lso phpmd.phar "http://static.phpmd.org/php/latest/phpmd.phar"
+try chmod -x phpmd.phar
+cd
+next
+
+step "Download latest Selenium server standalone"
+# Selenium server doesn't have latest release documented, manual process for now
+S_VERSION=3.11.0
+S_DIR=$(echo "$S_VERSION" | cut -d"." -f-2)
+S_URL="https://selenium-release.storage.googleapis.com/${S_DIR}/selenium-server-standalone-${S_VERSION}.jar"
+cd ~/bin
+# Remove previous version of Selenium server standalone
+try rm -f selenium-server-standalone-*.jar
+try curl -LsO "$S_URL"
+try chmod -x selenium-server-standalone-*.jar
+cd
+next
+
+# Prompt for sudo password early on
+sudo -s exit
+
+step "Clean history and logs"
+try ~/bin/clean-hists-and-logs
+next
+
+step "Clean Docker containers and images"
+try ~/bin/docker-cleanup
+next
+
+step "Get virtualenv"
+try ~/bin/get-virtualenv
+next
+
+step "Show all files in finder"
+try ~/bin/osx-show-all-files
+next
