@@ -37,6 +37,16 @@ __pycache__/
 .viminfo
 .vscode
 Applications
+bin/chromedriver
+bin/composer.phar
+bin/drush.phar
+bin/geckodriver
+bin/jtds-*.jar
+bin/phan.phar
+bin/phpcbf.phar
+bin/phpcs.phar
+bin/phpmd.phar
+bin/selenium-server-standalone-*.jar
 build
 Desktop
 dist
