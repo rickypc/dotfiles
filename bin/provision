@@ -22,9 +22,17 @@
 # xcode-select --install
 
 step "Install latest brew"
-try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+if ! [ -x "$(command -v brew)" ]; then
+    try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
+# Check Homebrew installation
 try brew doctor
+# Update to latest Homebrew and latest formulaes as well
+try brew update
+# Upgrade all installed unpinned brews
+try brew upgrade --cleanup --ignore-pinned
 try brew prune
+try brew analytics off
 next
 
 step "Install latest jq"
