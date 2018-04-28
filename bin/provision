@@ -16,130 +16,155 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+COMPOSER_DIR=$HOME/.composer
+PHP_VERSION=7.1
+
 # Source function library.
 . functions
 
+# Xcode command line tools, you are most likely need to install this manually from Apple Developer download.
 # xcode-select --install
 
-step "Install latest brew"
-if ! [ -x "$(command -v brew)" ]; then
-    try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-fi
-# Check Homebrew installation
-try brew doctor
-# Update to latest Homebrew and latest formulaes as well
-try brew update
-# Upgrade all installed unpinned brews
-try brew upgrade --cleanup --ignore-pinned
-try brew prune
-try brew analytics off
+step "Install latest Homebrew"
+    if ! [ -x "$(command -v brew)" ]; then
+        try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    fi
+
+    # Check Homebrew installation
+    try brew doctor
+    # Update to latest Homebrew and latest formulaes as well
+    try brew update
+    # Upgrade all installed unpinned brews
+    try brew upgrade --cleanup --ignore-pinned
+    # Cleanup old files
+    try brew cleanup
+    # Cleanup old symlinks
+    try brew prune
+    # Turn off Homebrew analytics.
+    try brew analytics off
 next
 
-step "Install latest jq"
-try brew reinstall jq
+step "Tap Homebrew services repository"
+    try brew tap homebrew/services
 next
+
+if [ -z "$(brew ls --versions autoconf)" ]; then
+    step "Install latest AutoConf"
+        try brew install autoconf
+    next
+fi
+
+if [ -z "$(brew ls --versions openssl)" ]; then
+    step "Install latest OpenSSL"
+        try brew install openssl
+    next
+fi
+
+if [ -z "$(brew ls --versions python@2)" ]; then
+    step "Install Python 2"
+        try brew install python@2
+    next
+fi
+
+if [ -z "$(brew ls --versions python@3)" ]; then
+    step "Install Python 3"
+        try brew install python@3
+    next
+fi
+
+if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
+    step "Install PHP v$PHP_VERSION"
+        try brew install php@$PHP_VERSION
+        try brew link --force --overwrite php@$PHP_VERSION
+        try pecl channel-update pecl.php.net
+        try pecl install ast
+    next
+fi
+
+if [ -z "$(brew ls --versions composer)" ]; then
+    step "Install latest Composer"
+        try brew install composer
+    next
+fi
+
+step "Download latest PHP dependencies"
+    cd $COMPOSER_DIR
+    try composer require drupal/coder drush/drush:8.* phan/phan phpmd/phpmd
+    try phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
+    cd
+next
+
+if [ -z "$(brew ls --versions mysql)" ]; then
+    step "Install latest MySQL"
+        try brew install mysql
+        try brew services start mysql
+    next
+    mysql_secure_installation
+fi
+
+if [ -z "$(brew ls --versions phpmyadmin)" ]; then
+    step "Install latest PHPMyAdmin"
+        try PHP_AUTOCONF="$(which autoconf)" brew install phpmyadmin
+    next
+fi
+
+if [ -z "$(brew ls --versions nginx)" ]; then
+    step "Install latest Nginx"
+        brew install nginx
+    next
+fi
+
+if [ -z "$(brew ls --versions jq)" ]; then
+    step "Install latest jq"
+        try brew install jq
+    next
+fi
 
 step "Download latest ChromeDriver"
-CD_URL="https://chromedriver.storage.googleapis.com"
-CD_ZIP="chromedriver_mac64.zip"
-CD_VERSION=$(curl -Ls "$CD_URL/LATEST_RELEASE")
-try curl -Lso $CD_ZIP "$CD_URL/$CD_VERSION/$CD_ZIP"
-try unzip -oq $CD_ZIP -d ~/bin && rm -f $CD_ZIP
-try chmod +x ~/bin/chromedriver
+    CD_URL="https://chromedriver.storage.googleapis.com"
+    CD_ZIP="chromedriver_mac64.zip"
+    CD_VERSION=$(curl -Ls "$CD_URL/LATEST_RELEASE")
+    try curl -Lso $CD_ZIP "$CD_URL/$CD_VERSION/$CD_ZIP"
+    try unzip -oq $CD_ZIP -d ~/bin && rm -f $CD_ZIP
+    try chmod +x ~/bin/chromedriver
 next
 
-step "Download latest Composer"
-C_URL="https://getcomposer.org"
-C_PATH=$(curl -Ls "$C_URL/versions" | jq -r '.stable[0].path')
-cd ~/bin
-try curl -Lso composer.phar "${C_URL}${C_PATH}"
-try chmod -x composer.phar
-cd
-next
-
-step "Download Drush 8"
-# Drush 9 will supercede this
-D_URL="https://github.com/drush-ops/drush/releases/download/8.1.16/drush.phar"
-cd ~/bin
-try curl -Lso drush.phar "$D_URL"
-try chmod -x drush.phar
-cd
-next
-
-step "Download latest GeckoDriver"
-GD_URL=$(curl -Ls https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r '.assets[].browser_download_url | select(contains("macos"))')
-cd ~/bin
-try $(curl -Ls "$GD_URL" | tar -xz)
-try chmod +x geckodriver
-cd
-next
+if [ -z "$(brew ls --versions geckodriver)" ]; then
+    step "Install latest GeckoDriver"
+        try brew install geckodriver
+    next
+fi
 
 step "Download latest jTDS JDBC driver"
-JTDS_URL=$(curl -Ls https://api.github.com/repos/milesibastos/jTDS/releases/latest | jq -r '.assets[].browser_download_url | select(contains("dist"))')
-JTDS_ZIP="jtds.zip"
-# Remove previous version of jTDS JDBC driver
-try rm -f ~/bin/jtds-*.jar
-try curl -Lso $JTDS_ZIP "$JTDS_URL"
-try unzip -oqj $JTDS_ZIP "jtds-*.jar" -d ~/bin && rm -f $JTDS_ZIP
+    JTDS_URL=$(curl -Ls https://api.github.com/repos/milesibastos/jTDS/releases/latest | jq -r '.assets[].browser_download_url | select(contains("dist"))')
+    JTDS_ZIP="jtds.zip"
+    # Remove previous version of jTDS JDBC driver
+    try rm -f ~/bin/jtds-*.jar
+    try curl -Lso $JTDS_ZIP "$JTDS_URL"
+    try unzip -oqj $JTDS_ZIP "jtds-*.jar" -d ~/bin && rm -f $JTDS_ZIP
 next
 
-step "Download latest Phan static analyzer"
-# Phan doesn't have latest release documented, manual process for now
-P_VERSION=0.12.5
-P_URL="https://github.com/phan/phan/releases/download/$P_VERSION/phan.phar"
-cd ~/bin
-try curl -Lso phan.phar "$P_URL"
-try chmod -x phan.phar
-cd
-next
-
-step "Download latest PHP Code Sniffer static analyzer"
-PHPCS_LATEST=$(curl -Ls https://api.github.com/repos/squizlabs/PHP_CodeSniffer/releases/latest)
-PHPCBF_URL=$(echo "$PHPCS_LATEST" | jq -r '.assets[].browser_download_url | select(endswith("phpcbf.phar"))')
-PHPCS_URL=$(echo "$PHPCS_LATEST" | jq -r '.assets[].browser_download_url | select(endswith("phpcs.phar"))')
-cd ~/bin
-try curl -Lso phpcbf.phar "$PHPCBF_URL"
-try chmod -x phpcbf.phar
-try curl -Lso phpcs.phar "$PHPCS_URL"
-try chmod -x phpcs.phar
-cd
-next
-
-step "Download latest PHP Mess Detector"
-cd ~/bin
-try curl -Lso phpmd.phar "http://static.phpmd.org/php/latest/phpmd.phar"
-try chmod -x phpmd.phar
-cd
-next
-
-step "Download latest Selenium server standalone"
-# Selenium server doesn't have latest release documented, manual process for now
-S_VERSION=3.11.0
-S_DIR=$(echo "$S_VERSION" | cut -d"." -f-2)
-S_URL="https://selenium-release.storage.googleapis.com/${S_DIR}/selenium-server-standalone-${S_VERSION}.jar"
-cd ~/bin
-# Remove previous version of Selenium server standalone
-try rm -f selenium-server-standalone-*.jar
-try curl -LsO "$S_URL"
-try chmod -x selenium-server-standalone-*.jar
-cd
-next
+if [ -z "$(brew ls --versions selenium-server-standalone)" ]; then
+    step "Install latest Selenium server standalone"
+        try brew install selenium-server-standalone
+    next
+fi
 
 # Prompt for sudo password early on
 sudo -s exit
 
 step "Clean history and logs"
-try ~/bin/clean-hists-and-logs
+    try ~/bin/clean-hists-and-logs
 next
 
 step "Clean Docker containers and images"
-try ~/bin/docker-cleanup
+    try ~/bin/docker-cleanup
 next
 
 step "Get virtualenv"
-try ~/bin/get-virtualenv
+    try ~/bin/get-virtualenv
 next
 
 step "Show all files in finder"
-try ~/bin/osx-show-all-files
+    try ~/bin/osx-show-all-files
 next
