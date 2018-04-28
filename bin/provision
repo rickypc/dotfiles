@@ -88,6 +88,7 @@ if [ -z "$(brew ls --versions composer)" ]; then
 fi
 
 step "Download latest PHP dependencies"
+    mkdir -p $COMPOSER_DIR
     cd $COMPOSER_DIR
     try composer require drupal/coder drush/drush:8.* phan/phan phpmd/phpmd
     try phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
