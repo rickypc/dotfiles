@@ -30,8 +30,6 @@ step "Install latest Homebrew"
         try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
 
-    # Check Homebrew installation
-    try brew doctor
     # Update to latest Homebrew and latest formulaes as well
     try brew update
     # Upgrade all installed unpinned brews
@@ -42,6 +40,8 @@ step "Install latest Homebrew"
     try brew prune
     # Turn off Homebrew analytics.
     try brew analytics off
+    # Check Homebrew installation
+    try brew doctor
 next
 
 step "Tap Homebrew services repository"
