@@ -18,24 +18,35 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOCAL_BIN=/usr/local/bin
-PYTHON2_BASE=$(python2 -c "from distutils.sysconfig import PREFIX;print(PREFIX)")
-PYTHON3_BASE=$(python3 -c "from distutils.sysconfig import PREFIX;print(PREFIX)")
-
-# Update pip to the latest to fix Brownout issue.
-GET_PIP=get-pip.py
-curl -LsO https://bootstrap.pypa.io/get-pip.py
-python2 $GET_PIP -q
-python3 $GET_PIP -q
-rm -f $GET_PIP
 
 # Install virtualenv.
 pip2 install -qU virtualenv
 pip3 install -qU virtualenv
 
-# Symlink pip to the PATH.
-sudo ln -sf ${PYTHON2_BASE}/bin/pip2 $LOCAL_BIN/pip2
-sudo ln -sf ${PYTHON3_BASE}/bin/pip3 $LOCAL_BIN/pip3
+if [ ! -f $LOCAL_BIN/virtualenv2 ]; then
+    sudo bash -c "cat > $LOCAL_BIN/virtualenv2" << EOF
+#!/usr/local/opt/python@2/bin/python2
+# -*- coding: utf-8 -*-
+import re
+import sys
+from virtualenv import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0]) 
+    sys.exit(main())
+EOF
+    sudo chmod +x $LOCAL_BIN/virtualenv2
+fi
 
-# Symlink virtualenv to the PATH.
-sudo ln -sf ${PYTHON2_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv2
-sudo ln -sf ${PYTHON3_BASE}/bin/virtualenv $LOCAL_BIN/virtualenv3
+if [ ! -f $LOCAL_BIN/virtualenv3 ]; then
+    sudo bash -c "cat > $LOCAL_BIN/virtualenv3" << EOF
+#!/usr/local/opt/python@3/bin/python3
+# -*- coding: utf-8 -*-
+import re
+import sys
+from virtualenv import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0]) 
+    sys.exit(main())
+EOF
+    sudo chmod +x $LOCAL_BIN/virtualenv3
+fi
