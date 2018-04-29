@@ -21,6 +21,7 @@ __pycache__/
 .gradle
 .m2
 .MacOSX
+.my.cnf
 .node-gyp
 .node_repl_history
 .npm
