@@ -44,13 +44,30 @@ _echo_status() {
     echo
 }
 
+content_replace() {
+    local PATTERN=$1 PATH=$2
+    # Run the command
+    local COMMAND_OUTPUT=$(/usr/bin/perl -p -i.bak -e "$PATTERN" "$PATH" 2>&1)
+    # Capture the exit code
+    local EXIT_CODE=$?
+    # Render command output
+    output "$COMMAND_OUTPUT"
+    # It should be silent when everything went well.
+    if [ ! -z "$COMMAND_OUTPUT" ]; then
+        EXIT_CODE=126
+    fi
+    # Render error message and update the step file if exit code is not 0
+    error $EXIT_CODE ${BASH_LINENO[0]} "$*"
+    return $EXIT_CODE
+}
+
 error() {
-    local EXIt_CODE=$1 LINE=$2 COMMAND="$3"
+    local EXIT_CODE=$1 LINE=$2 COMMAND="$3"
     # Check if command failed
     if [[ $EXIT_CODE -ne 0 ]]; then
         # Update the exit code in the step file
         [[ -w $TMPDIR ]] && echo $EXIT_CODE > $STEP_FILE
-        local FILE=$(readlink "${BASH_SOURCE[1]}" || echo "$(echo "$0" | sed -e 's,\\,/,g')")
+        local FILE=$(/usr/bin/readlink "${BASH_SOURCE[1]}" || echo "$(echo "$0" | /usr/bin/sed -e 's,\\,/,g')")
         echo "$FILE: line $LINE: \`$COMMAND\` failed: $EXIT_CODE."
     fi
 }
