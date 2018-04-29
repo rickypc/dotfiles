@@ -78,8 +78,22 @@ fi
 if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
     step "Install PHP v$PHP_VERSION"
         try brew install php@$PHP_VERSION
-        try perl -p -i.bak -e "s{;date.timezone =}{date.timezone = UTC}" /usr/local/etc/php/$PHP_VERSION/php.ini
-        try perl -p -i.bak -e "s{;error_log = php_errors.log}{error_log = /usr/local/var/log/php_errors.log}" /usr/local/etc/php/$PHP_VERSION/php.ini
+        PHP_INI=$PREFIX/etc/php/$PHP_VERSION/php.ini
+        # Essentials configs.
+        content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
+        content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $PHP_INI
+        # Size matters.
+        content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
+        content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
+        # OPCache configs.
+        content_replace "s{;opcache.enable=1}{opcache.enable=1}" $PHP_INI
+        content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
+        content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
+        content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
+        content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
+        content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
+        content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
+        # Links and install extensions.
         try brew link --force --overwrite php@$PHP_VERSION
         try pecl channel-update pecl.php.net
         if [ -z "$(php -i | grep ast)" ]; then
@@ -89,7 +103,7 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
             try pecl install mcrypt
         fi
         # Replace socket php-fpm location.
-        try perl -p -i.bak -e "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PREFIX/etc/php/$PHP_VERSION/php-fpm.d/www.conf
+        content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PREFIX/etc/php/$PHP_VERSION/php-fpm.d/www.conf
         try brew services start php@$PHP_VERSION
     next
 fi
