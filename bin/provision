@@ -79,6 +79,7 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
     step "Install PHP v$PHP_VERSION"
         try brew install php@$PHP_VERSION
         try perl -p -i.bak -e "s{;date.timezone =}{date.timezone = UTC}" /usr/local/etc/php/$PHP_VERSION/php.ini
+        try perl -p -i.bak -e "s{;error_log = php_errors.log}{error_log = /usr/local/var/log/php_errors.log}" /usr/local/etc/php/$PHP_VERSION/php.ini
         try brew link --force --overwrite php@$PHP_VERSION
         try pecl channel-update pecl.php.net
         if [ -z "$(php -i | grep ast)" ]; then
@@ -114,6 +115,10 @@ if [ -z "$(brew ls --versions mysql)" ]; then
         sleep 5
     done
     mysql_secure_installation
+    # Further MySQL config customization.
+    if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
+        echo 'explicit_defaults_for_timestamp = 1' >> $PREFIX/etc/my.cnf
+    fi
 fi
 
 PMA_DIR=$PREFIX/var/www/phpMyAdmin
@@ -155,7 +160,7 @@ if [ -z "$(brew ls --versions nginx)" ]; then
         try mkdir -p $PREFIX/etc/nginx/servers
         cat <<EOF > $PREFIX/etc/nginx/nginx.conf
 user                        root admin;
-worker_processes            1;
+worker_processes            2;
 
 events {
     worker_connections      1024;
