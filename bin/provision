@@ -99,11 +99,8 @@ if [ -z "$(brew ls --versions composer)" ]; then
 fi
 
 step "Download latest PHP dependencies"
-    try mkdir -p $COMPOSER_DIR
-    cd $COMPOSER_DIR
-    try composer require drupal/coder drush/drush:8.* phan/phan phpmd/phpmd
+    try composer global require drupal/coder drush/drush:8.* phan/phan phpmd/phpmd
     try phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
-    cd
 next
 
 if [ -z "$(brew ls --versions mysql)" ]; then
@@ -134,8 +131,7 @@ perl -p -i.bak -e "s{^\$cfg.+auth_type'\] = 'cookie';}{\\\$cfg\['Servers'\]\[\\\
 # Prompt for sudo password early on
 sudo -s exit
 
-if [ -z "" ]; then
-#if [ -z "$(brew ls --versions nginx)" ]; then
+if [ -z "$(brew ls --versions nginx)" ]; then
     step "Install latest Nginx"
         try brew install nginx
         try mkdir -p $PREFIX/etc/nginx/servers
