@@ -133,7 +133,7 @@ cp $PMA_DIR/config.sample.inc.php $PMA_DIR/config.inc.php
 # Replace auth_type and credentials.
 perl -p -i.bak -e "s{^\$cfg.+auth_type'\] = 'cookie';}{\\\$cfg\['Servers'\]\[\\\$i\]\['auth_type'\] = 'config';\n\\\$cfg\['Servers'\]\[\\\$i\]\['user'\] = 'root';\n\\\$cfg\['Servers'\]\[\\\$i\]\['password'\] = '$MYSQL_PASSWD';}g" $PMA_DIR/config.inc.php
 
-# Default user login
+# Default MySQL user login credentials.
 if [ ! -f $HOME/.my.cnf ]; then
     cat <<EOF > $HOME/.my.cnf
 [mysql]
