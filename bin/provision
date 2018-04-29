@@ -30,6 +30,7 @@ step "Install latest Homebrew"
         try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
 
+    PREFIX=$(brew --prefix)
     # Turn off Homebrew analytics.
     try brew analytics off
     # Update to latest Homebrew and latest formulaes as well
@@ -48,15 +49,17 @@ step "Tap Homebrew services repository"
     try brew tap homebrew/services
 next
 
-if [ -z "$(brew ls --versions autoconf)" ]; then
-    step "Install latest AutoConf"
-        try brew install autoconf
-    next
-fi
-
 if [ -z "$(brew ls --versions openssl)" ]; then
     step "Install latest OpenSSL"
         try brew install openssl
+        SSL_PREFIX=$PREFIX/etc/openssl
+        try mkdir -p $SSL_PREFIX/certs $SSL_PREFIX/private
+        if [ ! -f $SSL_PREFIX/private/localhost.key ]; then
+            openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=localhost" -keyout $SSL_PREFIX/private/localhost.key -out $SSL_PREFIX/certs/localhost.crt
+        fi
+        if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
+            openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
+        fi
     next
 fi
 
@@ -77,7 +80,15 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
         try brew install php@$PHP_VERSION
         try brew link --force --overwrite php@$PHP_VERSION
         try pecl channel-update pecl.php.net
-        try pecl install ast
+        if [ -z "$(php -i | grep ast)" ]; then
+            try pecl install ast
+        fi
+        if [ -z "$(php -i | grep mcrypt)" ]; then
+            try pecl install mcrypt
+        fi
+        # Replace socket php-fpm location.
+        try perl -p -i.bak -e "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PREFIX/etc/php/$PHP_VERSION/php-fpm.d/www.conf
+        try brew services start php@$PHP_VERSION
     next
 fi
 
@@ -88,7 +99,7 @@ if [ -z "$(brew ls --versions composer)" ]; then
 fi
 
 step "Download latest PHP dependencies"
-    mkdir -p $COMPOSER_DIR
+    try mkdir -p $COMPOSER_DIR
     cd $COMPOSER_DIR
     try composer require drupal/coder drush/drush:8.* phan/phan phpmd/phpmd
     try phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
@@ -103,15 +114,215 @@ if [ -z "$(brew ls --versions mysql)" ]; then
     mysql_secure_installation
 fi
 
-if [ -z "$(brew ls --versions phpmyadmin)" ]; then
-    step "Install latest PHPMyAdmin"
-        try PHP_AUTOCONF="$(which autoconf)" brew install phpmyadmin
-    next
-fi
+PMA_DIR=$PREFIX/var/www/phpMyAdmin
 
-if [ -z "$(brew ls --versions nginx)" ]; then
+step "Install latest PHPMyAdmin"
+    PMA_ZIP=phpMyAdmin-latest-all-languages.zip
+    try curl -LsO "https://www.phpmyadmin.net/downloads/$PMA_ZIP"
+    try unzip -oq $PMA_ZIP -d $PREFIX/var/www && rm -f $PMA_ZIP && rm -rf $PMA_DIR
+    try mv $PMA_DIR-*-all-languages $PMA_DIR
+next
+
+# Configure latest PHPMyAdmin.
+echo -n "MySQL Password: "
+read -s MYSQL_PASSWD
+echo
+cp $PMA_DIR/config.sample.inc.php $PMA_DIR/config.inc.php
+# Replace auth_type and credentials.
+perl -p -i.bak -e "s{^\$cfg.+auth_type'\] = 'cookie';}{\\\$cfg\['Servers'\]\[\\\$i\]\['auth_type'\] = 'config';\n\\\$cfg\['Servers'\]\[\\\$i\]\['user'\] = 'root';\n\\\$cfg\['Servers'\]\[\\\$i\]\['password'\] = '$MYSQL_PASSWD';}g" $PMA_DIR/config.inc.php
+
+# Prompt for sudo password early on
+sudo -s exit
+
+if [ -z "" ]; then
+#if [ -z "$(brew ls --versions nginx)" ]; then
     step "Install latest Nginx"
-        brew install nginx
+        try brew install nginx
+        try mkdir -p $PREFIX/etc/nginx/servers
+        cat <<EOF > $PREFIX/etc/nginx/nginx.conf
+user                        root admin;
+worker_processes            1;
+
+events {
+    worker_connections      1024;
+}
+
+http {
+    client_max_body_size    100m;
+    default_type            text/html;
+    fastcgi_buffer_size     32k;
+    fastcgi_buffers         8 16k;
+    fastcgi_connect_timeout 300;
+    fastcgi_read_timeout    300;
+    fastcgi_send_timeout    300;
+    gzip                    on;
+    gzip_types              text/css text/x-component application/x-javascript application/javascript text/javascript text/x-js text/richtext image/svg+xml text/plain text/xsd text/xsl text/xml image/x-icon;
+    include       	    mime.types;
+    log_format              vhost '\$remote_addr - \$remote_user [\$time_local] "\$host" "\$request" \$status \$body_bytes_sent "\$http_referer" "\$http_user_agent"';
+    sendfile                on;
+    tcp_nodelay             on;
+    tcp_nopush              on;
+
+    include servers/*;
+}
+EOF
+        if [ ! -f $PREFIX/etc/nginx/servers/localhost.conf ]; then
+            cat <<EOF > $PREFIX/etc/nginx/servers/localhost.conf
+server {
+    listen              80 default_server;
+    server_name         localhost;
+    access_log          off;
+    return              301 https://\$host\$request_uri;
+}
+
+server {
+    listen              443 ssl default_server;
+    listen              [::]:443 ssl default_server;
+    server_name         localhost;
+    root                $PREFIX/var/www;
+    access_log          $PREFIX/var/log/nginx/localhost.access.log;
+    error_log           $PREFIX/var/log/nginx/localhost.error.log debug;
+
+    ssl on;
+    ssl_certificate     $PREFIX/etc/openssl/certs/localhost.crt;
+    ssl_certificate_key $PREFIX/etc/openssl/private/localhost.key;
+
+    ssl_session_cache   shared:SSL:1m;
+    ssl_session_timeout 5m;
+
+    ssl_protocols SSLv2 SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers  on;
+
+    location / {
+        index           index.html index.php;
+    }
+
+    # Redirect server error pages to the static page /50x.html
+    error_page   500 502 503 504  /50x.html;
+
+    location ~ \.php$ {
+        try_files       \$uri =404;
+        fastcgi_pass    unix:$PREFIX/var/run/php-fpm.sock;
+        fastcgi_param   SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include         fastcgi_params;
+    }
+
+    location ~* /service/(.*)$ {
+        proxy_pass http://127.0.0.1:9000/\$1;
+    }
+
+    location /nginx-status {
+        access_log      off;
+        allow           127.0.0.1;
+        deny            all;
+        stub_status     on;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}
+EOF
+        fi
+        if [ ! -f $PREFIX/etc/nginx/servers/host.test.conf ]; then
+            cat <<EOF > $PREFIX/etc/nginx/servers/host.test.conf
+server {
+    listen              443 ssl;
+    listen              [::]:443 ssl;
+    server_name         *.test;
+    root                $PREFIX/var/www/\$host;
+    access_log          $PREFIX/var/log/nginx/host.test.access.log vhost;
+    error_log           $PREFIX/var/log/nginx/host.test.error.log debug;
+
+    ssl on;
+    ssl_certificate     $PREFIX/etc/openssl/certs/host.test.crt;
+    ssl_certificate_key $PREFIX/etc/openssl/private/host.test.key;
+
+    ssl_session_cache    shared:SSL:1m;
+    ssl_session_timeout  5m;
+
+    ssl_protocols SSLv2 SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers  HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers  on;
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+
+    location = /robots.txt {
+        access_log off;
+        allow all;
+        log_not_found off;
+    }
+
+    location ~* \.(txt|log)$ {
+        allow 127.0.0.1;
+        deny all;
+    }
+
+    location ~ \..*/.*\.php$ {
+        return 403;
+    }
+
+    location ~ ^/sites/.*/private/ {
+        return 403;
+    }
+
+    # Block access to "hidden" files and directories whose names begin with a
+    # period. This includes directories used by version control systems such
+    # as Subversion or Git to store control files.
+    location ~ (^|/)\. {
+        return 403;
+    }
+
+    location / {
+        # try_files \$uri @rewrite;                  # For Drupal <= 6
+        try_files \$uri /index.php?\$query_string;    # For Drupal >= 7
+        index   index.html index.php;
+    }
+
+    location @rewrite {
+        rewrite ^/(.*)$ /index.php?q=\$1;
+    }
+
+    # In Drupal 8, we must also match new paths where the '.php' appears in the middle,
+    # such as update.php/selection. The rule we use is strict, and only allows this pattern
+    # with the update.php front controller.  This allows legacy path aliases in the form of
+    # blog/index.php/legacy-path to continue to route to Drupal nodes. If you do not have
+    # any paths like that, then you might prefer to use a laxer rule, such as:
+    #   location ~ \.php(/|$) {
+    # The laxer rule will continue to work if Drupal uses this new URL pattern with front
+    # controllers other than update.php in a future release.
+    location ~ '\.php$|^/update.php' {
+        fastcgi_split_path_info ^(.+?\.php)(|/.*)$;
+        # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        fastcgi_intercept_errors on;
+        fastcgi_pass    unix:$PREFIX/var/run/php-fpm.sock;
+        fastcgi_param   SCRIPT_FILENAME \$request_filename;
+        include         fastcgi_params;
+    }
+
+    # Fighting with styles? This little gem is amazing.
+    # location ~ ^/sites/.*/files/imagecache/ {     # For Drupal <= 6
+    location ~ ^/sites/.*/files/styles/ {           # For Drpal >= 7
+        try_files \$uri @rewrite;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+        expires max;
+        log_not_found off;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}
+EOF
+        fi
+
+        try sudo brew services start nginx
     next
 fi
 
@@ -150,9 +361,6 @@ if [ -z "$(brew ls --versions selenium-server-standalone)" ]; then
         try brew install selenium-server-standalone
     next
 fi
-
-# Prompt for sudo password early on
-sudo -s exit
 
 step "Clean history and logs"
     try ~/bin/clean-hists-and-logs
