@@ -109,6 +109,10 @@ if [ -z "$(brew ls --versions mysql)" ]; then
         try brew install mysql
         try brew services start mysql
     next
+    echo "Waiting for MySQL to be ready..."
+    while !(mysqladmin ping -s); do
+        sleep 5
+    done
     mysql_secure_installation
 fi
 
@@ -128,6 +132,19 @@ echo
 cp $PMA_DIR/config.sample.inc.php $PMA_DIR/config.inc.php
 # Replace auth_type and credentials.
 perl -p -i.bak -e "s{^\$cfg.+auth_type'\] = 'cookie';}{\\\$cfg\['Servers'\]\[\\\$i\]\['auth_type'\] = 'config';\n\\\$cfg\['Servers'\]\[\\\$i\]\['user'\] = 'root';\n\\\$cfg\['Servers'\]\[\\\$i\]\['password'\] = '$MYSQL_PASSWD';}g" $PMA_DIR/config.inc.php
+
+# Default user login
+if [ ! -f $HOME/.my.cnf ]; then
+    cat <<EOF > $HOME/.my.cnf
+[mysql]
+user=root
+password=$MYSQL_PASSWD
+[mysqladmin]
+user=root
+password=$MYSQL_PASSWD
+EOF
+    chmod 600 $HOME/.my.cnf
+fi
 
 # Prompt for sudo password early on
 sudo -s exit
