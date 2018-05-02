@@ -38,7 +38,7 @@ step "Install latest Homebrew"
     # Upgrade all installed unpinned brews
     try brew upgrade --cleanup --ignore-pinned
     # Cleanup old files
-    try brew cleanup
+    try brew cleanup -s
     # Cleanup old symlinks
     try brew prune
     # Check Homebrew installation
