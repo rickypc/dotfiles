@@ -33,3 +33,6 @@ IMAGE_IDS=$(docker images -a --format '{{.ID}}' | grep "^<none>")
 if [ -n "$IMAGE_IDS" ]; then
     docker rmi -f $IMAGE_IDS
 fi
+
+# Remove unused data
+docker system prune -f
