@@ -96,10 +96,10 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
         # Links and install extensions.
         try brew link --force --overwrite php@$PHP_VERSION
         try pecl channel-update pecl.php.net
-        if [ -z "$(php -i | grep ast)" ]; then
+        if [ -z "$(php -i | grep -w ast)" ]; then
             try pecl install ast
         fi
-        if [ -z "$(php -i | grep mcrypt)" ]; then
+        if [ -z "$(php -i | grep -w mcrypt)" ]; then
             try pecl install mcrypt
         fi
         # Replace socket php-fpm location.
