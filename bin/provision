@@ -25,6 +25,12 @@ PHP_VERSION=7.1
 # Xcode command line tools, you are most likely need to install this manually from Apple Developer download.
 # xcode-select --install
 
+# Ensure /usr/local/sbin exists.
+if [ ! -d /usr/local/sbin ]; then
+    sudo mkdir -p /usr/local/sbin
+    sudo chown $(id -u):admin /usr/local/sbin
+fi
+
 step "Install latest Homebrew"
     if ! [ -x "$(command -v brew)" ]; then
         try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" </dev/null
@@ -63,6 +69,12 @@ if [ -z "$(brew ls --versions openssl)" ]; then
     next
 fi
 
+if [ -z "$(brew ls --versions node)" ]; then
+    step "Install NodeJS"
+        try brew install node
+    next
+fi
+
 if [ -z "$(brew ls --versions python@2)" ]; then
     step "Install Python 2"
         try brew install python@2
@@ -95,6 +107,7 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
         content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
         # Links and install extensions.
         try brew link --force --overwrite php@$PHP_VERSION
+        try mkdir -p /usr/local/lib/php/pecl
         try pecl channel-update pecl.php.net
         if [ -z "$(php -i | grep -w ast)" ]; then
             try pecl install ast
@@ -116,7 +129,7 @@ fi
 
 step "Download latest PHP dependencies"
     try composer global require drupal/coder drush/drush:8.* phan/phan phpmd/phpmd
-    try phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
+    try $COMPOSER_DIR/vendor/bin/phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
 next
 
 if [ -z "$(brew ls --versions mysql)" ]; then
