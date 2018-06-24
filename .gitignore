@@ -24,9 +24,10 @@ __pycache__/
 .my.cnf
 .node-gyp
 .node_repl_history
-.npm
+.npm*
 .oracle_jre_usage
 .pylint.d
+.pypirc
 .python_history
 .rnd
 .searchignore
