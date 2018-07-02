@@ -103,7 +103,7 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
         content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
         content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
         content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
-        content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
+        # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
         content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
         # Links and install extensions.
         try brew link --force --overwrite php@$PHP_VERSION
