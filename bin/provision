@@ -98,8 +98,8 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
         content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
         content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
         # OPCache configs.
-        content_replace "s{;opcache.enable=1}{opcache.enable=1}" $PHP_INI
-        content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
+        content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
+        # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
         content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
         content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
         content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
