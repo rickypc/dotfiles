@@ -4,6 +4,7 @@ unset COLORFGBG COLORTERM CVS_RSH WINDOWID
 
 CHECKSUM_PATH=~/.gcc-version
 GCC_VERSION=`gcc -dumpversion`
+GO_PATH=~/.go
 LIB_DIR=~/Library
 ANDROID_SDK=$LIB_DIR/android-sdk
 ANT_DIR=$LIB_DIR/apache-ant-1.9.7
@@ -67,6 +68,13 @@ fi
 if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi
+
+if [ ! -d "$GO_PATH" ]; then
+    mkdir -p "$GO_PATH"
+fi
+
+export GOPATH=$GO_PATH
+export GOBIN=$GO_PATH/bin
 
 # User specific environment and startup programs
 if [ -d ~/bin ]; then
