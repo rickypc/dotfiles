@@ -19,6 +19,7 @@ __pycache__/
 .DS_Store
 .eclipse
 .gcc-version
+.go
 .gradle
 .idlerc
 .lesshst
