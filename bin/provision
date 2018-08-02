@@ -69,6 +69,12 @@ if [ -z "$(brew ls --versions openssl)" ]; then
     next
 fi
 
+if [ -z "$(brew ls --versions go)" ]; then
+    step "Install GoLang"
+        try brew install go
+    next
+fi
+
 if [ -z "$(brew ls --versions node)" ]; then
     step "Install NodeJS"
         try brew install node
