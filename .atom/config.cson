@@ -1,4 +1,7 @@
 "*":
+  "atom-ctags":
+    autoBuildTagsWhenActive: true
+    cmdArgs: "--exclude=core --exclude=deploy --exclude=dist --exclude=gulp --exclude=node_modules --exclude=sql --exclude=tests --exclude=vendor"
   "atom-ide-ui":
     use:
       "atom-ide-debugger": "default"
@@ -15,6 +18,7 @@
       "whitespace"
       "welcome"
       "metrics"
+      "symbols-view"
     ]
     openEmptyEditorOnStart: false
     restorePreviousWindowsOnStart: "always"
@@ -31,8 +35,14 @@
     userId: "04f06dcc-b813-4b0f-91fc-66b568d2dcd7"
   "file-watcher":
     promptWhenChange: true
+  "go-plus":
+    panel:
+      displayMode: "closed"
   "linter-flake8":
     maxComplexity: 10
+  "linter-phpcs":
+    autoExecutableSearch: false
+  "linter-phpmd": {}
   "linter-ui-default":
     panelHeight: 235
   minimap:
