@@ -14,11 +14,23 @@
     closeDeletedFileTabs: true
     destroyEmptyPanes: false
     disabledPackages: [
+      "about"
+      "archive-view"
+      "autocomplete-atom-api"
+      "autoflow"
+      "autosave"
+      "background-tips"
+      "dev-live-reload"
+      "keybinding-resolver"
       "linter"
-      "whitespace"
-      "welcome"
       "metrics"
+      "open-on-github"
+      "package-generator"
+      "styleguide"
       "symbols-view"
+      "update-package-dependencies"
+      "welcome"
+      "whitespace"
     ]
     openEmptyEditorOnStart: false
     restorePreviousWindowsOnStart: "always"
