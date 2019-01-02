@@ -165,9 +165,13 @@ if [[ -d /usr/share/java && $CLASSPATH != */usr/share/java* ]]; then
     fi
 fi
 
+if [ -d "$HOME/.composer" ]; then
+    export COMPOSER_HOME=$HOME/.composer
+fi
+
 # User composer vendor
-if [ -d "$HOME/.composer/vendor/bin" ]; then
-    export_to_path "$HOME/.composer/vendor/bin"
+if [ -d "$COMPOSER_HOME/vendor/bin" ]; then
+    export_to_path "$COMPOSER_HOME/vendor/bin"
 fi
 
 # Maven specific environment
