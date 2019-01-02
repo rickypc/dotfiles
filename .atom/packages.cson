@@ -1,5 +1,6 @@
 packages: [
   "atom-beautify"
+  "atom-ctags"
   "atom-ide-ui"
   "atom-python-virtualenv"
   "autocomplete-python"
@@ -25,6 +26,7 @@ packages: [
   "language-docker"
   "language-gitignore"
   "language-gradle"
+  "language-groovy"
   "language-ini"
   "language-protobuf"
   "language-restructuredtext"
