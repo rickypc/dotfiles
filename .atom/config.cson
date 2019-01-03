@@ -3,6 +3,25 @@
     autoBuildTagsWhenActive: true
     cmdArgs: "--exclude=core --exclude=deploy --exclude=dist --exclude=gulp --exclude=node_modules --exclude=sql --exclude=tests --exclude=vendor"
   "atom-ide-ui":
+    "atom-ide-diagnostics-ui":
+      autoVisibility: true
+    "atom-ide-terminal":
+      black: "#3f3f3f"
+      red: "#705050"
+      green: "#60b48a"
+      yellow: "#dfaf8f"
+      blue: "#506070"
+      magenta: "#dc8cc3"
+      cyan: "#8cd0d3"
+      white: "#dcdccc"
+      brightBlack: "#709080"
+      brightRed: "#dca3a3"
+      brightGreen: "#c6dda7"
+      brightYellow: "#f0dfaf"
+      brightBlue: "#94bff3"
+      brightMagenta: "#ec93d3"
+      brightCyan: "#93e0e3"
+      brightWhite: "#ffffff"
     use:
       "atom-ide-debugger": "default"
       "atom-ide-terminal": "default"
