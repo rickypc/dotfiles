@@ -42,15 +42,15 @@ if [ -f ~/.bash_completion.d/git.bash-completion ]; then
     #GIT_PS1_SHOWDIRTYSTATE=true
     #GIT_PS1_SHOWSTASHSTATE=true
     #GIT_PS1_SHOWUNTRACKEDFILES=true
-    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
+    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\W\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
 else
-    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\w${BY}\$${NONE} "
+    PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\W${BY}\$${NONE} "
 fi
 
 # If this is a xterm, set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
-    PS1="\[\033]0;\u@\h: \w\a\]$PS1"
+    PS1="\[\033]0;\u@\h: \W\a\]$PS1"
     ;;
 *)
     ;;
