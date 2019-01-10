@@ -145,3 +145,6 @@ map \ve :VSTreeExplore<CR>
 
 vmap <F11> :-1/^#/s///<CR>
 vmap <F12> :-1/^/s//#/<CR>
+
+vnoremap <Tab> >
+vnoremap <S-Tab> <
