@@ -54,7 +54,7 @@ set background=dark
 colorscheme zenburn
 
 "set term=xterm
-"set t_Co=256
+set t_Co=256
 "let &t_AB="\e[48;5;%dm"
 "let &t_AF="\e[38;5;%dm"
 
@@ -116,18 +116,13 @@ endif
 "                             Plugin Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-let g:git_branch_status_head_current=1
-let g:git_branch_status_ignore_remotes=1
-let g:git_branch_status_nogit=''
-let g:git_branch_status_text=' '
-
 if version >= 700
-    set statusline=%<%f%{GitBranchInfoString()}\%h%m%r%=%-20.(\ line=%l\ \ col=%c%V\ \ totlin=%L%)\ \ \%h%m%r%=%-40(bytval=0x%B,%n%Y%)\%P
+    " powerline
+    set rtp+=$PYTHON_USER_SITE/powerline/bindings/vim
     let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
     map \ne :NERDTree<CR>
 else
     let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
-    set statusline=%<%f\%h%m%r%=%-20.(\ line=%l\ \ col=%c%V\ \ totlin=%L%)\ \ \%h%m%r%=%-40(bytval=0x%B,%n%Y%)\%P
     map \cv :GITDiff<CR>
 endif
 
