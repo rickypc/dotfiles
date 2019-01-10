@@ -89,6 +89,8 @@ if [ -d /usr/local/sbin ]; then
     export_to_path "/usr/local/sbin"
 fi
 
+PYTHON_USER_BASE=`python3 -m site --user-base`
+
 # Initialize bash completions
 if [[ "$(uname)" == 'Darwin' && -f $HOME/.bash_completion ]]; then
     . $HOME/.bash_completion
@@ -191,6 +193,17 @@ if [ -d $PERL_DIR ]; then
     export_to_path "$PERL_DIR/bin"
 fi
 
+if [ -d "$PYTHON_USER_BASE/bin" ]; then
+    export POWERLINE_BASH_CONTINUATION=1
+    export POWERLINE_BASH_SELECT=1
+    export POWERLINE_CONFIG_COMMAND=powerline-config
+    export PYTHON_USER_SITE=`python3 -m site --user-site`
+    export_to_path "$PYTHON_USER_BASE/bin"
+fi
+
 if [ -d ~/.virtualenvs ]; then
     export WORKON_HOME=~/.virtualenvs
 fi
+
+powerline-daemon -q
+. $PYTHON_USER_SITE/powerline/bindings/bash/powerline.sh
