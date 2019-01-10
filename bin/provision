@@ -93,6 +93,10 @@ if [ -z "$(brew ls --versions python@3)" ]; then
     next
 fi
 
+step "Install latest Python dependencies"
+    try pip3 install --user powerline-gitstatus powerline-status
+next
+
 if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
     step "Install PHP v$PHP_VERSION"
         try brew install php@$PHP_VERSION
@@ -236,6 +240,12 @@ next
 if [ -z "$(brew ls --versions selenium-server-standalone)" ]; then
     step "Install latest Selenium server standalone"
         try brew install selenium-server-standalone
+    next
+fi
+
+if [ -z "$(brew ls --versions vim)" ]; then
+    step "Install latest Vim"
+        try brew install vim
     next
 fi
 
