@@ -26,6 +26,9 @@ set matchtime=3 showmatch
 " allow per-file settings via modeline
 set modeline
 
+" hide default mode text
+set noshowmode
+
 " show absolute line number of the current line
 set number
 
