@@ -6,6 +6,7 @@
     "atom-ide-diagnostics-ui":
       autoVisibility: true
     "atom-ide-terminal":
+      allowTransparency: true
       black: "#3f3f3f"
       blue: "#506070"
       brightBlack: "#709080"
@@ -16,7 +17,10 @@
       brightRed: "#dca3a3"
       brightWhite: "#ffffff"
       brightYellow: "#f0dfaf"
+      cursorBlink: true
+      cursorStyle: "bar"
       cyan: "#8cd0d3"
+      fontFamily: "Source Code Pro"
       green: "#60b48a"
       magenta: "#dc8cc3"
       red: "#705050"
