@@ -56,6 +56,8 @@ else
     gcc_process
 fi
 
+export LC_ALL=en_US.UTF-8
+
 #if [ "$(ps x | grep ssh-agent | grep -v grep | wc -l)" -le 0 ]; then
 #    eval "$(/usr/bin/ssh-agent -t 32400)"
 #else
