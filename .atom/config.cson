@@ -20,6 +20,7 @@
       cursorBlink: true
       cursorStyle: "bar"
       cyan: "#8cd0d3"
+      documentationMessage: false
       fontFamily: "Source Code Pro"
       green: "#60b48a"
       magenta: "#dc8cc3"
