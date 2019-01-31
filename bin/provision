@@ -125,6 +125,9 @@ if [ -z "$(brew ls --versions php@$PHP_VERSION)" ]; then
         if [ -z "$(php -i | grep -w mcrypt)" ]; then
             try pecl install mcrypt
         fi
+        if [ -z "$(php -i | grep -w xdebug)" ]; then
+            try pecl install xdebug
+        fi
         # Replace socket php-fpm location.
         content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PREFIX/etc/php/$PHP_VERSION/php-fpm.d/www.conf
         try brew services start php@$PHP_VERSION
