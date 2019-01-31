@@ -47,6 +47,7 @@
       "dev-live-reload"
       "keybinding-resolver"
       "linter"
+      "markdown-preview"
       "metrics"
       "open-on-github"
       "package-generator"
@@ -74,11 +75,19 @@
   "go-plus":
     panel:
       displayMode: "closed"
+  linter:
+    lintOnChange: false
+    lintOnOpen: true
+    lintPreviewTabs: false
   "linter-flake8":
     maxComplexity: 10
   "linter-phpcs":
     autoExecutableSearch: false
-  "linter-phpmd": {}
+  "linter-phpmd":
+    autoExecutableSearch: false
+    rulesOrConfigFile: [
+      ".phpmd.xml"
+    ]
   "linter-ui-default":
     panelHeight: 235
   minimap:
