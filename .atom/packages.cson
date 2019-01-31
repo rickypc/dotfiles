@@ -39,7 +39,7 @@ packages: [
   "linter-sass-lint"
   "linter-twig"
   "linter-ui-default"
-  "markdown-scroll-sync"
+  "markdown-preview-plus"
   "minimap"
   "minimap-autohider"
   "minimap-cursorline"
