@@ -75,12 +75,18 @@
   "go-plus":
     panel:
       displayMode: "closed"
+  "ide-typescript": {}
   linter:
     lintOnChange: false
     lintOnOpen: true
     lintPreviewTabs: false
+  "linter-eslint":
+    disabling: {}
+    global: {}
   "linter-flake8":
     maxComplexity: 10
+  "linter-jshint":
+    disableWhenNoJshintrcFileInPath: true
   "linter-phpcs":
     autoExecutableSearch: false
   "linter-phpmd":
