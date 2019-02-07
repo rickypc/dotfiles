@@ -31,6 +31,7 @@ packages: [
   "language-robot-framework"
   "language-twig"
   "linter"
+  "linter-eslint"
   "linter-flake8"
   "linter-jshint"
   "linter-phpcs"
