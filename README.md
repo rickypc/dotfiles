@@ -12,13 +12,13 @@ Installation
 You can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
 
 ```bash
-$ cd; git init; git remote add origin https://github.com/rickypc/dotfiles.git; git checkout --track -b master origin/master; git pull origin; git submodule init; git submodule update
+$ cd; git init; git remote add origin https://github.com/rickypc/dotfiles.git; git checkout --track -b master origin/master; git branch --set-upstream-to origin/master; git pull origin; git submodule init; git submodule update
 ```
 
 Or, if you would like to use SSH clone URL, like myself:
 
 ```bash
-$ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git checkout --track -b master origin/master; git pull origin; git submodule init; git submodule update
+$ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git checkout --track -b master origin/master; git branch --set-upstream-to origin/master; git pull origin; git submodule init; git submodule update
 ```
 
 Apply Stored Stat Information
