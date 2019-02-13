@@ -70,6 +70,14 @@ if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi
 
+if [ -d /usr/local/bin ]; then
+    export_to_path "/usr/local/bin"
+fi
+
+if [ -d /usr/local/sbin ]; then
+    export_to_path "/usr/local/sbin"
+fi
+
 # User specific environment and startup programs
 if [ -d ~/bin ]; then
     export_to_path "$HOME/bin"
@@ -81,14 +89,6 @@ if [ -d ~/bin ]; then
             export PERL5LIB=$HOME/bin:$PERL5LIB
         fi
     fi
-fi
-
-if [ -d /usr/local/bin ]; then
-    export_to_path "/usr/local/bin"
-fi
-
-if [ -d /usr/local/sbin ]; then
-    export_to_path "/usr/local/sbin"
 fi
 
 PYTHON_USER_BASE=`python3 -m site --user-base`
