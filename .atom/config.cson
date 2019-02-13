@@ -96,6 +96,7 @@
     ]
   "linter-ui-default":
     panelHeight: 235
+    showPanel: true
   minimap:
     plugins:
       cursorline: true
