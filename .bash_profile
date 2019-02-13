@@ -20,7 +20,7 @@ export_to_path() {
         if [ -z $PATH ]; then
             export PATH=$1
         else
-            export PATH=$PATH:$1
+            export PATH=$1:$PATH
         fi
     fi
 }
@@ -201,6 +201,10 @@ if [ -d "$PYTHON_USER_BASE/bin" ]; then
     export POWERLINE_CONFIG_COMMAND=powerline-config
     export PYTHON_USER_SITE=`python3 -m site --user-site`
     export_to_path "$PYTHON_USER_BASE/bin"
+fi
+
+if [ -d "/usr/local/opt/python/libexec/bin" ]; then
+    export_to_path "/usr/local/opt/python/libexec/bin"
 fi
 
 if [ -d ~/.virtualenvs ]; then
