@@ -42,11 +42,9 @@ step "Install latest Homebrew"
     # Update to latest Homebrew and latest formulaes as well
     try brew update
     # Upgrade all installed unpinned brews
-    try brew upgrade --cleanup --ignore-pinned
-    # Cleanup old files
-    try brew cleanup -s
-    # Cleanup old symlinks
-    try brew prune
+    try HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+    # Cleanup old files & old symlinks
+    try brew cleanup --prune -s
     # Check Homebrew installation
     try brew doctor
 next
