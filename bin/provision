@@ -200,8 +200,13 @@ if [ -z "$(brew ls --versions nginx)" ]; then
         try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
         try rm -f $PREFIX/var/www/phpinfo.php && ln -sf $HOME/.www/phpinfo.php $PREFIX/var/www/phpinfo.php
         try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
+
         if [ ! -d $PREFIX/etc/nginx/servers ]; then
             try rm -rf $PREFIX/etc/nginx/servers && ln -sf $HOME/.etc/nginx/servers $PREFIX/etc/nginx/servers
+        fi
+
+        if [ ! -d /etc/newsyslog.d ]; then
+            try sudo rm -f /etc/newsyslog.d/nginx.conf && sudo ln -sf $HOME/.etc/newsyslog.d/nginx.conf /etc/newsyslog.d/nginx.conf
         fi
 
         try sudo brew services start nginx
