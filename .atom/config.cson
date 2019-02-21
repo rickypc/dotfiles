@@ -3,6 +3,9 @@
     autoBuildTagsWhenActive: true
     cmdArgs: "--exclude=core --exclude=deploy --exclude=dist --exclude=gulp --exclude=node_modules --exclude=sql --exclude=tests --exclude=vendor"
   "atom-ide-ui":
+    "atom-ide-code-format":
+      formatOnSave: true
+      formatOnType: false
     "atom-ide-diagnostics-ui":
       autoVisibility: true
     "atom-ide-terminal":
