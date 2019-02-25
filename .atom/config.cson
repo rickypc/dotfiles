@@ -33,6 +33,10 @@
     use:
       "atom-ide-debugger": "default"
       "atom-ide-terminal": "default"
+  "atom-package-deps":
+    ignored: [
+      "hyperclick-robot-framework"
+    ]
   "atom-python-virtualenv": {}
   "autocomplete-python":
     useKite: false
