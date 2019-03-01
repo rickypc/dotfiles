@@ -1,7 +1,4 @@
 "*":
-  "atom-ctags":
-    autoBuildTagsWhenActive: true
-    cmdArgs: "--exclude=core --exclude=deploy --exclude=dist --exclude=gulp --exclude=node_modules --exclude=sql --exclude=tests --exclude=vendor"
   "atom-ide-ui":
     "atom-ide-code-format":
       formatOnSave: true
@@ -33,10 +30,6 @@
     use:
       "atom-ide-debugger": "default"
       "atom-ide-terminal": "default"
-  "atom-package-deps":
-    ignored: [
-      "hyperclick-robot-framework"
-    ]
   "atom-python-virtualenv": {}
   "autocomplete-python":
     useKite: false
@@ -101,41 +94,13 @@
     rulesOrConfigFile: [
       ".phpmd.xml"
     ]
-  "linter-ui-default":
-    panelHeight: 235
-  minimap:
-    plugins:
-      cursorline: true
-      cursorlineDecorationsZIndex: 0
-      "highlight-selected": true
-      "highlight-selectedDecorationsZIndex": 0
-      "minimap-autohide": true
-      "minimap-autohideDecorationsZIndex": 0
-      "minimap-autohider": true
-      "minimap-autohiderDecorationsZIndex": 0
   "package-sync":
     createOnChange: true
     forceOverwrite: true
-  "platformio-ide-terminal":
-    ansiColors:
-      normal:
-        black: "#2f2f2f"
-        blue: "#506070"
-        cyan: "#8cd0d2"
-        green: "#7f9f7f"
-        magenta: "#dc7ebb"
-        red: "#704f50"
-        white: "#dcdbcd"
-        yellow: "#dfaf8f"
-      zBright:
-        brightBlack: "#709080"
-        brightBlue: "#94c0f3"
-        brightCyan: "#93e0e3"
-        brightGreen: "#c6dda7"
-        brightMagenta: "#ebafdc"
-        brightRed: "#dca2a3"
-        brightYellow: "#f0dfaf"
-    core: {}
-    style: {}
+  "tree-view":
+    alwaysOpenExisting: true
+    autoReveal: true
+    hideVcsIgnoredFiles: true
+    squashDirectoryNames: true
   welcome:
     showOnStartup: false
