@@ -75,6 +75,8 @@
   "go-plus":
     panel:
       displayMode: "closed"
+  "ide-php":
+    memoryLimit: "512M"
   "ide-typescript": {}
   linter:
     lintOnChange: false
