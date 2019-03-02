@@ -5,6 +5,7 @@
       formatOnType: false
     "atom-ide-diagnostics-ui":
       autoVisibility: true
+    "atom-ide-outline-view": {}
     "atom-ide-terminal":
       allowTransparency: true
       black: "#3f3f3f"
