@@ -7,7 +7,6 @@
       autoVisibility: true
     "atom-ide-outline-view": {}
     "atom-ide-terminal":
-      allowTransparency: true
       black: "#3f3f3f"
       blue: "#506070"
       brightBlack: "#709080"
