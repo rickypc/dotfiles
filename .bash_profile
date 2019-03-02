@@ -2,6 +2,7 @@
 
 unset COLORFGBG COLORTERM CVS_RSH WINDOWID
 
+CACHE_PATH=~/.cache
 CHECKSUM_PATH=~/.gcc-version
 GCC_VERSION=`gcc -dumpversion`
 LIB_DIR=~/Library
@@ -89,6 +90,10 @@ if [ -d ~/bin ]; then
             export PERL5LIB=$HOME/bin:$PERL5LIB
         fi
     fi
+fi
+
+if [ -d $CACHE_PATH ]; then
+    export XDG_CACHE_HOME=$CACHE_PATH
 fi
 
 PYTHON_USER_BASE=`python3 -m site --user-base`
