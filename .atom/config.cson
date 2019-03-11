@@ -33,6 +33,9 @@
   "atom-python-virtualenv": {}
   "autocomplete-python":
     useKite: false
+  "bracket-matcher":
+    alwaysSkipClosingPairs: true
+    highlightMatchingLineNumber: true
   core:
     allowPendingPaneItems: false
     closeDeletedFileTabs: true
@@ -56,6 +59,15 @@
       "update-package-dependencies"
       "welcome"
       "whitespace"
+      "autocomplete-css"
+      "autocomplete-html"
+      "autocomplete-snippets"
+      "autocomplete-plus"
+      "language-ruby"
+      "language-ruby-on-rails"
+      "language-rust-bundled"
+      "language-clojure"
+      "language-toml"
     ]
     openEmptyEditorOnStart: false
     restorePreviousWindowsOnStart: "always"
@@ -75,6 +87,8 @@
   "go-plus":
     panel:
       displayMode: "closed"
+  "highlight-selected":
+    highlightInPanes: false
   "ide-php":
     memoryLimit: "512M"
   "ide-typescript": {}
@@ -91,8 +105,10 @@
     disableWhenNoJshintrcFileInPath: true
   "linter-phpcs":
     autoExecutableSearch: false
+    disableWhenNoConfigFile: true
   "linter-phpmd":
     autoExecutableSearch: false
+    disableWhenNoConfigFile: true
     rulesOrConfigFile: [
       ".phpmd.xml"
     ]
@@ -102,7 +118,6 @@
   "tree-view":
     alwaysOpenExisting: true
     autoReveal: true
-    hideVcsIgnoredFiles: true
     squashDirectoryNames: true
   welcome:
     showOnStartup: false
