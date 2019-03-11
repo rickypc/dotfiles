@@ -93,6 +93,7 @@ if [ -d ~/bin ]; then
 fi
 
 if [ -d $CACHE_PATH ]; then
+    export PHPLS_ALLOW_XDEBUG=1
     export XDG_CACHE_HOME=$CACHE_PATH
 fi
 
