@@ -5,7 +5,6 @@
       formatOnType: false
     "atom-ide-diagnostics-ui":
       autoVisibility: true
-    "atom-ide-outline-view": {}
     "atom-ide-terminal":
       black: "#3f3f3f"
       blue: "#506070"
@@ -30,7 +29,6 @@
     use:
       "atom-ide-debugger": "default"
       "atom-ide-terminal": "default"
-  "atom-python-virtualenv": {}
   "autocomplete-python":
     useKite: false
   "bracket-matcher":
@@ -91,7 +89,6 @@
     highlightInPanes: false
   "ide-php":
     memoryLimit: "512M"
-  "ide-typescript": {}
   linter:
     lintOnChange: false
     lintOnOpen: true
@@ -112,9 +109,18 @@
     rulesOrConfigFile: [
       ".phpmd.xml"
     ]
+  "linter-sass-lint":
+    noConfigDisable: true
+  "markdown-preview-plus":
+    syncConfig:
+      syncEditorOnPreviewScroll: true
+      syncPreviewOnChange: true
+      syncPreviewOnEditorScroll: true
   "package-sync":
     createOnChange: true
     forceOverwrite: true
+  pigments:
+    autocompleteSuggestionsFromValue: true
   "tree-view":
     alwaysOpenExisting: true
     autoReveal: true
