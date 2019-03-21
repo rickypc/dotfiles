@@ -11,6 +11,7 @@ packages: [
   "ide-csharp"
   "ide-css"
   "ide-java"
+  "ide-json"
   "ide-php"
   "ide-python"
   "ide-typescript"
