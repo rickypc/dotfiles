@@ -15,11 +15,13 @@ __pycache__/
 .cpan
 .cups
 .docker
+.dotnet
 .drush
 .DS_Store
 .eclipse
 .gcc-version
 .gradle
+.IdentityService
 .idlerc
 .lesshst
 .local
@@ -31,6 +33,7 @@ __pycache__/
 .node-gyp
 .node_repl_history
 .npm*
+.nuget
 .oracle_jre_usage
 .p2
 .pdepend
@@ -40,8 +43,10 @@ __pycache__/
 .python_history
 .rnd
 .searchignore
+.ServiceHub
 .sonarlint
 .sqlworkbench
+.subversion
 .Trash
 .v8flags.*
 .virtualenvs
