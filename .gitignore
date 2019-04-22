@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info
 *.py[cod]
 *.swp
+.aspnet
 .aws
 .bash_history
 .bash_sessions
@@ -27,6 +28,7 @@ __pycache__/
 .local
 .m2
 .MacOSX
+.microsoft
 .mono
 .my.cnf
 .mysql_history
@@ -47,6 +49,7 @@ __pycache__/
 .sonarlint
 .sqlworkbench
 .subversion
+.templateengine
 .Trash
 .v8flags.*
 .virtualenvs
