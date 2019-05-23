@@ -49,6 +49,7 @@ __pycache__/
 .sonarlint
 .sqlworkbench
 .subversion
+.swt
 .templateengine
 .Trash
 .v8flags.*
