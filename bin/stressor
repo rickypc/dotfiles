@@ -24,7 +24,7 @@ REQ=$(echo "$(/usr/bin/env ab -l -n 1 "$@" | grep 'Requests per second:' | grep 
 
 # 2^1 * 10
 REQ1=$(echo "$REQ * 20" | bc -l | xargs printf '%.0f')
-/usr/bin/env ab -k -l -c 20 -n $REQ2 "$@"
+/usr/bin/env ab -k -l -c 20 -n $REQ1 "$@"
 
 echo "Sleeping for ${DELAY}s..."
 sleep $DELAY
