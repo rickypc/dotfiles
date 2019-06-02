@@ -18,6 +18,7 @@
 
 INTERFACE=lo0
 IP_ADDR=169.254.169.254
+IP_ADDR_V2=169.254.170.2
 LAUNCHER=/Library/LaunchDaemons/me.richardhuang.$IP_ADDR.plist
 METADATA_SERVICE=me.richardhuang.$IP_ADDR
 PORT_FWD=/etc/pf.conf
