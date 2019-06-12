@@ -25,19 +25,19 @@ fi
 # Remove all exited containers
 CONTAINER_IDS=$(docker ps -qf status=exited)
 if [ -n "$CONTAINER_IDS" ]; then
-    docker rm -f $CONTAINER_IDS
+    docker rm -f $CONTAINER_IDS || continue
 fi
 
 # Remove dangling images
 IMAGE_IDS=$(docker images -qf dangling=true)
 if [ -n "$IMAGE_IDS" ]; then
-    docker rmi -f $IMAGE_IDS
+    docker rmi -f $IMAGE_IDS || continue
 fi
 
 # Remove all untagged images
 IMAGE_IDS=$(docker images -a --format '{{.ID}}' | grep "^<none>")
 if [ -n "$IMAGE_IDS" ]; then
-    docker rmi -f $IMAGE_IDS
+    docker rmi -f $IMAGE_IDS || continue
 fi
 
 # Remove unused data
