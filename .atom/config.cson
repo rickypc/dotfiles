@@ -66,6 +66,8 @@
       "language-rust-bundled"
       "language-clojure"
       "language-toml"
+      "language-csharp"
+      "language-java"
     ]
     openEmptyEditorOnStart: false
     restorePreviousWindowsOnStart: "always"
