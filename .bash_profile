@@ -93,10 +93,12 @@ if [ -d ~/bin ]; then
     fi
 fi
 
-if [ -d $CACHE_PATH ]; then
-    export PHPLS_ALLOW_XDEBUG=1
-    export XDG_CACHE_HOME=$CACHE_PATH
+if [ ! -d $CACHE_PATH ]; then
+    mkdir -p $CACHE_PATH
 fi
+
+export PHPLS_ALLOW_XDEBUG=1
+export XDG_CACHE_HOME=$CACHE_PATH
 
 PYTHON_USER_BASE=`python3 -m site --user-base`
 
