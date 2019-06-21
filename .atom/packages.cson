@@ -30,7 +30,6 @@ packages: [
   "markdown-preview-plus"
   "package-sync"
   "pigments"
-  "refactor"
   "sort-lines"
   "tree-view-git-status"
   "zenburn-syntax"
