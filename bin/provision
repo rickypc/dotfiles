@@ -161,6 +161,10 @@ if [ -z "$(brew ls --versions mysql)" ]; then
     if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
         echo 'explicit_defaults_for_timestamp = 1' >> $PREFIX/etc/my.cnf
     fi
+
+    if [ -z "$(grep -o "validate_password.policy = LOW" $PREFIX/etc/my.cnf)" ]; then
+        echo 'validate_password.policy = LOW' >> $PREFIX/etc/my.cnf
+    fi
 fi
 
 PMA_DIR=$PREFIX/var/www/phpMyAdmin
