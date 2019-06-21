@@ -46,6 +46,7 @@ __pycache__/
 .rnd
 .searchignore
 .ServiceHub
+.sh_history
 .sonarlint
 .sqlworkbench
 .subversion
