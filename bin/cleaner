@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#    Cleaner - Remove all caches, logs and histories.
+#    Copyright (C) 1995-2019  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+# See hidden files    
+shopt -s dotglob
+
+# Clear logs
+sudo rm -f /var/log/*.gz /var/log/*.old /var/log/*/*.gz
+sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
+sudo find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
+
+:>~/.lesshst
+[ -f ~/.mysql_history ] && :>~/.mysql_history
+
+# Clear vim history
+find ~/.vim/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+[ -d ~/.vim6 ] && find ~/.vim6/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+:>~/.viminfo
+
+# Clear caches
+sudo find ~/Library/Caches -type f -exec rm -f '{}' \; &>/dev/null
+sudo find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
+sudo find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
+command -v composer &>/dev/null && composer clearcache 2>/dev/null
+command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
+
+# Clear docker containers and images
+$SCRIPT_DIR/docker-cleanup
+
+# Update to latest Homebrew and latest formulaes as well
+brew update
+# Upgrade all installed unpinned brews
+HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+# Cleanup old files & old symlinks
+brew cleanup --prune -s
+# Repair brew tap
+brew tap --repair
+
+# Purge inactive memory
+sudo purge
+
+# Clear bash history
+:>~/.bash_history
+history -c

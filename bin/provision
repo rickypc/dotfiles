@@ -206,7 +206,7 @@ fi
 mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_PASSWD'; FLUSH PRIVILEGES;"
 
 # Prompt for sudo password early on
-sudo -s exit
+sudo -v
 
 if [ -z "$(brew ls --versions nginx)" ]; then
     step "Install latest Nginx"
@@ -269,8 +269,8 @@ if [ -z "$(brew ls --versions vim)" ]; then
     next
 fi
 
-step "Clean history and logs"
-    try ~/bin/clean-hists-and-logs
+step "Clean caches, histories and logs"
+    try ~/bin/cleaner
 next
 
 step "Clean Docker containers and images"
