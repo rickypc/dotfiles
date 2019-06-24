@@ -21,6 +21,14 @@ Or, if you would like to use SSH clone URL, like myself:
 $ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git checkout --track -b master origin/master; git branch --set-upstream-to origin/master; git pull origin; git submodule init; git submodule update
 ```
 
+Removal
+-
+You can remove all the files came from this git repo from your machine if necessary:
+
+```bash
+$ rm -rf $(git ls-files)
+```
+
 Apply Stored Stat Information
 -
 You can apply back any stored stat information for files/directories ownership and/or permissions.
