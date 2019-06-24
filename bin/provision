@@ -53,6 +53,12 @@ step "Tap Homebrew services repository"
     try brew tap homebrew/services
 next
 
+if [ -z "$(brew ls --versions coreutils)" ]; then
+    step "Install latest CoreUtils"
+        try brew install coreutils
+    next
+fi
+
 if [ -z "$(brew ls --versions openssl)" ]; then
     step "Install latest OpenSSL"
         try brew install openssl
