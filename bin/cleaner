@@ -24,7 +24,7 @@ shopt -s dotglob
 # Clear logs
 sudo rm -f /var/log/*.gz /var/log/*.old /var/log/*/*.gz
 sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
-sudo find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
+find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
 
 :>~/.lesshst
 [ -f ~/.mysql_history ] && :>~/.mysql_history
@@ -35,9 +35,10 @@ find ~/.vim/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
 :>~/.viminfo
 
 # Clear caches
-sudo find ~/Library/Caches -type f -exec rm -f '{}' \; &>/dev/null
-sudo find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
-sudo find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
+rm -rf ~/.atom/.apm/*
+find ~/Library/Caches -type f -exec rm -f '{}' \; &>/dev/null
+find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
+find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
 command -v composer &>/dev/null && composer clearcache 2>/dev/null
 command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
 
