@@ -62,11 +62,11 @@ class FeatureBranch(object):
         if not self.inputs['delete'] and not self.inputs['base']:
             base_default = '%s/' % self.inputs['origin'] if self.inputs['origin'] else ''
             base_message = 'Please enter source branch name without repository alias [%s]: '
-            self.inputs['base'] = raw_input(base_message % base_default)
+            self.inputs['base'] = input(base_message % base_default)
         if not self.inputs['name']:
             name_default = '%s/' % user if user_prefix else ''
             name_message = 'Please enter feature branch name without user prefix [%s]: '
-            self.inputs['name'] = raw_input(name_message % name_default)
+            self.inputs['name'] = input(name_message % name_default)
         self.source = '%s/%s' % (self.inputs['origin'], self.inputs['base']) \
                       if self.inputs['origin'] else self.inputs['base']
         self.target = '%s/%s' % (user, self.inputs['name']) \
@@ -198,7 +198,7 @@ class FeatureBranch(object):
         if not self.outputs['repo'].is_dirty():
             return response
         try:
-            choice = raw_input(message) or 'y'
+            choice = input(message) or 'y'
             response = strtobool(choice.lower())
         except ValueError:
             response = False
