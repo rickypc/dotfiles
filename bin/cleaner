@@ -42,6 +42,9 @@ find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
 find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
 command -v composer &>/dev/null && composer clearcache 2>/dev/null
 command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
+sudo update_dyld_shared_cache -force
+qlmanage -r
+killall Finder
 
 # Clear docker containers and images
 $SCRIPT_DIR/docker-cleanup
