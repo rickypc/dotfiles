@@ -46,6 +46,10 @@ sudo update_dyld_shared_cache -force
 qlmanage -r
 killall Finder
 
+# Vacuum outlook data
+killall "Microsoft Outlook"
+sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
+
 # Clear docker containers and images
 $SCRIPT_DIR/docker-cleanup
 
