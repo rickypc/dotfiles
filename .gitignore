@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 *.swp
 .aspnet
+.atom/.atom-socket-*
 .aws
 .bash_history
 .bash_sessions
@@ -49,6 +50,7 @@ __pycache__/
 .sh_history
 .sonarlint
 .sqlworkbench
+.standard-*-cache
 .subversion
 .swt
 .templateengine
