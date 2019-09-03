@@ -85,12 +85,6 @@ if [ -z "$(brew ls --versions node)" ]; then
     next
 fi
 
-#if [ -z "$(brew ls --versions python@2)" ]; then
-#    step "Install Python 2"
-#        try brew install python@2
-#    next
-#fi
-
 if [ -z "$(brew ls --versions python@3)" ]; then
     step "Install Python 3"
         try brew install python@3
@@ -233,34 +227,28 @@ if [ -z "$(brew ls --versions jq)" ]; then
     next
 fi
 
-step "Download latest ChromeDriver"
-    CD_URL="https://chromedriver.storage.googleapis.com"
-    CD_ZIP="chromedriver_mac64.zip"
-    CD_VERSION=$(curl -Ls "$CD_URL/LATEST_RELEASE")
-    try curl -Lso $CD_ZIP "$CD_URL/$CD_VERSION/$CD_ZIP"
-    try unzip -oq $CD_ZIP -d ~/bin && rm -f $CD_ZIP
-    try chmod +x ~/bin/chromedriver
-next
-
-if [ -z "$(brew ls --versions geckodriver)" ]; then
-    step "Install latest GeckoDriver"
-        try brew install geckodriver
+if [ -z "$(brew cask ls --versions sqlworkbenchj)" ]; then
+    step "Install latest SQL Workbench/J"
+        # Required Oracle JRE.
+        try brew cask install sqlworkbenchj
+        if [ ! -d ~/.sqlworkbench/drivers ]; then
+            try mkdir -p ~/.sqlworkbench/drivers
+        fi
     next
 fi
 
-step "Download latest jTDS JDBC driver"
-    JTDS_URL=$(curl -Ls https://api.github.com/repos/milesibastos/jTDS/releases/latest | jq -r '.assets[].browser_download_url | select(contains("dist"))')
-    JTDS_ZIP="jtds.zip"
-    # Remove previous version of jTDS JDBC driver
-    try rm -f ~/bin/jtds-*.jar
-    try curl -Lso $JTDS_ZIP "$JTDS_URL"
-    try unzip -oqj $JTDS_ZIP "jtds-*.jar" -d ~/bin && rm -f $JTDS_ZIP
-next
 
-if [ -z "$(brew ls --versions selenium-server-standalone)" ]; then
-    step "Install latest Selenium server standalone"
-        try brew install selenium-server-standalone
-    next
+if [ ! -f ~/.sqlworkbench/drivers/sqljdbc42.jar ]; then
+  step "Download latest Microsoft JDBC driver"
+      try cd ~/.sqlworkbench/drivers && curl -L 'https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.8112.200_enu.tar.gz' -s | tar xz
+      try cp sqljdbc_6.0/enu/jre8/sqljdbc42.jar . && rm -rf sqljdbc_6.0 && cd
+  next
+fi
+
+if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
+  step "Download latest Redshift JDBC driver"
+      try curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar
+  next
 fi
 
 if [ -z "$(brew ls --versions vim)" ]; then
