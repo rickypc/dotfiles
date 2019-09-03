@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#    Get Python Virtual Environment - Install Python 2.x and 3.x virtual environment
-#    alongside each other and set those to the path.
-#    Copyright (C) 2015-2016  Richard Huang <rickypc@users.noreply.github.com>
+#    Get Python Virtual Environment - Install Python 3.x virtual environment
+#    and set those to the path.
+#    Copyright (C) 2015-2019  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,22 +20,7 @@
 LOCAL_BIN=/usr/local/bin
 
 # Install virtualenv.
-pip2 install -qU virtualenv
 pip3 install -qU virtualenv
-
-if [ ! -f $LOCAL_BIN/virtualenv2 ]; then
-    sudo bash -c "cat > $LOCAL_BIN/virtualenv2" << EOF
-#!/usr/local/opt/python@2/bin/python2
-# -*- coding: utf-8 -*-
-import re
-import sys
-from virtualenv import main
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0]) 
-    sys.exit(main())
-EOF
-    sudo chmod +x $LOCAL_BIN/virtualenv2
-fi
 
 if [ ! -f $LOCAL_BIN/virtualenv3 ]; then
     sudo bash -c "cat > $LOCAL_BIN/virtualenv3" << EOF
@@ -45,7 +30,7 @@ import re
 import sys
 from virtualenv import main
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0]) 
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
     sys.exit(main())
 EOF
     sudo chmod +x $LOCAL_BIN/virtualenv3
