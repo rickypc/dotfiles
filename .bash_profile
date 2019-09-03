@@ -218,6 +218,9 @@ fi
 
 if [ -d ~/.virtualenvs ]; then
     export WORKON_HOME=~/.virtualenvs
+    if [ -d $WORKON_HOME/default ]; then
+      . $WORKON_HOME/default/bin/activate
+    fi
 fi
 
 powerline-daemon -q
