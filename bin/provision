@@ -227,6 +227,48 @@ if [ -z "$(brew ls --versions jq)" ]; then
     next
 fi
 
+if [ -z "$(brew cask ls --versions atom)" ]; then
+    step "Install latest Atom Editor"
+        try brew cask install atom
+    next
+fi
+
+if [ -z "$(brew cask ls --versions docker)" ]; then
+    step "Install latest Docker Desktop"
+        try brew cask install docker
+    next
+fi
+
+if [ -z "$(brew cask ls --versions firefox)" ]; then
+    step "Install latest Mozilla Firefox"
+        try brew cask install firefox
+    next
+fi
+
+if [ -z "$(brew cask ls --versions gimp)" ]; then
+    step "Install latest Gimp"
+        try brew cask install gimp
+    next
+fi
+
+if [ -z "$(brew cask ls --versions google-chrome)" ]; then
+    step "Install latest Google Chrome"
+        try brew cask install google-chrome
+    next
+fi
+
+if [ -z "$(brew cask ls --versions omnidisksweeper)" ]; then
+    step "Install latest Omni Disk Sweeper"
+        try brew cask install omnidisksweeper
+    next
+fi
+
+if [ -z "$(brew cask ls --versions slack)" ]; then
+    step "Install latest Slack"
+        try brew cask install slack
+    next
+fi
+
 if [ -z "$(brew cask ls --versions sqlworkbenchj)" ]; then
     step "Install latest SQL Workbench/J"
         # Required Oracle JRE.
@@ -236,7 +278,6 @@ if [ -z "$(brew cask ls --versions sqlworkbenchj)" ]; then
         fi
     next
 fi
-
 
 if [ ! -f ~/.sqlworkbench/drivers/sqljdbc42.jar ]; then
   step "Download latest Microsoft JDBC driver"
@@ -249,6 +290,15 @@ if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
   step "Download latest Redshift JDBC driver"
       try curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar
   next
+fi
+
+if [ -z "$(brew cask ls --versions visual-studio)" ]; then
+    step "Install latest Visual Studio"
+        if [ -z "$(brew cask ls --versions mono-mdk)" ]; then
+            try brew cask install mono-mdk
+        fi
+        try brew cask install visual-studio
+    next
 fi
 
 if [ -z "$(brew ls --versions vim)" ]; then
