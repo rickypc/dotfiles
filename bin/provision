@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #    Environment Provisioner - Provision development environment.
-#    Copyright (C) 2015-2018  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2015-2019  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -223,17 +223,28 @@ if [ -z "$(brew ls --versions nginx)" ]; then
     next
 fi
 
+if [ -z "$(brew cask ls --versions adoptopenjdk8)" ]; then
+    step "Install JDK 1.8"
+        try brew cask install homebrew/cask-versions/adoptopenjdk8
+    next
+fi
+
 if [ -z "$(brew ls --versions jq)" ]; then
     step "Install latest jq"
         try brew install jq
     next
 fi
 
-if [ -z "$(brew ls --versions dart)" ]; then
-    step "Install latest Dart SDK"
-        try brew tap dart-lang/dart
-        try brew install dart
+if [ -z "$(brew ls --versions cocoapods)" ]; then
+    step "Install latest Cocoapods"
+        try brew install cocoapods
     next
+fi
+
+if [ ! -d $HOME/Library/flutter ]; then
+  try mkdir -p $HOME/Library && cd $HOME/Library
+  try git clone -b stable https://github.com/flutter/flutter.git && cd
+  try $HOME/Library/flutter/bin/flutter config --no-analytics
 fi
 
 if [ -z "$(brew cask ls --versions android-studio)" ]; then
