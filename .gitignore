@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info
 *.py[cod]
 *.swp
+.android
 .aspnet
 .atom/.atom-socket-*
 .aws
