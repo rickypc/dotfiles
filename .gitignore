@@ -17,11 +17,13 @@ __pycache__/
 .config
 .cpan
 .cups
+.dart*
 .docker
 .dotnet
 .drush
 .DS_Store
 .eclipse
+.flutter
 .gcc-version
 .gradle
 .IdentityService
@@ -41,6 +43,7 @@ __pycache__/
 .oracle_jre_usage
 .p2
 .pdepend
+.pub-cache
 .putty
 .pylint.d
 .pypirc
