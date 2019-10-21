@@ -229,6 +229,12 @@ if [ -z "$(brew ls --versions jq)" ]; then
     next
 fi
 
+if [ -z "$(brew cask ls --versions android-studio)" ]; then
+    step "Install latest Android Studio"
+        try brew cask install android-studio
+    next
+fi
+
 if [ -z "$(brew cask ls --versions atom)" ]; then
     step "Install latest Atom Editor"
         try brew cask install atom
