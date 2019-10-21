@@ -250,6 +250,7 @@ fi
 if [ -z "$(brew cask ls --versions android-studio)" ]; then
     step "Install latest Android Studio"
         try brew cask install android-studio
+        try $HOME/Library/flutter/bin/flutter doctor --android-licenses
     next
 fi
 
