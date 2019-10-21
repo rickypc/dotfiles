@@ -12,6 +12,7 @@ APPIUM_PATH=~/node_modules/appium
 AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
 AXIS2JAVA_DIR=$LIB_DIR/axis2-1.6.2
 CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
+FLUTTER_DIR=$LIB_DIR/flutter
 GRADLE_DIR=$LIB_DIR/gradle-3.4
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
 PERL_DIR=$LIB_DIR/perl5
@@ -148,6 +149,10 @@ if [ -d $CATALINA_DIR ]; then
     export CATALINA_BASE=$CATALINA_DIR
     export CATALINA_HOME=$CATALINA_DIR
     export_to_path "$CATALINA_HOME/bin"
+fi
+
+if [ -d $FLUTTER_DIR ]; then
+    export_to_path "$FLUTTER_DIR/bin"
 fi
 
 # Include Drush bash customizations.
