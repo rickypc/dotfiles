@@ -229,6 +229,13 @@ if [ -z "$(brew ls --versions jq)" ]; then
     next
 fi
 
+if [ -z "$(brew ls --versions dart)" ]; then
+    step "Install latest Dart SDK"
+        try brew tap dart-lang/dart
+        try brew install dart
+    next
+fi
+
 if [ -z "$(brew cask ls --versions android-studio)" ]; then
     step "Install latest Android Studio"
         try brew cask install android-studio
