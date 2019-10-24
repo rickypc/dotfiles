@@ -13,6 +13,7 @@ AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
 AXIS2JAVA_DIR=$LIB_DIR/axis2-1.6.2
 CATALINA_DIR=$LIB_DIR/apache-tomcat-7.0.37
 FLUTTER_DIR=$LIB_DIR/flutter
+GO_DIR=$HOME/.go
 GRADLE_DIR=$LIB_DIR/gradle-3.4
 MAVEN_DIR=$LIB_DIR/apache-maven-3.0.5
 PERL_DIR=$LIB_DIR/perl5
@@ -166,8 +167,8 @@ fi
 #fi
 
 # Golang specific environment
-if [ -d $HOME/.go ]; then
-    export GOPATH=$HOME/.go
+if [ -d $GO_DIR ]; then
+    export GOPATH=$GO_DIR
     export_to_path "$GOPATH/bin"
 fi
 
