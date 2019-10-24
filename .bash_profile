@@ -167,8 +167,8 @@ fi
 #fi
 
 # Golang specific environment
+export GOPATH=$GO_DIR
 if [ -d $GO_DIR ]; then
-    export GOPATH=$GO_DIR
     export_to_path "$GOPATH/bin"
 fi
 
