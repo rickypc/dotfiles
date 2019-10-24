@@ -166,8 +166,9 @@ fi
 #fi
 
 # Golang specific environment
-if [ -d $HOME/go ]; then
-    export_to_path "$HOME/go/bin"
+if [ -d $HOME/.go ]; then
+    export GOPATH=$HOME/.go
+    export_to_path "$GOPATH/bin"
 fi
 
 # Gradle specific environment

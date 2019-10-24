@@ -25,6 +25,7 @@ __pycache__/
 .eclipse
 .flutter
 .gcc-version
+.go
 .gradle
 .IdentityService
 .idlerc
@@ -71,7 +72,6 @@ Desktop
 dist
 Documents
 Downloads
-go
 Library
 Movies
 Music
