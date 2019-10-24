@@ -165,6 +165,11 @@ fi
 #  source $HOME/.drush/drush.prompt.sh
 #fi
 
+# Golang specific environment
+if [ -d $HOME/go ]; then
+    export_to_path "$HOME/go/bin"
+fi
+
 # Gradle specific environment
 if [ -d $GRADLE_DIR ]; then
     export GRADLE_HOME=$GRADLE_DIR
