@@ -61,6 +61,7 @@ fi
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export LC_ALL=en_US.UTF-8
+export SAM_CLI_TELEMETRY=0
 
 #if [ "$(ps x | grep ssh-agent | grep -v grep | wc -l)" -le 0 ]; then
 #    eval "$(/usr/bin/ssh-agent -t 32400)"
