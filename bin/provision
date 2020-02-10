@@ -68,6 +68,12 @@ if [ -z "$(brew ls --versions coreutils)" ]; then
     next
 fi
 
+if [ -z "$(brew ls --versions graphviz)" ]; then
+    step "Install latest Graphviz"
+        try brew install graphviz
+    next
+fi
+
 if [ -z "$(brew ls --versions openssl)" ]; then
     step "Install latest OpenSSL"
         try brew install openssl
