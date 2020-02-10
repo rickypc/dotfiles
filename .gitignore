@@ -8,6 +8,7 @@ __pycache__/
 .aspnet
 .atom/.atom-socket-*
 .aws
+.aws-sam
 .bash_history
 .bash_sessions
 .cache
