@@ -65,7 +65,7 @@ brew tap --repair
 # Purge inactive memory
 sudo purge
 
-# Clear bash history
+# Clear {ba|z}sh history
 :>~/.bash_history
 :>~/.zsh_history
 history -c
