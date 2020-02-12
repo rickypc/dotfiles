@@ -402,7 +402,7 @@
 	<key>name</key>
 	<string>Zenburn</string>
 	<key>rowCount</key>
-	<integer>55</integer>
+	<integer>61</integer>
 	<key>shellExitAction</key>
 	<integer>1</integer>
 	<key>type</key>
