@@ -97,6 +97,7 @@ fi
 
 export PHPLS_ALLOW_XDEBUG=1
 export XDG_CACHE_HOME=$CACHE_PATH
+# export XDG_CONFIG_HOME=$HOME/.config
 
 PYTHON_USER_BASE=`python3 -m site --user-base`
 
@@ -213,8 +214,6 @@ if [ -d $PERL_DIR ]; then
 fi
 
 if [ -d "$PYTHON_USER_BASE/bin" ]; then
-    export POWERLINE_SHELL_CONTINUATION=1
-    export POWERLINE_SHELL_SELECT=1
     export POWERLINE_CONFIG_COMMAND=powerline-config
     export PYTHON_USER_SITE=`python3 -m site --user-site`
     export_to_path "$PYTHON_USER_BASE/bin"
