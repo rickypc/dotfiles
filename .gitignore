@@ -64,6 +64,7 @@ __pycache__/
 .virtualenvs
 .viminfo
 .vscode
+.zsh_history
 Applications
 bin/chromedriver
 bin/jtds-*.jar
