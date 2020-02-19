@@ -94,6 +94,12 @@ if [ -z "$(brew ls --versions go)" ]; then
     next
 fi
 
+if [ -z "$(brew ls --versions golangci-lint)" ]; then
+    step "Install GoLang Linter"
+        try brew install golangci/tap/golangci-lint
+    next
+fi
+
 if [ -z "$(brew ls --versions node)" ]; then
     step "Install NodeJS"
         try brew install node
