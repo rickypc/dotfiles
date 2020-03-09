@@ -362,6 +362,12 @@ if [ -z "$(brew ls --versions vim)" ]; then
     next
 fi
 
+if [ -z "$(brew ls --versions xmlstarlet)" ]; then
+    step "Install latest XmlStarlet"
+        try brew install xmlstarlet
+    next
+fi
+
 step "Clean caches, histories and logs"
     try ~/bin/cleaner
 next
