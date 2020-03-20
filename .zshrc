@@ -16,8 +16,6 @@ fi
 setopt APPEND_HISTORY
 
 PROMPT="%F{red}%n%B%F{yellow}@%F{blue}%m%f: %B%F{blue}%3~ ($(echo $(git symbolic-ref HEAD | cut -d'/' -f3))) %B%F{yellow}%#%f "
-RPROMPT=""
 
 powerline-daemon -q
 . $PYTHON_USER_SITE/powerline/bindings/zsh/powerline.zsh
-unset RPS1
