@@ -114,7 +114,7 @@ fi
 
 if [ -z "$(brew ls --versions python@3)" ]; then
     step "Install Python 3"
-        try brew install python@3
+        try brew install python@3 && ln -sf /usr/local/bin/python3 /usr/local/bin/python && ln -sf /usr/local/bin/pip3 /usr/local/bin/pip
     next
 fi
 
