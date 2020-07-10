@@ -18,20 +18,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOCAL_BIN=/usr/local/bin
+VENVS=~/.virtualenvs
 
 # Install virtualenv.
 pip3 install -qU virtualenv
 
 if [ ! -f $LOCAL_BIN/virtualenv3 ]; then
-    sudo bash -c "cat > $LOCAL_BIN/virtualenv3" << EOF
-#!/usr/local/opt/python@3/bin/python3
-# -*- coding: utf-8 -*-
-import re
-import sys
-from virtualenv import main
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-    sys.exit(main())
-EOF
-    sudo chmod +x $LOCAL_BIN/virtualenv3
+    ln -sf $LOCAL_BIN/virtualenv $LOCAL_BIN/virtualenv3
+fi
+
+if [ ! -f $VENVS/default ]; then
+    VERSION=$(python -c 'import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1]))')
+    mkdir -p $VENVS
+    $LOCAL_BIN/virtualenv3 $VENVS/$VERSION
+    mv $VENVS/$VERSION $VENVS/default
 fi
