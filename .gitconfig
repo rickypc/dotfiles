@@ -1,30 +1,30 @@
 [user]
-    name = Richard Huang
-    email = rickypc@users.noreply.github.com
+	name = Ricky Huang
+  email = rickypc@users.noreply.github.com
 [alias]
-    l = log --graph --name-status --date=local
-    co = checkout
-    ci = commit
-    st = status
+  l = log --graph --name-status --date=local
+  co = checkout
+  ci = commit
+  st = status
 [color]
-    branch = auto
-    status = auto
-    diff = auto
-    ui = auto
-    interactive = auto
+  branch = auto
+  status = auto
+  diff = auto
+  ui = auto
+  interactive = auto
 [pack]
-    threads = 0
+  threads = 0
 [gc]
-    auto = 1000
+  auto = 1000
 [core]
-    compression = 9
-    excludesfile = ~/.gitignore
-    longpaths = true
-    autocrlf = false
+  compression = 9
+  excludesfile = ~/.gitignore
+  longpaths = true
+  autocrlf = false
 [merge]
-    renameLimit = 100000
-[branch]  
-    autosetupmerge = true
-#    autosetuprebase = always
+  renameLimit = 100000
+[branch]
+  autosetupmerge = true
+#  autosetuprebase = always
 [push]
-    default = simple
+  default = simple
