@@ -97,7 +97,8 @@
     lintPreviewTabs: false
   "linter-eslint":
     disabling: {}
-    global: {}
+    global:
+      eslintrcPath: ".eslintrc*"
   "linter-flake8":
     maxComplexity: 10
   "linter-jshint":
