@@ -91,11 +91,14 @@
     highlightInPanes: false
   "ide-php":
     memoryLimit: "512M"
+  "ide-typescript":
+    javascriptSupport: false
   linter:
     lintOnChange: false
     lintOnOpen: true
     lintPreviewTabs: false
   "linter-eslint":
+    autofix: {}
     disabling: {}
     global:
       eslintrcPath: ".eslintrc*"
