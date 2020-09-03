@@ -57,12 +57,6 @@ step "Tap AWS repository"
     try brew tap aws/tap
 next
 
-if [ -z "$(brew cask ls --versions aerial)" ]; then
-    step "Install latest Aerial"
-        try brew cask install aerial
-    next
-fi
-
 if [ -z "$(brew ls --versions aws-sam-cli)" ]; then
     step "Install latest AWS-SAM CLI"
         try brew install aws-sam-cli
@@ -282,6 +276,12 @@ if [ ! -d $HOME/Library/flutter ]; then
   try $HOME/Library/flutter/bin/flutter config --no-analytics
 fi
 
+if [ -z "$(brew cask ls --versions aerial)" ]; then
+    step "Install latest Aerial"
+        try brew cask install aerial
+    next
+fi
+
 if [ -z "$(brew cask ls --versions android-studio)" ]; then
     step "Install latest Android Studio"
         try brew cask install android-studio
@@ -322,6 +322,12 @@ fi
 if [ -z "$(brew cask ls --versions omnidisksweeper)" ]; then
     step "Install latest Omni Disk Sweeper"
         try brew cask install omnidisksweeper
+    next
+fi
+
+if [ -z "$(brew cask ls --versions redisinsight)" ]; then
+    step "Install latest Redis Insight"
+        try brew cask install redisinsight
     next
 fi
 

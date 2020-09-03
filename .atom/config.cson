@@ -133,3 +133,33 @@
     squashDirectoryNames: true
   welcome:
     showOnStartup: false
+  "wrap-guide":
+    columns: [
+      80
+      100
+      120
+    ]
+".html.php.text":
+  editor:
+    preferredLineLength: 100
+  "wrap-guide":
+    columns: [
+      80
+      100
+    ]
+".js.source":
+  editor:
+    preferredLineLength: 100
+  "wrap-guide":
+    columns: [
+      80
+      100
+    ]
+".json.source":
+  editor:
+    preferredLineLength: 100
+  "wrap-guide":
+    columns: [
+      80
+      100
+    ]
