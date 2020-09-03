@@ -52,6 +52,7 @@ __pycache__/
 .pylint.d
 .pypirc
 .python_history
+.redisinsight
 .rnd
 .searchignore
 .ServiceHub
