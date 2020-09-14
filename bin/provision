@@ -57,31 +57,31 @@ step "Tap AWS repository"
     try brew tap aws/tap
 next
 
-if [ -z "$(brew ls --versions aws-sam-cli)" ]; then
+if [ -z "$(brew list --versions aws-sam-cli)" ]; then
     step "Install latest AWS-SAM CLI"
         try brew install aws-sam-cli
     next
 fi
 
-if [ -z "$(brew ls --versions coreutils)" ]; then
+if [ -z "$(brew list --versions coreutils)" ]; then
     step "Install latest CoreUtils"
         try brew install coreutils
     next
 fi
 
-if [ -z "$(brew ls --versions graphviz)" ]; then
+if [ -z "$(brew list --versions graphviz)" ]; then
     step "Install latest Graphviz"
         try brew install graphviz
     next
 fi
 
-if [ -z "$(brew ls --versions imagemagick)" ]; then
+if [ -z "$(brew list --versions imagemagick)" ]; then
     step "Install latest ImageMagick"
         try brew install imagemagick
     next
 fi
 
-if [ -z "$(brew ls --versions openssl)" ]; then
+if [ -z "$(brew list --versions openssl)" ]; then
     step "Install latest OpenSSL"
         try brew install openssl
         SSL_PREFIX=$PREFIX/etc/openssl
@@ -95,25 +95,25 @@ if [ -z "$(brew ls --versions openssl)" ]; then
     next
 fi
 
-if [ -z "$(brew ls --versions go)" ]; then
+if [ -z "$(brew list --versions go)" ]; then
     step "Install GoLang"
         try brew install go
     next
 fi
 
-if [ -z "$(brew ls --versions golangci-lint)" ]; then
+if [ -z "$(brew list --versions golangci-lint)" ]; then
     step "Install GoLang Linter"
         try brew install golangci/tap/golangci-lint
     next
 fi
 
-if [ -z "$(brew ls --versions node)" ]; then
+if [ -z "$(brew list --versions node)" ]; then
     step "Install NodeJS"
         try brew install node
     next
 fi
 
-if [ -z "$(brew ls --versions python@3)" ]; then
+if [ -z "$(brew list --versions python@3)" ]; then
     step "Install Python 3"
         try brew install python@3 && ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
     next
@@ -123,7 +123,7 @@ step "Install latest Python dependencies"
     try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
 next
 
-if [ -z "$(brew ls --versions php)" ]; then
+if [ -z "$(brew list --versions php)" ]; then
     step "Install latest PHP"
         try brew install php
         PHP_VERSION=$(brew list php --versions | egrep -o '\d+\.\d+')
@@ -163,7 +163,7 @@ if [ -z "$(brew ls --versions php)" ]; then
     next
 fi
 
-if [ -z "$(brew ls --versions composer)" ]; then
+if [ -z "$(brew list --versions composer)" ]; then
     step "Install latest Composer"
         try brew install composer
     next
@@ -174,7 +174,7 @@ step "Download latest PHP dependencies"
     try $COMPOSER_DIR/vendor/bin/phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
 next
 
-if [ -z "$(brew ls --versions mysql)" ]; then
+if [ -z "$(brew list --versions mysql)" ]; then
     step "Install latest MySQL"
         try brew install mysql
         try brew services start mysql
@@ -233,7 +233,7 @@ mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY
 # Prompt for sudo password early on
 sudo -v
 
-if [ -z "$(brew ls --versions nginx)" ]; then
+if [ -z "$(brew list --versions nginx)" ]; then
     step "Install latest Nginx"
         try brew install nginx
         try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
@@ -252,19 +252,19 @@ if [ -z "$(brew ls --versions nginx)" ]; then
     next
 fi
 
-if [ -z "$(brew cask ls --versions adoptopenjdk8)" ]; then
+if [ -z "$(brew list --cask --versions adoptopenjdk8)" ]; then
     step "Install JDK 1.8"
         try brew cask install homebrew/cask-versions/adoptopenjdk8
     next
 fi
 
-if [ -z "$(brew ls --versions jq)" ]; then
+if [ -z "$(brew list --versions jq)" ]; then
     step "Install latest jq"
         try brew install jq
     next
 fi
 
-if [ -z "$(brew ls --versions cocoapods)" ]; then
+if [ -z "$(brew list --versions cocoapods)" ]; then
     step "Install latest Cocoapods"
         try brew install cocoapods
     next
@@ -276,68 +276,68 @@ if [ ! -d $HOME/Library/flutter ]; then
   try $HOME/Library/flutter/bin/flutter config --no-analytics
 fi
 
-if [ -z "$(brew cask ls --versions aerial)" ]; then
+if [ -z "$(brew list --cask --versions aerial)" ]; then
     step "Install latest Aerial"
         try brew cask install aerial
     next
 fi
 
-if [ -z "$(brew cask ls --versions android-studio)" ]; then
+if [ -z "$(brew list --cask --versions android-studio)" ]; then
     step "Install latest Android Studio"
         try brew cask install android-studio
         try $HOME/Library/flutter/bin/flutter doctor --android-licenses
     next
 fi
 
-if [ -z "$(brew cask ls --versions atom)" ]; then
+if [ -z "$(brew list --cask --versions atom)" ]; then
     step "Install latest Atom Editor"
         try brew cask install atom
     next
 fi
 
-if [ -z "$(brew cask ls --versions docker)" ]; then
+if [ -z "$(brew list --cask --versions docker)" ]; then
     step "Install latest Docker Desktop"
         try brew cask install docker
     next
 fi
 
-if [ -z "$(brew cask ls --versions firefox)" ]; then
+if [ -z "$(brew list --cask --versions firefox)" ]; then
     step "Install latest Mozilla Firefox"
         try brew cask install firefox
     next
 fi
 
-if [ -z "$(brew cask ls --versions gimp)" ]; then
+if [ -z "$(brew list --cask --versions gimp)" ]; then
     step "Install latest Gimp"
         try brew cask install gimp
     next
 fi
 
-if [ -z "$(brew cask ls --versions google-chrome)" ]; then
+if [ -z "$(brew list --cask --versions google-chrome)" ]; then
     step "Install latest Google Chrome"
         try brew cask install google-chrome
     next
 fi
 
-if [ -z "$(brew cask ls --versions omnidisksweeper)" ]; then
+if [ -z "$(brew list --cask --versions omnidisksweeper)" ]; then
     step "Install latest Omni Disk Sweeper"
         try brew cask install omnidisksweeper
     next
 fi
 
-if [ -z "$(brew cask ls --versions redisinsight)" ]; then
+if [ -z "$(brew list --cask --versions redisinsight)" ]; then
     step "Install latest Redis Insight"
         try brew cask install redisinsight
     next
 fi
 
-if [ -z "$(brew cask ls --versions slack)" ]; then
+if [ -z "$(brew list --cask --versions slack)" ]; then
     step "Install latest Slack"
         try brew cask install slack
     next
 fi
 
-if [ -z "$(brew cask ls --versions sqlworkbenchj)" ]; then
+if [ -z "$(brew list --cask --versions sqlworkbenchj)" ]; then
     step "Install latest SQL Workbench/J"
         # Required Oracle JRE.
         try brew cask install sqlworkbenchj
@@ -360,22 +360,22 @@ if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
   next
 fi
 
-if [ -z "$(brew cask ls --versions visual-studio)" ]; then
+if [ -z "$(brew list --cask --versions visual-studio)" ]; then
     step "Install latest Visual Studio"
-        if [ -z "$(brew cask ls --versions mono-mdk)" ]; then
+        if [ -z "$(brew list --cask --versions mono-mdk)" ]; then
             try brew cask install mono-mdk
         fi
         try brew cask install visual-studio
     next
 fi
 
-if [ -z "$(brew ls --versions vim)" ]; then
+if [ -z "$(brew list --versions vim)" ]; then
     step "Install latest Vim"
         try brew install vim
     next
 fi
 
-if [ -z "$(brew ls --versions xmlstarlet)" ]; then
+if [ -z "$(brew list --versions xmlstarlet)" ]; then
     step "Install latest XmlStarlet"
         try brew install xmlstarlet
     next
