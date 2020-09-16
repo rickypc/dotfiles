@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Cleaner - Remove all caches, logs and histories.
+#    Stay fresh - Remove all caches, logs, histories and brew upgrade.
 #    Copyright (C) 1995-2020  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,9 @@ killall Finder
 
 # Vacuum outlook data
 killall "Microsoft Outlook"
-sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
+if [ -f "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" ]; then
+  sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
+fi
 
 # Clear docker containers and images
 $SCRIPT_DIR/docker-cleanup
@@ -57,8 +59,8 @@ $SCRIPT_DIR/docker-cleanup
 brew update
 # Upgrade all installed unpinned brews
 HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
-# Cleanup old files & old symlinks
-brew cleanup --prune -s
+# Cleanup files & symlinks older than 3 days.
+brew cleanup --prune=3 -s
 # Repair brew tap
 brew tap --repair
 
