@@ -1,4 +1,4 @@
-[Richard Huang](http://richardhuang.me) dot files
+[Ricky Huang](http://ricky.one) dot files
 =================================================
 
 Central repository for maintaining [dot files](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments), a compilation of configurations as well as [scripts and tools](#user-content-script-and-tool-list) developed over the years for various applications that I use daily.
@@ -54,11 +54,11 @@ Script Name                                         | Language | Description
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
 [disk-usage](bin/disk-usage)                        | Bash     | Get disk space usage for current folder.
-[docker-cleanup](bin/docker-cleanup)                | Bash     | Remove exited Docker containers and untagged Docker images.
+[docker-cleanup](bin/docker-cleanup)                | Bash     | Remove exited [Docker](https://www.docker.com) containers and untagged [Docker](https://www.docker.com) images.
 [download-site](bin/download-site)                  | Bash     | Download any site for offline fair use.
 [download-site-partial](bin/download-site-partial)  | Bash     | Download any site partially for offline fair use.
 [flac-bits](bin/flac-bits)                          | Bash     | Get actual and advertised [FLAC](https://en.wikipedia.org/wiki/FLAC) bits.
-[get-virtualenv](bin/get-virtualenv)                | Bash     | Install Python 2.x and 3.x virtual environment alongside each other.
+[get-virtualenv](bin/get-virtualenv)                | Bash     | Install Python 3.x virtual environment.
 [getinfo.sh](bin/getinfo.sh)                        | Bash     | Collects [CentOS](https://www.centos.org/) system hardware and software information.
 [git-author-fix](bin/git-author-fix)                | Bash     | Fix author name and email in git history.
 [git-blame-summary](bin/git-blame-summary)          | Perl     | Show total [LOC](https://en.wikipedia.org/wiki/Source_lines_of_code), author list, contribution percentage, and timestamp.
@@ -69,17 +69,17 @@ Script Name                                         | Language | Description
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
 [git-what-branch](bin/git-what-branch)              | Perl     | Show the earliest path of git commits.
 [gpg-verify](bin/gpg-verify)                        | Bash     | Verify [GPG](https://www.gnupg.org/) signature from specified document path.
-[json-prettifier](bin/json-prettifier)              | Bash     | Pretty print JSON document.
-[json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from JSON document.
-[metadata-service](bin/metadata-service)            | Bash     | Advertise local machine as AWS EC2 instance.
+[json-prettifier](bin/json-prettifier)              | Bash     | Pretty print [JSON](https://www.json.org/json-en.html) document.
+[json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from [JSON](https://www.json.org/json-en.html) document.
+[metadata-service](bin/metadata-service)            | Bash     | Advertise local machine as AWS [EC2](https://aws.amazon.com/ec2/) instance.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [osx-show-all-files](bin/osx-show-all-files)        | Bash     | Set OSX to show all files (dot files) in Finder and file dialog permanently.
-[polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about Polygon geometry.
-[provision](bin/provision)                          | Bash     | Provision development environment.
+[polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about [Polygon](https://en.wikipedia.org/wiki/Polygon) geometry.
+[provision](bin/provision)                          | Bash     | Provision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
-[robot-lint.py](bin/robot-lint.py)                  | Python   | Lint Robot Framework data files.
-[robot-parallel.py](bin/robot-parallel.py)          | Python   | Run Robot Framework data sources in parallel.
+[robot-lint.py](bin/robot-lint.py)                  | Python   | Lint [Robot Framework](https://robotframework.org) data files.
+[robot-parallel.py](bin/robot-parallel.py)          | Python   | Run [Robot Framework](https://robotframework.org) data sources in parallel.
 [search](bin/search)                                | Bash     | Search keyword inside the files.
 [search-crlf](bin/search-crlf)                      | Bash     | Search CRLF inside the files.
 [set-hostname](bin/set-hostname)                    | Bash     | Set hostname.
@@ -87,12 +87,12 @@ Script Name                                         | Language | Description
 [slip](bin/slip)                                    | Bash     | Merge and push the code back to git repository.
 [ssh-keygen-dsa-4096](bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
 [ssh-keygen-rsa-8192](bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length.
-[stay-fresh](bin/stay-fresh)                        | Bash     | Clean caches, histories, logs and brew upgrade.
+[stay-fresh](bin/stay-fresh)                        | Bash     | Clean caches, histories, logs and [brew](https://brew.sh) upgrade.
 [stressor](bin/stressor)                            | Bash     | HTTP stressor with some degree of ramp up.
-[update-aws-credentials](bin/update-aws-credentials)| Bash     | Update AWS credentials file.
+[update-aws-credentials](bin/update-aws-credentials)| Bash     | Update AWS [credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-where) file.
 [x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
 [x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
 
 License
 -
-[MIT License](http://opensource.org/licenses/MIT), unless otherwise noted.
+[MIT License](https://opensource.org/licenses/MIT), unless otherwise noted.
