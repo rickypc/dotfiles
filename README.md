@@ -51,7 +51,6 @@ Script Name                                         | Language | Description
 ----------------------------------------------------|----------|------------
 [chmod-fix](bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
 [chown-fix](bin/chown-fix)                          | Bash     | Fix folder and file owner to current login user and group.
-[cleaner](bin/cleaner)                              | Bash     | Clean caches, histories and logs.
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
 [disk-usage](bin/disk-usage)                        | Bash     | Get disk space usage for current folder.
@@ -87,6 +86,7 @@ Script Name                                         | Language | Description
 [slip](bin/slip)                                    | Bash     | Merge and push the code back to git repository.
 [ssh-keygen-dsa-4096](bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
 [ssh-keygen-rsa-8192](bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length.
+[stay-fresh](bin/stay-fresh)                        | Bash     | Clean caches, histories, logs and brew upgrade.
 [x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
 [x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
 
