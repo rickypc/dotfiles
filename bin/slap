@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-#    Slack - Pull and rebase the code from git repository.
+#    Slap - Pull and rebase the code from git repository.
 #    Copyright (C) 2007-2015  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# "slack" as in "take up the slack": pull and rebase the code.
-# slack script is part of the "slack and slip" (TM) process improvement,
+# "slap" as in "slap on": pull and rebase the code.
+# slap script is part of the "slap and slip" (TM) process improvement,
 # an innovation by Richard Huang.
 
 function usage {
