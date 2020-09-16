@@ -67,14 +67,15 @@ Script Name                                         | Language | Description
 [git-new-branch](bin/git-new-branch)                | Python   | Create git new branch from base branch, push to remote and track.
 [git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
-[gpg-verify](bin/gpg-verify)                        | Bash     | Verify [GPG](https://www.gnupg.org/) signature from specified document path.
 [git-what-branch](bin/git-what-branch)              | Perl     | Show the earliest path of git commits.
+[gpg-verify](bin/gpg-verify)                        | Bash     | Verify [GPG](https://www.gnupg.org/) signature from specified document path.
 [json-prettifier](bin/json-prettifier)              | Bash     | Pretty print JSON document.
 [json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from JSON document.
 [metadata-service](bin/metadata-service)            | Bash     | Advertise local machine as AWS EC2 instance.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [osx-show-all-files](bin/osx-show-all-files)        | Bash     | Set OSX to show all files (dot files) in Finder and file dialog permanently.
 [polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about Polygon geometry.
+[provision](bin/provision)                          | Bash     | Provision development environment.
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
 [robot-lint.py](bin/robot-lint.py)                  | Python   | Lint Robot Framework data files.
@@ -82,11 +83,13 @@ Script Name                                         | Language | Description
 [search](bin/search)                                | Bash     | Search keyword inside the files.
 [search-crlf](bin/search-crlf)                      | Bash     | Search CRLF inside the files.
 [set-hostname](bin/set-hostname)                    | Bash     | Set hostname.
-[slack](bin/slack)                                  | Bash     | Pull and rebase the code from git repository.
+[slap](bin/slap)                                    | Bash     | Pull and rebase the code from git repository.
 [slip](bin/slip)                                    | Bash     | Merge and push the code back to git repository.
 [ssh-keygen-dsa-4096](bin/ssh-keygen-dsa-4096)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [DSA](https://en.wikipedia.org/wiki/Digital_Signature_Algorithm) key with 4096 bits length.
 [ssh-keygen-rsa-8192](bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length.
 [stay-fresh](bin/stay-fresh)                        | Bash     | Clean caches, histories, logs and brew upgrade.
+[stressor](bin/stressor)                            | Bash     | HTTP stressor with some degree of ramp up.
+[update-aws-credentials](bin/update-aws-credentials)| Bash     | Update AWS credentials file.
 [x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
 [x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
 
