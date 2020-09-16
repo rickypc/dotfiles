@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # "slip" as in "slip in": merge and push the code back.
-# slip script is part of "slack and slip" (TM) process improvement,
+# slip script is part of "slap and slip" (TM) process improvement,
 # an innovation by Richard Huang.
 
 function usage {
