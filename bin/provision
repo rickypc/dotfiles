@@ -69,6 +69,12 @@ if [ -z "$(brew list --versions coreutils)" ]; then
     next
 fi
 
+if [ -z "$(brew list --versions dive)" ]; then
+    step "Install latest Docker Dive"
+        try brew install dive
+    next
+fi
+
 if [ -z "$(brew list --versions graphviz)" ]; then
     step "Install latest Graphviz"
         try brew install graphviz
