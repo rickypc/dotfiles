@@ -107,10 +107,8 @@
   "linter-jshint":
     disableWhenNoJshintrcFileInPath: true
   "linter-phpcs":
-    autoExecutableSearch: false
     disableWhenNoConfigFile: true
   "linter-phpmd":
-    autoExecutableSearch: false
     disableWhenNoConfigFile: true
     rulesOrConfigFile: [
       ".phpmd.xml"
