@@ -176,8 +176,7 @@ if [ -z "$(brew list --versions composer)" ]; then
 fi
 
 step "Download latest PHP dependencies"
-    try composer global require --ignore-platform-reqs drupal/coder drush/drush:8.* hirak/prestissimo mglaman/drupal-check phan/phan phpmd/phpmd
-    try $COMPOSER_DIR/vendor/bin/phpcs --config-set installed_paths $COMPOSER_DIR/vendor/drupal/coder/coder_sniffer
+    try composer global require --ignore-platform-reqs hirak/prestissimo
 next
 
 if [ -z "$(brew list --versions mysql)" ]; then
