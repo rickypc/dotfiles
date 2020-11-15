@@ -18,56 +18,88 @@
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Source function library.
+. $SCRIPT_DIR/functions
+
 # See hidden files
 shopt -s dotglob
 
-# Clear logs
-sudo rm -f /var/log/*.gz /var/log/*.old /var/log/*/*.gz
-sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
-find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
+# Prompt for sudo password early on
+sudo -v
 
-:>~/.lesshst
-[ -f ~/.mysql_history ] && :>~/.mysql_history
+step "Clear log files"
+  try sudo rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz
+  try sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
+  try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
+next
 
-# Clear vim history
-find ~/.vim/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
-[ -d ~/.vim6 ] && find ~/.vim6/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
-:>~/.viminfo
+step "Clear history files"
+  try :>~/.lesshst
+  [ -f ~/.mysql_history ] && try :>~/.mysql_history
+next
 
-# Clear caches
-rm -rf ~/.atom/.apm/*
-find ~/Library/Caches -type f -exec rm -f '{}' \; &>/dev/null
-rm -rf ~/Library/Containers/com.apple.Preview/*
-find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
-find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
-command -v composer &>/dev/null && composer clearcache 2>/dev/null
-command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
-sudo update_dyld_shared_cache -force
-qlmanage -r
-killall Finder
+step "Clear Vim history files"
+  try find ~/.vim/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+  [ -d ~/.vim6 ] && try find ~/.vim6/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+  try :>~/.viminfo
+next
 
-# Vacuum outlook data
-killall "Microsoft Outlook"
-if [ -f "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" ]; then
-  sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
-fi
+step "Clear caches"
+  try rm -rf ~/.atom/.apm/*
+  try find ~/Library/Caches -type f -exec rm -f '{}' \; &>/dev/null
+  try rm -rf ~/Library/Containers/com.apple.Preview/*
+  try find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
+  try find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
+  try command -v composer &>/dev/null && composer clearcache 2>/dev/null
+  try command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
+next
+
+# Prompt for sudo password early on
+sudo -v
+
+step "Clear Kernel caches"
+  try sudo update_dyld_shared_cache -force
+  try qlmanage -r
+  try killall Finder
+next
+
+step "Vacuum Outlook data"
+  killall "Microsoft Outlook"
+  if [ -f "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" ]; then
+    try sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
+  fi
+next
 
 # Clear docker containers and images
 $SCRIPT_DIR/docker-cleanup
 
-# Update to latest Homebrew and latest formulaes as well
-brew update
-# Upgrade all installed unpinned brews
-HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
-# Cleanup files & symlinks older than 3 days.
-brew cleanup --prune=3 -s
-# Repair brew tap
-brew tap --repair
+step "Update Homebrew formulae"
+  # Update to latest Homebrew and latest formulaes as well
+  brew update
+next
 
-# Purge inactive memory
-sudo purge
+step "Upgrade Homebrew formulae"
+  # Upgrade all installed unpinned brews
+  HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+next
+
+step "Clean Homebrew caches"
+  # Cleanup files & symlinks older than 3 days.
+  brew cleanup --prune=3 -s
+  # Repair brew tap
+  brew tap --repair
+next
+
+# Prompt for sudo password early on
+sudo -v
+
+step "Purge inactive memory"
+  try sudo purge
+next
 
 # Clear {ba|z}sh history
-:>~/.bash_history
-:>~/.zsh_history
-history -c
+step "Clear shell history"
+  :>~/.bash_history
+  :>~/.zsh_history
+  history -c
+next

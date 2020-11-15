@@ -27,189 +27,201 @@ LOCAL=/usr/local
 
 # Ensure /usr/local/sbin exists.
 if [ ! -d $LOCAL/sbin ]; then
-    sudo mkdir -p $LOCAL/sbin
-    sudo chown $(id -u):admin $LOCAL/sbin
+  sudo mkdir -p $LOCAL/sbin
+  sudo chown $(id -u):admin $LOCAL/sbin
 fi
 
 step "Install latest Homebrew"
-    if ! [ -x "$(command -v brew)" ]; then
-        try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" </dev/null
-    fi
+  if ! [ -x "$(command -v brew)" ]; then
+    try ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" </dev/null
+  fi
 
-    PREFIX=$(brew --prefix)
-    # Turn off Homebrew analytics.
-    try brew analytics off
-    # Update to latest Homebrew and latest formulaes as well
-    try brew update
-    # Upgrade all installed unpinned brews
-    try HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
-    # Cleanup files & symlinks older than 10 days.
-    try brew cleanup --prune=10 -s
-    # Check Homebrew installation
-    try brew doctor
+  PREFIX=$(brew --prefix)
+  # Turn off Homebrew analytics.
+  try brew analytics off
+next
+
+step "Update Homebrew formulae"
+  # Update to latest Homebrew and latest formulaes as well
+  try brew update
+next
+
+step "Upgrade Homebrew formulae"
+  # Upgrade all installed unpinned brews
+  try HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+next
+
+step "Clean Homebrew caches"
+  # Cleanup files & symlinks older than 10 days.
+  try brew cleanup --prune=10 -s
+  # Check Homebrew installation
+  try brew doctor
 next
 
 step "Tap Homebrew services repository"
-    try brew tap homebrew/services
+  try brew tap homebrew/services
 next
 
 step "Tap AWS repository"
-    try brew tap aws/tap
+  try brew tap aws/tap
 next
 
 if [ -z "$(brew list --versions aws-sam-cli)" ]; then
-    step "Install latest AWS-SAM CLI"
-        try brew install aws-sam-cli
-    next
+  step "Install latest AWS-SAM CLI"
+    try brew install aws-sam-cli
+  next
 fi
 
 if [ -z "$(brew list --versions coreutils)" ]; then
-    step "Install latest CoreUtils"
-        try brew install coreutils
-    next
+  step "Install latest CoreUtils"
+    try brew install coreutils
+  next
 fi
 
 if [ -z "$(brew list --versions dive)" ]; then
-    step "Install latest Docker Dive"
-        try brew install dive
-    next
+  step "Install latest Docker Dive"
+    try brew install dive
+  next
 fi
 
 if [ -z "$(brew list --versions graphviz)" ]; then
-    step "Install latest Graphviz"
-        try brew install graphviz
-    next
+  step "Install latest Graphviz"
+    try brew install graphviz
+  next
 fi
 
 if [ -z "$(brew list --versions imagemagick)" ]; then
-    step "Install latest ImageMagick"
-        try brew install imagemagick
-    next
+  step "Install latest ImageMagick"
+    try brew install imagemagick
+  next
 fi
 
 if [ -z "$(brew list --versions openssl)" ]; then
-    step "Install latest OpenSSL"
-        try brew install openssl
-        SSL_PREFIX=$PREFIX/etc/openssl
-        try mkdir -p $SSL_PREFIX/certs $SSL_PREFIX/private
-        if [ ! -f $SSL_PREFIX/private/localhost.key ]; then
-            openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=localhost" -keyout $SSL_PREFIX/private/localhost.key -out $SSL_PREFIX/certs/localhost.crt
-        fi
-        if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
-            openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
-        fi
-    next
+  step "Install latest OpenSSL"
+    try brew install openssl
+    SSL_PREFIX=$PREFIX/etc/openssl
+    try mkdir -p $SSL_PREFIX/certs $SSL_PREFIX/private
+    if [ ! -f $SSL_PREFIX/private/localhost.key ]; then
+      openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=localhost" -keyout $SSL_PREFIX/private/localhost.key -out $SSL_PREFIX/certs/localhost.crt
+    fi
+    if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
+      openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
+    fi
+  next
 fi
 
 if [ -z "$(brew list --versions go)" ]; then
-    step "Install GoLang"
-        try brew install go
-    next
+  step "Install GoLang"
+    try brew install go
+  next
 fi
 
 if [ -z "$(brew list --versions golangci-lint)" ]; then
-    step "Install GoLang Linter"
-        try brew install golangci/tap/golangci-lint
-    next
+  step "Install GoLang Linter"
+    try brew install golangci/tap/golangci-lint
+  next
 fi
 
 if [ -z "$(brew list --versions node)" ]; then
-    step "Install NodeJS"
-        try brew install node
-    next
+  step "Install NodeJS"
+    try brew install node
+  next
 fi
 
 if [ -z "$(brew list --versions python@3)" ]; then
-    step "Install Python 3"
-        try brew install python@3 && ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
-    next
+  step "Install Python 3"
+    try brew install python@3 && ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
+  next
 fi
 
 step "Install latest Python dependencies"
-    try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
+  try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
 next
 
 if [ -z "$(brew list --versions php)" ]; then
-    step "Install latest PHP"
-        try brew install php
-        PHP_VERSION=$(brew list php --versions | egrep -o '\d+\.\d+')
-        PHP_ETC=$PREFIX/etc/php/$PHP_VERSION
-        PHP_INI=$PHP_ETC/php.ini
-        # Essentials configs.
-        content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
-        content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $PHP_INI
-        # Size matters.
-        content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
-        content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
-        # OPCache configs.
-        content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
-        # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
-        content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
-        content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
-        content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
-        # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
-        content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
-        content_replace "s{;pcre.jit=1}{pcre.jit=0}" $PHP_INI
-        # Links and install extensions.
-        try brew link --force --overwrite php
-        try mkdir -p $LOCAL/lib/php/pecl
-        try pecl channel-update pecl.php.net
-        if [ -z "$(php -i | grep -w ast)" ]; then
-            try pecl install ast
-        fi
-        if [ -z "$(php -i | grep -w mcrypt)" ]; then
-            try pecl install mcrypt
-        fi
-        if [ -z "$(php -i | grep -w xdebug)" ]; then
-            try pecl install xdebug
-        fi
-        # Replace socket php-fpm location.
-        content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
-        try brew services start php
-    next
+  step "Install latest PHP"
+    try brew install php
+    PHP_VERSION=$(brew list php --versions | egrep -o '\d+\.\d+')
+    PHP_ETC=$PREFIX/etc/php/$PHP_VERSION
+    PHP_INI=$PHP_ETC/php.ini
+    # Essentials configs.
+    content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
+    content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $PHP_INI
+    # Size matters.
+    content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
+    content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
+    # OPCache configs.
+    content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
+    # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
+    content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
+    content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
+    content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
+    # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
+    content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
+    content_replace "s{;pcre.jit=1}{pcre.jit=0}" $PHP_INI
+    # Links and install extensions.
+    try brew link --force --overwrite php
+    try mkdir -p $LOCAL/lib/php/pecl
+    try pecl channel-update pecl.php.net
+    if [ -z "$(php -i | grep -w ast)" ]; then
+      try pecl install ast
+    fi
+    if [ -z "$(php -i | grep -w mcrypt)" ]; then
+      try pecl install mcrypt
+    fi
+    if [ -z "$(php -i | grep -w xdebug)" ]; then
+      try pecl install xdebug
+    fi
+    # Replace socket php-fpm location.
+    content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
+    try brew services start php
+  next
 fi
 
 if [ -z "$(brew list --versions composer)" ]; then
-    step "Install latest Composer"
-        try brew install composer
-    next
+  step "Install latest Composer"
+    try brew install composer
+  next
 fi
 
 step "Download latest PHP dependencies"
-    try composer global require --ignore-platform-reqs hirak/prestissimo
+  try composer global require --ignore-platform-reqs hirak/prestissimo
 next
 
 if [ -z "$(brew list --versions mysql)" ]; then
-    step "Install latest MySQL"
-        try brew install mysql
-        try brew services start mysql
-    next
-    echo "Waiting for MySQL to be ready..."
-    while !(mysqladmin ping -s); do
-        sleep 5
-    done
-    mysql_secure_installation
-    # Further MySQL config customization.
-    if [ -z "$(grep -o "default_authentication_plugin = mysql_native_password" $PREFIX/etc/my.cnf)" ]; then
-        echo 'default_authentication_plugin = mysql_native_password' >> $PREFIX/etc/my.cnf
-    fi
+  step "Install latest MySQL"
+    try brew install mysql
+    try brew services start mysql
+  next
 
-    if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
-        echo 'explicit_defaults_for_timestamp = 1' >> $PREFIX/etc/my.cnf
-    fi
+  echo "Waiting for MySQL to be ready..."
+  while !(mysqladmin ping -s); do
+      sleep 5
+  done
 
-    if [ -z "$(grep -o "validate_password.policy = LOW" $PREFIX/etc/my.cnf)" ]; then
-        echo 'validate_password.policy = LOW' >> $PREFIX/etc/my.cnf
-    fi
+  mysql_secure_installation
+
+  # Further MySQL config customization.
+  if [ -z "$(grep -o "default_authentication_plugin = mysql_native_password" $PREFIX/etc/my.cnf)" ]; then
+    echo 'default_authentication_plugin = mysql_native_password' >> $PREFIX/etc/my.cnf
+  fi
+
+  if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
+    echo 'explicit_defaults_for_timestamp = 1' >> $PREFIX/etc/my.cnf
+  fi
+
+  if [ -z "$(grep -o "validate_password.policy = LOW" $PREFIX/etc/my.cnf)" ]; then
+    echo 'validate_password.policy = LOW' >> $PREFIX/etc/my.cnf
+  fi
 fi
 
 PMA_DIR=$PREFIX/var/www/phpMyAdmin
 
 step "Install latest PHPMyAdmin"
-    PMA_ZIP=phpMyAdmin-latest-all-languages.zip
-    try curl -LsO "https://www.phpmyadmin.net/downloads/$PMA_ZIP"
-    try unzip -oq $PMA_ZIP -d $PREFIX/var/www && rm -f $PMA_ZIP && rm -rf $PMA_DIR
-    try mv $PMA_DIR-*-all-languages $PMA_DIR
+  PMA_ZIP=phpMyAdmin-latest-all-languages.zip
+  try curl -LsO "https://www.phpmyadmin.net/downloads/$PMA_ZIP"
+  try unzip -oq $PMA_ZIP -d $PREFIX/var/www && rm -f $PMA_ZIP && rm -rf $PMA_DIR
+  try mv $PMA_DIR-*-all-languages $PMA_DIR
 next
 
 # Configure latest PHPMyAdmin.
@@ -222,7 +234,7 @@ perl -p -i.bak -e "s{^\$cfg.+auth_type'\] = 'cookie';}{\\\$cfg\['Servers'\]\[\\\
 
 # Default MySQL user login credentials.
 if [ ! -f $HOME/.my.cnf ]; then
-    cat <<EOF > $HOME/.my.cnf
+  cat <<EOF > $HOME/.my.cnf
 [mysql]
 user=root
 password=$MYSQL_PASSWD
@@ -230,7 +242,7 @@ password=$MYSQL_PASSWD
 user=root
 password=$MYSQL_PASSWD
 EOF
-    chmod 600 $HOME/.my.cnf
+  chmod 600 $HOME/.my.cnf
 fi
 
 mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_PASSWD'; FLUSH PRIVILEGES;"
@@ -239,40 +251,40 @@ mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY
 sudo -v
 
 if [ -z "$(brew list --versions nginx)" ]; then
-    step "Install latest Nginx"
-        try brew install nginx
-        try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
-        try rm -f $PREFIX/var/www/phpinfo.php && ln -sf $HOME/.www/phpinfo.php $PREFIX/var/www/phpinfo.php
-        try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
+  step "Install latest Nginx"
+    try brew install nginx
+    try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
+    try rm -f $PREFIX/var/www/phpinfo.php && ln -sf $HOME/.www/phpinfo.php $PREFIX/var/www/phpinfo.php
+    try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
 
-        if [ ! -d $PREFIX/etc/nginx/servers ]; then
-            try rm -rf $PREFIX/etc/nginx/servers && ln -sf $HOME/.etc/nginx/servers $PREFIX/etc/nginx/servers
-        fi
+    if [ ! -d $PREFIX/etc/nginx/servers ]; then
+      try rm -rf $PREFIX/etc/nginx/servers && ln -sf $HOME/.etc/nginx/servers $PREFIX/etc/nginx/servers
+    fi
 
-        if [ ! -d /etc/newsyslog.d ]; then
-            try sudo rm -f /etc/newsyslog.d/nginx.conf && sudo ln -sf $HOME/.etc/newsyslog.d/nginx.conf /etc/newsyslog.d/nginx.conf
-        fi
+    if [ ! -d /etc/newsyslog.d ]; then
+      try sudo rm -f /etc/newsyslog.d/nginx.conf && sudo ln -sf $HOME/.etc/newsyslog.d/nginx.conf /etc/newsyslog.d/nginx.conf
+    fi
 
-        try sudo brew services start nginx
-    next
+    try sudo brew services start nginx
+  next
 fi
 
 if [ -z "$(brew list --cask --versions adoptopenjdk8)" ]; then
-    step "Install JDK 1.8"
-        try brew cask install homebrew/cask-versions/adoptopenjdk8
-    next
+  step "Install JDK 1.8"
+    try brew cask install homebrew/cask-versions/adoptopenjdk8
+  next
 fi
 
 if [ -z "$(brew list --versions jq)" ]; then
-    step "Install latest jq"
-        try brew install jq
-    next
+  step "Install latest jq"
+    try brew install jq
+  next
 fi
 
 if [ -z "$(brew list --versions cocoapods)" ]; then
-    step "Install latest Cocoapods"
-        try brew install cocoapods
-    next
+  step "Install latest Cocoapods"
+    try brew install cocoapods
+  next
 fi
 
 if [ ! -d $HOME/Library/flutter ]; then
@@ -282,122 +294,122 @@ if [ ! -d $HOME/Library/flutter ]; then
 fi
 
 if [ -z "$(brew list --cask --versions aerial)" ]; then
-    step "Install latest Aerial"
-        try brew cask install aerial
-    next
+  step "Install latest Aerial"
+    try brew cask install aerial
+  next
 fi
 
 if [ -z "$(brew list --cask --versions android-studio)" ]; then
-    step "Install latest Android Studio"
-        try brew cask install android-studio
-        try $HOME/Library/flutter/bin/flutter doctor --android-licenses
-    next
+  step "Install latest Android Studio"
+    try brew cask install android-studio
+    try $HOME/Library/flutter/bin/flutter doctor --android-licenses
+  next
 fi
 
 if [ -z "$(brew list --cask --versions atom)" ]; then
-    step "Install latest Atom Editor"
-        try brew cask install atom
-    next
+  step "Install latest Atom Editor"
+    try brew cask install atom
+  next
 fi
 
 if [ -z "$(brew list --cask --versions docker)" ]; then
-    step "Install latest Docker Desktop"
-        try brew cask install docker
-    next
+  step "Install latest Docker Desktop"
+    try brew cask install docker
+  next
 fi
 
 if [ -z "$(brew list --cask --versions firefox)" ]; then
-    step "Install latest Mozilla Firefox"
-        try brew cask install firefox
-    next
+  step "Install latest Mozilla Firefox"
+    try brew cask install firefox
+  next
 fi
 
 if [ -z "$(brew list --cask --versions gimp)" ]; then
-    step "Install latest Gimp"
-        try brew cask install gimp
-    next
+  step "Install latest Gimp"
+    try brew cask install gimp
+  next
 fi
 
 if [ -z "$(brew list --cask --versions google-chrome)" ]; then
-    step "Install latest Google Chrome"
-        try brew cask install google-chrome
-    next
+  step "Install latest Google Chrome"
+    try brew cask install google-chrome
+  next
 fi
 
 if [ -z "$(brew list --cask --versions omnidisksweeper)" ]; then
-    step "Install latest Omni Disk Sweeper"
-        try brew cask install omnidisksweeper
-    next
+  step "Install latest Omni Disk Sweeper"
+    try brew cask install omnidisksweeper
+  next
 fi
 
 if [ -z "$(brew list --cask --versions redisinsight)" ]; then
-    step "Install latest Redis Insight"
-        try brew cask install redisinsight
-    next
+  step "Install latest Redis Insight"
+    try brew cask install redisinsight
+  next
 fi
 
 if [ -z "$(brew list --cask --versions slack)" ]; then
-    step "Install latest Slack"
-        try brew cask install slack
-    next
+  step "Install latest Slack"
+    try brew cask install slack
+  next
 fi
 
 if [ -z "$(brew list --cask --versions sqlworkbenchj)" ]; then
-    step "Install latest SQL Workbench/J"
-        # Required Oracle JRE.
-        try brew cask install sqlworkbenchj
-        if [ ! -d ~/.sqlworkbench/drivers ]; then
-            try mkdir -p ~/.sqlworkbench/drivers
-        fi
-    next
+  step "Install latest SQL Workbench/J"
+    # Required Oracle JRE.
+    try brew cask install sqlworkbenchj
+    if [ ! -d ~/.sqlworkbench/drivers ]; then
+      try mkdir -p ~/.sqlworkbench/drivers
+    fi
+  next
 fi
 
 if [ ! -f ~/.sqlworkbench/drivers/sqljdbc42.jar ]; then
   step "Download latest Microsoft JDBC driver"
-      try cd ~/.sqlworkbench/drivers && curl -L 'https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.8112.200_enu.tar.gz' -s | tar xz
-      try cp sqljdbc_6.0/enu/jre8/sqljdbc42.jar . && rm -rf sqljdbc_6.0 && cd
+    try cd ~/.sqlworkbench/drivers && curl -L 'https://download.microsoft.com/download/0/2/A/02AAE597-3865-456C-AE7F-613F99F850A8/sqljdbc_6.0.8112.200_enu.tar.gz' -s | tar xz
+    try cp sqljdbc_6.0/enu/jre8/sqljdbc42.jar . && rm -rf sqljdbc_6.0 && cd
   next
 fi
 
 if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
   step "Download latest Redshift JDBC driver"
-      try curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar
+    try curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar
   next
 fi
 
 if [ -z "$(brew list --cask --versions visual-studio)" ]; then
-    step "Install latest Visual Studio"
-        if [ -z "$(brew list --cask --versions mono-mdk)" ]; then
-            try brew cask install mono-mdk
-        fi
-        try brew cask install visual-studio
-    next
+  step "Install latest Visual Studio"
+    if [ -z "$(brew list --cask --versions mono-mdk)" ]; then
+      try brew cask install mono-mdk
+    fi
+    try brew cask install visual-studio
+  next
 fi
 
 if [ -z "$(brew list --versions vim)" ]; then
-    step "Install latest Vim"
-        try brew install vim
-    next
+  step "Install latest Vim"
+    try brew install vim
+  next
 fi
 
 if [ -z "$(brew list --versions xmlstarlet)" ]; then
-    step "Install latest XmlStarlet"
-        try brew install xmlstarlet
-    next
+  step "Install latest XmlStarlet"
+    try brew install xmlstarlet
+  next
 fi
 
 step "Clean caches, histories and logs"
-    try ~/bin/cleaner
+  try ~/bin/cleaner
 next
 
 step "Clean Docker containers and images"
-    try ~/bin/docker-cleanup
+  try ~/bin/docker-cleanup
 next
 
 step "Get virtualenv"
-    try ~/bin/get-virtualenv
+  try ~/bin/get-virtualenv
 next
 
 step "Show all files in finder"
-    try ~/bin/osx-show-all-files
+  try ~/bin/osx-show-all-files
 next

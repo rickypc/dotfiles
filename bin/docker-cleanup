@@ -22,23 +22,34 @@ if ! [ -x "$(command -v docker)" ]; then
     exit 0
 fi
 
+# Source function library.
+. functions
+
 # Remove all exited containers
 CONTAINER_IDS=$(docker ps -qf status=exited)
 if [ -n "$CONTAINER_IDS" ]; then
-    docker rm -f $CONTAINER_IDS || continue
+  step "Remove Docker exited containers"
+    try docker rm -f $CONTAINER_IDS || continue
+  next
 fi
 
 # Remove dangling images
 IMAGE_IDS=$(docker images -qf dangling=true)
 if [ -n "$IMAGE_IDS" ]; then
-    docker rmi -f $IMAGE_IDS || continue
+  step "Remove Docker dangling images"
+    try docker rmi -f $IMAGE_IDS || continue
+  next
 fi
 
 # Remove all untagged images
 IMAGE_IDS=$(docker images -a --format '{{.ID}}' | grep "^<none>")
 if [ -n "$IMAGE_IDS" ]; then
-    docker rmi -f $IMAGE_IDS || continue
+  step "Remove Docker untagged images"
+    try docker rmi -f $IMAGE_IDS || continue
+  next
 fi
 
 # Remove unused data
-docker system prune -f
+step "Remove Docker unused data"
+  try docker system prune -f
+next
