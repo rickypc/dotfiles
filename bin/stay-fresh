@@ -90,6 +90,31 @@ step "Clean Homebrew caches"
   brew tap --repair
 next
 
+step "Activate default virtual env"
+  try rm -rf $WORKON_HOME/default
+  try $SCRIPT_DIR/get-virtualenv
+  try . $WORKON_HOME/default/bin/activate
+next
+
+step "Activate Powerline"
+  PYTHON_USER_BASE=`python3 -m site --user-base`
+
+  if [ -d "$PYTHON_USER_BASE/bin" ]; then
+    export PYTHON_USER_SITE=`python3 -m site --user-site`
+
+    if [[ -n "$PYTHON_USER_BASE/bin" && $PATH != *$PYTHON_USER_BASE/bin* ]]; then
+      export PATH=$PATH:$PYTHON_USER_BASE/bin
+    fi
+  fi
+
+  if [ -z "$(pip3 list --user | grep powerline-gitstatus)" ]; then
+    try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
+    try powerline-daemon -q
+  else
+    try powerline-daemon --replace
+  fi
+next
+
 # Prompt for sudo password early on
 sudo -v
 
