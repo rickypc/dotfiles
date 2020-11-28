@@ -27,6 +27,18 @@ shopt -s dotglob
 # Prompt for sudo password early on
 sudo -v
 
+step "Clear Kernel caches"
+  try sudo update_dyld_shared_cache -force
+  try qlmanage -r
+  if [ -n "$(ps aux | grep Finder | grep -v grep)" ]; then
+    try killall Finder
+  fi
+next
+
+step "Purge inactive memory"
+  try sudo /usr/sbin/purge
+next
+
 step "Clear log files"
   try sudo rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz
   try sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
@@ -54,17 +66,10 @@ step "Clear caches"
   try command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
 next
 
-# Prompt for sudo password early on
-sudo -v
-
-step "Clear Kernel caches"
-  try sudo update_dyld_shared_cache -force
-  try qlmanage -r
-  try killall Finder
-next
-
 step "Vacuum Outlook data"
-  killall "Microsoft Outlook"
+  if [ -n "$(ps aux | grep "Microsoft Outlook" | grep -v grep)" ]; then
+    killall "Microsoft Outlook"
+  fi
   if [ -f "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" ]; then
     try sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
   fi
@@ -74,16 +79,23 @@ next
 $SCRIPT_DIR/docker-cleanup
 
 step "Update Homebrew formulae"
+  cd "$(brew --repo)"
+  output_start
+  git gc --aggressive --prune
+  output_end
+  cd
   # Update to latest Homebrew and latest formulaes as well
   brew update
 next
 
 step "Upgrade Homebrew formulae"
+  echo
   # Upgrade all installed unpinned brews
   HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
 next
 
 step "Clean Homebrew caches"
+  echo
   # Cleanup files & symlinks older than 3 days.
   brew cleanup --prune=3 -s
   # Repair brew tap
@@ -97,29 +109,25 @@ step "Activate default virtual env"
 next
 
 step "Activate Powerline"
-  PYTHON_USER_BASE=`python3 -m site --user-base`
+  PYTHON_USER_BASE=`/usr/local/bin/python3 -m site --user-base`
 
   if [ -d "$PYTHON_USER_BASE/bin" ]; then
-    export PYTHON_USER_SITE=`python3 -m site --user-site`
+    # Remove old Python user base from the PATH.
+    export PATH=${PATH/:$HOME\/Library\/Python\/[0-9].[0-9]\/bin}
 
-    if [[ -n "$PYTHON_USER_BASE/bin" && $PATH != *$PYTHON_USER_BASE/bin* ]]; then
-      export PATH=$PATH:$PYTHON_USER_BASE/bin
+    export PYTHON_USER_SITE=`/usr/local/bin/python3 -m site --user-site`
+
+    if [[ $PATH != *$PYTHON_USER_BASE/bin* ]]; then
+      export PATH=$PYTHON_USER_BASE/bin:$PATH
     fi
   fi
 
   if [ -z "$(pip3 list --user | grep powerline-gitstatus)" ]; then
     try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
-    try powerline-daemon -q
+    powerline-daemon -q
   else
-    try powerline-daemon --replace
+    powerline-daemon -q --replace
   fi
-next
-
-# Prompt for sudo password early on
-sudo -v
-
-step "Purge inactive memory"
-  try sudo purge
 next
 
 # Clear {ba|z}sh history
