@@ -23,7 +23,7 @@ export_to_path() {
     if [ -z $PATH ]; then
       export PATH=$1
     else
-      export PATH=$PATH:$1
+      export PATH=$1:$PATH
     fi
   fi
 }
