@@ -23,7 +23,7 @@ export_to_path() {
     if [ -z $PATH ]; then
       export PATH=$1
     else
-      export PATH=$1:$PATH
+      export PATH=$PATH:$1
     fi
   fi
 }
@@ -97,7 +97,7 @@ export PHPLS_ALLOW_XDEBUG=1
 export XDG_CACHE_HOME=$CACHE_PATH
 # export XDG_CONFIG_HOME=~/.config
 
-PYTHON_USER_BASE=`python3 -m site --user-base`
+PYTHON_USER_BASE=`/usr/local/bin/python3 -m site --user-base`
 
 if [ -d $ANDROID_SDK ]; then
   if [[ $ANDROID_HOME != *${ANDROID_SDK}* ]]; then
@@ -198,7 +198,7 @@ fi
 
 if [ -d "$PYTHON_USER_BASE/bin" ]; then
   export POWERLINE_CONFIG_COMMAND=powerline-config
-  export PYTHON_USER_SITE=`python3 -m site --user-site`
+  export PYTHON_USER_SITE=`/usr/local/bin/python3 -m site --user-site`
   export_to_path "$PYTHON_USER_BASE/bin"
 fi
 
