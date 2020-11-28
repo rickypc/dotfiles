@@ -85,13 +85,13 @@ step "Update Homebrew formulae"
   output_end
   cd
   # Update to latest Homebrew and latest formulaes as well
-  brew update
+  HOMEBREW_FORCE_BREWED_GIT=1 brew update
 next
 
 step "Upgrade Homebrew formulae"
   echo
   # Upgrade all installed unpinned brews
-  HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+  HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
 next
 
 step "Clean Homebrew caches"
