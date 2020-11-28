@@ -17,8 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 if [[ "$(uname)" == 'Darwin' ]]; then
-    defaults write -g AppleShowAllFiles -bool true
-    # Disables auto-open previously open files.
-    defaults write com.apple.Preview ApplePersistenceIgnoreState YES
-    killall Finder
+  defaults write -g AppleShowAllFiles -bool true
+  # Disables auto-open previously open files.
+  defaults write com.apple.Preview ApplePersistenceIgnoreState YES
+  # Display Safari debug menu.
+  defaults write com.apple.Safari IncludeInternalDebugMenu 1
+  killall Finder
+  killall Safari
 fi
