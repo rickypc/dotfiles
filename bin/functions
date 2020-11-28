@@ -32,108 +32,116 @@ STEP_FILE=${TMPDIR}step.$$
 [[ $(tput colors 2>/dev/null) -ge 8 ]] && USE_COLOR=true || USE_COLOR=false
 
 _echo_status() {
-    # COLOR is byref
-    local COLOR=${!1} STATUS=$2
-    [ "$USE_COLOR" = true ] && $MOVE_TO_COL
-    echo -n "["
-    [ "$USE_COLOR" = true ] && $COLOR
-    echo -n $STATUS
-    [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
-    echo -n "]"
-    echo -en "\r"
-    echo
+  # COLOR is byref
+  local COLOR=${!1} STATUS=$2
+  [ "$USE_COLOR" = true ] && $MOVE_TO_COL
+  echo -n "["
+  [ "$USE_COLOR" = true ] && $COLOR
+  echo -n $STATUS
+  [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
+  echo -n "]"
+  echo -en "\r"
+  echo
 }
 
 content_replace() {
-    local PATTERN=$1 PATH=$2
-    # Run the command
-    local COMMAND_OUTPUT=$(/usr/bin/perl -p -i.bak -e "$PATTERN" "$PATH" 2>&1)
-    # Capture the exit code
-    local EXIT_CODE=$?
-    # Render command output
-    output "$COMMAND_OUTPUT"
-    # It should be silent when everything went well.
-    if [ ! -z "$COMMAND_OUTPUT" ]; then
-        EXIT_CODE=126
-    fi
-    # Render error message and update the step file if exit code is not 0
-    error $EXIT_CODE ${BASH_LINENO[0]} "$*"
-    return $EXIT_CODE
+  local PATTERN=$1 PATH=$2
+  # Run the command
+  local COMMAND_OUTPUT=$(/usr/bin/perl -p -i.bak -e "$PATTERN" "$PATH" 2>&1)
+  # Capture the exit code
+  local EXIT_CODE=$?
+  # Render command output
+  output "$COMMAND_OUTPUT"
+  # It should be silent when everything went well.
+  if [ ! -z "$COMMAND_OUTPUT" ]; then
+    EXIT_CODE=126
+  fi
+  # Render error message and update the step file if exit code is not 0
+  error $EXIT_CODE ${BASH_LINENO[0]} "$*"
+  return $EXIT_CODE
 }
 
 error() {
-    local EXIT_CODE=$1 LINE=$2 COMMAND="$3"
-    # Check if command failed
-    if [[ $EXIT_CODE -ne 0 ]]; then
-        # Update the exit code in the step file
-        [[ -w $TMPDIR ]] && echo $EXIT_CODE > $STEP_FILE
-        local FILE=$(/usr/bin/readlink "${BASH_SOURCE[1]}" || echo "$(echo "$0" | /usr/bin/sed -e 's,\\,/,g')")
-        echo "$FILE: line $LINE: \`$COMMAND\` failed: $EXIT_CODE."
-    fi
+  local EXIT_CODE=$1 LINE=$2 COMMAND="$3"
+  # Check if command failed
+  if [[ $EXIT_CODE -ne 0 ]]; then
+    # Update the exit code in the step file
+    [[ -w $TMPDIR ]] && echo $EXIT_CODE > $STEP_FILE
+    local FILE=$(/usr/bin/readlink "${BASH_SOURCE[1]}" || echo "$(echo "$0" | /usr/bin/sed -e 's,\\,/,g')")
+    echo "$FILE: line $LINE: \`$COMMAND\` failed: $EXIT_CODE."
+  fi
 }
 
 failure() {
-    local TITLE STATUS
-    [[ -z $2 ]] && STATUS="FAILED" || STATUS=$2
-    _echo_status SET_COLOR_FAILURE $STATUS
+  local TITLE STATUS
+  [[ -z $2 ]] && STATUS="FAILED" || STATUS=$2
+  _echo_status SET_COLOR_FAILURE $STATUS
 }
 
 next() {
-    [[ -f $STEP_FILE ]] && { EXIT_CODE=$(< $STEP_FILE); rm -f $STEP_FILE; }
-    [[ $EXIT_CODE -eq 0 ]]  && success || failure
-    return $EXIT_CODE
+  [[ -f $STEP_FILE ]] && { EXIT_CODE=$(< $STEP_FILE); rm -f $STEP_FILE; }
+  [[ $EXIT_CODE -eq 0 ]]  && success || failure
+  return $EXIT_CODE
 }
 
 output() {
-    local OUTPUT="$@"
-    if [[ -n $OUTPUT ]]; then
-        echo
-        [ "$USE_COLOR" = true ] && $SET_COLOR_DIM
-        echo "$OUTPUT"
-        [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
-    fi
+  local OUTPUT="$@"
+  if [[ -n $OUTPUT ]]; then
+    output_start
+    echo "$OUTPUT"
+    output_end
+  fi
+}
+
+output_end() {
+  [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
+}
+
+output_start() {
+  echo
+  [ "$USE_COLOR" = true ] && $SET_COLOR_DIM
 }
 
 passed() {
-    local TITLE STATUS
-    [[ -z $2 ]] && STATUS="PASSED" || STATUS=$2
-    _echo_status SET_COLOR_WARNING $STATUS
+  local TITLE STATUS
+  [[ -z $2 ]] && STATUS="PASSED" || STATUS=$2
+  _echo_status SET_COLOR_WARNING $STATUS
 }
 
 step() {
-    # Render step title
-    title $@
-    # Set initial exit code in the step file
-    [[ -w $TMPDIR ]] && echo 0 > $STEP_FILE
+  # Render step title
+  title $@
+  # Set initial exit code in the step file
+  [[ -w $TMPDIR ]] && echo 0 > $STEP_FILE
 }
 
 success() {
-    local TITLE STATUS
-    [[ -z $2 ]] && STATUS="  OK  " || STATUS=$2
-    _echo_status SET_COLOR_SUCCESS $STATUS
+  local TITLE STATUS
+  [[ -z $2 ]] && STATUS="  OK  " || STATUS=$2
+  _echo_status SET_COLOR_SUCCESS $STATUS
 }
 
 title() {
-    local TITLE="$@"
-    [ "$USE_COLOR" = true ] && $SET_COLOR_BOLD
-    printf '\r * %s' "$TITLE" | fold -s -w 59
-    [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
+  local TITLE="$@"
+  [ "$USE_COLOR" = true ] && $SET_COLOR_BOLD
+  printf '\r * %s' "$TITLE" | fold -s -w 59
+  [ "$USE_COLOR" = true ] && $SET_COLOR_NORMAL
 }
 
 try() {
-    # Run the command
-    local COMMAND_OUTPUT=$(eval $@ 2>&1)
-    # Capture the exit code
-    local EXIT_CODE=$?
-    # Render command output
-    output "$COMMAND_OUTPUT"
-    # Render error message and update the step file if exit code is not 0
-    error $EXIT_CODE ${BASH_LINENO[0]} "$*"
-    return $EXIT_CODE
+  # Run the command
+  local COMMAND_OUTPUT=$(eval $@ 2>&1)
+  # Capture the exit code
+  local EXIT_CODE=$?
+  # Render command output
+  output "$COMMAND_OUTPUT"
+  # Render error message and update the step file if exit code is not 0
+  error $EXIT_CODE ${BASH_LINENO[0]} "$*"
+  return $EXIT_CODE
 }
 
 warning() {
-    local TITLE STATUS
-    [[ -z $2 ]] && STATUS="WARNING" || STATUS=$2
-    _echo_status SET_COLOR_WARNING $STATUS
+  local TITLE STATUS
+  [[ -z $2 ]] && STATUS="WARNING" || STATUS=$2
+  _echo_status SET_COLOR_WARNING $STATUS
 }
