@@ -79,10 +79,17 @@ next
 $SCRIPT_DIR/docker-cleanup
 
 step "Update Homebrew formulae"
-  cd "$(brew --repo)"
+  BREW_REPO=$(brew --repo)
+
   output_start
-  git gc --aggressive --prune
+  for DIR in "$BREW_REPO" "$BREW_REPO"/Library/Taps/*/*; do
+    [[ -d "$DIR/.git" ]] || continue
+    cd "$DIR" || continue
+    echo Housekeeping $DIR
+    git gc --prune
+  done
   output_end
+
   cd
   # Update to latest Homebrew and latest formulaes as well
   HOMEBREW_FORCE_BREWED_GIT=1 brew update
