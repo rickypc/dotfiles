@@ -84,6 +84,12 @@ if [ -z "$(brew list --versions dive)" ]; then
   next
 fi
 
+if [ -z "$(brew list --versions dos2unix)" ]; then
+  step "Install latest DOS to Unix"
+    try brew install dos2unix
+  next
+fi
+
 if [ -z "$(brew list --versions graphviz)" ]; then
   step "Install latest Graphviz"
     try brew install graphviz
