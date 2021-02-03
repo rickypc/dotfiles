@@ -1,0 +1,44 @@
+#!/bin/bash
+
+#    Remove CRLF - Remove Carriage Return and Line Feed (CRLF) inside the files.
+#    Copyright (C) 1995-2021  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+function usage {
+    echo -e "Usage: $0 [-e <exclude folder> ...] -h\n"
+    echo "Command line switches are optional. The following switches are recognized."
+    echo "   -e  -- Folder to be excluded from the removal path."
+    echo "   -h  -- Show this usage."
+    exit 1
+}
+
+while getopts ":e:h" o; do
+    case "$o" in
+        e) EXCLUDES+=("$OPTARG");;
+        h) usage;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+FIND_ARGS+="-not \( -path '*.git/*' -prune \) -not \( -path '*node_modules*' -prune \)"
+
+if [ ! -z "$EXCLUDES" ]; then
+    for EXCLUDE in "${EXCLUDES[@]}"; do
+        FIND_ARGS+=" -not \( -path '*$EXCLUDE*' -prune \)"
+    done
+fi
+
+eval "find . -type f $FIND_ARGS -print0 | xargs -0 dos2unix -q"
