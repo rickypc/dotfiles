@@ -190,10 +190,6 @@ if [ -z "$(brew list --versions composer)" ]; then
   next
 fi
 
-step "Download latest PHP dependencies"
-  try composer global require --ignore-platform-reqs hirak/prestissimo
-next
-
 if [ -z "$(brew list --versions mysql)" ]; then
   step "Install latest MySQL"
     try brew install mysql
