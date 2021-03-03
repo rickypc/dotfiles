@@ -28,7 +28,7 @@ shopt -s dotglob
 sudo -v
 
 step "Clear Kernel caches"
-  try sudo update_dyld_shared_cache -force
+  # try sudo update_dyld_shared_cache -force
   try qlmanage -r
   if [ -n "$(ps aux | grep Finder | grep -v grep)" ]; then
     try killall Finder
