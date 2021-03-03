@@ -86,7 +86,7 @@ step "Update Homebrew formulae"
     [[ -d "$DIR/.git" ]] || continue
     cd "$DIR" || continue
     echo Housekeeping $DIR
-    git gc --prune
+    git gc --auto --prune
   done
   output_end
 
