@@ -69,6 +69,7 @@ __pycache__/
 .viminfo
 .vscode
 .zsh_history
+.zsh_sessions
 Applications
 bin/chromedriver
 bin/jtds-*.jar
