@@ -21,14 +21,14 @@ LOCAL_BIN=/usr/local/bin
 VENVS=~/.virtualenvs
 
 # Install virtualenv.
-pip3 install -qU virtualenv
+$LOCAL_BIN/pip3 install -qU virtualenv
 
 if [ ! -f $LOCAL_BIN/virtualenv3 ]; then
   ln -sf $LOCAL_BIN/virtualenv $LOCAL_BIN/virtualenv3
 fi
 
 if [ ! -d $VENVS/default ]; then
-  VERSION=$(python -c 'import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1]))')
+  VERSION=$($LOCAL_BIN/python3 -c 'import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1]))')
   rm -rf $VENVS/default
   mkdir -p $VENVS
   $LOCAL_BIN/virtualenv3 -q $VENVS/$VERSION
