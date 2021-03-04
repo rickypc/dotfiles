@@ -141,7 +141,7 @@ if [ -z "$(brew list --versions python@3)" ]; then
 fi
 
 step "Install latest Python dependencies"
-  try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
+  try $LOCAL/bin/pip3 install --user awscli gitpython powerline-gitstatus powerline-status
 next
 
 if [ -z "$(brew list --versions php)" ]; then
