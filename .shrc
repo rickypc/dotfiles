@@ -11,6 +11,7 @@ case $(uname) in
   'Darwin')
     # Tell ls to be colorful
     export CLICOLOR=1
+    export JQ_COLORS="1;33:0;95:0;95:0;36:0;91:0;39:0;39:0;33"
     export LSCOLORS=ExGxFxdxCxDgDdabagacad
     # Tell grep to highlight matches
     export GREP_OPTIONS='--color=auto'
