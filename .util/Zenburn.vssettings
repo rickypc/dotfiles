@@ -12,11 +12,11 @@
 						<Items>
 							<Item Name="Comment" Foreground="0x007F9F7F" Background="0x003F3F3F" BoldFont="No"/>
 							<Item Name="Plain Text" Foreground="0x00C8D7D7" Background="0x003F3F3F" BoldFont="No"/>
-							<Item Name="Selected Text" Foreground="0x02000000" Background="0x8383839C" BoldFont="No"/>
-							<Item Name="Brace Matching (Rectangle)" Foreground="0x02000000" Background="0x0030332E" BoldFont="No"/>
-							<Item Name="Identifier" Foreground="0x02000000" Background="0x02000000" BoldFont="No"/>
+							<Item Name="Selected Text" Foreground="0x00C8D7D7" Background="0x8383839C" BoldFont="No"/>
+							<Item Name="Brace Matching (Rectangle)" Foreground="0x00C8D7D7" Background="0x0030332E" BoldFont="No"/>
+							<Item Name="Identifier" Foreground="0x00C8D7D7" Background="0x02000000" BoldFont="No"/>
 							<Item Name="Number" Foreground="0x00D3D08C" Background="0x02000000" BoldFont="No"/>
-							<Item Name="Operator" Foreground="0x02000000" Background="0x02000000" BoldFont="No"/>
+							<Item Name="Operator" Foreground="0x00C8D7D7" Background="0x02000000" BoldFont="No"/>
 							<Item Name="String" Foreground="0x00A3A3DC" Background="0x02000000" BoldFont="No"/>
 							<Item Name="String(C# @ Verbatim)" Foreground="0x00A3A3DC" Background="0x02000000" BoldFont="No"/>
 							<Item Name="urlformat" Foreground="0x00A3A3DC" Background="0x02000000" BoldFont="No"/>
