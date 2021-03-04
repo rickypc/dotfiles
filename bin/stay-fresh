@@ -16,15 +16,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+LOCAL_BIN=/usr/local/bin
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Source function library.
 . $SCRIPT_DIR/functions
 
-# See hidden files
+# See hidden files.
 shopt -s dotglob
 
-# Prompt for sudo password early on
+# Prompt for sudo password early on.
 sudo -v
 
 step "Clear Kernel caches"
@@ -75,7 +76,7 @@ step "Vacuum Outlook data"
   fi
 next
 
-# Clear docker containers and images
+# Clear docker containers and images.
 $SCRIPT_DIR/docker-cleanup
 
 step "Update Homebrew formulae"
@@ -91,13 +92,13 @@ step "Update Homebrew formulae"
   output_end
 
   cd
-  # Update to latest Homebrew and latest formulaes as well
+  # Update to latest Homebrew and latest formulaes as well.
   HOMEBREW_FORCE_BREWED_GIT=1 brew update
 next
 
 step "Upgrade Homebrew formulae"
   echo
-  # Upgrade all installed unpinned brews
+  # Upgrade all installed unpinned brews.
   HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
 next
 
@@ -105,24 +106,33 @@ step "Clean Homebrew caches"
   echo
   # Cleanup files & symlinks older than 3 days.
   brew cleanup --prune=3 -s
-  # Repair brew tap
+  # Delete donwload cache.
+  rm -rf "$(brew --cache)"
+  # Repair brew tap.
   brew tap --repair
 next
 
 step "Activate default virtual env"
+  # Make sure symlink exists.
+  if [ ! -f $LOCAL_BIN/python ]; then
+    try ln -sf $LOCAL_BIN/python3 $LOCAL_BIN/python
+  fi
+  if [ ! -f $LOCAL_BIN/pip ]; then
+    try ln -sf $LOCAL_BIN/pip3 $LOCAL_BIN/pip
+  fi
   try rm -rf $WORKON_HOME/default
   try $SCRIPT_DIR/get-virtualenv
   try . $WORKON_HOME/default/bin/activate
 next
 
 step "Activate Powerline"
-  PYTHON_USER_BASE=`/usr/local/bin/python3 -m site --user-base`
+  PYTHON_USER_BASE=`$LOCAL_BIN/python3 -m site --user-base`
 
   if [ -d "$PYTHON_USER_BASE/bin" ]; then
     # Remove old Python user base from the PATH.
     export PATH=${PATH/:$HOME\/Library\/Python\/[0-9].[0-9]\/bin}
 
-    export PYTHON_USER_SITE=`/usr/local/bin/python3 -m site --user-site`
+    export PYTHON_USER_SITE=`$LOCAL_BIN/python3 -m site --user-site`
 
     if [[ $PATH != *$PYTHON_USER_BASE/bin* ]]; then
       export PATH=$PYTHON_USER_BASE/bin:$PATH
@@ -130,14 +140,14 @@ step "Activate Powerline"
   fi
 
   if [ -z "$(pip3 list --user | grep powerline-gitstatus)" ]; then
-    try pip3 install --user awscli gitpython powerline-gitstatus powerline-status
+    try $LOCAL_BIN/pip3 install --user awscli gitpython powerline-gitstatus powerline-status
     powerline-daemon -q
   else
     powerline-daemon -q --replace
   fi
 next
 
-# Clear {ba|z}sh history
+# Clear {ba|z}sh history.
 step "Clear shell history"
   :>~/.bash_history
   :>~/.zsh_history
