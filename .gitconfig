@@ -2,9 +2,9 @@
   ad = add
   ci = commit
   co = checkout
-  l = log --graph --name-status --date=local
-  ph = push
+  l = log --date=local --graph --name-status
   pl = pull
+  ps = push
   st = status
 [branch]
   autosetupmerge = true
