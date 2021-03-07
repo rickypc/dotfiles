@@ -16,14 +16,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Only when docker executable exists
-if ! [ -x "$(command -v docker)" ]; then
-    echo 'Warning: docker is not installed.' >&2
-    exit 0
-fi
-
 # Source function library.
 . functions
+
+# Only when docker executable exists
+if ! [ -x "$(command -v docker)" ]; then
+  output_start
+  echo 'Warning: docker is not installed.' >&2
+  output_end
+  exit 0
+fi
 
 # Remove all exited containers
 CONTAINER_IDS=$(docker ps -qf status=exited)
