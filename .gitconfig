@@ -1,22 +1,22 @@
 [alias]
-  l = log --graph --name-status --date=local
-  co = checkout
   ci = commit
+  co = checkout
+  l = log --graph --name-status --date=local
   st = status
 [branch]
   autosetupmerge = true
 #  autosetuprebase = always
 [color]
   branch = auto
-  status = auto
   diff = auto
-  ui = auto
   interactive = auto
+  status = auto
+  ui = auto
 [core]
+  autocrlf = false
   compression = 9
   excludesfile = ~/.gitignore
   longpaths = true
-  autocrlf = false
 [gc]
   auto = 1000
 [merge]
@@ -28,5 +28,5 @@
 [push]
   default = simple
 [user]
+	email = rickypc@users.noreply.github.com
 	name = Ricky Huang
-  email = rickypc@users.noreply.github.com
