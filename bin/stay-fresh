@@ -44,6 +44,7 @@ step "Clear log files"
   try sudo rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz
   try sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
+  try rm -rf ~/.npm/_logs/*
 next
 
 step "Clear history files"
@@ -64,7 +65,12 @@ step "Clear caches"
   try find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
   try find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
   try command -v composer &>/dev/null && composer clearcache 2>/dev/null
-  try command -v npm &>/dev/null && npm cache clean --force 2>/dev/null
+
+  if [ -n "$(command -v npm)" ]; then
+    output_start
+    npm cache verify
+    output_end
+  fi
 next
 
 step "Vacuum Outlook data"
