@@ -1,7 +1,15 @@
 # ~/.aliases: executed by {ba|da|z}sh(1).
 
-alias la='ls -A'
+alias gad='git ad'
+alias gci='git ci'
+alias gco='git co'
+alias gl='git l'
+alias gpl='git pl'
+alias gps='git ps'
+alias gst='git st'
+
 alias l='ls -CF'
+alias la='ls -A'
 
 # scp w/ resume capability
 alias scpr='rsync --partial --archive --compress --progress --verbose --rsh=ssh'
