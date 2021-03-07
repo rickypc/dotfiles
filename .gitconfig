@@ -1,7 +1,10 @@
 [alias]
+  ad = add
   ci = commit
   co = checkout
   l = log --graph --name-status --date=local
+  ph = push
+  pl = pull
   st = status
 [branch]
   autosetupmerge = true
