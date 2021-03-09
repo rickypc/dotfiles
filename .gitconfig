@@ -3,6 +3,7 @@
   ci = commit
   co = checkout
   l = log --date=local --graph --name-status
+  m = merge
   pl = pull
   ps = push
   st = status
