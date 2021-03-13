@@ -40,11 +40,32 @@ step "Purge inactive memory"
   try sudo /usr/sbin/purge
 next
 
+step "Remove outdated .NET Core Runtime and SDK"
+  # https://github.com/dotnet/cli-lab/releases
+  if [ -x "$(command -v dotnet-core-uninstall)" ]; then
+    try sudo dotnet-core-uninstall remove --all-but-latest --runtime -y
+    try sudo dotnet-core-uninstall remove --all-but-latest --sdk -y
+  fi
+next
+
 step "Clear log files"
+  [ -f /usr/local/var/log/php-fpm.log ] && try :>/usr/local/var/log/php-fpm.log
+  [ -f /usr/local/var/log/php_errors.log ] && try :>/usr/local/var/log/php_errors.log
+  [ -f /usr/local/var/log/nginx/access.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/access.log
+  [ -f /usr/local/var/log/nginx/error.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/error.log
+  [ -f /usr/local/var/log/nginx/host.test.access.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/host.test.access.log
+  [ -f /usr/local/var/log/nginx/host.test.error.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/host.test.error.log
+  [ -f /usr/local/var/log/nginx/localhost.access.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/localhost.access.log
+  [ -f /usr/local/var/log/nginx/localhost.error.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/localhost.error.log
   try sudo rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz
   try sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
   try rm -rf ~/.npm/_logs/*
+  if [ -x "$(command -v mysql)" ]; then
+    output_start
+    echo "PURGE BINARY LOGS BEFORE DATE(NOW() - INTERVAL 3 DAY)" | mysql
+    output_end
+  fi
 next
 
 step "Clear history files"
