@@ -92,6 +92,12 @@ step "Clear caches"
     npm cache verify
     output_end
   fi
+
+  if [ -n "$(command -v nuget)" ]; then
+    output_start
+    nuget locals all -clear
+    output_end
+  fi
 next
 
 step "Vacuum Outlook data"
