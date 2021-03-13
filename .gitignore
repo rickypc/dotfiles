@@ -72,6 +72,7 @@ __pycache__/
 .zsh_sessions
 Applications
 bin/chromedriver
+bin/dotnet-core-uninstall
 bin/jtds-*.jar
 build
 Desktop
