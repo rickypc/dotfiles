@@ -118,9 +118,8 @@ step "Update Homebrew formulae"
   output_start
   for DIR in "$BREW_REPO" "$BREW_REPO"/Library/Taps/*/*; do
     [[ -d "$DIR/.git" ]] || continue
-    cd "$DIR" || continue
     echo Housekeeping $DIR
-    git gc --auto --prune
+    git -C $DIR gc --auto --prune
   done
   output_end
 
@@ -186,3 +185,7 @@ step "Clear shell history"
   :>~/.zsh_history
   history -c
 next
+
+output_start
+diskutil info / | grep --color=never "Free Space"
+output_end
