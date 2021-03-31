@@ -393,9 +393,6 @@ fi
 
 if [ -z "$(brew list --cask --versions visual-studio)" ]; then
   step "Install latest Visual Studio"
-    if [ -z "$(brew list --cask --versions mono-mdk)" ]; then
-      try brew install --cask mono-mdk
-    fi
     try brew install --cask visual-studio
   next
 fi
