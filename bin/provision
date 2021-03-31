@@ -273,7 +273,7 @@ fi
 
 if [ -z "$(brew list --cask --versions adoptopenjdk8)" ]; then
   step "Install JDK 1.8"
-    try brew cask install homebrew/cask-versions/adoptopenjdk8
+    try brew install --cask homebrew/cask-versions/adoptopenjdk8
   next
 fi
 
@@ -297,69 +297,81 @@ fi
 
 if [ -z "$(brew list --cask --versions aerial)" ]; then
   step "Install latest Aerial"
-    try brew cask install aerial
+    try brew install --cask aerial
   next
 fi
 
 if [ -z "$(brew list --cask --versions android-studio)" ]; then
   step "Install latest Android Studio"
-    try brew cask install android-studio
+    try brew install --cask android-studio
     try $HOME/Library/flutter/bin/flutter doctor --android-licenses
   next
 fi
 
 if [ -z "$(brew list --cask --versions atom)" ]; then
   step "Install latest Atom Editor"
-    try brew cask install atom
+    try brew install --cask atom
   next
 fi
 
 if [ -z "$(brew list --cask --versions docker)" ]; then
   step "Install latest Docker Desktop"
-    try brew cask install docker
+    try brew install --cask docker
   next
 fi
 
 if [ -z "$(brew list --cask --versions firefox)" ]; then
   step "Install latest Mozilla Firefox"
-    try brew cask install firefox
+    try brew install --cask firefox
   next
 fi
 
 if [ -z "$(brew list --cask --versions gimp)" ]; then
   step "Install latest Gimp"
-    try brew cask install gimp
+    try brew install --cask gimp
   next
 fi
 
 if [ -z "$(brew list --cask --versions google-chrome)" ]; then
   step "Install latest Google Chrome"
-    try brew cask install google-chrome
+    try brew install --cask google-chrome
+  next
+fi
+
+if [ -z "$(brew list --cask --versions microsoft-edge)" ]; then
+  step "Install Microsoft Edge"
+    try brew install --cask microsoft-edge
   next
 fi
 
 if [ -z "$(brew list --cask --versions omnidisksweeper)" ]; then
   step "Install latest Omni Disk Sweeper"
-    try brew cask install omnidisksweeper
+    try brew install --cask omnidisksweeper
+  next
+fi
+
+if [ -z "$(brew list --cask --versions opera)" ]; then
+  step "Install Opera"
+    try brew install --cask opera
   next
 fi
 
 if [ -z "$(brew list --cask --versions redisinsight)" ]; then
   step "Install latest Redis Insight"
-    try brew cask install redisinsight
+    try brew install --cask redisinsight
   next
 fi
 
 if [ -z "$(brew list --cask --versions slack)" ]; then
   step "Install latest Slack"
-    try brew cask install slack
+    try brew install --cask slack
   next
 fi
 
 if [ -z "$(brew list --cask --versions sqlworkbenchj)" ]; then
   step "Install latest SQL Workbench/J"
     # Required Oracle JRE.
-    try brew cask install sqlworkbenchj
+    try brew install --cask sqlworkbenchj
     if [ ! -d ~/.sqlworkbench/drivers ]; then
       try mkdir -p ~/.sqlworkbench/drivers
     fi
@@ -382,9 +394,15 @@ fi
 if [ -z "$(brew list --cask --versions visual-studio)" ]; then
   step "Install latest Visual Studio"
     if [ -z "$(brew list --cask --versions mono-mdk)" ]; then
-      try brew cask install mono-mdk
+      try brew install --cask mono-mdk
     fi
-    try brew cask install visual-studio
+    try brew install --cask visual-studio
+  next
+fi
+
+if [ -z "$(brew list --cask --versions visual-studio-code)" ]; then
+  step "Install latest Visual Studio Code"
+    try brew install --cask visual-studio-code
   next
 fi
 
