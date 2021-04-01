@@ -8,20 +8,6 @@
     "editor.stickyTabStops": true,
     "editor.wrappingColumn": -1,
     "errorLens.gutterIconsEnabled": true,
-    "extension-manager.extensions": [
-        "ms-vscode.csharp",
-        "donjayamanne.python",
-        "lukehoban.Go",
-        "msjsdiag.debugger-for-chrome",
-        "johnpapa.Angular2",
-        "eg2.tslint",
-        "EditorConfig.EditorConfig",
-        "dbankier.vscode-instant-markdown",
-        "WallabyJs.wallaby-vscode",
-        "tushortz.java-snippets",
-        "gerane.Theme-Zenburn",
-        "tushortz.java-imports-snippets"
-    ],
     "files.exclude": {
         "**/.idea": true,
         "**/.git": true,
@@ -35,16 +21,14 @@
     "python.showStartPage": false,
     "telemetry.enableCrashReporter": false,
     "telemetry.enableTelemetry": false,
+    "terminal.integrated.copyOnSelection": true,
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.cursorStyle": "line",
+    "terminal.integrated.fontSize": 14,
     "window.newWindowDimensions": "inherit",
     "workbench.colorTheme": "Zenburn",
     "workbench.editor.closeOnFileDelete": true,
     "workbench.editor.highlightModifiedTabs": true,
-    "workbench.editorAssociations": [
-        {
-            "viewType": "jupyter.notebook.ipynb",
-            "filenamePattern": "*.ipynb"
-        }
-    ],
     "workbench.iconTheme": "material-icon-theme",
     "workbench.preferredDarkColorTheme": "Zenburn",
     "workbench.startupEditor": "none"
