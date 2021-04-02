@@ -7,6 +7,12 @@
     "editor.rulers": [80, 100, 120],
     "editor.stickyTabStops": true,
     "errorLens.gutterIconsEnabled": true,
+    "files.associations": {
+      "*.inc": "php",
+      "*.install": "php",
+      "*.module": "php",
+      "*.theme": "php"
+    },
     "files.exclude": {
         "**/.idea": true,
         "**/.git": true,
@@ -14,8 +20,11 @@
         "**/*.pyc": true
     },
     "files.trimTrailingWhitespace": true,
+    "flow.showUncovered": true,
     "javascript.validate.enable": false,
     "php.memoryLimit": "512M",
+    "phpcs.autoConfigSearch": false,
+    "phpcs.standard": ".phpcs.xml",
     "phpmd.rules": ".phpmd.xml",
     "python.showStartPage": false,
     "telemetry.enableCrashReporter": false,
