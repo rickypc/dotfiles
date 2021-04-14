@@ -98,6 +98,12 @@ step "Clear caches"
     nuget locals all -clear
     output_end
   fi
+
+  if [ -n "$(command -v yarn)" ]; then
+    output_start
+    yarn cache clean
+    output_end
+  fi
 next
 
 step "Vacuum Outlook data"
