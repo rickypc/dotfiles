@@ -415,6 +415,12 @@ if [ -z "$(brew list --versions xmlstarlet)" ]; then
   next
 fi
 
+if [ -z "$(brew list --versions yarn)" ]; then
+  step "Install latest Yarn"
+    try brew install yarn
+  next
+fi
+
 step "Clean caches, histories and logs"
   try ~/bin/cleaner
 next
