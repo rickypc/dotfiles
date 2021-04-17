@@ -68,6 +68,7 @@ __pycache__/
 .virtualenvs
 .viminfo
 .vscode
+.yarnrc
 .zsh_history
 .zsh_sessions
 Applications
