@@ -62,16 +62,6 @@ step "Tap Homebrew services repository"
   try brew tap homebrew/services
 next
 
-step "Tap AWS repository"
-  try brew tap aws/tap
-next
-
-if [ -z "$(brew list --versions aws-sam-cli)" ]; then
-  step "Install latest AWS-SAM CLI"
-    try brew install aws-sam-cli
-  next
-fi
-
 if [ -z "$(brew list --versions coreutils)" ]; then
   step "Install latest CoreUtils"
     try brew install coreutils
