@@ -143,18 +143,21 @@ if [ -z "$(brew list --versions php)" ]; then
     # Essentials configs.
     content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
     content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $PHP_INI
+    content_replace "s{;html_errors = On}{html_errors = On}" $PHP_INI
     # Size matters.
     content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
     content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
     # OPCache configs.
-    content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
+    # content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
     # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
-    content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
-    content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
-    content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
+    # content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
+    # content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
+    # content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
     # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
-    content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
+    # content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
     content_replace "s{;pcre.jit=1}{pcre.jit=0}" $PHP_INI
+    # Replace socket php-fpm location.
+    content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
     # Links and install extensions.
     try brew link --force --overwrite php
     try mkdir -p $LOCAL/lib/php/pecl
@@ -168,8 +171,6 @@ if [ -z "$(brew list --versions php)" ]; then
     if [ -z "$(php -i | grep -w xdebug)" ]; then
       try pecl install xdebug
     fi
-    # Replace socket php-fpm location.
-    content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
     try brew services start php
   next
 fi

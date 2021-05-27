@@ -1,0 +1,98 @@
+#!/bin/bash
+
+#    Migrate PHP - Migrate PHP from one version to another.
+#    Copyright (C) 2018-2021  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+LOCAL=/usr/local
+
+# Source function library.
+. functions
+
+usage () {
+  echo "Usage: $@"
+  exit 127
+}
+
+if test $# -lt 2; then
+  usage "$0 <old-version> <new-version>"
+fi
+
+NEW_VERSION=$2
+OLD_VERSION=$1
+PREFIX=$(brew --prefix)
+
+NEW_INI=$PREFIX/etc/php/$NEW_VERSION/php.ini
+NEW_WWW=$PREFIX/etc/php/$NEW_VERSION/php-fpm.d/www.conf
+
+step "Install PHP@$NEW_VERSION"
+  try brew reinstall php@$NEW_VERSION
+next
+
+step "Config setup for PHP@$NEW_VERSION"
+  # Essentials configs.
+  content_replace "s{;date.timezone =}{date.timezone = UTC}" $NEW_INI
+  content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $NEW_INI
+  content_replace "s{;html_errors = On}{html_errors = On}" $NEW_INI
+  # Size matters.
+  content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $NEW_INI
+  content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $NEW_INI
+  # OPCache configs.
+  # content_replace "s{;opcache.enable=1}{opcache.enable=0}" $NEW_INI
+  # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $NEW_INI
+  # content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $NEW_INI
+  # content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $NEW_INI
+  # content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $NEW_INI
+  # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $NEW_INI
+  # content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $NEW_INI
+  content_replace "s{;pcre.jit=1}{pcre.jit=0}" $NEW_INI
+  # Replace socket php-fpm location.
+  content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $NEW_WWW
+next
+
+step "Replace PHP@$OLD_VERSION with PHP@$NEW_VERSION"
+  try brew link --force --overwrite php@$NEW_VERSION
+next
+
+step "Install dependencies for PHP@$NEW_VERSION"
+  try mkdir -p $LOCAL/lib/php/pecl
+  try pecl channel-update pecl.php.net
+  if [ -z "$(php -i | grep -w ast)" ]; then
+    try pecl install ast
+  fi
+  if [ -z "$(php -i | grep -w mcrypt)" ]; then
+    try pecl install mcrypt
+  fi
+  if [ -z "$(php -i | grep -w xdebug)" ]; then
+    try pecl install xdebug
+  fi
+next
+
+if [ -z "$(brew list --versions php@$OLD_VERSION)" ]; then
+  step "Stop PHP@$OLD_VERSION"
+    try brew services stop php@$OLD_VERSION
+  next
+fi
+
+step "Start PHP@$NEW_VERSION"
+  try brew services restart php@$NEW_VERSION
+next
+
+if [ -z "$(brew list --versions php@$OLD_VERSION)" ]; then
+  step "Remove PHP@$OLD_VERSION"
+    try brew uninstall php@$OLD_VERSION
+    try rm -rf /usr/local/etc/php/$OLD_VERSION
+  next
+fi

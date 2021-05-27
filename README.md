@@ -73,6 +73,7 @@ Script Name                                         | Language | Description
 [json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from [JSON](https://www.json.org/json-en.html) document.
 [kill-port](bin/kill-port)                          | Bash     | Kill any process running on given port.
 [metadata-service](bin/metadata-service)            | Bash     | Advertise local machine as AWS [EC2](https://aws.amazon.com/ec2/) instance.
+[migrate-php](bin/migrate-php)                      | Bash     | Migrate between [PHP](https://www.php.net/) versions.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [osx-show-all-files](bin/osx-show-all-files)        | Bash     | Set OSX to show all files (dot files) in Finder and file dialog permanently.
 [polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about [Polygon](https://en.wikipedia.org/wiki/Polygon) geometry.
