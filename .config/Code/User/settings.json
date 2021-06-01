@@ -39,6 +39,7 @@
   "phpmd.command": "./vendor/bin/phpmd",
   "phpmd.rules": ".phpmd.xml",
   "python.showStartPage": false,
+  "redhat.telemetry.enabled": false,
   "telemetry.enableCrashReporter": false,
   "telemetry.enableTelemetry": false,
   "terminal.integrated.copyOnSelection": true,
