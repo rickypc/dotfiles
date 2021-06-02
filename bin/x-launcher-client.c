@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 
 // gcc -O3 -o x-launcher-client x-launcher-client.c; ./x-launcher-client 127.0.0.1
 // time gcc -O3 -o x-launcher-client x-launcher-client.c; ./x-launcher-client 127.0.0.1
@@ -47,24 +47,24 @@ int main(int argc, char *argv[])
     {
         printf("\nUsage: %s <server_ip_address>\n",argv[0]);
         return 1;
-    } 
+    }
 
     memset(recvBuff, '0',sizeof(recvBuff));
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\nError: Could not create socket\n");
         return 1;
-    } 
+    }
 
-    //memset(&serv_addr, '0', sizeof(serv_addr)); 
+    //memset(&serv_addr, '0', sizeof(serv_addr));
     //serv_addr.sin_family = AF_INET;
-    //serv_addr.sin_port = htons(2081); 
+    //serv_addr.sin_port = htons(2081);
 
     if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
     {
         printf("\nError: in inet_pton\n");
         return 1;
-    } 
+    }
 
     printf("%d %d %d\n", serv_addr.sin_family, serv_addr.sin_addr.s_addr, serv_addr.sin_port);
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     {
        printf("\nError: Connection failed\n");
        return 1;
-    } 
+    }
 
     printf("Connected to: %s:%d\n", inet_ntoa(serv_addr.sin_addr), ntohs(serv_addr.sin_port));
 
@@ -91,12 +91,12 @@ int main(int argc, char *argv[])
         {
             printf("\nError: Fputs error\n");
         }
-    } 
+    }
 
     if(n < 0)
     {
         printf("\nError: Read error\n");
-    } 
+    }
 
     return 0;
 }
