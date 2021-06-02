@@ -38,6 +38,134 @@
   "phpcs.standard": ".phpcs.xml",
   "phpmd.command": "./vendor/bin/phpmd",
   "phpmd.rules": ".phpmd.xml",
+  "psi-header.changes-tracking": {
+    "autoHeader": "manualSave",
+    "excludeGlob": [
+      "**/*.min.*"
+    ],
+    "isActive": false
+  },
+  "psi-header.config": {
+    "blankLinesAfter": 1,
+    "forceToTop": true,
+    "license": "Custom"
+  },
+  "psi-header.lang-config": [
+    {
+      "begin": "{#",
+      "end": " #}",
+      "language": "twig",
+      "prefix": " # "
+    },
+    {
+      "beforeHeader": [
+        "#!/usr/bin/env perl",
+        ""
+      ],
+      "begin": "",
+      "end": "",
+      "language": "perl",
+      "prefix": "# "
+    },
+    {
+      "beforeHeader": [
+        "<?php",
+        "",
+        "namespace <<namespace>>;",
+        ""
+      ],
+      "begin": "/**",
+      "end": " */",
+      "language": "php",
+      "prefix": " * "
+    },
+    {
+      "beforeHeader": [
+        "#!/usr/bin/env python",
+        "# -*- coding: utf-8 -*-",
+        ""
+      ],
+      "begin": "",
+      "end": "",
+      "language": "python",
+      "prefix": "# "
+    },
+    {
+      "beforeHeader": [
+        "#!/bin/sh",
+        ""
+      ],
+      "begin": "",
+      "end": "",
+      "language": "shellscript",
+      "prefix": "# "
+    },
+    {
+      "begin": "",
+      "end": "",
+      "language": "yaml",
+      "prefix": "# "
+    }
+  ],
+  "psi-header.templates": [
+    {
+      "language": "*",
+      "template": [
+        "<<name>> - <<description>>",
+        "Copyright (C) <<projectCreationYear>> - <<year>> <<author>> <<<authoremail>>>",
+        "",
+        "This program is free software: you can redistribute it and/or modify",
+        "it under the terms of the GNU Affero General Public License as",
+        "published by the Free Software Foundation, either version 3 of the",
+        "License, or (at your option) any later version.",
+        "",
+        "This program is distributed in the hope that it will be useful,",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+        "GNU Affero General Public License for more details.",
+        "",
+        "You should have received a copy of the GNU Affero General Public License",
+        "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+      ]
+    },
+    {
+      "language": "php",
+      "template": [
+        "@file",
+        "Contains \\<<namespace>>\\<<filenamebase>>.",
+        "",
+        "<<name>> - <<description>>",
+        "Copyright (C) <<projectCreationYear>> - <<year>> <<author>> <<<authoremail>>>",
+        "",
+        "This program is free software: you can redistribute it and/or modify",
+        "it under the terms of the GNU Affero General Public License as",
+        "published by the Free Software Foundation, either version 3 of the",
+        "License, or (at your option) any later version.",
+        "",
+        "This program is distributed in the hope that it will be useful,",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+        "GNU Affero General Public License for more details.",
+        "",
+        "You should have received a copy of the GNU Affero General Public License",
+        "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+      ]
+    }
+  ],
+  "psi-header.variables": [
+    [
+      "author",
+      "Richard Huang"
+    ],
+    [
+      "authoremail",
+      "rickypc@users.noreply.github.com"
+    ],
+    [
+      "projectCreationYear",
+      "1995"
+    ]
+  ],
   "python.showStartPage": false,
   "redhat.telemetry.enabled": false,
   "telemetry.enableCrashReporter": false,
