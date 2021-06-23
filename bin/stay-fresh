@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOCAL_BIN=/usr/local/bin
+NODE_LTS=14
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Source function library.
@@ -124,6 +125,8 @@ step "Update Homebrew formulae"
   output_start
   for DIR in "$BREW_REPO" "$BREW_REPO"/Library/Taps/*/*; do
     [[ -d "$DIR/.git" ]] || continue
+    git -C $DIR fetch
+    git -C $DIR reset --hard origin/master
     echo Housekeeping $DIR
     git -C $DIR gc --auto --prune
   done
@@ -131,7 +134,7 @@ step "Update Homebrew formulae"
 
   cd
   # Update to latest Homebrew and latest formulaes as well.
-  HOMEBREW_FORCE_BREWED_GIT=1 brew update
+  HOMEBREW_FORCE_BREWED_GIT=1 brew update --force
 next
 
 step "Upgrade Homebrew formulae"
@@ -139,6 +142,19 @@ step "Upgrade Homebrew formulae"
   # Upgrade all installed unpinned brews.
   HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
 next
+
+if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
+  step "Link Node v$NODE_LTS"
+    try brew unlink node@$NODE_LTS
+    try brew link --force --overwrite node@$NODE_LTS
+    if [ -n "$(npm outdated -g npm)" ]; then
+      try npm install --force -g npm
+    fi
+    if [ -n "$(npm outdated -g yarn)" ]; then
+      try npm install --force -g yarn
+    fi
+  next
+fi
 
 step "Clean Homebrew caches"
   echo

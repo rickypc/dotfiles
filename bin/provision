@@ -121,6 +121,8 @@ fi
 if [ -z "$(brew list --versions node)" ]; then
   step "Install NodeJS"
     try brew install node
+    try npm install --force -g npm
+    try npm install --force -g yarn
   next
 fi
 
@@ -280,28 +282,9 @@ if [ -z "$(brew list --versions cocoapods)" ]; then
   next
 fi
 
-if [ ! -d $HOME/Library/flutter ]; then
-  try mkdir -p $HOME/Library && cd $HOME/Library
-  try git clone -b stable https://github.com/flutter/flutter.git && cd
-  try $HOME/Library/flutter/bin/flutter config --no-analytics
-fi
-
 if [ -z "$(brew list --cask --versions aerial)" ]; then
   step "Install latest Aerial"
     try brew install --cask aerial
-  next
-fi
-
-if [ -z "$(brew list --cask --versions android-studio)" ]; then
-  step "Install latest Android Studio"
-    try brew install --cask android-studio
-    try $HOME/Library/flutter/bin/flutter doctor --android-licenses
-  next
-fi
-
-if [ -z "$(brew list --cask --versions atom)" ]; then
-  step "Install latest Atom Editor"
-    try brew install --cask atom
   next
 fi
 
@@ -320,12 +303,6 @@ fi
 if [ -z "$(brew list --cask --versions gimp)" ]; then
   step "Install latest Gimp"
     try brew install --cask gimp
-  next
-fi
-
-if [ -z "$(brew list --cask --versions google-chrome)" ]; then
-  step "Install latest Google Chrome"
-    try brew install --cask google-chrome
   next
 fi
 
@@ -403,12 +380,6 @@ fi
 if [ -z "$(brew list --versions xmlstarlet)" ]; then
   step "Install latest XmlStarlet"
     try brew install xmlstarlet
-  next
-fi
-
-if [ -z "$(brew list --versions yarn)" ]; then
-  step "Install latest Yarn"
-    try brew install yarn
   next
 fi
 
