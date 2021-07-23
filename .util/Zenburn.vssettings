@@ -45,7 +45,7 @@
 							<Item Name="HTML Operator" Foreground="0x00C8D7D7" Background="0x02000000" BoldFont="No"/>
 							<Item Name="HTML Server-Side Script" Foreground="0x0081D0D0" Background="0x02000000" BoldFont="No"/>
 							<Item Name="HTML Tag Delimiter" Foreground="0x00AFEFEF" Background="0x02000000" BoldFont="No"/>
-							<Item Name="Razor Code" Foreground="0x02000000" Background="0x02000000" BoldFont="No"/>
+							<Item Name="Razor Code" Foreground="0x02000000" Background="0x003F3F3F" BoldFont="No"/>
 							<Item Name="Script Comment" Foreground="0x007D9B7D" Background="0x02000000" BoldFont="No"/>
 							<Item Name="Script Identifier" Foreground="0x02000000" Background="0x02000000" BoldFont="No"/>
 							<Item Name="Script Keyword" Foreground="0x00A5C6DA" Background="0x02000000" BoldFont="No"/>
