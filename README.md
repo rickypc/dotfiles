@@ -53,6 +53,7 @@ Script Name                                         | Language | Description
 [chown-fix](bin/chown-fix)                          | Bash     | Fix folder and file owner to current login user and group.
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
+[devel.umd.js](bin/devel.umd.js)                    | ES6      | Browser file loader for development mode.
 [disk-usage](bin/disk-usage)                        | Bash     | Get disk space usage for current folder.
 [docker-cleanup](bin/docker-cleanup)                | Bash     | Remove exited [Docker](https://www.docker.com) containers and untagged [Docker](https://www.docker.com) images.
 [download-site](bin/download-site)                  | Bash     | Download any site for offline fair use.
