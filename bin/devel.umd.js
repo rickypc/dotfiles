@@ -27,9 +27,14 @@ const attachScript = ({ text, transformed = false }) => {
   (document.head || document.querySelector('head')).appendChild(script);
 };
 
-const getAllGlobals = (paths, bases) => {
+const getAllGlobals = (paths, overrides) => {
   const depth = getDepth(paths);
-  return Object.assign({}, bases, ...(paths.map((path) => getGlobals(path, depth))));
+  return Object.assign({}, ...(paths.map((path) => getGlobals(path, depth))), overrides);
+};
+
+const getBaseUrl = () => {
+  const href = window.location.href;
+  return href.substring(0, href.lastIndexOf('/'));
 };
 
 const getDepth = (paths) => {
@@ -51,23 +56,23 @@ const getGlobals = (path, depth = 4) => {
   if (~path.indexOf('node_modules')) {
     return globals;
   }
+  const file = getModuleFileName(path);
   const name = getModuleId(path);
   const relative = path.replace(/\/app|\/index|\.js$/g, '');
   globals[relative] = name;
-  globals[`./${name}`] = name;
+  globals[`./${file}`] = name;
   Array(depth).fill(0)
     .map((_, i) => globals[relative.replace('.', Array(i + 1).fill('..').join('/'))] = name);
   return globals;
 };
 
+const getModuleFileName = (path) => {
+  const parts = getModuleParts(path);
+  return parts[parts.length - 1].replace(/\.json$|\.js$/g, '');
+};
+
 const getModuleId = (path) => {
-  const parts = path.split('/');
-
-  if (~'|index.es.js|index.js|'.indexOf(`|${parts[parts.length - 1]}|`)) {
-    parts.pop();
-  }
-
-  let response = parts[parts.length - 1].replace(/\.json$|\.js$/g, '');
+  let response = getModuleFileName(path);
 
   switch (response) {
     case 'fontawesome-svg-core':
@@ -81,7 +86,34 @@ const getModuleId = (path) => {
       break;
   }
 
+  // Add support for same name on different namespace.
+  if (!~path.indexOf('node_modules')) {
+    const parts = getModuleParts(path);
+    // We already have the last element.
+    parts.pop();
+    response = response.split('-').map((chunk) => titleCase(chunk)).join('');
+    response = `${parts.map((part) => titleCase(part)).join('')}${response}`;
+  }
+
   return response;
+};
+
+const getModuleParts = (path) => {
+  if (!~path.indexOf('node_modules')) {
+    path = path.replace(`${getBaseUrl()}/`, '');
+  }
+
+  const parts = path.split('/');
+
+  if (~'|index.es.js|index.js|'.indexOf(`|${parts[parts.length - 1]}|`)) {
+    parts.pop();
+  }
+
+  if (parts.length && parts[0] === '.') {
+    parts.shift();
+  }
+
+  return parts;
 };
 
 const getPlugins = (url, globals) => {
@@ -131,8 +163,7 @@ const getSource = async (url) => {
 };
 
 const loadScript = async ({ globals, path, transformed = false }) => {
-  const href = window.location.href;
-  const url = `${href.substring(0, href.lastIndexOf('/'))}/${path}`;
+  const url = `${getBaseUrl()}/${path}`;
   const source = await getSource(url);
   if (!transformed) {
     return attachScript({ text: source });
@@ -153,13 +184,13 @@ const loadStyles = (styles) => {
     `<style>${styles.map((style) => `@import'${style}'`).join(';')}</style>`);
 };
 
-const loadTransforms = async (paths, baseGlobals) => {
+const loadTransforms = async (paths, globalsOverrides) => {
   try {
     Babel;
   } catch (_) {
     return console.error('Did your forgot to install @babel/standalone?');
   }
-  const globals = getAllGlobals(paths, baseGlobals);
+  const globals = getAllGlobals(paths, globalsOverrides);
   for (let path of paths) {
     await loadScript({ globals, path, transformed: true });
   }
@@ -173,3 +204,5 @@ const loadUmds = async (paths) => {
     await loadScript({ path });
   }
 };
+
+const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
