@@ -32,7 +32,10 @@ const getAllGlobals = (paths, overrides) => {
   return Object.assign({}, ...(paths.map((path) => getGlobals(path, depth))), overrides);
 };
 
-const getBaseUrl = () => {
+const getBaseUrl = (path) => {
+  if (path.charAt(0) === '/') {
+    return window.location.origin;
+  }
   const href = window.location.href;
   return href.substring(0, href.lastIndexOf('/'));
 };
@@ -106,7 +109,7 @@ const getModuleId = (path) => {
 
 const getModuleParts = (path) => {
   if (!~path.indexOf('node_modules')) {
-    path = path.replace(`${getBaseUrl()}/`, '');
+    path = path.replace(`${getBaseUrl(path)}/`, '');
   }
 
   const parts = path.split('/');
@@ -169,7 +172,7 @@ const getSource = async (url) => {
 };
 
 const loadScript = async ({ globals, path, transformed = false }) => {
-  const url = `${getBaseUrl()}/${path}`;
+  const url = `${getBaseUrl(path)}/${path}`;
   const source = await getSource(url);
   if (!transformed) {
     return attachScript({ text: source });
@@ -203,9 +206,6 @@ const loadTransforms = async (paths, globalsOverrides) => {
 };
 
 const loadUmds = async (paths) => {
-  paths.unshift(...[
-    '../node_modules/@babel/standalone/babel.js',
-  ]);
   for (let path of paths) {
     await loadScript({ path });
   }
