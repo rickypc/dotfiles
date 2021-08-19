@@ -56,15 +56,16 @@ const getGlobals = (path, depth = 4) => {
   if (~path.indexOf('node_modules')) {
     return globals;
   }
-  const file = getModuleFileName(path);
   const name = getModuleId(path);
   const relative = path.replace(/\/app|\/index|\.js$/g, '');
   globals[relative] = name;
-  globals[`./${file}`] = name;
   const rels = getModuleParts(relative);
-  while (rels.length - 1) {
+  while (rels.length) {
     Array(depth).fill(0)
       .map((_, i) => globals[`${Array(i + 1).fill('..').join('/')}/${rels.join('/')}`] = name);
+    if (rels.length === 1) {
+      globals[`./${rels[0]}`] = name;
+    }
     // Remove parent folder.
     rels.shift();
   }
