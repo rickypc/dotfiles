@@ -171,6 +171,8 @@ const getSource = async (url) => {
   return source;
 };
 
+let inflight = false;
+
 const loadScript = async ({ globals, path, transformed = false }) => {
   const url = `${getBaseUrl(path)}/${path}`;
   const source = await getSource(url);
@@ -199,16 +201,33 @@ const loadTransforms = async (paths, globalsOverrides) => {
   } catch (_) {
     return console.error('Did your forgot to install @babel/standalone?');
   }
+  await waitUntil(() => !inflight);
+  inflight = true;
   const globals = getAllGlobals(paths, globalsOverrides);
   for (let path of paths) {
     await loadScript({ globals, path, transformed: true });
   }
+  inflight = false;
 };
 
 const loadUmds = async (paths) => {
+  await waitUntil(() => !inflight);
+  inflight = true;
   for (let path of paths) {
     await loadScript({ path });
   }
+  inflight = false;
 };
 
 const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
+
+const waitUntil = (predicate) => new Promise((resolve) => {
+  // 1m.
+  const expiry = new Date().valueOf() + 60000;
+  const interval = setInterval(() => {
+    if (predicate() || new Date().valueOf() >= expiry) {
+      clearInterval(interval);
+      resolve();
+    }
+  }, 100);
+});
