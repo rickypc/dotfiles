@@ -89,6 +89,10 @@ if [ -d ~/bin ]; then
   fi
 fi
 
+if [ -d ~/.dotnet/tools ]; then
+  export_to_path ~/.dotnet/tools
+fi
+
 if [ ! -d $CACHE_PATH ]; then
   mkdir -p $CACHE_PATH
 fi
