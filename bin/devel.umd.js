@@ -46,7 +46,7 @@ const getDepth = (paths) => {
     if (~path.indexOf('node_modules')) {
       continue;
     }
-    const depth = path.replace(/\/app|\/index|\.js$/g, '').split('/').length - 2;
+    const depth = path.replace(/\/app|\/index|\.js$/g, '').split('/').length - 1;
     if (response < depth) {
       response = depth;
     }
