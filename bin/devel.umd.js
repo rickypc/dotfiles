@@ -36,7 +36,7 @@ const getBaseUrl = (path) => {
   if (path.charAt(0) === '/') {
     return window.location.origin;
   }
-  const href = window.location.href;
+  const href = `${window.location.origin}${window.location.pathname}`;
   return href.substring(0, href.lastIndexOf('/'));
 };
 
