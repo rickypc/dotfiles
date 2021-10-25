@@ -18,6 +18,8 @@
 
 // yarn add @babel/standalone --optional
 
+/* global Babel */
+
 const attachScript = ({ text, transformed = false }) => {
   const script = document.createElement('script');
   script.text = text;
@@ -27,10 +29,7 @@ const attachScript = ({ text, transformed = false }) => {
   (document.head || document.querySelector('head')).appendChild(script);
 };
 
-const getAllGlobals = (paths, overrides) => {
-  const depth = getDepth(paths);
-  return Object.assign({}, ...(paths.map((path) => getGlobals(path, depth))), overrides);
-};
+const getBasePath = (path) => path.substring(0, path.lastIndexOf('/'));
 
 const getBaseUrl = (path) => {
   if (path.charAt(0) === '/') {
@@ -40,81 +39,26 @@ const getBaseUrl = (path) => {
   return href.substring(0, href.lastIndexOf('/'));
 };
 
-const getDepth = (paths) => {
-  let response = 0;
-  for (let path of paths) {
-    if (~path.indexOf('node_modules')) {
-      continue;
-    }
-    const depth = path.replace(/\/app|\/index|\.js$/g, '').split('/').length - 1;
-    if (response < depth) {
-      response = depth;
-    }
+const getDepth = (paths) => paths.reduce((accumulator, current) => {
+  // eslint-disable-next-line no-bitwise
+  if (!~current.indexOf('node_modules')) {
+    const depth = current
+      .replace(/\/app|\/index|\.js$/g, '')
+      .split('/')
+      .length - 1;
+    return accumulator < depth ? depth : accumulator;
   }
-  return response;
-};
-
-const getGlobals = (path, depth = 4) => {
-  const globals = {};
-  if (~path.indexOf('node_modules')) {
-    return globals;
-  }
-  const name = getModuleId(path);
-  const relative = path.replace(/\/app|\/index|\.js$/g, '');
-  globals[relative] = name;
-  const rels = getModuleParts(relative);
-  while (rels.length) {
-    Array(depth).fill(0)
-      .map((_, i) => globals[`${Array(i + 1).fill('..').join('/')}/${rels.join('/')}`] = name);
-    if (rels.length === 1) {
-      globals[`./${rels[0]}`] = name;
-    }
-    // Remove parent folder.
-    rels.shift();
-  }
-  return globals;
-};
-
-const getModuleFileName = (path) => {
-  const parts = getModuleParts(path);
-  return parts[parts.length - 1].replace(/\.json$|\.js$/g, '');
-};
-
-const getModuleId = (path) => {
-  let response = getModuleFileName(path);
-
-  switch (response) {
-    case 'fontawesome-svg-core':
-      response = 'FontAwesomeSvgCore';
-      break;
-    case 'free-solid-svg-icons':
-      response = 'FreeSolidSvgIcons';
-      break;
-    case 'react-fontawesome':
-      response = 'FontAwesome';
-      break;
-  }
-
-  // Add support for same name on different namespace.
-  if (!~path.indexOf('node_modules')) {
-    const parts = getModuleParts(path);
-    // We already have the last element.
-    parts.pop();
-    response = response.split('-').map((chunk) => titleCase(chunk)).join('');
-    response = `${parts.map((part) => titleCase(part)).join('')}${response}`;
-  }
-
-  return response;
-};
+  return accumulator;
+}, 0);
 
 const getModuleParts = (path) => {
-  if (!~path.indexOf('node_modules')) {
-    path = path.replace(`${getBaseUrl(path)}/`, '');
-  }
+  // eslint-disable-next-line no-bitwise
+  const sanitized = ~path.indexOf('node_modules')
+    ? path : path.replace(`${getBaseUrl(path)}/`, '');
+  const parts = sanitized.split('/');
 
-  const parts = path.split('/');
-
-  if (~'|index.es.js|index.js|'.indexOf(`|${parts[parts.length - 1]}|`)) {
+  // Any index.*.js.
+  if (/index(?:\..+)?\.js/.test(parts[parts.length - 1])) {
     parts.pop();
   }
 
@@ -125,40 +69,100 @@ const getModuleParts = (path) => {
   return parts;
 };
 
-const getPlugins = (url, globals) => {
-  return [
-    Babel.availablePlugins['proposal-class-properties'],
-    [
-      Babel.availablePlugins['transform-modules-umd'],
-      {
-        exactGlobals: true,
-        getModuleId: () => getModuleId(url),
-        globals,
-        moduleIds: true,
-      },
-    ],
-  ];
+// After getModuleParts definition.
+const getModuleFileName = (path) => {
+  const parts = getModuleParts(path);
+  return parts[parts.length - 1].replace(/\.json$|\.js$/g, '');
 };
 
-const getPresets = () => {
-  return [
-    [
-      Babel.availablePresets['env'],
-      {
-        exclude: [
-          'transform-typeof-symbol',
-        ],
-        targets: {
-          browsers: [
-            'last 2 versions',
-            '> 5%',
-          ],
-        },
-      },
-    ],
-    Babel.availablePresets['react'],
-  ];
+const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
+
+// After titleCase definition.
+const getModuleId = (path, globals = {}) => {
+  const response = getModuleFileName(path);
+
+  // eslint-disable-next-line no-bitwise
+  if (~path.indexOf('node_modules')) {
+    const matches = Object.keys(globals || {})
+      .filter((key) => key.includes(response));
+    return matches.length ? globals[matches[0]] : response;
+  }
+
+  // Add support for same name on different namespace.
+  const parts = getModuleParts(path);
+  // We already have the last element.
+  parts.pop();
+  const titleCased = response
+    .split('-')
+    .map((chunk) => titleCase(chunk))
+    .join('');
+  return `${parts.map((part) => titleCase(part)).join('')}${titleCased}`;
 };
+
+// After getModuleId definition.
+const getGlobals = (path, depth = 4) => {
+  const globals = {};
+
+  // eslint-disable-next-line no-bitwise
+  if (~path.indexOf('node_modules')) {
+    return globals;
+  }
+
+  const name = getModuleId(path);
+  const relative = path.replace(/\/app|\/index|\.js$/g, '');
+  globals[relative] = name;
+  const rels = getModuleParts(relative);
+
+  while (rels.length) {
+    Array(depth).fill(0).forEach((_, i) => {
+      globals[`${Array(i + 1).fill('..').join('/')}/${rels.join('/')}`] = name;
+    });
+    if (rels.length === 1) {
+      globals[`./${rels[0]}`] = name;
+    }
+    // Remove parent folder.
+    rels.shift();
+  }
+
+  return globals;
+};
+
+// After getDepth and getGlobals definition.
+const getAllGlobals = (paths, overrides) => {
+  const depth = getDepth(paths);
+  return Object.assign({}, ...(paths.map((path) => getGlobals(path, depth))), overrides);
+};
+
+const getPlugins = (url, globals) => ([
+  Babel.availablePlugins['proposal-class-properties'],
+  [
+    Babel.availablePlugins['transform-modules-umd'],
+    {
+      exactGlobals: true,
+      getModuleId: () => getModuleId(url, globals),
+      globals,
+      moduleIds: true,
+    },
+  ],
+]);
+
+const getPresets = () => ([
+  [
+    Babel.availablePresets.env,
+    {
+      exclude: [
+        'transform-typeof-symbol',
+      ],
+      targets: {
+        browsers: [
+          'last 2 versions',
+          '> 5%',
+        ],
+      },
+    },
+  ],
+  Babel.availablePresets.react,
+]);
 
 const getSource = async (url) => {
   let response = await fetch(url);
@@ -176,50 +180,36 @@ let inflight = false;
 const loadScript = async ({ globals, path, transformed = false }) => {
   const url = `${getBaseUrl(path)}/${path}`;
   const source = await getSource(url);
+
   if (!transformed) {
-    return attachScript({ text: source });
+    return attachScript({
+      text: source.replace(/# sourceMappingURL=(.*)/g,
+        `# source=${path}\n//# sourceMappingUrl=${getBasePath(path)}/$1`),
+    });
   }
-  const text = Babel.transform(source, {
+
+  const { code } = Babel.transform(source, {
+    comments: false,
     compact: false,
     plugins: getPlugins(url, globals),
     presets: getPresets(),
     sourceFileName: path,
     sourceMaps: 'inline',
-  }).code;
-  attachScript({ text, transformed });
+  });
+
+  return attachScript({
+    text: code.replace(/# sourceMappingURL=(.*)/g,
+      `# source=${path}\n//# sourceMappingUrl=$1`),
+    transformed,
+  });
 };
 
+// eslint-disable-next-line no-unused-vars
 const loadStyles = (styles) => {
   (document.head || document.querySelector('head'))
     .insertAdjacentHTML('beforeend',
-    `<style>${styles.map((style) => `@import'${style}'`).join(';')}</style>`);
+      `<style>${styles.map((style) => `@import'${style}'`).join(';')}</style>`);
 };
-
-const loadTransforms = async (paths, globalsOverrides) => {
-  try {
-    Babel;
-  } catch (_) {
-    return console.error('Did your forgot to install @babel/standalone?');
-  }
-  await waitUntil(() => !inflight);
-  inflight = true;
-  const globals = getAllGlobals(paths, globalsOverrides);
-  for (let path of paths) {
-    await loadScript({ globals, path, transformed: true });
-  }
-  inflight = false;
-};
-
-const loadUmds = async (paths) => {
-  await waitUntil(() => !inflight);
-  inflight = true;
-  for (let path of paths) {
-    await loadScript({ path });
-  }
-  inflight = false;
-};
-
-const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
 
 const waitUntil = (predicate) => new Promise((resolve) => {
   // 1m.
@@ -231,3 +221,41 @@ const waitUntil = (predicate) => new Promise((resolve) => {
     }
   }, 100);
 });
+
+// After waitUntil definition.
+// eslint-disable-next-line no-unused-vars
+const loadTransforms = async (paths, globalsOverrides) => {
+  let found = false;
+  try {
+    found = !!Babel;
+  } catch (_) {
+    // eslint-disable-next-line no-console
+    console.error('Did your forgot to install @babel/standalone?');
+    return found;
+  }
+
+  await waitUntil(() => !inflight);
+  inflight = true;
+  const globals = getAllGlobals(paths, globalsOverrides);
+
+  await paths.reduce(async (accumulator, path) => {
+    await accumulator;
+    return loadScript({ globals, path, transformed: true });
+  }, Promise.resolve());
+
+  inflight = false;
+  return found;
+};
+
+// eslint-disable-next-line no-unused-vars
+const loadUmds = async (paths) => {
+  await waitUntil(() => !inflight);
+  inflight = true;
+
+  await paths.reduce(async (accumulator, path) => {
+    await accumulator;
+    return loadScript({ path });
+  }, Promise.resolve());
+
+  inflight = false;
+};
