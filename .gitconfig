@@ -23,6 +23,8 @@
   longpaths = true
 [gc]
   auto = 1000
+[init]
+	defaultBranch = master
 [merge]
   renameLimit = 100000
 [pack]
