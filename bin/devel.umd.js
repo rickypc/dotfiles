@@ -43,7 +43,7 @@ const getDepth = (paths) => paths.reduce((accumulator, current) => {
   // eslint-disable-next-line no-bitwise
   if (!~current.indexOf('node_modules')) {
     const depth = current
-      .replace(/\/app|\/index|\.js$/g, '')
+      .replace(/\/index|\.js$/g, '')
       .split('/')
       .length - 1;
     return accumulator < depth ? depth : accumulator;
@@ -76,7 +76,7 @@ const getModuleFileName = (path) => {
 };
 
 const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
-const titleCaseByDelimiter = (value, delimiter = /[-_]/) => value.split(delimiter)
+const titleCaseByDelimiter = (value, delimiter = /[-_.]/) => value.split(delimiter)
   .map((chunk) => titleCase(chunk))
   .join('');
 
@@ -111,7 +111,7 @@ const getGlobals = (path, depth = 4) => {
   }
 
   const name = getModuleId(path);
-  const relative = path.replace(/\/app|\/index|\.js$/g, '');
+  const relative = path.replace(/\/index|\.js$/g, '');
   globals[relative] = name;
   const rels = getModuleParts(relative);
 
@@ -119,9 +119,7 @@ const getGlobals = (path, depth = 4) => {
     Array(depth).fill(0).forEach((_, i) => {
       globals[`${Array(i + 1).fill('..').join('/')}/${rels.join('/')}`] = name;
     });
-    if (rels.length === 1) {
-      globals[`./${rels[0]}`] = name;
-    }
+    globals[`./${rels.join('/')}`] = name;
     // Remove parent folder.
     rels.shift();
   }
