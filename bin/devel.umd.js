@@ -76,8 +76,11 @@ const getModuleFileName = (path) => {
 };
 
 const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
+const titleCaseByDelimiter = (value, delimiter = /[-_]/) => value.split(delimiter)
+  .map((chunk) => titleCase(chunk))
+  .join('');
 
-// After titleCase definition.
+// After titleCaseByDelimiter definition.
 const getModuleId = (path, globals = {}) => {
   const response = getModuleFileName(path);
 
@@ -91,12 +94,11 @@ const getModuleId = (path, globals = {}) => {
   // Add support for same name on different namespace.
   const parts = getModuleParts(path);
   // We already have the last element.
-  parts.pop();
-  const titleCased = response
-    .split('-')
-    .map((chunk) => titleCase(chunk))
-    .join('');
-  return `${parts.map((part) => titleCase(part)).join('')}${titleCased}`;
+  parts.pop()
+
+  return `${parts
+    .filter((part) => part !== '..')
+    .map((part) => titleCaseByDelimiter(part)).join('')}${titleCaseByDelimiter(response)}`;
 };
 
 // After getModuleId definition.
