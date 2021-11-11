@@ -32,7 +32,7 @@ const attachScript = ({ text, transformed = false }) => {
 const getBasePath = (path) => path.substring(0, path.lastIndexOf('/'));
 
 const getBaseUrl = (path) => {
-  if (path.charAt(0) === '/') {
+  if (path.charAt(0) === '/' || ~path.indexOf(window.location.origin)) {
     return window.location.origin;
   }
   const href = `${window.location.origin}${window.location.pathname}`;
@@ -66,7 +66,7 @@ const getModuleParts = (path) => {
     parts.shift();
   }
 
-  return parts;
+  return parts.filter((part) => part);
 };
 
 // After getModuleParts definition.
