@@ -32,11 +32,20 @@ const attachScript = ({ text, transformed = false }) => {
 const getBasePath = (path) => path.substring(0, path.lastIndexOf('/'));
 
 const getBaseUrl = (path) => {
-  if (path.charAt(0) === '/' || ~path.indexOf(window.location.origin)) {
-    return window.location.origin;
+  const { origin, pathname, protocol } = window.location;
+
+  if (path.charAt(0) === '/') {
+    return origin;
   }
-  const href = `${window.location.origin}${window.location.pathname}`;
-  return href.substring(0, href.lastIndexOf('/'));
+
+  const href = `${origin}${pathname}`;
+  const response = href.substring(0, href.lastIndexOf('/'));
+
+  if (path.startsWith(protocol) && !~path.indexOf(response)) {
+    return origin;
+  }
+
+  return response;
 };
 
 const getDepth = (paths) => paths.reduce((accumulator, current) => {
