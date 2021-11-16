@@ -91,13 +91,13 @@ const titleCaseByDelimiter = (value, delimiter = /[-_.]/) => value.split(delimit
 
 // After titleCaseByDelimiter definition.
 const getModuleId = (path, globals = {}) => {
-  const response = getModuleFileName(path);
+  const fileName = getModuleFileName(path);
 
   // eslint-disable-next-line no-bitwise
   if (~path.indexOf('node_modules')) {
     const matches = Object.keys(globals || {})
-      .filter((key) => key.includes(response));
-    return matches.length ? globals[matches[0]] : response;
+      .filter((key) => key.includes(fileName));
+    return matches.length ? globals[matches[0]] : fileName;
   }
 
   // Add support for same name on different namespace.
@@ -107,7 +107,8 @@ const getModuleId = (path, globals = {}) => {
 
   return `${parts
     .filter((part) => part !== '..')
-    .map((part) => titleCaseByDelimiter(part)).join('')}${titleCaseByDelimiter(response)}`;
+    .map((part, index) => index === 0 ? part.toLowerCase() : titleCaseByDelimiter(part))
+    .join('')}${titleCaseByDelimiter(fileName)}`;
 };
 
 // After getModuleId definition.
