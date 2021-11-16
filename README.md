@@ -81,6 +81,7 @@ Script Name                                         | Language | Description
 [provision](bin/provision)                          | Bash     | Provision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-crlf](bin/rm-crlf)                              | Bash     | Remove [BOM](https://en.wikipedia.org/wiki/Byte_order_mark) character and [CRLF](https://en.wikipedia.org/wiki/Newline#Representation) inside the files.
+[rm-quarantine](bin/rm-quarantine)                  | Bash     | Remove [quarantine](https://en.wikipedia.org/wiki/Gatekeeper_(macOS)#Quarantine) flag extended file attribute.
 [rm-svn](bin/rm-svn)                                | Bash     | Remove [.svn](https://en.wikipedia.org/wiki/Apache_Subversion) folder. For good ol' time sakes.
 [robot-lint.py](bin/robot-lint.py)                  | Python   | Lint [Robot Framework](https://robotframework.org) data files.
 [robot-parallel.py](bin/robot-parallel.py)          | Python   | Run [Robot Framework](https://robotframework.org) data sources in parallel.
