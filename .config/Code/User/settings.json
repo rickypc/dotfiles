@@ -54,10 +54,10 @@
   },
   "psi-header.lang-config": [
     {
-      "begin": "{#",
-      "end": " #}",
-      "language": "twig",
-      "prefix": " # "
+      "begin": "",
+      "end": "",
+      "language": "csharp",
+      "prefix": "// "
     },
     {
       "beforeHeader": [
@@ -101,6 +101,12 @@
       "end": "",
       "language": "shellscript",
       "prefix": "# "
+    },
+    {
+      "begin": "{#",
+      "end": " #}",
+      "language": "twig",
+      "prefix": " # "
     },
     {
       "begin": "",
