@@ -9,6 +9,7 @@
   "editor.rulers": [80, 100, 120],
   "editor.stickyTabStops": true,
   "errorLens.gutterIconsEnabled": true,
+  "eslint.packageManager": "yarn",
   "explorer.confirmDragAndDrop": false,
   "files.associations": {
     "*.inc": "php",
