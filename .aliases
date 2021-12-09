@@ -3,6 +3,7 @@
 alias gad='git ad'
 alias gci='git ci'
 alias gco='git co'
+alias gds='git diff --shortstat'
 alias gl='git l'
 alias gm='git m'
 alias gpl='git pl'
