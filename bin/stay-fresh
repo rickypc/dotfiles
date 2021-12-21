@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOCAL_BIN=/usr/local/bin
-NODE_LTS=14
+NODE_LTS=16
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Source function library.
@@ -52,12 +52,7 @@ next
 step "Clear log files"
   [ -f /usr/local/var/log/php-fpm.log ] && try :>/usr/local/var/log/php-fpm.log
   [ -f /usr/local/var/log/php_errors.log ] && try :>/usr/local/var/log/php_errors.log
-  [ -f /usr/local/var/log/nginx/access.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/access.log
-  [ -f /usr/local/var/log/nginx/error.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/error.log
-  [ -f /usr/local/var/log/nginx/host.test.access.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/host.test.access.log
-  [ -f /usr/local/var/log/nginx/host.test.error.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/host.test.error.log
-  [ -f /usr/local/var/log/nginx/localhost.access.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/localhost.access.log
-  [ -f /usr/local/var/log/nginx/localhost.error.log ] && try sudo truncate --size 0 /usr/local/var/log/nginx/localhost.error.log
+  try sudo truncate --size 0 /usr/local/var/log/nginx/*.log
   try sudo rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz
   try sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
@@ -140,7 +135,7 @@ next
 step "Upgrade Homebrew formulae"
   echo
   # Upgrade all installed unpinned brews.
-  HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+  HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew upgrade --ignore-pinned
 next
 
 if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
