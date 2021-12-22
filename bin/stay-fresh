@@ -18,6 +18,7 @@
 
 LOCAL_BIN=/usr/local/bin
 NODE_LTS=16
+PHP_LTS=7.4
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Source function library.
@@ -38,23 +39,20 @@ step "Clear Kernel caches"
 next
 
 step "Purge inactive memory"
-  try sudo /usr/sbin/purge
+  sudo /usr/sbin/purge
 next
 
 step "Remove outdated .NET Core Runtime and SDK"
   # https://github.com/dotnet/cli-lab/releases
   if [ -x "$(command -v dotnet-core-uninstall)" ]; then
-    try sudo dotnet-core-uninstall remove --all-but-latest --runtime -y
-    try sudo dotnet-core-uninstall remove --all-but-latest --sdk -y
+    sudo -- sh -c 'dotnet-core-uninstall remove --all-but-latest --runtime -y; dotnet-core-uninstall remove --all-but-latest --sdk -y'
   fi
 next
 
 step "Clear log files"
   [ -f /usr/local/var/log/php-fpm.log ] && try :>/usr/local/var/log/php-fpm.log
   [ -f /usr/local/var/log/php_errors.log ] && try :>/usr/local/var/log/php_errors.log
-  try sudo truncate --size 0 /usr/local/var/log/nginx/*.log
-  try sudo rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz
-  try sudo find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null
+  sudo -- bash -c 'truncate --size 0 /usr/local/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null'
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
   try rm -rf ~/.npm/_logs/*
   if [ -x "$(command -v mysql)" ]; then
@@ -133,6 +131,8 @@ step "Update Homebrew formulae"
 next
 
 step "Upgrade Homebrew formulae"
+  sudo chown -R $(whoami) /usr/local/bin
+  chmod u+w /usr/local/bin
   echo
   # Upgrade all installed unpinned brews.
   HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew upgrade --ignore-pinned
@@ -143,11 +143,18 @@ if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
     try brew unlink node@$NODE_LTS
     try brew link --force --overwrite node@$NODE_LTS
     if [ -n "$(npm outdated -g npm)" ]; then
-      try npm install --force -g npm
+      try npm install --force -g --no-audit --no-fund npm
     fi
     if [ -n "$(npm outdated -g yarn)" ]; then
-      try npm install --force -g yarn
+      try npm install --force -g --no-audit --no-fund yarn
     fi
+  next
+fi
+
+if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
+  step "Link PHP v$PHP_LTS"
+    try brew unlink php@$PHP_LTS
+    try brew link --force --overwrite php@$PHP_LTS
   next
 fi
 
