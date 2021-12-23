@@ -155,6 +155,7 @@ if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
   step "Link PHP v$PHP_LTS"
     try brew unlink php@$PHP_LTS
     try brew link --force --overwrite php@$PHP_LTS
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
   next
 fi
 
