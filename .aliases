@@ -1,6 +1,7 @@
 # ~/.aliases: executed by {ba|da|z}sh(1).
 
 alias gad='git ad'
+alias gbs='git branch-stat'
 alias gci='git ci'
 alias gco='git co'
 alias gds='git diff --shortstat'
