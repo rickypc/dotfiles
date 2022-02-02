@@ -37,4 +37,4 @@ if [ -z "$CURRENT" ]; then
   CURRENT=$(git rev-parse --abbrev-ref HEAD)
 fi
 
-git diff --shortstat $(git merge-base $BASE $CURRENT)
+echo "$(git rev-list --count $BASE..$CURRENT) commits,$(git diff --shortstat $(git merge-base $BASE $CURRENT))"
