@@ -41,10 +41,12 @@ DELTA=$(git diff --shortstat $(git merge-base $BASE $CURRENT))
 
 if [ -z "$DELTA" ]; then
   # After changes merged.
-  FIRST=$(git log --first-parent --merges --pretty="format:%h %s" | grep $CURRENT | tail -1 | cut -d' ' -f1)
-  PARENT=$(git rev-parse $FIRST^)
-  COMMIT=$(git rev-list --count $PARENT..$BASE)
-  DELTA=$(git diff --shortstat $PARENT)
+  FIRST=$(git log --first-parent --merges --pretty='format:%h %s' | grep $CURRENT | tail -1 | cut -d' ' -f1)
+  if [ -n "$FIRST" ]; then
+    PARENT=$(git rev-parse $FIRST^)
+    COMMIT=$(git rev-list --count $PARENT..$BASE)
+    DELTA=$(git diff --shortstat $PARENT)
+  fi
 else
   COMMIT=$(git rev-list --count $BASE..$CURRENT)
 fi
