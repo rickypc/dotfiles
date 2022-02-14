@@ -24,15 +24,15 @@
 [gc]
   auto = 1000
 [init]
-	defaultBranch = master
+  defaultBranch = master
 [merge]
   renameLimit = 100000
 [pack]
   threads = 0
 [pull]
-	rebase = false
+  rebase = false
 [push]
   default = simple
 [user]
-	email = rickypc@users.noreply.github.com
-	name = Ricky Huang
+  email = rickypc@users.noreply.github.com
+  name = Ricky Huang
