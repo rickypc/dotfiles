@@ -5,7 +5,7 @@ Central repository for maintaining [dot files](https://en.wikipedia.org/wiki/Hid
 
 They might not work for you, but feel free to try them.
 
-Platforms: [GNU/Linux](https://www.gnu.org/gnu/linux-and-gnu.en.html) ([RHEL](https://en.wikipedia.org/wiki/Red_Hat_Enterprise_Linux)/[CentOS](https://www.centos.org/)) and [Darwin](https://en.wikipedia.org/wiki/Darwin_(operating_system))/OS X
+Platforms: [GNU/Linux](https://www.gnu.org/gnu/linux-and-gnu.en.html) ([RHEL](https://en.wikipedia.org/wiki/Red_Hat_Enterprise_Linux)/[CentOS](https://www.centos.org/)) and [Darwin](https://en.wikipedia.org/wiki/Darwin_(operating_system))/OS X ([Apple Silicon](https://en.wikipedia.org/wiki/Apple_silicon#M_series)/Intel)
 
 Installation
 -
