@@ -120,8 +120,9 @@ fi
 if [ -z "$(brew list --versions node@$NODE_LTS)" ]; then
   step "Install NodeJS v$NODE_LTS"
     try HOMEBREW_NO_ENV_HINTS=1 brew install node@$NODE_LTS
-    try npm install --force -g npm
-    try npm install --force -g yarn
+    try brew link --force --overwrite node@$NODE_LTS
+    try npm install --force -g --no-audit --no-fund npm
+    try npm install --force -g --no-audit --no-fund yarn
   next
 fi
 
@@ -172,13 +173,9 @@ if [ -z "$(brew list --versions php@$PHP_LTS)" ]; then
     if [ -z "$(php -i | grep -w xdebug)" ]; then
       try pecl install xdebug
     fi
+    # Install latest Composer.
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
     try brew services start php@$PHP_LTS
-  next
-fi
-
-if [ -z "$(brew list --versions composer)" ]; then
-  step "Install latest Composer"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install composer
   next
 fi
 
@@ -190,7 +187,7 @@ if [ -z "$(brew list --versions mysql)" ]; then
 
   echo "Waiting for MySQL to be ready..."
   while !(mysqladmin ping -s); do
-      sleep 5
+    sleep 5
   done
 
   mysql_secure_installation
@@ -381,10 +378,6 @@ if [ -z "$(brew list --versions xmlstarlet)" ]; then
     try HOMEBREW_NO_ENV_HINTS=1 brew install xmlstarlet
   next
 fi
-
-step "Clean caches, histories and logs"
-  try ~/bin/cleaner
-next
 
 step "Clean Docker containers and images"
   try ~/bin/docker-cleanup
