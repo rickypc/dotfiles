@@ -72,3 +72,6 @@ else
     brew analytics off
   fi
 fi
+
+# Display hidden files and folders.
+~/bin/osx-show-all-files

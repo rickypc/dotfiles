@@ -32,7 +32,7 @@ Removal
 You can remove all the files came from this git repo from your machine if necessary:
 
 ```bash
-$ rm -rf $(git ls-files)
+rm -rf $(git ls-files)
 ```
 
 Apply Stored Stat Information
@@ -42,13 +42,13 @@ You can apply back any stored stat information for files/directories ownership a
 [git-stat-cache](bin/git-stat-cache) in your ``$PATH``:
 
 ```bash
-$ git stat-cache -a
+git stat-cache -a
 ```
 
 Or, not:
 
 ```bash
-$ bin/git-stat-cache -a
+./bin/git-stat-cache -a
 ```
 
 Script and Tool List
