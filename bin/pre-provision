@@ -23,9 +23,6 @@ if [ $? != 0 ]; then
   exit 0
 fi
 
-# Install all OSX updates.
-softwareupdate -a -i
-
 # Workspace setup.
 if [ ! -d ~/Workspace ]; then
   mkdir ~/Workspace
@@ -38,6 +35,9 @@ if [ ! -d ~/.ssh ]; then
   echo "You need to setup your SSH keys."
   exit 0
 fi
+
+# Install all OSX updates.
+softwareupdate -a -i
 
 # Dot files setup.
 if [ ! -d ~/.git ]; then
