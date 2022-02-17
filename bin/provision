@@ -26,8 +26,7 @@ COMPOSER_DIR=$HOME/.composer
 
 # Ensure $LOCAL/sbin exists.
 if [ ! -d $LOCAL/sbin ]; then
-  sudo mkdir -p $LOCAL/sbin
-  sudo chown $(id -u):admin $LOCAL/sbin
+  sudo -- sh -c "mkdir -p $LOCAL/sbin; chown $(id -u):admin $LOCAL/sbin"
 fi
 
 step "Install latest Homebrew"
@@ -238,9 +237,6 @@ fi
 
 mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_PASSWD'; FLUSH PRIVILEGES;"
 
-# Prompt for sudo password early on
-sudo -v
-
 if [ -z "$(brew list --versions nginx)" ]; then
   step "Install latest Nginx"
     try HOMEBREW_NO_ENV_HINTS=1 brew install nginx
@@ -253,7 +249,7 @@ if [ -z "$(brew list --versions nginx)" ]; then
     fi
 
     if [ ! -d /etc/newsyslog.d ]; then
-      try sudo rm -f /etc/newsyslog.d/nginx.conf && sudo ln -sf $HOME/.etc/newsyslog.d/nginx.conf /etc/newsyslog.d/nginx.conf
+      sudo -- sh -c "rm -f /etc/newsyslog.d/nginx.conf; ln -sf $HOME/.etc/newsyslog.d/nginx.conf /etc/newsyslog.d/nginx.conf"
     fi
 
     try sudo brew services start nginx
