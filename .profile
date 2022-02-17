@@ -76,12 +76,32 @@ export SAM_CLI_TELEMETRY=0
 #  export SSH_AGENT_PID=$(ps x | grep ssh-agent | grep -v grep | awk '{print $1}')
 #fi
 
-if [ -d $LOCAL/sbin ]; then
-  export_to_path "$LOCAL/sbin"
+if [ -d /usr/local/bin ]; then
+  export_to_path "/usr/local/bin"
 fi
 
-if [ -d $LOCAL/bin ]; then
-  export_to_path "$LOCAL/bin"
+if [ $MACHINE = 'arm64' ]; then
+  if [ -d /usr/bin ]; then
+    export_to_path "/usr/bin"
+  fi
+
+  if [ -d /bin ]; then
+    export_to_path "/bin"
+  fi
+fi
+
+if [ -d /usr/local/sbin ]; then
+  export_to_path "/usr/local/sbin"
+fi
+
+if [ $MACHINE = 'arm64' ]; then
+  if [ -d /usr/sbin ]; then
+    export_to_path "/usr/sbin"
+  fi
+
+  if [ -d /sbin ]; then
+    export_to_path "/sbin"
+  fi
 fi
 
 # User specific environment and startup programs

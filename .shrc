@@ -2,7 +2,7 @@
 
 # Source alias definitions.
 if [ -f ~/.aliases ]; then
-    . ~/.aliases
+  . ~/.aliases
 fi
 
 case $(uname) in

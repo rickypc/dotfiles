@@ -23,6 +23,15 @@ if [ $? != 0 ]; then
   exit 0
 fi
 
+# Reset resolver.
+if [ ! -d /etc/resolver ]; then
+  sudo -- bash -c "mkdir -p /etc/resolver; chown -R $(whoami) /etc/resolver"
+  touch ~/.config/network
+  ln -sf ~/.config/network /etc/resolver/network
+  echo "You need to setup your network resolver."
+  exit 0
+fi
+
 # Workspace setup.
 if [ ! -d ~/Workspace ]; then
   mkdir ~/Workspace
@@ -58,8 +67,7 @@ fi
 # Install Homebrew.
 if [ `uname -m` = 'arm64' ]; then
   if [ ! -d /opt/homebrew ]; then
-    sudo mkdir -p /opt/homebrew
-    sudo chown -R $(whoami) /opt/homebrew
+    sudo -- bash -c "mkdir -p /opt/homebrew; chown -R $(whoami) /opt/homebrew"
     curl -Ls https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C /opt/homebrew
     eval "$(/opt/homebrew/bin/brew shellenv)"
     brew update --force --quiet
@@ -71,6 +79,11 @@ else
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     brew analytics off
   fi
+fi
+
+# Reset PATH.
+if [ -d /etc/paths ]; then
+  sudo -- bash -c 'truncate --size 0 /etc/paths'
 fi
 
 # Display hidden files and folders.
