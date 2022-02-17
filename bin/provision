@@ -347,7 +347,7 @@ fi
 
 if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
   step "Download latest Redshift JDBC driver"
-    try curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar
+    try cd ~/.sqlworkbench/drivers && curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar && cd
   next
 fi
 
