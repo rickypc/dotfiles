@@ -84,6 +84,7 @@ Script Name                                         | Language | Description
 [migrate-php](bin/migrate-php)                      | Bash     | Migrate between [PHP](https://www.php.net/) versions.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [osx-show-all-files](bin/osx-show-all-files)        | Bash     | Set OSX to show all files (dot files) in Finder and file dialog permanently.
+[pack](bin/pack)                                    | Bash     | Sanitize the source and pack them all.
 [polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about [Polygon](https://en.wikipedia.org/wiki/Polygon) geometry.
 [pre-provision](bin/pre-provision)                  | Bash     | Pre-provision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [provision](bin/provision)                          | Bash     | Provision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
