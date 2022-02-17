@@ -2,7 +2,7 @@
 
 #    Get Python Virtual Environment - Install Python 3.x virtual environment
 #    and set those to the path.
-#    Copyright (C) 2015-2019  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2015-2022  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,12 +17,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-MACHINE=$(uname -m)
-if [ $MACHINE = 'arm64' ]; then
-  LOCAL_BIN=/opt/homebrew/bin
-else
-  LOCAL_BIN=/usr/local/bin
-fi
+# Source function library.
+. ~/bin/functions
+
 VENVS=~/.virtualenvs
 
 # Install virtualenv.

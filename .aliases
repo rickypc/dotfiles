@@ -1,6 +1,7 @@
 # ~/.aliases: executed by {ba|da|z}sh(1).
 
-MACHINE=$(uname -m)
+# Source function library.
+. ~/bin/functions
 
 alias gad='git ad'
 alias gbs='git branch-stat'
@@ -20,13 +21,7 @@ alias la='ls -A'
 alias scpr='rsync --partial --archive --compress --progress --verbose --rsh=ssh'
 
 # MIMP (MacOS, Nginx, MySQL, PHP)
-alias server.restart='brew services restart mysql && brew services restart php@7.4 && sudo brew services restart nginx'
-alias server.stop='brew services stop mysql && brew services stop php@7.4 && sudo brew services stop nginx'
-
-if [ $MACHINE = 'arm64' ]; then
-  alias tail.php.error='tail -250f /opt/homebrew/var/log/php_errors.log'
-else
-  alias tail.php.error='tail -250f /usr/local/var/log/php_errors.log'
-fi
-
+alias server.restart="brew services restart mysql && brew services restart php@$PHP_LTS && sudo brew services restart nginx"
+alias server.stop="brew services stop mysql && brew services stop php@$PHP_LTS && sudo brew services stop nginx"
+alias tail.php.error="tail -250f $LOCAL/var/log/php_errors.log"
 alias uac='update-aws-credentials'

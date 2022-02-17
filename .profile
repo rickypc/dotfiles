@@ -1,5 +1,8 @@
 # ~/.profile: executed by {ba|d|z}sh(1).
 
+# Source function library.
+. ~/bin/functions
+
 unset COLORFGBG COLORTERM CVS_RSH WINDOWID
 
 CACHE_PATH=~/.cache
@@ -15,15 +18,11 @@ CATALINA_DIR=$LIB_DIR/apache-tomcat-8.5.51
 FLUTTER_DIR=$LIB_DIR/flutter
 GO_DIR=~/.go
 GRADLE_DIR=$LIB_DIR/gradle-6.1.1
-MACHINE=$(uname -m)
 MAVEN_DIR=$LIB_DIR/apache-maven-3.6.3
 PERL_DIR=$LIB_DIR/perl5
 
 if [ $MACHINE = 'arm64' ]; then
-  LOCAL=/opt/homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
-else
-  LOCAL=/usr/local
 fi
 
 export_to_path() {

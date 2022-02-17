@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #    Environment Provisioner - Provision development environment.
-#    Copyright (C) 2015-2020  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2015-2022  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,16 +16,10 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-COMPOSER_DIR=$HOME/.composer
-MACHINE=$(uname -m)
-if [ $MACHINE = 'arm64' ]; then
-  LOCAL=/opt/homebrew
-else
-  LOCAL=/usr/local
-fi
-
 # Source function library.
-. functions
+. ~/bin/functions
+
+COMPOSER_DIR=$HOME/.composer
 
 # Xcode command line tools, you are most likely need to install this manually from Apple Developer download.
 # xcode-select --install
@@ -123,9 +117,9 @@ if [ -z "$(brew list --versions golangci-lint)" ]; then
   next
 fi
 
-if [ -z "$(brew list --versions node)" ]; then
-  step "Install NodeJS"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install node
+if [ -z "$(brew list --versions node@$NODE_LTS)" ]; then
+  step "Install NodeJS v$NODE_LTS"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install node@$NODE_LTS
     try npm install --force -g npm
     try npm install --force -g yarn
   next
@@ -141,9 +135,9 @@ step "Install latest Python dependencies"
   try $LOCAL/bin/pip3 install --user awscli gitpython powerline-gitstatus powerline-status
 next
 
-if [ -z "$(brew list --versions php)" ]; then
-  step "Install latest PHP"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install php
+if [ -z "$(brew list --versions php@$PHP_LTS)" ]; then
+  step "Install PHP v$PHP_LTS"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install php@$PHP_LTS
     PHP_VERSION=$(brew list php --versions | egrep -o '\d+\.\d+')
     PHP_ETC=$PREFIX/etc/php/$PHP_VERSION
     PHP_INI=$PHP_ETC/php.ini
@@ -166,7 +160,7 @@ if [ -z "$(brew list --versions php)" ]; then
     # Replace socket php-fpm location.
     content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
     # Links and install extensions.
-    try brew link --force --overwrite php
+    try brew link --force --overwrite php@$PHP_LTS
     try mkdir -p $LOCAL/lib/php/pecl
     try pecl channel-update pecl.php.net
     if [ -z "$(php -i | grep -w ast)" ]; then
@@ -178,7 +172,7 @@ if [ -z "$(brew list --versions php)" ]; then
     if [ -z "$(php -i | grep -w xdebug)" ]; then
       try pecl install xdebug
     fi
-    try brew services start php
+    try brew services start php@$PHP_LTS
   next
 fi
 
