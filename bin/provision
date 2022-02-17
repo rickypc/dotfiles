@@ -245,11 +245,13 @@ if [ -z "$(brew list --versions nginx)" ]; then
     try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
 
     if [ ! -d $PREFIX/etc/nginx/servers ]; then
-      try rm -rf $PREFIX/etc/nginx/servers && ln -sf $HOME/.etc/nginx/servers $PREFIX/etc/nginx/servers
+      [ $MACHINE = 'arm64' ] && SOURCE=$HOME/.etc/nginx/servers.$MACHINE || SOURCE=$HOME/.etc/nginx/servers
+      try rm -rf $PREFIX/etc/nginx/servers && ln -sf $SOURCE $PREFIX/etc/nginx/servers
     fi
 
-    if [ ! -d /etc/newsyslog.d ]; then
-      sudo -- sh -c "rm -f /etc/newsyslog.d/nginx.conf; ln -sf $HOME/.etc/newsyslog.d/nginx.conf /etc/newsyslog.d/nginx.conf"
+    if [ -z "$(readlink /etc/newsyslog.d/nginx.conf)" ]; then
+      [ $MACHINE = 'arm64' ] && SOURCE=$HOME/.etc/newsyslog.d/nginx.$MACHINE.conf || SOURCE=$HOME/.etc/newsyslog.d/nginx.conf
+      sudo -- sh -c "rm -f /etc/newsyslog.d/nginx.conf; ln -sf $SOURCE /etc/newsyslog.d/nginx.conf"
     fi
 
     try sudo brew services start nginx
