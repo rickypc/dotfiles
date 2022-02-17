@@ -1,0 +1,74 @@
+#!/bin/sh
+
+#    Environment Pre-provisioner - Pre-provision development environment.
+#    Copyright (C) 2015-2022  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Developer tool CLI.
+xcode-select -p 1>/dev/null
+if [ $? != 0 ]; then
+  xcode-select --install
+  exit 0
+fi
+
+# Install all OSX updates.
+softwareupdate -a -i
+
+# Workspace setup.
+if [ ! -d ~/Workspace ]; then
+  mkdir ~/Workspace
+fi
+
+# SSH setup.
+if [ ! -d ~/.ssh ]; then
+  mkdir -p .ssh/sockets
+  chmod 700 .ssh
+  echo "You need to setup your SSH keys."
+  exit 0
+fi
+
+# Dot files setup.
+if [ ! -d ~/.git ]; then
+  cd ~
+  git init -b master
+  git remote add origin git@github.com:rickypc/dotfiles.git
+  git pull origin master
+  git branch --set-upstream-to origin/master
+  git submodule init
+  git submodule update
+fi
+
+# Install fonts.
+if [[ ! -f ~/Library/Fonts/Roboto-Regular.ttf || ! -f ~/Library/Fonts/SourceCodePro-Regular.ttf ]]; then
+  cp ~/.util/Roboto-Regular.ttf ~/.util/SourceCodePro-Regular.ttf ~/Library/Fonts
+fi
+
+# Install Homebrew.
+if [[ `uname -m` == 'arm64' ]]; then
+  if [ ! -d /opt/homebrew ]; then
+    sudo mkdir -p /opt/homebrew
+    sudo chown -R $(whoami) /opt/homebrew
+    curl -Ls https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C /opt/homebrew
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew update --force --quiet
+    chmod -R go-w "$(brew --prefix)/share/zsh"
+    brew analytics off
+  fi
+else
+  if [ ! -d /usr/local/homebrew ]; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    brew analytics off
+  fi
+fi

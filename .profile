@@ -162,6 +162,10 @@ if [ -d $GRADLE_DIR ]; then
   export_to_path "$GRADLE_HOME/bin"
 fi
 
+if [ -d /opt/homebrew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 if [[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]]; then
   export JAVA_HOME=$(/usr/libexec/java_home)
 fi
