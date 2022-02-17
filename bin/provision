@@ -19,8 +19,6 @@
 # Source function library.
 . ~/bin/functions
 
-COMPOSER_DIR=$HOME/.composer
-
 # Xcode command line tools, you are most likely need to install this manually from Apple Developer download.
 # xcode-select --install
 
@@ -116,6 +114,12 @@ if [ -z "$(brew list --versions golangci-lint)" ]; then
   next
 fi
 
+if [ -z "$(brew list --versions mcrypt)" ]; then
+  step "Install Mcrypt"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install mcrypt
+  next
+fi
+
 if [ -z "$(brew list --versions node@$NODE_LTS)" ]; then
   step "Install NodeJS v$NODE_LTS"
     try HOMEBREW_NO_ENV_HINTS=1 brew install node@$NODE_LTS
@@ -138,8 +142,7 @@ next
 if [ -z "$(brew list --versions php@$PHP_LTS)" ]; then
   step "Install PHP v$PHP_LTS"
     try HOMEBREW_NO_ENV_HINTS=1 brew install php@$PHP_LTS
-    PHP_VERSION=$(brew list php --versions | egrep -o '\d+\.\d+')
-    PHP_ETC=$PREFIX/etc/php/$PHP_VERSION
+    PHP_ETC=$PREFIX/etc/php/$PHP_LTS
     PHP_INI=$PHP_ETC/php.ini
     # Essentials configs.
     content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
@@ -167,7 +170,7 @@ if [ -z "$(brew list --versions php@$PHP_LTS)" ]; then
       try pecl install ast
     fi
     if [ -z "$(php -i | grep -w mcrypt)" ]; then
-      try pecl install mcrypt
+      try pecl install mcrypt <<<"$(ls -d $PREFIX/Cellar/mcrypt/* | tail -1)"
     fi
     if [ -z "$(php -i | grep -w xdebug)" ]; then
       try pecl install xdebug
