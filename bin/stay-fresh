@@ -16,7 +16,13 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-LOCAL_BIN=/usr/local/bin
+MACHINE=$(uname -m)
+if [ $MACHINE = 'arm64' ]; then
+  LOCAL=/opt/homebrew
+else
+  LOCAL=/usr/local
+fi
+LOCAL_BIN=$LOCAL/bin
 NODE_LTS=16
 PHP_LTS=7.4
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -50,9 +56,9 @@ step "Remove outdated .NET Core Runtime and SDK"
 next
 
 step "Clear log files"
-  [ -f /usr/local/var/log/php-fpm.log ] && try :>/usr/local/var/log/php-fpm.log
-  [ -f /usr/local/var/log/php_errors.log ] && try :>/usr/local/var/log/php_errors.log
-  sudo -- bash -c 'truncate --size 0 /usr/local/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null'
+  [ -f $LOCAL/var/log/php-fpm.log ] && try :>$LOCAL/var/log/php-fpm.log
+  [ -f $LOCAL/var/log/php_errors.log ] && try :>$LOCAL/var/log/php_errors.log
+  sudo -- bash -c "truncate --size 0 $LOCAL/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null"
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
   try rm -rf ~/.npm/_logs/*
   if [ -x "$(command -v mysql)" ]; then
@@ -131,8 +137,8 @@ step "Update Homebrew formulae"
 next
 
 step "Upgrade Homebrew formulae"
-  sudo chown -R $(whoami) /usr/local/bin
-  chmod u+w /usr/local/bin
+  sudo chown -R $(whoami) $LOCAL_BIN
+  chmod u+w $LOCAL_BIN
   echo
   # Upgrade all installed unpinned brews.
   HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew upgrade --ignore-pinned
@@ -155,7 +161,7 @@ if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
   step "Link PHP v$PHP_LTS"
     try brew unlink php@$PHP_LTS
     try brew link --force --overwrite php@$PHP_LTS
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
   next
 fi
 

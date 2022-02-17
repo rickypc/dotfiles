@@ -17,7 +17,12 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-LOCAL_BIN=/usr/local/bin
+MACHINE=$(uname -m)
+if [ $MACHINE = 'arm64' ]; then
+  LOCAL_BIN=/opt/homebrew/bin
+else
+  LOCAL_BIN=/usr/local/bin
+fi
 VENVS=~/.virtualenvs
 
 # Install virtualenv.

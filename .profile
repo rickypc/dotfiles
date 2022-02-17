@@ -15,8 +15,16 @@ CATALINA_DIR=$LIB_DIR/apache-tomcat-8.5.51
 FLUTTER_DIR=$LIB_DIR/flutter
 GO_DIR=~/.go
 GRADLE_DIR=$LIB_DIR/gradle-6.1.1
+MACHINE=$(uname -m)
 MAVEN_DIR=$LIB_DIR/apache-maven-3.6.3
 PERL_DIR=$LIB_DIR/perl5
+
+if [ $MACHINE = 'arm64' ]; then
+  LOCAL=/opt/homebrew
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+  LOCAL=/usr/local
+fi
 
 export_to_path() {
   if [[ -n "$1" && $PATH != *$1* ]]; then
@@ -68,12 +76,12 @@ export SAM_CLI_TELEMETRY=0
 #  export SSH_AGENT_PID=$(ps x | grep ssh-agent | grep -v grep | awk '{print $1}')
 #fi
 
-if [ -d /usr/local/sbin ]; then
-  export_to_path "/usr/local/sbin"
+if [ -d $LOCAL/sbin ]; then
+  export_to_path "$LOCAL/sbin"
 fi
 
-if [ -d /usr/local/bin ]; then
-  export_to_path "/usr/local/bin"
+if [ -d $LOCAL/bin ]; then
+  export_to_path "$LOCAL/bin"
 fi
 
 # User specific environment and startup programs
@@ -101,7 +109,7 @@ export PHPLS_ALLOW_XDEBUG=1
 export XDG_CACHE_HOME=$CACHE_PATH
 # export XDG_CONFIG_HOME=~/.config
 
-PYTHON_USER_BASE=`/usr/local/bin/python3 -m site --user-base`
+PYTHON_USER_BASE=`$LOCAL/bin/python3 -m site --user-base`
 
 if [ -d $ANDROID_SDK ]; then
   if [[ $ANDROID_HOME != *${ANDROID_SDK}* ]]; then
@@ -162,10 +170,6 @@ if [ -d $GRADLE_DIR ]; then
   export_to_path "$GRADLE_HOME/bin"
 fi
 
-if [ -d /opt/homebrew ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
 if [[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]]; then
   export JAVA_HOME=$(/usr/libexec/java_home)
 fi
@@ -206,12 +210,12 @@ fi
 
 if [ -d "$PYTHON_USER_BASE/bin" ]; then
   export POWERLINE_CONFIG_COMMAND=powerline-config
-  export PYTHON_USER_SITE=`/usr/local/bin/python3 -m site --user-site`
+  export PYTHON_USER_SITE=`$LOCAL/bin/python3 -m site --user-site`
   export_to_path "$PYTHON_USER_BASE/bin"
 fi
 
-if [ -d "/usr/local/opt/python/libexec/bin" ]; then
-  export_to_path "/usr/local/opt/python/libexec/bin"
+if [ -d "$LOCAL/opt/python/libexec/bin" ]; then
+  export_to_path "$LOCAL/opt/python/libexec/bin"
 fi
 
 if [ -d ~/.virtualenvs ]; then

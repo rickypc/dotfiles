@@ -56,7 +56,7 @@ if [[ ! -f ~/Library/Fonts/Roboto-Regular.ttf || ! -f ~/Library/Fonts/SourceCode
 fi
 
 # Install Homebrew.
-if [[ `uname -m` == 'arm64' ]]; then
+if [ `uname -m` = 'arm64' ]; then
   if [ ! -d /opt/homebrew ]; then
     sudo mkdir -p /opt/homebrew
     sudo chown -R $(whoami) /opt/homebrew

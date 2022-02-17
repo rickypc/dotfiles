@@ -17,7 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 COMPOSER_DIR=$HOME/.composer
-LOCAL=/usr/local
+MACHINE=$(uname -m)
+if [ $MACHINE = 'arm64' ]; then
+  LOCAL=/opt/homebrew
+else
+  LOCAL=/usr/local
+fi
 
 # Source function library.
 . functions
@@ -25,7 +30,7 @@ LOCAL=/usr/local
 # Xcode command line tools, you are most likely need to install this manually from Apple Developer download.
 # xcode-select --install
 
-# Ensure /usr/local/sbin exists.
+# Ensure $LOCAL/sbin exists.
 if [ ! -d $LOCAL/sbin ]; then
   sudo mkdir -p $LOCAL/sbin
   sudo chown $(id -u):admin $LOCAL/sbin
@@ -64,37 +69,37 @@ next
 
 if [ -z "$(brew list --versions coreutils)" ]; then
   step "Install latest CoreUtils"
-    try brew install coreutils
+    try HOMEBREW_NO_ENV_HINTS=1 brew install coreutils
   next
 fi
 
 if [ -z "$(brew list --versions dive)" ]; then
   step "Install latest Docker Dive"
-    try brew install dive
+    try HOMEBREW_NO_ENV_HINTS=1 brew install dive
   next
 fi
 
 if [ -z "$(brew list --versions dos2unix)" ]; then
   step "Install latest DOS to Unix"
-    try brew install dos2unix
+    try HOMEBREW_NO_ENV_HINTS=1 brew install dos2unix
   next
 fi
 
 if [ -z "$(brew list --versions graphviz)" ]; then
   step "Install latest Graphviz"
-    try brew install graphviz
+    try HOMEBREW_NO_ENV_HINTS=1 brew install graphviz
   next
 fi
 
 if [ -z "$(brew list --versions imagemagick)" ]; then
   step "Install latest ImageMagick"
-    try brew install imagemagick
+    try HOMEBREW_NO_ENV_HINTS=1 brew install imagemagick
   next
 fi
 
 if [ -z "$(brew list --versions openssl)" ]; then
   step "Install latest OpenSSL"
-    try brew install openssl
+    try HOMEBREW_NO_ENV_HINTS=1 brew install openssl
     SSL_PREFIX=$PREFIX/etc/openssl
     try mkdir -p $SSL_PREFIX/certs $SSL_PREFIX/private
     if [ ! -f $SSL_PREFIX/private/localhost.key ]; then
@@ -108,19 +113,19 @@ fi
 
 if [ -z "$(brew list --versions go)" ]; then
   step "Install GoLang"
-    try brew install go
+    try HOMEBREW_NO_ENV_HINTS=1 brew install go
   next
 fi
 
 if [ -z "$(brew list --versions golangci-lint)" ]; then
   step "Install GoLang Linter"
-    try brew install golangci/tap/golangci-lint
+    try HOMEBREW_NO_ENV_HINTS=1 brew install golangci/tap/golangci-lint
   next
 fi
 
 if [ -z "$(brew list --versions node)" ]; then
   step "Install NodeJS"
-    try brew install node
+    try HOMEBREW_NO_ENV_HINTS=1 brew install node
     try npm install --force -g npm
     try npm install --force -g yarn
   next
@@ -128,7 +133,7 @@ fi
 
 if [ -z "$(brew list --versions python@3)" ]; then
   step "Install Python 3"
-    try brew install python@3 && ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
+    try HOMEBREW_NO_ENV_HINTS=1 brew install python@3 && ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
   next
 fi
 
@@ -138,7 +143,7 @@ next
 
 if [ -z "$(brew list --versions php)" ]; then
   step "Install latest PHP"
-    try brew install php
+    try HOMEBREW_NO_ENV_HINTS=1 brew install php
     PHP_VERSION=$(brew list php --versions | egrep -o '\d+\.\d+')
     PHP_ETC=$PREFIX/etc/php/$PHP_VERSION
     PHP_INI=$PHP_ETC/php.ini
@@ -179,13 +184,13 @@ fi
 
 if [ -z "$(brew list --versions composer)" ]; then
   step "Install latest Composer"
-    try brew install composer
+    try HOMEBREW_NO_ENV_HINTS=1 brew install composer
   next
 fi
 
 if [ -z "$(brew list --versions mysql)" ]; then
   step "Install latest MySQL"
-    try brew install mysql
+    try HOMEBREW_NO_ENV_HINTS=1 brew install mysql
     try brew services start mysql
   next
 
@@ -247,7 +252,7 @@ sudo -v
 
 if [ -z "$(brew list --versions nginx)" ]; then
   step "Install latest Nginx"
-    try brew install nginx
+    try HOMEBREW_NO_ENV_HINTS=1 brew install nginx
     try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
     try rm -f $PREFIX/var/www/phpinfo.php && ln -sf $HOME/.www/phpinfo.php $PREFIX/var/www/phpinfo.php
     try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
@@ -264,82 +269,82 @@ if [ -z "$(brew list --versions nginx)" ]; then
   next
 fi
 
-if [ -z "$(brew list --cask --versions adoptopenjdk8)" ]; then
+if [ -z "$(brew list --cask --versions temurin8 2>/dev/null)" ]; then
   step "Install JDK 1.8"
-    try brew install --cask homebrew/cask-versions/adoptopenjdk8
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask temurin8
   next
 fi
 
 if [ -z "$(brew list --versions jq)" ]; then
   step "Install latest jq"
-    try brew install jq
+    try HOMEBREW_NO_ENV_HINTS=1 brew install jq
   next
 fi
 
 if [ -z "$(brew list --versions cocoapods)" ]; then
   step "Install latest Cocoapods"
-    try brew install cocoapods
+    try HOMEBREW_NO_ENV_HINTS=1 brew install cocoapods
   next
 fi
 
-if [ -z "$(brew list --cask --versions aerial)" ]; then
+if [ -z "$(brew list --cask --versions aerial 2>/dev/null)" ]; then
   step "Install latest Aerial"
-    try brew install --cask aerial
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask aerial
   next
 fi
 
-if [ -z "$(brew list --cask --versions docker)" ]; then
+if [ -z "$(brew list --cask --versions docker 2>/dev/null)" ]; then
   step "Install latest Docker Desktop"
-    try brew install --cask docker
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask docker
   next
 fi
 
-if [ -z "$(brew list --cask --versions firefox)" ]; then
+if [ -z "$(brew list --cask --versions firefox 2>/dev/null)" ]; then
   step "Install latest Mozilla Firefox"
-    try brew install --cask firefox
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask firefox
   next
 fi
 
-if [ -z "$(brew list --cask --versions gimp)" ]; then
+if [ -z "$(brew list --cask --versions gimp 2>/dev/null)" ]; then
   step "Install latest Gimp"
-    try brew install --cask gimp
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask gimp
   next
 fi
 
-if [ -z "$(brew list --cask --versions microsoft-edge)" ]; then
+if [ -z "$(brew list --cask --versions microsoft-edge 2>/dev/null)" ]; then
   step "Install Microsoft Edge"
-    try brew install --cask microsoft-edge
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask microsoft-edge
   next
 fi
 
-if [ -z "$(brew list --cask --versions omnidisksweeper)" ]; then
+if [ -z "$(brew list --cask --versions omnidisksweeper 2>/dev/null)" ]; then
   step "Install latest Omni Disk Sweeper"
-    try brew install --cask omnidisksweeper
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask omnidisksweeper
   next
 fi
 
-if [ -z "$(brew list --cask --versions opera)" ]; then
+if [ -z "$(brew list --cask --versions opera 2>/dev/null)" ]; then
   step "Install Opera"
-    try brew install --cask opera
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask opera
   next
 fi
 
-if [ -z "$(brew list --cask --versions redisinsight)" ]; then
+if [ -z "$(brew list --cask --versions redisinsight 2>/dev/null)" ]; then
   step "Install latest Redis Insight"
-    try brew install --cask redisinsight
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask redisinsight
   next
 fi
 
-if [ -z "$(brew list --cask --versions slack)" ]; then
+if [ -z "$(brew list --cask --versions slack 2>/dev/null)" ]; then
   step "Install latest Slack"
-    try brew install --cask slack
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask slack
   next
 fi
 
-if [ -z "$(brew list --cask --versions sqlworkbenchj)" ]; then
+if [ -z "$(brew list --cask --versions sqlworkbenchj 2>/dev/null)" ]; then
   step "Install latest SQL Workbench/J"
     # Required Oracle JRE.
-    try brew install --cask sqlworkbenchj
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask sqlworkbenchj
     if [ ! -d ~/.sqlworkbench/drivers ]; then
       try mkdir -p ~/.sqlworkbench/drivers
     fi
@@ -359,27 +364,27 @@ if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
   next
 fi
 
-if [ -z "$(brew list --cask --versions visual-studio)" ]; then
+if [ -z "$(brew list --cask --versions visual-studio 2>/dev/null)" ]; then
   step "Install latest Visual Studio"
-    try brew install --cask visual-studio
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask visual-studio
   next
 fi
 
-if [ -z "$(brew list --cask --versions visual-studio-code)" ]; then
+if [ -z "$(brew list --cask --versions visual-studio-code 2>/dev/null)" ]; then
   step "Install latest Visual Studio Code"
-    try brew install --cask visual-studio-code
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask visual-studio-code
   next
 fi
 
 if [ -z "$(brew list --versions vim)" ]; then
   step "Install latest Vim"
-    try brew install vim
+    try HOMEBREW_NO_ENV_HINTS=1 brew install vim
   next
 fi
 
 if [ -z "$(brew list --versions xmlstarlet)" ]; then
   step "Install latest XmlStarlet"
-    try brew install xmlstarlet
+    try HOMEBREW_NO_ENV_HINTS=1 brew install xmlstarlet
   next
 fi
 
