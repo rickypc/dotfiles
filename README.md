@@ -9,16 +9,22 @@ Platforms: [GNU/Linux](https://www.gnu.org/gnu/linux-and-gnu.en.html) ([RHEL](ht
 
 Installation
 -
+Install necessary softwares and clone dotfiles repository with single command.
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/rickypc/dotfiles/master/bin/pre-provision)"
+```
+
 You can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
 
 ```bash
-$ cd; git init; git remote add origin https://github.com/rickypc/dotfiles.git; git checkout --track -b master origin/master; git branch --set-upstream-to origin/master; git pull origin; git submodule init; git submodule update
+$ cd; git init -b master; git remote add origin https://github.com/rickypc/dotfiles.git; git pull origin master; git branch --set-upstream-to origin/master; git submodule init; git submodule update
 ```
 
 Or, if you would like to use SSH clone URL, like myself:
 
 ```bash
-$ cd; git init; git remote add origin git@github.com:rickypc/dotfiles.git; git checkout --track -b master origin/master; git branch --set-upstream-to origin/master; git pull origin; git submodule init; git submodule update
+$ cd; git init -b master; git remote add origin git@github.com:rickypc/dotfiles.git; git pull origin master; git branch --set-upstream-to origin/master; git submodule init; git submodule update
 ```
 
 Removal
@@ -79,6 +85,7 @@ Script Name                                         | Language | Description
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
 [osx-show-all-files](bin/osx-show-all-files)        | Bash     | Set OSX to show all files (dot files) in Finder and file dialog permanently.
 [polygon-fun](bin/polygon-fun)                      | Perl     | All fun facts about [Polygon](https://en.wikipedia.org/wiki/Polygon) geometry.
+[pre-provision](bin/pre-provision)                  | Bash     | Pre-provision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [provision](bin/provision)                          | Bash     | Provision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [replace-in-place](bin/replace-in-place)            | Bash     | Replace file content in-place.
 [rm-crlf](bin/rm-crlf)                              | Bash     | Remove [BOM](https://en.wikipedia.org/wiki/Byte_order_mark) character and [CRLF](https://en.wikipedia.org/wiki/Newline#Representation) inside the files.
