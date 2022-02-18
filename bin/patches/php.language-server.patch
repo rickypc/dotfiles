@@ -1,0 +1,13 @@
+--- .vscode/extensions/zobo.php-intellisense-1.0.5/vendor/felixfbecker/language-server/src/Indexer.php	2022-02-18 13:32:07.000000000 -0800
++++ .vscode/extensions/zobo.php-intellisense-1.0.5/vendor/felixfbecker/language-server/src/Indexer.php	2022-02-18 14:14:15.000000000 -0800
+@@ -122,6 +122,10 @@
+             $pattern = Path::makeAbsolute('**/*.php', $this->rootPath);
+             $uris = yield $this->filesFinder->find($pattern);
+ 
++            $excludeDirs = ['\.git', 'contrib', 'core', 'files', 'simpletest', 'tests', 'vendor'];
++            $excludePattern = sprintf('/%s/i', implode('|', $excludeDirs));
++            $uris = array_filter($uris, fn($uri) => preg_match($excludePattern, $uri) !== 1);
++
+             $count = count($uris);
+             $startTime = microtime(true);
+             $this->client->window->logMessage(MessageType::INFO, "$count files total");

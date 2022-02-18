@@ -55,6 +55,7 @@ Script and Tool List
 -
 Script Name                                         | Language | Description
 ----------------------------------------------------|----------|------------
+[apply](bin/apply)                                  | Bash     | Apply all available patches.
 [chmod-fix](bin/chmod-fix)                          | Bash     | Fix folder and file permissions to 755 and 644 respectively.
 [chown-fix](bin/chown-fix)                          | Bash     | Fix folder and file owner to current login user and group.
 [colinux-build](bin/colinux-build)                  | Bash     | Build [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) kernel and its module.
