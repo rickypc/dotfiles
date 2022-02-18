@@ -76,9 +76,21 @@ if [ -z "$(brew list --versions dos2unix)" ]; then
   next
 fi
 
+if [ -z "$(brew list --cask --versions dotnet-sdk 2>/dev/null)" ]; then
+  step "Install latest DotNet SDK"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask dotnet-sdk
+  next
+fi
+
 if [ -z "$(brew list --versions graphviz)" ]; then
   step "Install latest Graphviz"
     try HOMEBREW_NO_ENV_HINTS=1 brew install graphviz
+  next
+fi
+
+if [ -z "$(brew list --versions html-xml-utils)" ]; then
+  step "Install latest HTML XML Utils"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install html-xml-utils
   next
 fi
 
@@ -99,6 +111,12 @@ if [ -z "$(brew list --versions openssl)" ]; then
     if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
       openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
     fi
+  next
+fi
+
+if [ ! -f ~/.dotnet/tools/reportgenerator ]; then
+  step "Install latest Report Generator"
+    try $LOCAL/bin/dotnet tool install --global dotnet-reportgenerator-globaltool
   next
 fi
 

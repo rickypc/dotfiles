@@ -201,8 +201,10 @@ if [[ -d /usr/share/java && $CLASSPATH != */usr/share/java* ]]; then
   fi
 fi
 
-if [ -d ~/.composer ]; then
-  export COMPOSER_HOME=~/.composer
+[ $MACHINE = 'arm64' ] && COMPOSER_HOME=~/.config/composer || COMPOSER_HOME=~/.composer
+
+if [ -d $COMPOSER_HOME ]; then
+  export COMPOSER_HOME
 fi
 
 # User composer vendor
