@@ -19,6 +19,46 @@
 # Source function library.
 . ~/bin/functions
 
+step "Clear caches"
+  try rm -rf ~/.atom/.apm/*
+  try find ~/Library/Caches -type f -exec rm -f '{}' \; &>/dev/null
+  try rm -rf ~/Library/Containers/com.apple.Preview/*
+  try find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
+  try find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
+  try command -v composer &>/dev/null && composer clearcache 2>/dev/null
+
+  if [ -n "$(command -v npm)" ]; then
+    output_start
+    npm cache verify
+    output_end
+  fi
+
+  if [ -n "$(command -v nuget)" ]; then
+    output_start
+    nuget locals all -clear
+    output_end
+  fi
+
+  if [ -n "$(command -v yarn)" ]; then
+    output_start
+    yarn cache clean
+    output_end
+  fi
+next
+
+step "Clear log files"
+  [ -f $LOCAL/var/log/php-fpm.log ] && try :>$LOCAL/var/log/php-fpm.log
+  [ -f $LOCAL/var/log/php_errors.log ] && try :>$LOCAL/var/log/php_errors.log
+  sudo -- bash -c "truncate --size 0 $LOCAL/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null"
+  try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
+  try rm -rf ~/.npm/_logs/*
+  if [ -x "$(command -v mysql)" ]; then
+    output_start
+    echo "PURGE BINARY LOGS BEFORE DATE(NOW() - INTERVAL 3 DAY)" | mysql
+    output_end
+  fi
+next
+
 # Only when brew executable exists
 if [ -x "$(command -v brew)" ]; then
   output_start
@@ -28,7 +68,25 @@ if [ -x "$(command -v brew)" ]; then
   output_end
 fi
 
+step "Clear history files"
+  try :>~/.lesshst
+  [ -f ~/.mysql_history ] && try :>~/.mysql_history
+next
+
+step "Clear Vim history files"
+  try find ~/.vim/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+  [ -d ~/.vim6 ] && try find ~/.vim6/backup -mindepth 1 ! -name '.gitignore' -exec rm -rf -- {} +
+  try :>~/.viminfo
+next
+
 if [ -d ~/.git ]; then
   rm -rf $(git ls-files)
   rm -rf ~/.git
 fi
+
+# Clear {ba|z}sh history.
+step "Clear shell history"
+  :>~/.bash_history
+  :>~/.zsh_history
+  history -c
+next
