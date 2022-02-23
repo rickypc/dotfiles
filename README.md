@@ -15,7 +15,7 @@ Install necessary softwares and clone dotfiles repository with single command.
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/rickypc/dotfiles/master/bin/pre-provision)"
 ```
 
-You can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
+Or, you can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
 
 ```bash
 cd; git init -b master; git remote add origin https://github.com/rickypc/dotfiles.git; git pull origin master; git branch --set-upstream-to origin/master; git submodule init; git submodule update
@@ -103,6 +103,7 @@ Script Name                                         | Language | Description
 [ssh-keygen-rsa-8192](bin/ssh-keygen-rsa-8192)      | Bash     | Generate [SSH](https://en.wikipedia.org/wiki/Secure_Shell) [RSA](https://en.wikipedia.org/wiki/RSA_(algorithm)) key with 8192 bits length.
 [stay-fresh](bin/stay-fresh)                        | Bash     | Clean caches, histories, logs and [brew](https://brew.sh) upgrade.
 [stressor](bin/stressor)                            | Bash     | HTTP stressor with some degree of ramp up.
+[unprovision](bin/unprovision)                      | Bash     | Unprovision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [update-aws-credentials](bin/update-aws-credentials)| Bash     | Update AWS [credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-where) file.
 [x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
 [x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
