@@ -89,4 +89,5 @@ step "Clear shell history"
   :>~/.bash_history
   :>~/.zsh_history
   history -c
+  # history -p on zsh.
 next
