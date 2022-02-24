@@ -16,11 +16,13 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-PATCHES=("~/.vscode/extensions/zobo.php-intellisense-1.0.5/vendor/felixfbecker/language-server/src/Indexer.php:~/bin/patches/php.language-server.patch"
+PATCHES=("$HOME/.vscode/extensions/zobo.php-intellisense-1.0.5/vendor/felixfbecker/language-server/src/Indexer.php:$HOME/bin/patches/php.language-server.patch"
          )
 
 for entry in "${PATCHES[@]}"; do
-  if [[ -f ${entry%%:*} && -n "$(patch --dry-run -fRs ${entry%%:*} < ${entry#*:})" ]]; then
-    patch ${entry%%:*} < ${entry#*:}
+  FILE=${entry#*:}
+  TARGET=${entry%%:*}
+  if [[ -f $TARGET && -n "$(patch --dry-run -fRs $TARGET < $FILE)" ]]; then
+    patch $TARGET < $FILE
   fi
 done
