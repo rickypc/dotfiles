@@ -25,13 +25,13 @@ die () {
 }
 
 usage () {
-  echo "Usage: $0 -a </path/to/audio.mp3> -b </path/to/background.mp4> -d <YYYY-MM-DD> -h -l </path/to/logo.png> -n <Name> -s <1280x720>\n"
+  echo "Usage: $0 -a </path/to/audio.mp3> -b </path/to/background.mp4> -d <YYYY-MM-DD> -h -n <Name> -s <1280x720> -- [Gource options]\n"
+  echo "See https://github.com/acaudwell/Gource for Gource options."
   echo "Command line switches are optional. The following switches are recognized."
   echo "  -a -- The visualization video's background audio file path."
   echo "  -b -- The visualization video's background video file path."
   echo "  -d -- The visualization video's start date."
-  echo "  -h  -- Show this usage."
-  echo "  -l -- The visualization video's foreground logo file path."
+  echo "  -h -- Show this usage."
   echo "  -n -- The visualization video's name. Defaulted to current working directory name."
   echo "  -s -- The visualization video's size. Defaulted to 1280x720."
   exit 127
@@ -40,17 +40,19 @@ usage () {
 BG=000000
 GIT_DIR=$(git rev-parse --git-dir 2>/dev/null) || die "Not a git repository: $PWD"
 
-while getopts ":a:b:d:hl:n:s:" o; do
+while getopts ":a:b:d:hn:s:" o; do
   case "$o" in
     a) AUDIO=$OPTARG;;
     b) BACKGROUND=$OPTARG;;
     d) DATE=$OPTARG;;
-    l) LOGO=$OPTARG;;
+    h) usage;;
     n) NAME=$OPTARG;;
     s) SIZE=$OPTARG;;
-    *) usage;;
   esac
 done
+
+# Shift remaining arguments.
+shift $((OPTIND-1))
 
 # Set default values.
 [[ -n "$BACKGROUND" && -f "$BACKGROUND" ]] && BG_COLOR="--background-colour $BG" || BG_COLOR=
@@ -75,7 +77,6 @@ END=$(git show --format=%at $(git log --format=%H | head -n 3 | tail -n 1) | hea
 [ -n "$NAME" ] || NAME=${PWD##*/}
 # After $NAME assignment.
 FILE=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-[[ -n "$LOGO" && -f "$LOGO" ]] && LOGO="--logo $LOGO" || LOGO=
 SECONDS_DAY="--seconds-per-day $(echo "scale=4; 6000000/$((END - BEGIN))" | bc)"
 [ -n "$SIZE" ] && SIZE="-$SIZE" || SIZE=-1280x720
 TMP=$(mktemp -d -t "$FILE")
@@ -94,7 +95,7 @@ fi
 
 # Create Git activity base video.
 echo "Creating $NAME Git activity video..."
-gource $SIZE $BG_COLOR --key $LOGO --multi-sampling $SECONDS_DAY $DATE --stop-at-end --time-scale 2 --title "$NAME Git Activity" -o - | ffmpeg -f image2pipe -r 60 -vcodec ppm -y -i - -bf 0 -crf 1 -loglevel 24 -pix_fmt yuv420p -preset veryslow -threads 0 -vcodec libx264 $TMP/$FILE.x264.mp4
+gource $SIZE $BG_COLOR --key --multi-sampling $SECONDS_DAY $DATE --stop-at-end --time-scale 2 --title "$NAME Git Activity" $@ -o - | ffmpeg -f image2pipe -r 60 -vcodec ppm -y -i - -bf 0 -crf 1 -loglevel 24 -pix_fmt yuv420p -preset veryslow -threads 0 -vcodec libx264 $TMP/$FILE.x264.mp4
 
 # Multiplex with background video.
 if [[ -n "$BACKGROUND" && -f "$BACKGROUND" ]]; then
