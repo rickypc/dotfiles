@@ -1,0 +1,119 @@
+#!/bin/sh
+
+#    Git Visualization - Visualize git activity.
+#    Copyright (C) 2009-2022  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Source function library.
+. ~/bin/functions
+
+die () {
+  echo $@
+  exit 128
+}
+
+usage () {
+  echo "Usage: $0 -a </path/to/audio.mp3> -b </path/to/background.mp4> -d <YYYY-MM-DD> -h -l </path/to/logo.png> -n <Name> -s <1280x720>\n"
+  echo "Command line switches are optional. The following switches are recognized."
+  echo "  -a -- The visualization video's background audio file path."
+  echo "  -b -- The visualization video's background video file path."
+  echo "  -d -- The visualization video's start date."
+  echo "  -h  -- Show this usage."
+  echo "  -l -- The visualization video's foreground logo file path."
+  echo "  -n -- The visualization video's name. Defaulted to current working directory name."
+  echo "  -s -- The visualization video's size. Defaulted to 1280x720."
+  exit 127
+}
+
+BG=000000
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null) || die "Not a git repository: $PWD"
+
+while getopts ":a:b:d:hl:n:s:" o; do
+  case "$o" in
+    a) AUDIO=$OPTARG;;
+    b) BACKGROUND=$OPTARG;;
+    d) DATE=$OPTARG;;
+    l) LOGO=$OPTARG;;
+    n) NAME=$OPTARG;;
+    s) SIZE=$OPTARG;;
+    *) usage;;
+  esac
+done
+
+# Set default values.
+[[ -n "$BACKGROUND" && -f "$BACKGROUND" ]] && BG_COLOR="--background-colour $BG" || BG_COLOR=
+
+if [[ $DATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  # Correct date format.
+  BEGIN=$(date -jf '%Y-%m-%d' "$DATE" '+%s' 2>/dev/null)
+  if [[ "$DATE" = "$(date -r $BEGIN '+%Y-%m-%d' 2>/dev/null)" ]]; then
+    # Valid date.
+    DATE="--start-date $DATE"
+  else
+    BEGIN=$(git show --format=%at $(git log --reverse --format=%H | head -n 1) | head -n 1)
+    # Invalid date.
+    DATE=
+  fi
+else
+  # Incorrect date format.
+  BEGIN=$(git show --format=%at $(git log --reverse --format=%H | head -n 1) | head -n 1)
+fi
+
+END=$(git show --format=%at $(git log --format=%H | head -n 3 | tail -n 1) | head -n 1)
+[ -n "$NAME" ] || NAME=${PWD##*/}
+# After $NAME assignment.
+FILE=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+[[ -n "$LOGO" && -f "$LOGO" ]] && LOGO="--logo $LOGO" || LOGO=
+SECONDS_DAY="--seconds-per-day $(echo "scale=4; 6000000/$((END - BEGIN))" | bc)"
+[ -n "$SIZE" ] && SIZE="-$SIZE" || SIZE=-1280x720
+TMP=$(mktemp -d -t "$FILE")
+
+if [ -z "$(brew list --versions ffmpeg)" ]; then
+  step "Install latest FFmpeg"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install ffmpeg
+  next
+fi
+
+if [ -z "$(brew list --versions gource)" ]; then
+  step "Install latest Gource"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install gource
+  next
+fi
+
+# Create Git activity base video.
+echo "Creating $NAME Git activity video..."
+gource $SIZE $BG_COLOR --key $LOGO --multi-sampling $SECONDS_DAY $DATE --stop-at-end --time-scale 2 --title "$NAME Git Activity" -o - | ffmpeg -f image2pipe -r 60 -vcodec ppm -y -i - -bf 0 -crf 1 -loglevel 24 -pix_fmt yuv420p -preset veryslow -threads 0 -vcodec libx264 $TMP/$FILE.x264.mp4
+
+# Multiplex with background video.
+if [[ -n "$BACKGROUND" && -f "$BACKGROUND" ]]; then
+  echo "Multiplexing background video: $BACKGROUND"
+  ffmpeg -i "$BACKGROUND" -i $TMP/$FILE.x264.mp4 -filter_complex "[1:v]colorkey=0x$BG:0.01:0.2[ckout];[0:v][ckout]overlay=shortest=1[out]" -loglevel 24 -map '[out]' -shortest -y $TMP/$FILE.muxed.mp4
+else
+  cp $TMP/$FILE.x264.mp4 $TMP/$FILE.muxed.mp4
+fi
+
+# Final video with background audio.
+if [[ -n "$AUDIO" && -f "$AUDIO" ]]; then
+  echo "Multiplexing background audio: $AUDIO"
+  FADE_OUT=$(ffprobe -i $TMP/$FILE.muxed.mp4 -loglevel -8 -of compact=p=0:nk=1 -show_entries stream=duration | awk '{print int($1 - 2)}')
+  ffmpeg -i $TMP/$FILE.muxed.mp4 -i "$AUDIO" -c:v copy -c:a aac -af "afade=in:st=0:d=2,afade=out:st=$FADE_OUT:d=2,volume=0.5" -loglevel 24 -strict experimental -shortest -y $FILE.mp4
+else
+  cp $TMP/$FILE.muxed.mp4 $FILE.mp4
+fi
+
+# Remove tmp folder.
+rm -rf $TMP
+
+echo "$NAME Git activity video is successfully created: $PWD/$FILE.mp4"

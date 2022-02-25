@@ -76,6 +76,7 @@ Script Name                                         | Language | Description
 [git-new-branch](bin/git-new-branch)                | Python   | Create git new branch from base branch, push to remote and track.
 [git-new-workdir](bin/git-new-workdir)              | Bash     | Create new git working folder with shared git repository.
 [git-stat-cache](bin/git-stat-cache)                | Bash     | Store and apply file / folder ownership and permissions in git.
+[git-visual](bin/git-visual)                        | Bash     | Create Git activity visualization video.
 [git-what-branch](bin/git-what-branch)              | Perl     | Show the earliest path of git commits.
 [gpg-verify](bin/gpg-verify)                        | Bash     | Verify [GPG](https://www.gnupg.org/) signature from specified document path.
 [json-prettifier](bin/json-prettifier)              | Bash     | Pretty print [JSON](https://www.json.org/json-en.html) document.
