@@ -1,0 +1,41 @@
+#!/bin/sh
+
+#    m3u8 to mp4 - Convert m3u8 playlist to mp4.
+#    Copyright (C) 2009-2022  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Source function library.
+. ~/bin/functions
+
+usage () {
+  echo "Usage: $0 -f </path/to/video.mp4> -h -u </path/to/index.m3u8>\n"
+  echo "The following switches are recognized."
+  echo "  -f -- The target video file path."
+  echo "  -h -- Show this usage."
+  echo "  -u -- The m3u8 playlist path / URL."
+  exit 127
+}
+
+while getopts ":f:hu:" o; do
+  case "$o" in
+    f) FILE=$OPTARG;;
+    h) usage;;
+    u) URL=$OPTARG;;
+  esac
+done
+
+[[ -z "$FILE" || -z "$URL" ]] && usage
+
+ffmpeg -i "$URL" -c copy -loglevel 24 $FILE
