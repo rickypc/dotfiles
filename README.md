@@ -82,6 +82,7 @@ Script Name                                         | Language | Description
 [json-prettifier](bin/json-prettifier)              | Bash     | Pretty print [JSON](https://www.json.org/json-en.html) document.
 [json-uglifier](bin/json-uglifier)                  | Bash     | Remove whitespaces from [JSON](https://www.json.org/json-en.html) document.
 [kill-port](bin/kill-port)                          | Bash     | Kill any process running on given port.
+[m3u8-mp4](bin/m3u8-mp4)                            | Bash     | Convert [m3u8](https://en.wikipedia.org/wiki/M3U) playlist to [mp4](https://en.wikipedia.org/wiki/MPEG-4_Part_14) video.
 [metadata-service](bin/metadata-service)            | Bash     | Advertise local machine as AWS [EC2](https://aws.amazon.com/ec2/) instance.
 [migrate-php](bin/migrate-php)                      | Bash     | Migrate between [PHP](https://www.php.net/) versions.
 [mvn-deps](bin/mvn-deps)                            | Bash     | List [Maven](https://en.wikipedia.org/wiki/Apache_Maven) artifact dependencies.
