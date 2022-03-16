@@ -19,6 +19,11 @@
 # Source function library.
 . ~/bin/functions
 
+die () {
+  echo $@
+  exit 128
+}
+
 usage () {
   echo "Usage: $0 -f </path/to/video.mp4> -h -u </path/to/index.m3u8>\n"
   echo "The following switches are recognized."
@@ -37,5 +42,12 @@ while getopts ":f:hu:" o; do
 done
 
 [[ -z "$FILE" || -z "$URL" ]] && usage
+[ -f "$FILE" ] && die "Video exists: $FILE"
 
-ffmpeg -i "$URL" -c copy -loglevel 24 $FILE
+if [ -z "$(brew list --versions ffmpeg)" ]; then
+  step "Install latest FFmpeg"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install ffmpeg
+  next
+fi
+
+ffmpeg -i "$URL" -c copy -loglevel 24 -stats $FILE
