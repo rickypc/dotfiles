@@ -69,6 +69,7 @@ __pycache__/
 .virtualenvs
 .viminfo
 .vscode
+.yarn
 .yarnrc
 .zsh_history
 .zsh_sessions
