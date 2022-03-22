@@ -3,6 +3,7 @@
 __pycache__/
 *.chk
 *.egg-info
+*.lock
 *.log
 *.py[cod]
 *.swp

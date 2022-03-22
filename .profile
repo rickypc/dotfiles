@@ -245,3 +245,8 @@ if [ -d ~/.virtualenvs ]; then
     . $WORKON_HOME/default/bin/activate
   fi
 fi
+
+if [ -d ~/.yarn/bin ]; then
+  export_to_path ~/.yarn/bin
+  export_to_path ~/.config/yarn/global/node_modules/.bin
+fi
