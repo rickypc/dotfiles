@@ -1,12 +1,18 @@
---- .vscode/extensions/zobo.php-intellisense-1.0.5/vendor/felixfbecker/language-server/src/Indexer.php	2022-02-18 13:32:07.000000000 -0800
-+++ .vscode/extensions/zobo.php-intellisense-1.0.5/vendor/felixfbecker/language-server/src/Indexer.php	2022-02-18 14:14:15.000000000 -0800
-@@ -122,6 +122,10 @@
+--- .vscode/extensions/zobo.php-intellisense-1.0.6/vendor/felixfbecker/language-server/src/Indexer.php	2022-04-21 09:09:56.000000000 -0700
++++ .vscode/extensions/zobo.php-intellisense-1.0.6/vendor/felixfbecker/language-server/src/Indexer.php	2022-04-21 09:13:57.000000000 -0700
+@@ -122,6 +122,16 @@
              $pattern = Path::makeAbsolute('**/*.php', $this->rootPath);
              $uris = yield $this->filesFinder->find($pattern);
  
-+            $excludeDirs = ['\.git', 'contrib', 'core', 'files', 'simpletest', 'tests', 'vendor'];
-+            $excludePattern = sprintf('/%s/i', implode('|', $excludeDirs));
-+            $uris = array_filter($uris, fn($uri) => preg_match($excludePattern, $uri) !== 1);
++            $uris = array_filter($uris, fn($uri) => preg_match(sprintf('/%s/i', implode('|', [
++              '\.git',
++              'contrib',
++              'core',
++              'files',
++              'simpletest',
++              'tests',
++              'vendor',
++            ])), $uri) !== 1);
 +
              $count = count($uris);
              $startTime = microtime(true);
