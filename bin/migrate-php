@@ -36,7 +36,7 @@ NEW_INI=$PREFIX/etc/php/$NEW_VERSION/php.ini
 NEW_WWW=$PREFIX/etc/php/$NEW_VERSION/php-fpm.d/www.conf
 
 step "Install PHP@$NEW_VERSION"
-  try brew reinstall php@$NEW_VERSION
+  try HOMEBREW_NO_ENV_HINTS=1 brew reinstall php@$NEW_VERSION
 next
 
 step "Config setup for PHP@$NEW_VERSION"
@@ -71,7 +71,7 @@ step "Install dependencies for PHP@$NEW_VERSION"
     try pecl install ast
   fi
   if [ -z "$(php -i | grep -w mcrypt)" ]; then
-    try pecl install mcrypt
+    try pecl install mcrypt <<<"$(ls -d $PREFIX/Cellar/mcrypt/* | tail -1)"
   fi
   if [ -z "$(php -i | grep -w xdebug)" ]; then
     try pecl install xdebug
