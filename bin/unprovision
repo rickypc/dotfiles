@@ -27,21 +27,9 @@ step "Clear caches"
   try find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
   try command -v composer &>/dev/null && composer clearcache 2>/dev/null
 
-  if [ -n "$(command -v npm)" ]; then
-    output_start
-    npm cache verify
-    output_end
-  fi
-
   if [ -n "$(command -v nuget)" ]; then
     output_start
     nuget locals all -clear
-    output_end
-  fi
-
-  if [ -n "$(command -v yarn)" ]; then
-    output_start
-    yarn cache clean
     output_end
   fi
 next
@@ -59,9 +47,35 @@ step "Clear log files"
   fi
 next
 
-# Only when brew executable exists
+# Only when yarn executable exists.
+if [ -n "$(command -v yarn)" ]; then
+  output_start
+  yarn cache clean
+  npm uninstall -g --no-audit --no-fund yarn
+  output_end
+fi
+
+# Only when npm executable exists.
+if [ -n "$(command -v npm)" ]; then
+  output_start
+  npm cache verify
+  npm uninstall -g --no-audit --no-fund npm
+  output_end
+fi
+
+# Only when brew executable exists.
 if [ -x "$(command -v brew)" ]; then
   output_start
+  # Stop services.
+  if [ -n "$(brew list --versions mysql)" ]; then
+    brew services stop mysql
+  fi
+  if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
+    brew services stop php@$PHP_LTS
+  fi
+  if [ -n "$(brew list --versions nginx)" ]; then
+    sudo brew services stop nginx
+  fi
   brew list --cask | xargs brew uninstall --force
   brew list | xargs brew uninstall --force
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"

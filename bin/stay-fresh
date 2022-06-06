@@ -131,10 +131,9 @@ step "Upgrade Homebrew formulae"
   echo
   # Upgrade all installed unpinned brews.
   HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew upgrade --ignore-pinned
-next
 
-if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
-  step "Link NodeJS v$NODE_LTS"
+  # Link node.js to the latest.
+  if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
     try brew unlink node@$NODE_LTS
     try brew link --force --overwrite node@$NODE_LTS
     if [ -n "$(npm outdated -g npm)" ]; then
@@ -143,16 +142,26 @@ if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
     if [ -n "$(npm outdated -g yarn)" ]; then
       try npm install --force -g --no-audit --no-fund yarn
     fi
-  next
-fi
+  fi
 
-if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
-  step "Link PHP v$PHP_LTS"
+  # Link PHP to the latest.
+  if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
     try brew unlink php@$PHP_LTS
     try brew link --force --overwrite php@$PHP_LTS
     curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
-  next
-fi
+    brew services restart php@$PHP_LTS
+  fi
+
+  # Restart services.
+  output_start
+  if [ -n "$(brew list --versions mysql)" ]; then
+    brew services restart mysql
+  fi
+  if [ -n "$(brew list --versions nginx)" ]; then
+    sudo brew services restart nginx
+  fi
+  output_end
+next
 
 step "Clean Homebrew caches"
   echo
