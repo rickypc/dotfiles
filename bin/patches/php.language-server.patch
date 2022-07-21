@@ -1,5 +1,5 @@
---- .vscode/extensions/zobo.php-intellisense-1.0.8/vendor/felixfbecker/language-server/src/Indexer.php	2022-05-22 10:11:29.000000000 -0700
-+++ .vscode/extensions/zobo.php-intellisense-1.0.8/vendor/felixfbecker/language-server/src/Indexer.php	2022-05-22 10:10:46.000000000 -0700
+--- .vscode/extensions/zobo.php-intellisense-1.0.11/vendor/felixfbecker/language-server/src/Indexer.php	2022-07-20 23:02:10.000000000 -0700
++++ .vscode/extensions/zobo.php-intellisense-1.0.11/vendor/felixfbecker/language-server/src/Indexer.php	2022-07-20 23:02:34.000000000 -0700
 @@ -122,6 +122,16 @@
              $pattern = Path::makeAbsolute('**/*.php', $this->rootPath);
              $uris = yield $this->filesFinder->find($pattern);
