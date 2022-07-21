@@ -142,8 +142,8 @@ if [ -z "$(brew list --versions node@$NODE_LTS)" ]; then
   step "Install NodeJS v$NODE_LTS"
     try HOMEBREW_NO_ENV_HINTS=1 brew install node@$NODE_LTS
     try brew link --force --overwrite node@$NODE_LTS
-    try npm install --force -g --no-audit --no-fund npm
-    try npm install --force -g --no-audit --no-fund yarn
+    try npm install --force --location=global --no-audit --no-fund npm
+    try npm install --force --location=global --no-audit --no-fund yarn
   next
 fi
 

@@ -51,7 +51,7 @@ next
 if [ -n "$(command -v yarn)" ]; then
   output_start
   yarn cache clean
-  npm uninstall -g --no-audit --no-fund yarn
+  npm uninstall --location=global --no-audit --no-fund yarn
   output_end
 fi
 
@@ -59,7 +59,7 @@ fi
 if [ -n "$(command -v npm)" ]; then
   output_start
   npm cache verify
-  npm uninstall -g --no-audit --no-fund npm
+  npm uninstall --location=global --no-audit --no-fund npm
   output_end
 fi
 

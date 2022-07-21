@@ -136,11 +136,11 @@ step "Upgrade Homebrew formulae"
   if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
     try brew unlink node@$NODE_LTS
     try brew link --force --overwrite node@$NODE_LTS
-    if [ -n "$(npm outdated -g npm)" ]; then
-      try npm install --force -g --no-audit --no-fund npm
+    if [ -n "$(npm outdated --location=global npm)" ]; then
+      try npm install --force --location=global --no-audit --no-fund npm
     fi
-    if [ -n "$(npm outdated -g yarn)" ]; then
-      try npm install --force -g --no-audit --no-fund yarn
+    if [ -n "$(npm outdated --location=global yarn)" ]; then
+      try npm install --force --location=global --no-audit --no-fund yarn
     fi
   fi
 
