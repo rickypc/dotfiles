@@ -20,7 +20,7 @@
 . ~/bin/functions
 
 if [ ! -f ~/bin/displayplacer ]; then
-  curl -fsSL https://raw.githubusercontent.com/jakehilborn/displayplacer/master/displayplacer --output ~/bin/displayplacer
+  curl -fsSL https://github.com/jakehilborn/displayplacer/releases/download/v1.2.0/displayplacer --output ~/bin/displayplacer
   chmod 755 ~/bin/displayplacer
 fi
 
