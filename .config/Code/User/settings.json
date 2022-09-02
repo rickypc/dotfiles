@@ -203,6 +203,7 @@
   "terminal.integrated.copyOnSelection": true,
   "terminal.integrated.cursorBlinking": true,
   "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.shellIntegration.showWelcome": false,
   "update.showReleaseNotes": false,
