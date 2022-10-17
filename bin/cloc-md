@@ -1,0 +1,76 @@
+#!/bin/sh
+
+#    cloc with md format - Generate cloc for multi git repos with md format.
+#    Copyright (C) 2015-2022  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Source function library.
+. ~/bin/functions
+
+count() {
+  cloc --md $1 | while read -r LINE; do
+    [[ "$LINE" =~ Language ]] && echo "||${LINE//|/||}||"
+    [[ -z "$LINE" || "$LINE" =~ (---|cloc|Language) ]] || echo "|$LINE|"
+  done
+  cd && rm -rf $1
+}
+
+usage () {
+  echo "Usage: $0 -c -h -r <git.repo.rul> -r <git.repo.url>\n"
+  echo "The following switches are recognized."
+  echo "  -c -- Combine all given repo URL(s)."
+  echo "  -h -- Show this usage."
+  echo "  -r -- The git repo URL(s)."
+  exit 127
+}
+
+while getopts ":chr:" o; do
+  case "$o" in
+    c) COMBINE=true;;
+    h) usage;;
+    r) URLS+=("$OPTARG");;
+  esac
+done
+
+[ -z "$URLS" ] && usage
+
+if [ -z "$(brew list --versions cloc)" ]; then
+  step "Install latest cloc"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install cloc
+  next
+fi
+
+if [ "$COMBINE" = true ]; then
+  TMP_DIR=$(mktemp -d -t cloc)
+  cd $TMP_DIR
+
+  for URL in "${URLS[@]}"; do
+    git clone --quiet "$URL"
+  done
+
+  count $TMP_DIR
+  exit 0
+fi
+
+DELIMITER=
+
+for URL in "${URLS[@]}"; do
+  TMP_DIR=$(mktemp -d -t cloc)
+  git clone --quiet "$URL" $TMP_DIR
+  echo "$DELIMITER$URL\n"
+  count $TMP_DIR
+  DELIMITER='\n'
+done
+
