@@ -74,7 +74,7 @@ step "Clear caches"
   try rm -rf ~/Library/Containers/com.apple.Preview/*
   try find ~/Library/Developer/Xcode/Archives -type f -exec rm -f '{}' \; &>/dev/null
   try find ~/Library/Developer/Xcode/DerivedData -type f -exec rm -f '{}' \; &>/dev/null
-  try command -v composer &>/dev/null && composer clearcache 2>/dev/null
+  try command -v composer &>/dev/null && composer clear-cache 2>/dev/null
 
   if [ -n "$(command -v npm)" ]; then
     output_start
