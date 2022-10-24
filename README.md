@@ -63,6 +63,7 @@ Script Name                                         | Language | Description
 [cpan-uninstall](bin/cpan-uninstall)                | Perl     | Uninstall [CPAN](https://en.wikipedia.org/wiki/CPAN) package.
 [devel.umd.js](bin/devel.umd.js)                    | ES6      | Browser file loader for development mode.
 [disk-usage](bin/disk-usage)                        | Bash     | Get disk space usage for current folder.
+[displays](bin/displays)                            | Bash     | Set all available display placements.
 [docker-cleanup](bin/docker-cleanup)                | Bash     | Remove exited [Docker](https://www.docker.com) containers and untagged [Docker](https://www.docker.com) images.
 [download-site](bin/download-site)                  | Bash     | Download any site for offline fair use.
 [download-site-partial](bin/download-site-partial)  | Bash     | Download any site partially for offline fair use.

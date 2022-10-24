@@ -1,0 +1,82 @@
+#!/bin/bash
+
+#    Set display placements - Set placement of all available displays.
+#    Copyright (C) 2016-2022  Richard Huang <rickypc@users.noreply.github.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+usage () {
+  echo "Usage: $0 -f -h\n"
+  echo "The following switches are recognized."
+  echo "  -f -- Flip the extended displays."
+  echo "  -h -- Show this usage."
+  exit 127
+}
+
+while getopts ":fh" o; do
+  case "$o" in
+    f) FLIP=1;;
+    h) usage;;
+  esac
+done
+
+if [ ! -f ~/bin/displayplacer ]; then
+  curl -fsSL https://github.com/jakehilborn/displayplacer/releases/download/v1.2.0/displayplacer --output ~/bin/displayplacer
+  chmod 755 ~/bin/displayplacer
+fi
+
+CURRENT=$(~/bin/osx-displays | tail -1 | sed "s/\"* \"id:/~/g")
+MAIN=$(echo $CURRENT | cut -d'~' -f2)
+MAIN_DEPTH=$(echo $MAIN | cut -d' ' -f4)
+MAIN_HZ=$(echo $MAIN | cut -d' ' -f3)
+MAIN_ID=$(echo $MAIN | cut -d' ' -f1)
+MAIN_RES=$(echo $MAIN | cut -d' ' -f2)
+MAIN_SCALE=$(echo $MAIN | cut -d' ' -f5)
+# Main screen always on 0,0.
+MAIN_CMD="id:$MAIN_ID $MAIN_RES $MAIN_HZ $MAIN_DEPTH $MAIN_SCALE origin:(0,0) degree:0"
+
+if [ -n "$FLIP" ]; then
+  LEFT=$(echo $CURRENT | cut -d'~' -f4)
+  RIGHT=$(echo $CURRENT | cut -d'~' -f3)
+else
+  LEFT=$(echo $CURRENT | cut -d'~' -f3)
+  RIGHT=$(echo $CURRENT | cut -d'~' -f4)
+fi
+
+if [[ -z "$LEFT" || -z "$RIGHT" ]]; then
+  displayplacer "$MAIN_CMD"
+else
+  LEFT_DEPTH=$(echo $LEFT | cut -d' ' -f4)
+  LEFT_HZ=$(echo $LEFT | cut -d' ' -f3)
+  LEFT_ID=$(echo $LEFT | cut -d' ' -f1)
+  LEFT_RES=$(echo $LEFT | cut -d' ' -f2)
+  LEFT_SCALE=$(echo $LEFT | cut -d' ' -f5)
+  RIGHT_DEPTH=$(echo $RIGHT | cut -d' ' -f4)
+  RIGHT_HZ=$(echo $RIGHT | cut -d' ' -f3)
+  RIGHT_ID=$(echo $RIGHT | cut -d' ' -f1)
+  RIGHT_RES=$(echo $RIGHT | cut -d' ' -f2)
+  RIGHT_SCALE=$(echo $RIGHT | cut -d' ' -f5)
+
+  LEFT_HEIGHT=$(echo ${LEFT_RES/res:/} | cut -d 'x' -f2)
+  LEFT_WIDTH=$(echo ${LEFT_RES/res:/} | cut -d 'x' -f1)
+  MAIN_WIDTH=$(echo ${MAIN_RES/res:/} | cut -d 'x' -f1)
+  MAIN_CENTER=$((MAIN_WIDTH / 2))
+  RIGHT_HEIGHT=$(echo ${RIGHT_RES/res:/} | cut -d 'x' -f2)
+
+  LEFT_CENTER=$((LEFT_WIDTH - MAIN_CENTER))
+  LEFT_CMD="id:$LEFT_ID $LEFT_RES $LEFT_HZ $LEFT_DEPTH $LEFT_SCALE origin:(-$LEFT_CENTER,-$LEFT_HEIGHT) degree:0"
+  RIGHT_CMD="id:$RIGHT_ID $RIGHT_RES $RIGHT_HZ $RIGHT_DEPTH $RIGHT_SCALE origin:($MAIN_CENTER,-$RIGHT_HEIGHT) degree:0"
+
+  displayplacer "$MAIN_CMD" "$LEFT_CMD" "$RIGHT_CMD"
+fi
