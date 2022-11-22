@@ -114,6 +114,13 @@ if [ -z "$(brew list --versions openssl)" ]; then
   next
 fi
 
+if [ -z "$(brew list --versions redis)" ]; then
+  step "Install latest Redis"
+    try HOMEBREW_NO_ENV_HINTS=1 brew install redis
+    try brew services start redis
+  next
+fi
+
 if [ ! -f ~/.dotnet/tools/reportgenerator ]; then
   step "Install latest Report Generator"
     try $LOCAL/bin/dotnet tool install --global dotnet-reportgenerator-globaltool

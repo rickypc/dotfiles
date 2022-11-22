@@ -76,6 +76,9 @@ if [ -x "$(command -v brew)" ]; then
   if [ -n "$(brew list --versions nginx)" ]; then
     sudo brew services stop nginx
   fi
+  if [ -n "$(brew list --versions redis)" ]; then
+    brew services stop redis
+  fi
   brew list --cask | xargs brew uninstall --force
   brew list | xargs brew uninstall --force
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
@@ -85,6 +88,7 @@ fi
 step "Clear history files"
   try :>~/.lesshst
   [ -f ~/.mysql_history ] && try :>~/.mysql_history
+  [ -f ~/.rediscli_history ] && try :>~/.rediscli_history
 next
 
 step "Clear Vim history files"

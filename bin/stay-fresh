@@ -60,6 +60,7 @@ next
 step "Clear history files"
   try :>~/.lesshst
   [ -f ~/.mysql_history ] && try :>~/.mysql_history
+  [ -f ~/.rediscli_history ] && try :>~/.rediscli_history
 next
 
 step "Clear Vim history files"
@@ -159,6 +160,9 @@ step "Upgrade Homebrew formulae"
   fi
   if [ -n "$(brew list --versions nginx)" ]; then
     sudo brew services restart nginx
+  fi
+  if [ -n "$(brew list --versions redis)" ]; then
+    brew services restart redis
   fi
   output_end
 next

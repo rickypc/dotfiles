@@ -53,6 +53,7 @@ __pycache__/
 .pylint.d
 .pypirc
 .python_history
+.rediscli_history
 .redisinsight
 .rnd
 .searchignore
