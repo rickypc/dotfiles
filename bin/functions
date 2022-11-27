@@ -23,7 +23,7 @@ MACHINE=$(uname -m)
 [ $MACHINE = 'arm64' ] && LOCAL=/opt/homebrew || LOCAL=/usr/local
 LOCAL_BIN=$LOCAL/bin
 MOVE_TO_COL="echo -en \\033[${RES_COL}G"
-NODE_LTS=16
+NODE_LTS=18
 PHP_LTS=8.1
 SET_COLOR_BOLD="echo -en \\033[1m"       # White Bold
 SET_COLOR_DIM="echo -en \\033[2m"        # White Dim
