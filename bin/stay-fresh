@@ -40,7 +40,7 @@ next
 step "Remove outdated .NET Core Runtime and SDK"
   # https://github.com/dotnet/cli-lab/releases
   if [ -x "$(command -v dotnet-core-uninstall)" ]; then
-    sudo -- sh -c 'dotnet-core-uninstall remove --all-but-latest --runtime -y; dotnet-core-uninstall remove --all-but-latest --sdk -y'
+    sudo -- sh -c "dotnet-core-uninstall remove --all-below $NETCORE_LTS --runtime -y; dotnet-core-uninstall remove --all-below $NETCORE_LTS --sdk -y"
   fi
 next
 
