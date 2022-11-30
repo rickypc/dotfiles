@@ -70,9 +70,6 @@ step "Install dependencies for PHP@$NEW_VERSION"
   if [ -z "$(php -i | grep -w ast)" ]; then
     try pecl install ast
   fi
-  if [ -z "$(php -i | grep -w mcrypt)" ]; then
-    try pecl install mcrypt <<<"$(ls -d $PREFIX/Cellar/mcrypt/* | tail -1)"
-  fi
   if [ -z "$(php -i | grep -w xdebug)" ]; then
     try pecl install xdebug
   fi

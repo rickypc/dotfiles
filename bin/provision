@@ -139,12 +139,6 @@ if [ -z "$(brew list --versions golangci-lint)" ]; then
   next
 fi
 
-if [ -z "$(brew list --versions mcrypt)" ]; then
-  step "Install Mcrypt"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install mcrypt
-  next
-fi
-
 if [ -z "$(brew list --versions node@$NODE_LTS)" ]; then
   step "Install NodeJS v$NODE_LTS"
     try HOMEBREW_NO_ENV_HINTS=1 brew install node@$NODE_LTS
@@ -196,9 +190,6 @@ if [ -z "$(brew list --versions php@$PHP_LTS)" ]; then
     fi
     if [ -z "$(php -i | grep -w igbinary)" ]; then
       try pecl install igbinary
-    fi
-    if [ -z "$(php -i | grep -w mcrypt)" ]; then
-      try pecl install mcrypt <<<"$(ls -d $PREFIX/Cellar/mcrypt/* | tail -1)"
     fi
     if [ -z "$(php -i | grep -w redis)" ]; then
       try pecl install redis
