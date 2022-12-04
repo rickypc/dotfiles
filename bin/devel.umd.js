@@ -238,7 +238,7 @@ const loadTransforms = async (paths, globalsOverrides) => {
   let found = false;
   try {
     found = !!Babel;
-  } catch (_) {
+  } catch {
     // eslint-disable-next-line no-console
     console.error('Did you forget to install @babel/standalone?');
     return found;
