@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-PATCHES=("$HOME/.vscode/extensions/zobo.php-intellisense-1.0.12/vendor/felixfbecker/language-server/src/Indexer.php:$HOME/bin/patches/php.language-server.patch"
+PATCHES=("$HOME/.vscode/extensions/zobo.php-intellisense-1.0.13/vendor/felixfbecker/language-server/src/Indexer.php:$HOME/bin/patches/php.language-server.patch"
          )
 
 for entry in "${PATCHES[@]}"; do
