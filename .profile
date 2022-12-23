@@ -173,6 +173,10 @@ if [ -d $CATALINA_DIR ]; then
   export_to_path "$CATALINA_HOME/bin"
 fi
 
+if [ -d ~/.docker/bin ]; then
+  export_to_path ~/.docker/bin
+fi
+
 if [ -d $FLUTTER_DIR ]; then
   export_to_path "$FLUTTER_DIR/bin"
 fi
