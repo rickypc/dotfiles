@@ -70,6 +70,12 @@ step "Install dependencies for PHP@$NEW_VERSION"
   if [ -z "$(php -i | grep -w ast)" ]; then
     try pecl install ast
   fi
+  if [ -z "$(php -i | grep -w igbinary)" ]; then
+    try pecl install igbinary
+  fi
+  if [ -z "$(php -i | grep -w redis)" ]; then
+    try pecl install redis
+  fi
   if [ -z "$(php -i | grep -w xdebug)" ]; then
     try pecl install xdebug
   fi
