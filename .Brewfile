@@ -28,7 +28,7 @@ brew 'mysql', restart_service: true
 brew 'nginx', restart_service: true
 brew 'node@18', link: :overwrite
 brew 'openssl@3'
-brew 'php@8.1', restart_service: true, link: true
+brew 'php@8.1', restart_service: true, link: :overwrite
 brew 'redis', restart_service: true unless personal
 brew 'vim'
 brew 'golangci/tap/golangci-lint'

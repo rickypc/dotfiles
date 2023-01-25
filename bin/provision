@@ -78,6 +78,7 @@ if [ ! -f ~/.dotnet/tools/reportgenerator ]; then
 fi
 
 step "Setup NodeJS v$NODE_LTS"
+  try brew link --force --overwrite node@$NODE_LTS
   try npm install --force --location=global --no-audit --no-fund npm
   try npm install --force --location=global --no-audit --no-fund yarn
 next
@@ -109,6 +110,7 @@ step "Setup PHP v$PHP_LTS"
   # Replace socket php-fpm location.
   content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
   # Links and install extensions.
+  try brew link --force --overwrite php@$PHP_LTS
   try mkdir -p $LOCAL/lib/php/pecl
   try pecl channel-update pecl.php.net
   if [ -z "$(php -i | grep -w ast)" ]; then
@@ -216,6 +218,7 @@ if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
 fi
 
 step "Clean Docker containers and images"
+  try brew link --force --overwrite docker
   try ~/bin/docker-cleanup
 next
 
