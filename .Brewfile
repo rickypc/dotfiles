@@ -1,3 +1,4 @@
+personal = `hostname -s`.strip.start_with?('Ric')
 tap 'golangci/tap'
 tap 'homebrew/bundle'
 tap 'homebrew/cask'
@@ -7,20 +8,20 @@ tap 'homebrew/services'
 brew 'python@3.11', link: true
 brew 'awscli'
 brew 'python@3.9', link: false
-brew 'cloc'
-brew 'colima'
+brew 'cloc' unless personal
+brew 'colima' unless personal
 brew 'coreutils'
 brew 'curl'
-brew 'dive'
-brew 'docker', link: :overwrite
-brew 'dos2unix'
+brew 'dive' unless personal
+brew 'docker', link: :overwrite unless personal
+brew 'dos2unix' unless personal
 brew 'ffmpeg'
 brew 'git'
+brew 'gnupg' if personal
 brew 'go'
 brew 'python@3.10', link: false
-brew 'gource'
-brew 'graphviz'
-brew 'html-xml-utils'
+brew 'gource' unless personal
+brew 'html-xml-utils' unless personal
 brew 'imagemagick'
 brew 'jq'
 brew 'mysql', restart_service: true
@@ -28,20 +29,20 @@ brew 'nginx', restart_service: true
 brew 'node@18', link: :overwrite
 brew 'openssl@3'
 brew 'php@8.1', restart_service: true, link: true
-brew 'redis', restart_service: true
+brew 'redis', restart_service: true unless personal
 brew 'vim'
 brew 'golangci/tap/golangci-lint'
 cask 'aerial'
-cask 'dotnet-sdk'
+cask 'dotnet-sdk' unless personal
 cask 'firefox'
 cask 'gimp'
 cask 'microsoft-auto-update'
 cask 'microsoft-edge'
-cask 'mono-mdk-for-visual-studio'
+cask 'mono-mdk-for-visual-studio' unless personal
 cask 'omnidisksweeper'
 cask 'opera'
-cask 'redisinsight'
-cask 'sqlworkbenchj'
-cask 'temurin8'
-cask 'visual-studio'
+cask 'redisinsight' unless personal
+cask 'sqlworkbenchj' unless personal
+cask 'temurin8' unless personal
+cask 'visual-studio' unless personal
 cask 'visual-studio-code'
