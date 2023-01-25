@@ -18,6 +18,7 @@ __pycache__/
 .cache
 .CFUserTextEncoding
 .cisco
+.colima
 .composer
 .config
 .cpan
@@ -35,6 +36,7 @@ __pycache__/
 .IdentityService
 .idlerc
 .lesshst
+.lima
 .local
 .m2
 .MacOSX
