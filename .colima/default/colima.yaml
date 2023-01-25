@@ -1,11 +1,11 @@
 # Number of CPUs to be allocated to the virtual machine.
 # Default: 2
-cpu: 2
+cpu: 4
 
 # Size of the disk in GiB to be allocated to the virtual machine.
 # NOTE: changing this has no effect after the virtual machine has been created.
 # Default: 60
-disk: 10
+disk: 45
 
 # Size of the memory in GiB to be allocated to the virtual machine.
 # Default: 2
@@ -114,6 +114,7 @@ docker:
       enabled: true
   debug: true
   dns:
+    - 192.168.5.2
     - 8.8.8.8
     - 8.8.4.4
     - 2001:4860:4860::8888

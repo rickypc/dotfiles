@@ -13,6 +13,9 @@ if [ "$(ps -u $USER | grep zsh | wc -l)" = "2" ]; then
         kill -9 $(echo $CATALINA_STARTED | awk '{print $1}')
     fi
 
+    colima stop
+    limactl stop colima -f
+
     # when leaving the console, clear the screen to increase privacy
     [ -x /usr/bin/clear ] && /usr/bin/clear -q
 
