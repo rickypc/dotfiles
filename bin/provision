@@ -218,7 +218,9 @@ if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
 fi
 
 step "Clean Docker containers and images"
-  try brew link --force --overwrite docker
+  if [ -n "$(brew list --versions docker)" ]; then
+    try brew link --force --overwrite docker
+  fi
   try ~/bin/docker-cleanup
 next
 
