@@ -29,9 +29,9 @@ if [ -f ~/.bash_completion.d/git.bash-completion ]; then
   #GIT_PS1_SHOWDIRTYSTATE=true
   #GIT_PS1_SHOWSTASHSTATE=true
   #GIT_PS1_SHOWUNTRACKEDFILES=true
-  PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\W\$(__git_ps1 ' (%s)')${BY}\$${NONE} "
+  PS1="\D{%r} ${BB}\w \$(__git_ps1 ' (%s)') ${BY}\$${NONE} "
 else
-  PS1="${R}\u${BY}@${B}\h${NONE}:${BB}\W${BY}\$${NONE} "
+  PS1="\D{%r} ${BB}\w ${BY}\$${NONE} "
 fi
 
 powerline-daemon -q
