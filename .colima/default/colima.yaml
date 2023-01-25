@@ -24,12 +24,12 @@ kubernetes:
   # Enable kubernetes.
   # Default: false
   enabled: false
-
+  
   # Kubernetes version to use.
   # This needs to exactly match a k3s version https://github.com/k3s-io/k3s/releases
   # Default: latest stable release
   version: v1.25.4+k3s1
-
+  
   # Disable k3s features [coredns servicelb traefik local-storage metrics-server].
   # All features are enabled unless disabled.
   #
@@ -53,7 +53,7 @@ network:
   # NOTE: this is currently macOS only and ignored on Linux.
   # Default: false
   address: false
-
+  
   # Custom DNS resolvers for the virtual machine.
   #
   # EXAMPLE
@@ -65,7 +65,7 @@ network:
     - 8.8.4.4
     - 2001:4860:4860::8888
     - 2001:4860:4860::8844
-
+  
   # DNS hostnames to resolve to custom targets using the internal resolver.
   # This setting has no effect if a custom DNS resolver list is supplied above.
   # It does not configure the /etc/hosts files of any machine or container.
@@ -75,7 +75,7 @@ network:
   # dnsHosts:
   #   example.com: 1.2.3.4
   dnsHosts: {}
-
+  
   # Network driver to use (slirp, gvproxy), (requires vmType `qemu`)
   #   - slirp is the default user mode networking provided by Qemu
   #   - gvproxy is an alternative to VPNKit based on gVisor https://github.com/containers/gvisor-tap-vsock
@@ -128,7 +128,7 @@ docker:
 # vz is macOS virtualization framework and requires macOS 13
 #
 # Default: qemu
-vmType: vz
+vmType: ""
 
 # Volume mount driver for the virtual machine (virtiofs, 9p, sshfs).
 #
