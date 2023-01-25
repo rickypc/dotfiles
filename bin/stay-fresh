@@ -136,7 +136,6 @@ step "Upgrade Homebrew formulae"
   # Link node.js to the latest.
   if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
     try brew unlink node@$NODE_LTS
-    try brew link --force --overwrite node@$NODE_LTS
     if [ -n "$(npm outdated --location=global npm)" ]; then
       try npm install --force --location=global --no-audit --no-fund npm
     fi
@@ -148,7 +147,6 @@ step "Upgrade Homebrew formulae"
   # Link PHP to the latest.
   if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
     try brew unlink php@$PHP_LTS
-    try brew link --force --overwrite php@$PHP_LTS
     curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
     brew services restart php@$PHP_LTS
   fi

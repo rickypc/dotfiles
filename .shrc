@@ -22,3 +22,5 @@ esac
 # GNU Midnight Commander's setting of 'ignorespace'.
 # Both would be ('ignoreboth'). See bash(1) for more options.
 export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoreboth
+
+colima start 2>/dev/null

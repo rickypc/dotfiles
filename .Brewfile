@@ -12,7 +12,7 @@ brew 'colima'
 brew 'coreutils'
 brew 'curl'
 brew 'dive'
-brew 'docker'
+brew 'docker', link: :overwrite
 brew 'dos2unix'
 brew 'ffmpeg'
 brew 'git'
@@ -25,7 +25,7 @@ brew 'imagemagick'
 brew 'jq'
 brew 'mysql', restart_service: true
 brew 'nginx', restart_service: true
-brew 'node@18', link: 'overwrite'
+brew 'node@18', link: :overwrite
 brew 'openssl@3'
 brew 'php@8.1', restart_service: true, link: true
 brew 'redis', restart_service: true
