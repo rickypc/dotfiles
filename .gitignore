@@ -14,6 +14,7 @@ __pycache__/
 .aws-sam
 .bash_history
 .bash_sessions
+.Brewfile.lock*
 .cache
 .CFUserTextEncoding
 .cisco
@@ -41,6 +42,7 @@ __pycache__/
 .mono
 .my.cnf
 .mysql_history
+.net
 .node-gyp
 .node_repl_history
 .npm*

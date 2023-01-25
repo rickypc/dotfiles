@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #    Environment Provisioner - Provision development environment.
-#    Copyright (C) 2015-2022  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2015-2023  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,7 +20,9 @@
 . ~/bin/functions
 
 # Xcode command line tools, you are most likely need to install this manually from Apple Developer download.
-# xcode-select --install
+if ! [ -x "$(command -v xcode-select)" ]; then
+  xcode-select --install
+fi
 
 # Ensure $LOCAL/sbin exists.
 if [ ! -d $LOCAL/sbin ]; then
@@ -54,72 +56,20 @@ step "Clean Homebrew caches"
   try brew doctor
 next
 
-step "Tap Homebrew services repository"
-  try brew tap homebrew/services
+step "Install Homebrew packages"
+  try brew bundle --global
 next
 
-if [ -z "$(brew list --versions coreutils)" ]; then
-  step "Install latest CoreUtils"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install coreutils
-  next
-fi
-
-if [ -z "$(brew list --versions dive)" ]; then
-  step "Install latest Docker Dive"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install dive
-  next
-fi
-
-if [ -z "$(brew list --versions dos2unix)" ]; then
-  step "Install latest DOS to Unix"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install dos2unix
-  next
-fi
-
-if [ -z "$(brew list --cask --versions dotnet-sdk 2>/dev/null)" ]; then
-  step "Install latest DotNet SDK"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask dotnet-sdk
-  next
-fi
-
-if [ -z "$(brew list --versions graphviz)" ]; then
-  step "Install latest Graphviz"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install graphviz
-  next
-fi
-
-if [ -z "$(brew list --versions html-xml-utils)" ]; then
-  step "Install latest HTML XML Utils"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install html-xml-utils
-  next
-fi
-
-if [ -z "$(brew list --versions imagemagick)" ]; then
-  step "Install latest ImageMagick"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install imagemagick
-  next
-fi
-
-if [ -z "$(brew list --versions openssl)" ]; then
-  step "Install latest OpenSSL"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install openssl
-    SSL_PREFIX=$PREFIX/etc/openssl
-    try mkdir -p $SSL_PREFIX/certs $SSL_PREFIX/private
-    if [ ! -f $SSL_PREFIX/private/localhost.key ]; then
-      openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=localhost" -keyout $SSL_PREFIX/private/localhost.key -out $SSL_PREFIX/certs/localhost.crt
-    fi
-    if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
-      openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
-    fi
-  next
-fi
-
-if [ -z "$(brew list --versions redis)" ]; then
-  step "Install latest Redis"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install redis
-    try brew services start redis
-  next
-fi
+step "Setup OpenSSL keys"
+  SSL_PREFIX=$PREFIX/etc/openssl
+  try mkdir -p $SSL_PREFIX/certs $SSL_PREFIX/private
+  if [ ! -f $SSL_PREFIX/private/localhost.key ]; then
+    openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=localhost" -keyout $SSL_PREFIX/private/localhost.key -out $SSL_PREFIX/certs/localhost.crt
+  fi
+  if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
+    openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
+  fi
+next
 
 if [ ! -f ~/.dotnet/tools/reportgenerator ]; then
   step "Install latest Report Generator"
@@ -127,111 +77,77 @@ if [ ! -f ~/.dotnet/tools/reportgenerator ]; then
   next
 fi
 
-if [ -z "$(brew list --versions go)" ]; then
-  step "Install GoLang"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install go
-  next
-fi
+step "Setup NodeJS v$NODE_LTS"
+  try brew link --force --overwrite node@$NODE_LTS
+  try npm install --force --location=global --no-audit --no-fund npm
+  try npm install --force --location=global --no-audit --no-fund yarn
+next
 
-if [ -z "$(brew list --versions golangci-lint)" ]; then
-  step "Install GoLang Linter"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install golangci/tap/golangci-lint
-  next
-fi
-
-if [ -z "$(brew list --versions node@$NODE_LTS)" ]; then
-  step "Install NodeJS v$NODE_LTS"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install node@$NODE_LTS
-    try brew link --force --overwrite node@$NODE_LTS
-    try npm install --force --location=global --no-audit --no-fund npm
-    try npm install --force --location=global --no-audit --no-fund yarn
-  next
-fi
-
-if [ -z "$(brew list --versions python@3)" ]; then
-  step "Install Python 3"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install python@3 && ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
-  next
-fi
-
-step "Install latest Python dependencies"
+step "Setup Python 3 and its dependencies"
+  ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
   try $LOCAL/bin/pip3 install --user gitpython powerline-gitstatus powerline-status
 next
 
-step 'Install latest AWS CLI'
-  try HOMEBREW_NO_ENV_HINTS=1 brew install awscli
+step "Setup PHP v$PHP_LTS"
+  PHP_ETC=$PREFIX/etc/php/$PHP_LTS
+  PHP_INI=$PHP_ETC/php.ini
+  # Essentials configs.
+  content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
+  content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $PHP_INI
+  content_replace "s{;html_errors = On}{html_errors = On}" $PHP_INI
+  # Size matters.
+  content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
+  content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
+  # OPCache configs.
+  # content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
+  # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
+  # content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
+  # content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
+  # content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
+  # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
+  # content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
+  content_replace "s{;pcre.jit=1}{pcre.jit=0}" $PHP_INI
+  # Replace socket php-fpm location.
+  content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
+  # Links and install extensions.
+  try brew link --force --overwrite php@$PHP_LTS
+  try mkdir -p $LOCAL/lib/php/pecl
+  try pecl channel-update pecl.php.net
+  if [ -z "$(php -i | grep -w ast)" ]; then
+    try pecl install ast
+  fi
+  if [ -z "$(php -i | grep -w igbinary)" ]; then
+    try pecl install igbinary
+  fi
+  if [ -z "$(php -i | grep -w redis)" ]; then
+    try pecl install redis
+  fi
+  if [ -z "$(php -i | grep -w xdebug)" ]; then
+    try pecl install xdebug
+  fi
+  # Install latest Composer.
+  curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
+  try brew services restart php@$PHP_LTS
 next
 
-if [ -z "$(brew list --versions php@$PHP_LTS)" ]; then
-  step "Install PHP v$PHP_LTS"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install php@$PHP_LTS
-    PHP_ETC=$PREFIX/etc/php/$PHP_LTS
-    PHP_INI=$PHP_ETC/php.ini
-    # Essentials configs.
-    content_replace "s{;date.timezone =}{date.timezone = UTC}" $PHP_INI
-    content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $PHP_INI
-    content_replace "s{;html_errors = On}{html_errors = On}" $PHP_INI
-    # Size matters.
-    content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $PHP_INI
-    content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $PHP_INI
-    # OPCache configs.
-    # content_replace "s{;opcache.enable=1}{opcache.enable=0}" $PHP_INI
-    # content_replace "s{;opcache.enable_cli=0}{opcache.enable_cli=1}" $PHP_INI
-    # content_replace "s{;opcache.memory_consumption=128}{opcache.memory_consumption=128}" $PHP_INI
-    # content_replace "s{;opcache.interned_strings_buffer=8}{opcache.interned_strings_buffer=8}" $PHP_INI
-    # content_replace "s{;opcache.max_accelerated_files=10000}{opcache.max_accelerated_files=10000}" $PHP_INI
-    # content_replace "s{;opcache.revalidate_freq=2}{opcache.revalidate_freq=60}" $PHP_INI
-    # content_replace "s{;opcache.fast_shutdown=0}{opcache.fast_shutdown=1}" $PHP_INI
-    content_replace "s{;pcre.jit=1}{pcre.jit=0}" $PHP_INI
-    # Replace socket php-fpm location.
-    content_replace "s{^listen = 127.0.0.1:9000}{listen = $PREFIX/var/run/php-fpm.sock}g" $PHP_ETC/php-fpm.d/www.conf
-    # Links and install extensions.
-    try brew link --force --overwrite php@$PHP_LTS
-    try mkdir -p $LOCAL/lib/php/pecl
-    try pecl channel-update pecl.php.net
-    if [ -z "$(php -i | grep -w ast)" ]; then
-      try pecl install ast
-    fi
-    if [ -z "$(php -i | grep -w igbinary)" ]; then
-      try pecl install igbinary
-    fi
-    if [ -z "$(php -i | grep -w redis)" ]; then
-      try pecl install redis
-    fi
-    if [ -z "$(php -i | grep -w xdebug)" ]; then
-      try pecl install xdebug
-    fi
-    # Install latest Composer.
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
-    try brew services start php@$PHP_LTS
-  next
+echo "Waiting for MySQL to be ready..."
+while !(mysqladmin ping -s); do
+  sleep 5
+done
+
+mysql_secure_installation
+
+# Further MySQL config customization.
+if [ -z "$(grep -o "default_authentication_plugin = mysql_native_password" $PREFIX/etc/my.cnf)" ]; then
+  echo 'default_authentication_plugin = mysql_native_password' >> $PREFIX/etc/my.cnf
 fi
 
-if [ -z "$(brew list --versions mysql)" ]; then
-  step "Install latest MySQL"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install mysql
-    try brew services start mysql
-  next
+if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
+  echo 'explicit_defaults_for_timestamp = 1' >> $PREFIX/etc/my.cnf
+fi
 
-  echo "Waiting for MySQL to be ready..."
-  while !(mysqladmin ping -s); do
-    sleep 5
-  done
-
-  mysql_secure_installation
-
-  # Further MySQL config customization.
-  if [ -z "$(grep -o "default_authentication_plugin = mysql_native_password" $PREFIX/etc/my.cnf)" ]; then
-    echo 'default_authentication_plugin = mysql_native_password' >> $PREFIX/etc/my.cnf
-  fi
-
-  if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
-    echo 'explicit_defaults_for_timestamp = 1' >> $PREFIX/etc/my.cnf
-  fi
-
-  if [ -z "$(grep -o "validate_password.policy = LOW" $PREFIX/etc/my.cnf)" ]; then
-    echo 'validate_password.policy = LOW' >> $PREFIX/etc/my.cnf
-  fi
+if [ -z "$(grep -o "validate_password.policy = LOW" $PREFIX/etc/my.cnf)" ]; then
+  echo 'validate_password.policy = LOW' >> $PREFIX/etc/my.cnf
 fi
 
 PMA_DIR=$PREFIX/var/www/phpMyAdmin
@@ -266,107 +182,26 @@ fi
 
 mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_PASSWD'; FLUSH PRIVILEGES;"
 
-if [ -z "$(brew list --versions nginx)" ]; then
-  step "Install latest Nginx"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install nginx
-    try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
-    try rm -f $PREFIX/var/www/phpinfo.php && ln -sf $HOME/.www/phpinfo.php $PREFIX/var/www/phpinfo.php
-    try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
+step "Setup latest Nginx"
+  try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html
+  try rm -f $PREFIX/var/www/phpinfo.php && ln -sf $HOME/.www/phpinfo.php $PREFIX/var/www/phpinfo.php
+  try rm -f $PREFIX/etc/nginx/nginx.conf && ln -sf $HOME/.etc/nginx/nginx.conf $PREFIX/etc/nginx/nginx.conf
 
-    if [ ! -d $PREFIX/etc/nginx/servers ]; then
-      [ $MACHINE = 'arm64' ] && SOURCE=$HOME/.etc/nginx/servers.$MACHINE || SOURCE=$HOME/.etc/nginx/servers
-      try rm -rf $PREFIX/etc/nginx/servers && ln -sf $SOURCE $PREFIX/etc/nginx/servers
-    fi
+  if [ ! -d $PREFIX/etc/nginx/servers ]; then
+    [ $MACHINE = 'arm64' ] && SOURCE=$HOME/.etc/nginx/servers.$MACHINE || SOURCE=$HOME/.etc/nginx/servers
+    try rm -rf $PREFIX/etc/nginx/servers && ln -sf $SOURCE $PREFIX/etc/nginx/servers
+  fi
 
-    if [ -z "$(readlink /etc/newsyslog.d/nginx.conf)" ]; then
-      [ $MACHINE = 'arm64' ] && SOURCE=$HOME/.etc/newsyslog.d/nginx.$MACHINE.conf || SOURCE=$HOME/.etc/newsyslog.d/nginx.conf
-      sudo -- sh -c "rm -f /etc/newsyslog.d/nginx.conf; ln -sf $SOURCE /etc/newsyslog.d/nginx.conf"
-    fi
+  if [ -z "$(readlink /etc/newsyslog.d/nginx.conf)" ]; then
+    [ $MACHINE = 'arm64' ] && SOURCE=$HOME/.etc/newsyslog.d/nginx.$MACHINE.conf || SOURCE=$HOME/.etc/newsyslog.d/nginx.conf
+    sudo -- sh -c "rm -f /etc/newsyslog.d/nginx.conf; ln -sf $SOURCE /etc/newsyslog.d/nginx.conf"
+  fi
 
-    try sudo brew services start nginx
-  next
-fi
+  try sudo brew services restart nginx
+next
 
-if [ -z "$(brew list --cask --versions temurin8 2>/dev/null)" ]; then
-  step "Install JDK 1.8"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask temurin8
-  next
-fi
-
-if [ -z "$(brew list --versions jq)" ]; then
-  step "Install latest jq"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install jq
-  next
-fi
-
-if [ -z "$(brew list --versions cocoapods)" ]; then
-  step "Install latest Cocoapods"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install cocoapods
-  next
-fi
-
-if [ -z "$(brew list --cask --versions aerial 2>/dev/null)" ]; then
-  step "Install latest Aerial"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask aerial
-  next
-fi
-
-if [ -z "$(brew list --cask --versions docker 2>/dev/null)" ]; then
-  step "Install latest Docker Desktop"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask docker
-  next
-fi
-
-if [ -z "$(brew list --cask --versions firefox 2>/dev/null)" ]; then
-  step "Install latest Mozilla Firefox"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask firefox
-  next
-fi
-
-if [ -z "$(brew list --cask --versions gimp 2>/dev/null)" ]; then
-  step "Install latest Gimp"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask gimp
-  next
-fi
-
-if [ -z "$(brew list --cask --versions microsoft-edge 2>/dev/null)" ]; then
-  step "Install Microsoft Edge"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask microsoft-edge
-  next
-fi
-
-if [ -z "$(brew list --cask --versions omnidisksweeper 2>/dev/null)" ]; then
-  step "Install latest Omni Disk Sweeper"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask omnidisksweeper
-  next
-fi
-
-if [ -z "$(brew list --cask --versions opera 2>/dev/null)" ]; then
-  step "Install Opera"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask opera
-  next
-fi
-
-if [ -z "$(brew list --cask --versions redisinsight 2>/dev/null)" ]; then
-  step "Install latest Redis Insight"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask redisinsight
-  next
-fi
-
-if [ -z "$(brew list --cask --versions slack 2>/dev/null)" ]; then
-  step "Install latest Slack"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask slack
-  next
-fi
-
-if [ -z "$(brew list --cask --versions sqlworkbenchj 2>/dev/null)" ]; then
-  step "Install latest SQL Workbench/J"
-    # Required Oracle JRE.
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask sqlworkbenchj
-    if [ ! -d ~/.sqlworkbench/drivers ]; then
-      try mkdir -p ~/.sqlworkbench/drivers
-    fi
-  next
+if [ ! -d ~/.sqlworkbench/drivers ]; then
+  try mkdir -p ~/.sqlworkbench/drivers
 fi
 
 if [ ! -f ~/.sqlworkbench/drivers/sqljdbc42.jar ]; then
@@ -379,30 +214,6 @@ fi
 if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
   step "Download latest Redshift JDBC driver"
     try cd ~/.sqlworkbench/drivers && curl -L https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/1.2.34.1058/RedshiftJDBC42-no-awssdk-1.2.34.1058.jar -so redshiftjdbc42.jar && cd
-  next
-fi
-
-if [ -z "$(brew list --cask --versions visual-studio 2>/dev/null)" ]; then
-  step "Install latest Visual Studio"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask visual-studio
-  next
-fi
-
-if [ -z "$(brew list --cask --versions visual-studio-code 2>/dev/null)" ]; then
-  step "Install latest Visual Studio Code"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install --cask visual-studio-code
-  next
-fi
-
-if [ -z "$(brew list --versions vim)" ]; then
-  step "Install latest Vim"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install vim
-  next
-fi
-
-if [ -z "$(brew list --versions xmlstarlet)" ]; then
-  step "Install latest XmlStarlet"
-    try HOMEBREW_NO_ENV_HINTS=1 brew install xmlstarlet
   next
 fi
 
