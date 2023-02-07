@@ -23,4 +23,6 @@ esac
 # Both would be ('ignoreboth'). See bash(1) for more options.
 export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoreboth
 
-colima start 2>/dev/null
+if [[ $(colima status 2>&1) =~ "colima is not running" ]]; then
+  colima start 2>/dev/null
+fi
