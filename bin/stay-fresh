@@ -134,7 +134,7 @@ step "Upgrade Homebrew formulae"
   chmod u+w $LOCAL_BIN
   echo
   # Upgrade all installed unpinned brews.
-  brew bundle --global
+  brew bundle --global --verbose
 
   # Link node.js to the latest.
   if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
@@ -173,7 +173,7 @@ next
 step "Clean Homebrew caches"
   echo
   # Remove temporary installed pacakges.
-  brew bundle cleanup --global
+  brew bundle cleanup --force --global
   # Cleanup files & symlinks older than 3 days.
   brew cleanup --prune=3 -s
   # Delete donwload cache.

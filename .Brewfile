@@ -5,9 +5,11 @@ tap 'homebrew/cask'
 tap 'homebrew/cask-versions' unless personal
 tap 'homebrew/core'
 tap 'homebrew/services'
+tap 'romkatv/powerlevel10k'
+brew 'python@3.9', link: false
+brew 'python@3.10', link: false
 brew 'python@3.11', link: true
 brew 'awscli'
-brew 'python@3.9', link: false
 brew 'cloc' unless personal
 brew 'colima' unless personal
 brew 'coreutils'
@@ -19,7 +21,7 @@ brew 'ffmpeg'
 brew 'git'
 brew 'gnupg' if personal
 brew 'go'
-brew 'python@3.10', link: false
+brew 'golangci/tap/golangci-lint'
 brew 'gource' unless personal
 brew 'html-xml-utils' unless personal
 brew 'imagemagick'
@@ -30,8 +32,8 @@ brew 'node@18', link: :overwrite
 brew 'openssl@3'
 brew 'php@8.1', restart_service: true, link: :overwrite
 brew 'redis', restart_service: true unless personal
+brew 'romkatv/powerlevel10k/powerlevel10k'
 brew 'vim'
-brew 'golangci/tap/golangci-lint'
 cask 'aerial'
 cask 'dotnet-sdk' unless personal
 cask 'firefox'

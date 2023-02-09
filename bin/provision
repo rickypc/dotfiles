@@ -57,7 +57,7 @@ step "Clean Homebrew caches"
 next
 
 step "Install Homebrew packages"
-  try brew bundle --global
+  try brew bundle --global --verbose
 next
 
 step "Setup OpenSSL keys"
