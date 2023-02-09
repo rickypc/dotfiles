@@ -204,6 +204,7 @@
   "terminal.integrated.cursorBlinking": true,
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontFamily": "SauceCodePro Nerd Font Mono",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.shellIntegration.showWelcome": false,
   "update.showReleaseNotes": false,
@@ -213,5 +214,5 @@
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredDarkColorTheme": "Zenburn",
-  "workbench.startupEditor": "none"
+  "workbench.startupEditor": "none",
 }
