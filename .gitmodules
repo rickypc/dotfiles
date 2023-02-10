@@ -1,3 +1,9 @@
-[submodule ".vim/pack/editorconfig/start/editorconfig-vim"]
-	path = .vim/pack/editorconfig/start/editorconfig-vim
+[submodule ".vim/pack/plugins/start/airline"]
+	path = .vim/pack/plugins/start/airline
+	url = https://github.com/vim-airline/vim-airline.git
+[submodule ".vim/pack/plugins/start/airline-themes"]
+	path = .vim/pack/plugins/start/airline-themes
+	url = https://github.com/vim-airline/vim-airline-themes.git
+[submodule ".vim/pack/plugins/start/editorconfig"]
+	path = .vim/pack/plugins/start/editorconfig
 	url = https://github.com/editorconfig/editorconfig-vim.git

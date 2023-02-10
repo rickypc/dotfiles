@@ -62,28 +62,28 @@ set t_Co=256
 "let &t_AF="\e[38;5;%dm"
 
 if &term =~ "xterm-xfree86"
-    set t_Co=16
-    set t_Sf=^[[3%dm
-    set t_Sb=^[[4%dm
+  set t_Co=16
+  set t_Sf=^[[3%dm
+  set t_Sb=^[[4%dm
 endif
 
 if has("gui_running")
-    if has("gui_gtk2")
-      set guifont=Inconsolata\ 12
-    elseif has("gui_macvim")
-      set guifont=Menlo\ Regular:h14
-    elseif has("gui_win32")
-      set guifont=Consolas:h11:cANSI
-    endif
+  if has("gui_gtk2")
+    set guifont=Inconsolata\ 12
+  elseif has("gui_macvim")
+    set guifont=SauceCodePro\ Nerd\ Font\ Mono:h14
+  elseif has("gui_win32")
+    set guifont=Consolas:h11:cANSI
+  endif
 endif
 
 " show right margin at 80, 100 and 120+ column.
 if exists('+colorcolumn')
-    " 7.3+
-    let &colorcolumn='80,100,'.join(range(120,500), ',')
-"    highlight ColorColumn ctermbg=235 guibg=#2c2d27
+  " 7.3+
+  let &colorcolumn='80,100,'.join(range(120,500), ',')
+  " highlight ColorColumn ctermbg=235 guibg=#2c2d27
 else
-    autocmd BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>80v.\+', -1)
+  autocmd BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>80v.\+', -1)
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -97,7 +97,7 @@ set expandtab shiftwidth=4 softtabstop=4
 "set tabstop=4
 
 if has("autocmd")
-    filetype plugin on
+  filetype plugin on
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -108,11 +108,11 @@ endif
 set backup
 
 if version >= 700
-    set backupdir=~/.vim/backup/
-    let g:netrw_home=$HOME.'/.vim/backup/'
+  set backupdir=~/.vim/backup/
+  let g:netrw_home=$HOME.'/.vim/backup/'
 else
-    set backupdir=~/.vim6/backup/
-    let g:netrw_home=$HOME.'/.vim6/backup/'
+  set backupdir=~/.vim6/backup/
+  let g:netrw_home=$HOME.'/.vim6/backup/'
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -120,13 +120,18 @@ endif
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if version >= 700
-    " powerline
-    set rtp+=$PYTHON_USER_SITE/powerline/bindings/vim
-    let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
-    map \ne :NERDTree<CR>
+  " airline
+  let g:airline#extensions#tabline#enabled=1
+  let g:airline#extensions#tagbar#enabled=0
+  let g:airline_powerline_fonts=1
+  let g:airline_theme='powerlineish'
+  " powerline
+  " set rtp+=$PYTHON_USER_SITE/powerline/bindings/vim
+  let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
+  map \ne :NERDTree<CR>
 else
-    let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
-    map \cv :GITDiff<CR>
+  let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
+  map \cv :GITDiff<CR>
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
