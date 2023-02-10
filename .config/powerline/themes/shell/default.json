@@ -13,6 +13,14 @@
         "name": "time"
       },
       {
+        "function": "powerline.segments.common.env.virtualenv",
+        "priority": 50
+      },
+      {
+				"function": "powerline_gitstatus.gitstatus",
+				"priority": 40
+			},
+      {
         "args": {
           "use_path_separator": true
         },
@@ -25,14 +33,6 @@
       }
     ],
     "right": [
-      {
-				"function": "powerline_gitstatus.gitstatus",
-				"priority": 40
-			},
-      {
-        "function": "powerline.segments.common.env.virtualenv",
-        "priority": 50
-      },
       {
         "args": {
           "only_if_ssh": true
