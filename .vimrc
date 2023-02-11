@@ -143,7 +143,6 @@ map ,l :!perl -I "${PERL5LIB//:/ }" -cwT %<CR>
 map ,v :loadview<CR>
 map ,w :mkview<CR>:w<CR>
 
-map \jh :JSHint<CR>
 map \ve :VSTreeExplore<CR>
 
 vmap <F11> :-1/^#/s///<CR>
