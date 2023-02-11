@@ -54,25 +54,35 @@ autocmd BufLeave,CursorHold,CursorHoldI,FocusLost * silent! wa
 
 syntax on
 set background=dark
+
+set t_8f=[38;2;%lu;%lu;%lum
+set t_8b=[48;2;%lu;%lu;%lum
+
+"let &t_AB='\e[48;5;%dm'
+"let &t_AF='\e[38;5;%dm'
+
 colorscheme zenburn
 
 "set term=xterm
 set t_Co=256
-"let &t_AB="\e[48;5;%dm"
-"let &t_AF="\e[38;5;%dm"
 
-if &term =~ "xterm-xfree86"
+" true color on supported terminal
+if $COLORTERM =~ 'truecolor' || $COLORTERM =~ '24bit'
+  set termguicolors
+endif
+
+if &term =~ 'xterm-xfree86'
   set t_Co=16
   set t_Sf=^[[3%dm
   set t_Sb=^[[4%dm
 endif
 
-if has("gui_running")
-  if has("gui_gtk2")
+if has('gui_running')
+  if has('gui_gtk2')
     set guifont=Inconsolata\ 12
-  elseif has("gui_macvim")
+  elseif has('gui_macvim')
     set guifont=SauceCodePro\ Nerd\ Font\ Mono:h14
-  elseif has("gui_win32")
+  elseif has('gui_win32')
     set guifont=Consolas:h11:cANSI
   endif
 endif
@@ -96,7 +106,7 @@ set noautoindent linebreak
 set expandtab shiftwidth=4 softtabstop=4
 "set tabstop=4
 
-if has("autocmd")
+if has('autocmd')
   filetype plugin on
 endif
 
@@ -121,32 +131,38 @@ endif
 
 if version >= 700
   " airline
-  let g:airline_extensions = ['branch', 'tabline']
+  let g:airline_extensions=['branch', 'tabline']
   let g:airline_powerline_fonts=1
   let g:airline_theme='powerlineish'
   " powerline
   " set rtp+=$PYTHON_USER_SITE/powerline/bindings/vim
   let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
-  map \cv :Gvdiffsplit<CR>
-  map \ne :NERDTree<CR>
+  " fugitive mapping
+  map <leader>gb :Git blame<cr>
+  map <leader>gd :Gvdiffsplit<cr>
 else
   let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
-  map \cv :GITDiff<CR>
+  map <leader>cv :GITDiff<cr>
 endif
+
+" tree explorer
+let g:treeExplHidden=1
+let g:treeExplNoList=1
+let g:treeExplVertical=1
+let g:treeExplWinSize=40
+map <leader>ve :VSTreeExplore<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                   Mappings
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-map ,fs /^sub <CR>V/{<CR>%zfj
-map ,l :!perl -I "${PERL5LIB//:/ }" -cwT %<CR>
-map ,v :loadview<CR>
-map ,w :mkview<CR>:w<CR>
+map ,fs /^sub <cr>V/{<cr>%zfj
+map ,l :!perl -I "${PERL5LIB//:/ }" -cwT %<cr>
+map ,v :loadview<cr>
+map ,w :mkview<cr>:w<cr>
 
-map \ve :VSTreeExplore<CR>
-
-vmap <F11> :-1/^#/s///<CR>
-vmap <F12> :-1/^/s//#/<CR>
+vmap <F11> :-1/^#/s///<cr>
+vmap <F12> :-1/^/s//#/<cr>
 
 vnoremap <Tab> >
 vnoremap <S-Tab> <
