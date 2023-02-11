@@ -199,6 +199,7 @@
     "**/.git": true,
     "**/vendor": true
   },
+  "security.workspace.trust.untrustedFiles": "newWindow",
   "telemetry.telemetryLevel": "off",
   "terminal.integrated.copyOnSelection": true,
   "terminal.integrated.cursorBlinking": true,
@@ -214,5 +215,5 @@
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredDarkColorTheme": "Zenburn",
-  "workbench.startupEditor": "none",
+  "workbench.startupEditor": "none"
 }

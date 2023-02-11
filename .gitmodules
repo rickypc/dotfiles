@@ -7,3 +7,6 @@
 [submodule ".vim/pack/plugins/start/editorconfig"]
 	path = .vim/pack/plugins/start/editorconfig
 	url = https://github.com/editorconfig/editorconfig-vim.git
+[submodule ".vim/pack/plugins/start/fugitive"]
+	path = .vim/pack/plugins/start/fugitive
+	url = https://github.com/tpope/vim-fugitive.git
