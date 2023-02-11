@@ -24,11 +24,8 @@ setopt APPEND_HISTORY
 
 PROMPT="%t %B%F{blue}%3~ ($(echo $(git symbolic-ref HEAD | cut -d'/' -f3))) %B%F{yellow}%#%f "
 
-# powerline-daemon -q
-# After config changes, you need to call:
-# powerline-daemon --replace
-# . $PYTHON_USER_SITE/powerline/bindings/zsh/powerline.zsh
-
 source $(brew --prefix)/opt/powerlevel10k/powerlevel10k.zsh-theme
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+#eval "$(starship init zsh)"

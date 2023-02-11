@@ -83,9 +83,9 @@ step "Setup NodeJS v$NODE_LTS"
   try npm install --force --location=global --no-audit --no-fund yarn
 next
 
-step "Setup Python 3 and its dependencies"
+step "Setup Python v3 and its dependencies"
   ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
-  try $LOCAL/bin/pip3 install --user gitpython powerline-gitstatus powerline-status
+  try $LOCAL/bin/pip3 install --user gitpython
 next
 
 step "Setup PHP v$PHP_LTS"

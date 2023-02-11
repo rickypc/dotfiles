@@ -134,9 +134,6 @@ if version >= 700
   let g:airline_extensions=['branch', 'tabline']
   let g:airline_powerline_fonts=1
   let g:airline_theme='powerlineish'
-  " powerline
-  " set rtp+=$PYTHON_USER_SITE/powerline/bindings/vim
-  let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
   " fugitive mapping
   map <leader>gb :Git blame<cr>
   map <leader>gd :Gvdiffsplit<cr>

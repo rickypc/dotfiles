@@ -1,0 +1,125 @@
+add_newline = false
+format = """
+[╭─\uE0B6](fg:#c0c0c0)\
+$os\
+$time\
+$battery\
+$shell\
+[\uE0B4](bg:#5f87af fg:#c0c0c0)\
+$directory\
+[\uE0B4](bg:#dfaf87 fg:#5f87af)\
+$git_branch\
+$git_status\
+[\uE0B4](bg:#5f87af fg:#dfaf87)\
+$python\
+$dotnet\
+$php\
+$nodejs\
+$golang\
+$java\
+$docker_context\
+$cmd_duration\
+[\uE0B4](fg:#dfaf87)
+[╰─](fg:#c0c0c0)$character"""
+scan_timeout = 10
+
+[battery]
+format = '[$symbol$percentage ]($style bg:#c0c0c0)'
+
+[[battery.display]]
+threshold = 100
+
+[cmd_duration]
+format = '[ $duration ](bg:#dfaf87)'
+min_time = 0
+
+[directory]
+format = '[ $path ](bg:#5f87af fg:#e4e4e4)'
+truncation_length = 3
+truncation_symbol = '…/'
+
+[directory.substitutions]
+# Order Matters™!
+'Important Documents' = ' '
+'Documents' = ' '
+'Downloads' = ' '
+'Music' = ' '
+'Pictures' = ' '
+
+[docker_context]
+format = '[ $symbol $context ](bg:#06969a)'
+symbol = ''
+
+[dotnet]
+detect_extensions = ['csproj', 'sln']
+format = '[ $symbol ($version) ](bg:#212736 fg:#769ff0)'
+symbol = ''
+version_format = '$raw'
+
+[git_branch]
+format = '[ $symbol $branch(:$remote_branch) ](bg:#dfaf87)'
+symbol = ''
+
+[git_status]
+ahead = '⇡$count '
+behind = '⇣$count '
+conflicted = '=$count '
+deleted = '✘$count '
+diverged = '⇕⇡$ahead_count ⇣$behind_count '
+format = '[$conflicted$stashed$deleted$renamed$modified$staged$untracked$ahead_behind ](bg:#dfaf87)'
+modified = '!$count '
+renamed = '»$count '
+staged = '+[$count](green) '
+stashed = '*$count '
+untracked = '?$count '
+up_to_date = '✓'
+
+[golang]
+format = '[ $symbol ($version) ](bg:#86bbd8)'
+symbol = ''
+version_format = '$raw'
+
+[java]
+format = '[ $symbol ($version) ](bg:#86bbd8)'
+symbol = ''
+version_format = '$raw'
+
+[nodejs]
+format = '[ $symbol ($version) ](bg:#86bbd8)'
+symbol = ''
+version_format = '$raw'
+
+[os]
+disabled = false
+format = '[ $symbol ](bg:#c0c0c0)'
+
+[os.symbols]
+Alpine = ''
+Macos = ''
+Linux = ''
+Unknown = ''
+Windows = ''
+
+[php]
+format = '[ $symbol ($version) ](bg:#212736 fg:#769ff0)'
+symbol = ''
+version_format = '$raw'
+
+[python]
+format = '[ $symbol $virtualenv ](bg:#5f87af fg:#e4e4e4)'
+pyenv_version_name = true
+symbol = ''
+
+[shell]
+bash_indicator = '\$_'
+disabled = false
+fish_indicator = 'f_'
+format = '[$indicator ]($style bg:#c0c0c0)'
+powershell_indicator = '>_'
+unknown_indicator = '?_'
+zsh_indicator = 'z_'
+
+[time]
+disabled = false
+format = '[$time ](bg:#c0c0c0 fg:#000000)'
+time_format = "%r"

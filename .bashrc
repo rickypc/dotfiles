@@ -34,7 +34,4 @@ else
   PS1="\D{%r} ${BB}\w ${BY}\$${NONE} "
 fi
 
-powerline-daemon -q
-# After config changes, you need to call:
-# powerline-daemon --replace
-. $PYTHON_USER_SITE/powerline/bindings/bash/powerline.sh
+eval "$(starship init bash)"

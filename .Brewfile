@@ -33,6 +33,7 @@ brew 'openssl@3'
 brew 'php@8.1', restart_service: true, link: :overwrite
 brew 'redis', restart_service: true unless personal
 brew 'romkatv/powerlevel10k/powerlevel10k'
+brew 'starship'
 brew 'vim'
 cask 'aerial'
 cask 'dotnet-sdk' unless personal
