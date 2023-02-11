@@ -127,6 +127,7 @@ if version >= 700
   " powerline
   " set rtp+=$PYTHON_USER_SITE/powerline/bindings/vim
   let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$', '\.svn$']
+  map \cv :Gvdiffsplit<CR>
   map \ne :NERDTree<CR>
 else
   let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
