@@ -13,10 +13,10 @@ $git_status\
 [\uE0B4](bg:#5f87af fg:#dfaf87)\
 $python\
 $dotnet\
-$php\
-$nodejs\
 $golang\
 $java\
+$php\
+$nodejs\
 $docker_context\
 $cmd_duration\
 [\uE0B4](fg:#dfaf87)
@@ -69,7 +69,7 @@ diverged = '⇕⇡$ahead_count ⇣$behind_count '
 format = '[$conflicted$stashed$deleted$renamed$modified$staged$untracked$ahead_behind ](bg:#dfaf87)'
 modified = '!$count '
 renamed = '»$count '
-staged = '+[$count](green) '
+staged = '+[$count](bg:#dfaf87 fg:green) '
 stashed = '*$count '
 untracked = '?$count '
 up_to_date = '✓'
@@ -85,7 +85,7 @@ symbol = ''
 version_format = '$raw'
 
 [nodejs]
-format = '[ $symbol ($version) ](bg:#86bbd8)'
+format = '[ $symbol ($version) ](bg:#d787af)'
 symbol = ''
 version_format = '$raw'
 
