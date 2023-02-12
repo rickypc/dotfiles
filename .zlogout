@@ -6,13 +6,6 @@ if [ "$(ps -u $USER | grep zsh | wc -l)" = "2" ]; then
     # see hidden files
     setopt GLOB_DOTS
 
-    # Shutdown Tomcat
-    CATALINA_STARTED=$(ps x | grep 'org.apache.catalina.startup.Bootstrap start' | grep -v grep)
-    if [ -n "$CATALINA_STARTED" ]; then
-        $CATALINA_HOME/bin/shutdown.sh
-        kill -9 $(echo $CATALINA_STARTED | awk '{print $1}')
-    fi
-
     colima stop
     limactl stop colima -f
 

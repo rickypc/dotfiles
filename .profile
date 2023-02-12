@@ -10,12 +10,6 @@ CHECKSUM_PATH=~/.gcc-version
 GCC_VERSION=`gcc -dumpversion`
 LIB_DIR=~/Library
 ANDROID_SDK=$LIB_DIR/android-sdk
-ANT_DIR=$LIB_DIR/apache-ant-1.10.7
-APPIUM_PATH=~/node_modules/appium
-AXIS2C_DIR=$LIB_DIR/axis2c-bin-1.6.0-linux
-AXIS2JAVA_DIR=$LIB_DIR/axis2-1.7.9
-CATALINA_DIR=$LIB_DIR/apache-tomcat-8.5.51
-FLUTTER_DIR=$LIB_DIR/flutter
 GO_DIR=~/.go
 GRADLE_DIR=$LIB_DIR/gradle-6.1.1
 MAVEN_DIR=$LIB_DIR/apache-maven-3.6.3
@@ -24,6 +18,16 @@ PERL_DIR=$LIB_DIR/perl5
 if [ $MACHINE = 'arm64' ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
+
+NONE='\[\033[0m\]'    # unsets color to term's fg color
+# regular colors
+B='\[\033[0;34m\]'    # blue
+R='\[\033[0;31m\]'    # red
+# bold colors
+BB='\[\033[1;34m\]'   # bold blue
+BY='\[\033[1;33m\]'   # bold yellow
+# default prompt
+PS1="\D{%r} ${BB}\w ${BY}\$${NONE} "
 
 export_to_path() {
   if [[ -n "$1" && $PATH != *$1* ]]; then
@@ -56,6 +60,10 @@ gcc_process() {
   fi
 }
 
+if [ ! -d $CACHE_PATH ]; then
+  mkdir -p $CACHE_PATH
+fi
+
 if [ -f "$CHECKSUM_PATH" ]; then
   if [ "$GCC_VERSION" != "$(cat $CHECKSUM_PATH)" ]; then
     gcc_process
@@ -65,8 +73,25 @@ else
 fi
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export ENV=$HOME/.profile
 export LC_ALL=en_US.UTF-8
+export PHPLS_ALLOW_XDEBUG=1
 export SAM_CLI_TELEMETRY=0
+export XDG_CACHE_HOME=$CACHE_PATH
+# export XDG_CONFIG_HOME=~/.config
+
+case $(uname) in
+  #'Linux') ;;
+  #'FreeBSD') ;;
+  'Darwin')
+    # Tell ls to be colorful
+    export CLICOLOR=1
+    export JQ_COLORS="1;33:0;95:0;95:0;36:0;91:0;39:0;39:0;33"
+    export LSCOLORS=ExGxFxdxCxDgDdabagacad
+    # Tell grep to highlight matches
+    export GREP_OPTIONS='--color=auto'
+    ;;
+esac
 
 #if [ "$(ps x | grep ssh-agent | grep -v grep | wc -l)" -le 0 ]; then
 #  eval "$(/usr/bin/ssh-agent -t 32400)"
@@ -75,10 +100,12 @@ export SAM_CLI_TELEMETRY=0
 #  export SSH_AGENT_PID=$(ps x | grep ssh-agent | grep -v grep | awk '{print $1}')
 #fi
 
+# Order Matters™!
 if [ -d /usr/local/bin ]; then
   export_to_path "/usr/local/bin"
 fi
 
+# Order Matters™!
 if [ $MACHINE = 'arm64' ]; then
   if [ -d /usr/bin ]; then
     export_to_path "/usr/bin"
@@ -89,10 +116,12 @@ if [ $MACHINE = 'arm64' ]; then
   fi
 fi
 
+# Order Matters™!
 if [ -d /usr/local/sbin ]; then
   export_to_path "/usr/local/sbin"
 fi
 
+# Order Matters™!
 if [ $MACHINE = 'arm64' ]; then
   if [ -d /usr/sbin ]; then
     export_to_path "/usr/sbin"
@@ -120,14 +149,6 @@ if [ -d ~/.dotnet/tools ]; then
   export_to_path ~/.dotnet/tools
 fi
 
-if [ ! -d $CACHE_PATH ]; then
-  mkdir -p $CACHE_PATH
-fi
-
-export PHPLS_ALLOW_XDEBUG=1
-export XDG_CACHE_HOME=$CACHE_PATH
-# export XDG_CONFIG_HOME=~/.config
-
 PYTHON_USER_BASE=`$LOCAL/bin/python3 -m site --user-base`
 
 if [ -d $ANDROID_SDK ]; then
@@ -142,43 +163,6 @@ if [ -d $ANDROID_SDK ]; then
   if [ -d $ANDROID_SDK/tools ]; then
     export_to_path "$ANDROID_SDK/tools"
   fi
-fi
-
-# Ant specific environment
-if [ -d $ANT_DIR ]; then
-  export ANT_HOME=$ANT_DIR
-  export_to_path "$ANT_HOME/bin"
-fi
-
-if [[ -d $APPIUM_PATH && $APPIUM_HOME != *${APPIUM_PATH}* ]]; then
-  export APPIUM_HOME=$APPIUM_PATH
-fi
-
-# Axis/C specific environment
-if [ -d $AXIS2C_DIR ]; then
-  export AXIS2C_HOME=$AXIS2C_DIR
-#  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$AXIS2C_HOME/lib/
-#  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$AXIS2C_HOME/lib/pkgconfig
-fi
-
-# Axis/Java specific environment
-if [ -d $AXIS2JAVA_DIR ]; then
-  export AXIS2_HOME=$AXIS2JAVA_DIR
-fi
-
-# Catalina specific environment
-if [ -d $CATALINA_DIR ]; then
-  export CATALINA_BASE=$CATALINA_DIR
-  export CATALINA_HOME=$CATALINA_DIR
-  export_to_path "$CATALINA_HOME/bin"
-fi
-
-if [ -d ~/.docker/bin ]; then
-  export_to_path ~/.docker/bin
-fi
-
-if [ -d $FLUTTER_DIR ]; then
-  export_to_path "$FLUTTER_DIR/bin"
 fi
 
 # Golang specific environment
@@ -234,7 +218,6 @@ if [ -d $PERL_DIR ]; then
 fi
 
 if [ -d "$PYTHON_USER_BASE/bin" ]; then
-  export POWERLINE_CONFIG_COMMAND=powerline-config
   export PYTHON_USER_SITE=`$LOCAL/bin/python3 -m site --user-site`
   export_to_path "$PYTHON_USER_BASE/bin"
 fi
