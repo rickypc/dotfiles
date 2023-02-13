@@ -10,6 +10,9 @@ set nocompatible
 " sane backspace
 set backspace=indent,eol,start
 
+" highlight current line
+set cursorline
+
 set encoding=utf-8
 
 " search
@@ -67,7 +70,7 @@ colorscheme zenburn
 set t_Co=256
 
 " true color on supported terminal
-if $COLORTERM =~ 'truecolor' || $COLORTERM =~ '24bit'
+if $COLORTERM =~ 'truecolor' || $COLORTERM =~ '24bit' || $TERM_PROGRAM =~ 'iTerm.app'
   set termguicolors
 endif
 

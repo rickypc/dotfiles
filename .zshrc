@@ -19,6 +19,9 @@ fi
 # If not running interactively, don't do anything
 [ -z "$PROMPT" ] && return
 
+bindkey "^[[H" beginning-of-line
+bindkey "^[[F" end-of-line
+
 # append to the history file, don't overwrite it
 setopt APPEND_HISTORY
 

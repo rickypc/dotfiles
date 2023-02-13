@@ -39,6 +39,7 @@ cask 'aerial'
 cask 'dotnet-sdk' unless personal
 cask 'firefox'
 cask 'gimp'
+cask 'iterm2'
 cask 'microsoft-auto-update'
 cask 'microsoft-edge'
 cask 'mono-mdk-for-visual-studio' unless personal
