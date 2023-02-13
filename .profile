@@ -19,16 +19,6 @@ if [ $MACHINE = 'arm64' ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-NONE='\[\033[0m\]'    # unsets color to term's fg color
-# regular colors
-B='\[\033[0;34m\]'    # blue
-R='\[\033[0;31m\]'    # red
-# bold colors
-BB='\[\033[1;34m\]'   # bold blue
-BY='\[\033[1;33m\]'   # bold yellow
-# default prompt
-PS1="\D{%r} ${BB}\w ${BY}\$${NONE} "
-
 export_to_path() {
   if [[ -n "$1" && $PATH != *$1* ]]; then
     if [ -z $PATH ]; then
@@ -73,7 +63,7 @@ else
 fi
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
-export ENV=$HOME/.profile
+export ENV=$HOME/.shrc
 export LC_ALL=en_US.UTF-8
 export PHPLS_ALLOW_XDEBUG=1
 export SAM_CLI_TELEMETRY=0

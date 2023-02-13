@@ -33,8 +33,9 @@
   # The list of segments shown on the left. Fill it with the most important segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
-    time                    # current time
     os_icon                 # os identifier
+    time                    # current time
+    battery                 # internal battery
     dir                     # current directory
     command_execution_time  # duration of the last command
     # =========================[ Line #2 ]=========================
@@ -111,7 +112,6 @@
     # ip                    # ip address and bandwidth usage for a specified network interface
     # public_ip             # public IP address
     # proxy                 # system-wide http/https/ftp proxy
-    # battery               # internal battery
     # wifi                  # wifi speed
     # example               # example user-defined segment (see prompt_example function below)
   )
@@ -351,7 +351,7 @@
   # typeset -g POWERLEVEL9K_DIR_CLASSES=()
 
   # Custom prefix.
-  # typeset -g POWERLEVEL9K_DIR_PREFIX='in '
+  typeset -g POWERLEVEL9K_DIR_PREFIX='%%_ '
 
   #####################################[ vcs: git status ]######################################
   # Version control background colors.
@@ -1686,6 +1686,7 @@
   typeset -g POWERLEVEL9K_TIME_UPDATE_ON_COMMAND=false
   # Custom icon.
   # typeset -g POWERLEVEL9K_TIME_VISUAL_IDENTIFIER_EXPANSION='⭐'
+  typeset -g POWERLEVEL9K_TIME_VISUAL_IDENTIFIER_EXPANSION=''
   # Custom prefix.
   # typeset -g POWERLEVEL9K_TIME_PREFIX='at '
 

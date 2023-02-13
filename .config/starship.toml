@@ -4,8 +4,8 @@ format = """
 $os\
 $time\
 $battery\
-$shell\
 [\uE0B4](bg:#5f87af fg:#c0c0c0)\
+$shell\
 $directory\
 [\uE0B4](bg:#dfaf87 fg:#5f87af)\
 $git_branch\
@@ -113,11 +113,11 @@ symbol = ''
 [shell]
 bash_indicator = '\$_'
 disabled = false
-fish_indicator = 'f_'
-format = '[$indicator ]($style bg:#c0c0c0)'
+fish_indicator = '<><'
+format = '[ $indicator](bg:#5f87af fg:#e4e4e4)'
 powershell_indicator = '>_'
 unknown_indicator = '?_'
-zsh_indicator = 'z_'
+zsh_indicator = '%_'
 
 [time]
 disabled = false

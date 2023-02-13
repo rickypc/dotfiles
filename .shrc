@@ -5,6 +5,16 @@ if [ -f ~/.aliases ]; then
   . ~/.aliases
 fi
 
+NONE='\[\033[0m\]'    # unsets color to term's fg color
+# regular colors
+B='\[\033[0;34m\]'    # blue
+R='\[\033[0;31m\]'    # red
+# bold colors
+BB='\[\033[1;34m\]'   # bold blue
+BY='\[\033[1;33m\]'   # bold yellow
+# default prompt
+PS1="\D{%r} ${BB}\w ${BY}\$${NONE} "
+
 # Do not put duplicate lines in the history ('ignoredups') and do not overwrite
 # GNU Midnight Commander's setting of 'ignorespace'.
 # Both would be ('ignoreboth'). See bash(1) for more options.
