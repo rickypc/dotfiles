@@ -1,0 +1,4 @@
+typeset -g -A key
+
+key[Home]='^[[H'
+key[End]='^[[F'
