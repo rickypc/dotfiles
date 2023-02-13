@@ -36,9 +36,10 @@
     time                    # current time
     os_icon                 # os identifier
     dir                     # current directory
+    command_execution_time  # duration of the last command
     # =========================[ Line #2 ]=========================
     newline                 # \n
-    # prompt_char           # prompt symbol
+    prompt_char             # prompt symbol
   )
 
   # The list of segments shown on the right. Fill it with less important segments.
@@ -47,8 +48,7 @@
   # last prompt line gets hidden if it would overlap with left prompt.
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
-    status                  # exit code of the last command
-    command_execution_time  # duration of the last command
+    # status                # exit code of the last command
     background_jobs         # presence of background jobs
     # direnv                # direnv status (https://direnv.net/)
     # asdf                  # asdf version manager (https://github.com/asdf-vm/asdf)
@@ -1736,11 +1736,11 @@
   # p10k display -a '*' && printf '%-32s = %q\n' ${(@kv)reply} | sort
 
   function p10k-on-pre-prompt() {
-    p10k display '*/(left|right)/*|*/right_frame'=show
+    p10k display '*/(left|right)/*|*/(gap|*_frame)'=show
   }
 
   function p10k-on-post-prompt() {
-    p10k display '*/(left|right)/*|*/right_frame'=hide '*/(command_execution_time|status|time)'=show
+    p10k display '*/(left|right)/*|*/(gap|*_frame)'=hide '*/(command_execution_time|prompt_char|time)'=show
   }
 
   # Instant prompt mode.
