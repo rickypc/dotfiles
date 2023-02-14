@@ -46,6 +46,11 @@
   "omnisharp.path": "latest",
   "outline.showFunctions": false,
   "outline.showVariables": false,
+  "php.files.exclude": [
+    ".git/**/**",
+    "**/contrib/**/**",
+    "vendor/**/**"
+  ],
   "php.memoryLimit": "1024M",
   "php.suggest.basic": false,
   "php.validate.enable": false,
