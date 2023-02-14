@@ -15,17 +15,11 @@ GRADLE_DIR=$LIB_DIR/gradle-6.1.1
 MAVEN_DIR=$LIB_DIR/apache-maven-3.6.3
 PERL_DIR=$LIB_DIR/perl5
 
-if [ $MACHINE = 'arm64' ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
+[ $MACHINE = 'arm64' ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
 export_to_path() {
   if [[ -n "$1" && $PATH != *$1* ]]; then
-    if [ -z $PATH ]; then
-      export PATH=$1
-    else
-      export PATH=$PATH:$1
-    fi
+    [ -z $PATH ] && export PATH=$1 || export PATH=$PATH:$1
   fi
 }
 
@@ -42,7 +36,7 @@ gcc_process() {
   else
     echo -e "\ngcc version changes.\nAll virtual terminals will be closed and you may lose your work.\n"
 
-    read -p "Press [Enter] key when you are ready..."
+    read -p 'Press [Enter] key when you are ready...'
 
     # write current gcc version into checksum file
     echo "$GCC_VERSION" > $CHECKSUM_PATH
@@ -50,14 +44,10 @@ gcc_process() {
   fi
 }
 
-if [ ! -d $CACHE_PATH ]; then
-  mkdir -p $CACHE_PATH
-fi
+[ ! -d $CACHE_PATH ] && mkdir -p $CACHE_PATH
 
 if [ -f "$CHECKSUM_PATH" ]; then
-  if [ "$GCC_VERSION" != "$(cat $CHECKSUM_PATH)" ]; then
-    gcc_process
-  fi
+  [ "$GCC_VERSION" != "$(cat $CHECKSUM_PATH)" ] && gcc_process
 else
   gcc_process
 fi
@@ -91,35 +81,21 @@ esac
 #fi
 
 # Order Matters™!
-if [ -d /usr/local/bin ]; then
-  export_to_path "/usr/local/bin"
-fi
+[ -d /usr/local/bin ] && export_to_path '/usr/local/bin'
 
 # Order Matters™!
 if [ $MACHINE = 'arm64' ]; then
-  if [ -d /usr/bin ]; then
-    export_to_path "/usr/bin"
-  fi
-
-  if [ -d /bin ]; then
-    export_to_path "/bin"
-  fi
+  [ -d /usr/bin ] && export_to_path '/usr/bin'
+  [ -d /bin ] && export_to_path '/bin'
 fi
 
 # Order Matters™!
-if [ -d /usr/local/sbin ]; then
-  export_to_path "/usr/local/sbin"
-fi
+[ -d /usr/local/sbin ] && export_to_path '/usr/local/sbin'
 
 # Order Matters™!
 if [ $MACHINE = 'arm64' ]; then
-  if [ -d /usr/sbin ]; then
-    export_to_path "/usr/sbin"
-  fi
-
-  if [ -d /sbin ]; then
-    export_to_path "/sbin"
-  fi
+  [ -d /usr/sbin ] && export_to_path '/usr/sbin'
+  [ -d /sbin ] && export_to_path '/sbin'
 fi
 
 # User specific environment and startup programs
@@ -127,39 +103,23 @@ if [ -d ~/bin ]; then
   export_to_path ~/bin
 
   if [[ $PERL5LIB != *~/bin* ]]; then
-    if [ -z $PERL5LIB ]; then
-      export PERL5LIB=~/bin
-    else
-      export PERL5LIB=~/bin:$PERL5LIB
-    fi
+    [ -z $PERL5LIB ] && export PERL5LIB=~/bin || export PERL5LIB=~/bin:$PERL5LIB
   fi
 fi
 
-if [ -d ~/.dotnet/tools ]; then
-  export_to_path ~/.dotnet/tools
-fi
+[ -d ~/.dotnet/tools ] && export_to_path ~/.dotnet/tools
 
 PYTHON_USER_BASE=`$LOCAL/bin/python3 -m site --user-base`
 
 if [ -d $ANDROID_SDK ]; then
-  if [[ $ANDROID_HOME != *${ANDROID_SDK}* ]]; then
-    export ANDROID_HOME=$ANDROID_SDK
-  fi
-
-  if [ -d $ANDROID_SDK/platform-tools ]; then
-    export_to_path "$ANDROID_SDK/platform-tools"
-  fi
-
-  if [ -d $ANDROID_SDK/tools ]; then
-    export_to_path "$ANDROID_SDK/tools"
-  fi
+  [[ $ANDROID_HOME != *${ANDROID_SDK}* ]] && export ANDROID_HOME=$ANDROID_SDK
+  [ -d $ANDROID_SDK/platform-tools ] && export_to_path "$ANDROID_SDK/platform-tools"
+  [ -d $ANDROID_SDK/tools ] && export_to_path "$ANDROID_SDK/tools"
 fi
 
 # Golang specific environment
 export GOPATH=$GO_DIR
-if [ -d $GO_DIR ]; then
-  export_to_path "$GOPATH/bin"
-fi
+[ -d $GO_DIR ] && export_to_path "$GOPATH/bin"
 
 # Gradle specific environment
 if [ -d $GRADLE_DIR ]; then
@@ -167,28 +127,18 @@ if [ -d $GRADLE_DIR ]; then
   export_to_path "$GRADLE_HOME/bin"
 fi
 
-if [[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]]; then
-  export JAVA_HOME=$(/usr/libexec/java_home)
-fi
+[[ $JAVA_HOME != *$(/usr/libexec/java_home)* ]] && export JAVA_HOME=$(/usr/libexec/java_home)
 
 if [[ -d /usr/share/java && $CLASSPATH != */usr/share/java* ]]; then
-  if [ -z $CLASSPATH ]; then
-    export CLASSPATH=/usr/share/java
-  else
-    export CLASSPATH=$CLASSPATH:/usr/share/java
-  fi
+  [ -z $CLASSPATH ] && export CLASSPATH=/usr/share/java || export CLASSPATH=$CLASSPATH:/usr/share/java
 fi
 
 [ $MACHINE = 'arm64' ] && COMPOSER_HOME=~/.config/composer || COMPOSER_HOME=~/.composer
 
-if [ -d $COMPOSER_HOME ]; then
-  export COMPOSER_HOME
-fi
+[ -d $COMPOSER_HOME ] && export COMPOSER_HOME
 
 # User composer vendor
-if [ -d "$COMPOSER_HOME/vendor/bin" ]; then
-  export_to_path "$COMPOSER_HOME/vendor/bin"
-fi
+[ -d "$COMPOSER_HOME/vendor/bin" ] && export_to_path "$COMPOSER_HOME/vendor/bin"
 
 # Maven specific environment
 if [ -d $MAVEN_DIR ]; then
@@ -212,15 +162,11 @@ if [ -d "$PYTHON_USER_BASE/bin" ]; then
   export_to_path "$PYTHON_USER_BASE/bin"
 fi
 
-if [ -d "$LOCAL/opt/python/libexec/bin" ]; then
-  export_to_path "$LOCAL/opt/python/libexec/bin"
-fi
+[ -d "$LOCAL/opt/python/libexec/bin" ] && export_to_path "$LOCAL/opt/python/libexec/bin"
 
 if [ -d ~/.virtualenvs ]; then
   export WORKON_HOME=~/.virtualenvs
-  if [ -d $WORKON_HOME/default ]; then
-    . $WORKON_HOME/default/bin/activate
-  fi
+  [ -d $WORKON_HOME/default ] && . $WORKON_HOME/default/bin/activate
 fi
 
 if [ -d ~/.yarn/bin ]; then

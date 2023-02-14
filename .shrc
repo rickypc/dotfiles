@@ -1,9 +1,10 @@
 # ~/.shrc: executed by {ba|d|z}sh(1).
 
+# Source shell completions.
+[ -f ~/.sh_completion ] && . ~/.sh_completion
+
 # Source alias definitions.
-if [ -f ~/.aliases ]; then
-  . ~/.aliases
-fi
+[ -f ~/.aliases ] && . ~/.aliases
 
 NONE='\[\033[0m\]'    # unsets color to term's fg color
 # regular colors
@@ -12,14 +13,20 @@ R='\[\033[0;31m\]'    # red
 # bold colors
 BB='\[\033[1;34m\]'   # bold blue
 BY='\[\033[1;33m\]'   # bold yellow
+
 # default prompt
-PS1="\D{%r} ${BB}\w ${BY}\$${NONE} "
+if [ -f ~/.sh_completion.d/git-prompt.sh ]; then
+  #GIT_PS1_SHOWDIRTYSTATE=true
+  #GIT_PS1_SHOWSTASHSTATE=true
+  #GIT_PS1_SHOWUNTRACKEDFILES=true
+  PS1="\D{%r} $BB\w \$(__git_ps1 '(%s)') $BY\$$NONE "
+else
+  PS1="\D{%r} $BB\w $BY\$$NONE "
+fi
 
 # Do not put duplicate lines in the history ('ignoredups') and do not overwrite
 # GNU Midnight Commander's setting of 'ignorespace'.
 # Both would be ('ignoreboth'). See bash(1) for more options.
 export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoreboth
 
-if [[ $(colima status 2>&1) =~ "colima is not running" ]]; then
-  colima start 2>/dev/null
-fi
+[[ $(colima status 2>&1) =~ "colima is not running" ]] && colima start 2>/dev/null

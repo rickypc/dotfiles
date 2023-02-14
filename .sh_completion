@@ -1,5 +1,5 @@
-# Add each completion script in the .bash_completion.d directory
-for file in $HOME/.bash_completion.d/*; do
+# Add each completion script in the .sh_completion.d directory
+for file in $HOME/.sh_completion.d/*; do
   if ! [[ ${file##*/} =~ (~|bak|swp)$ ]]; then
     # Does not seem to be a forgotten backup file
     if [ \( -f $file -o -h $file \) -a -r $file ]; then
