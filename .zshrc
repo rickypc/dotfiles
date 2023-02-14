@@ -20,9 +20,14 @@ setopt APPEND_HISTORY
 PROMPT="%t %B%F{blue}%3~ ($(echo $(git symbolic-ref HEAD | cut -d'/' -f3))) %B%F{yellow}%#%f "
 
 # zsh completions.
+fpath=(~/.zsh_plugins/completions/src $fpath)
 autoload -Uz compinit && compinit
 
-source $(brew --prefix)/opt/powerlevel10k/powerlevel10k.zsh-theme
+# load plugins.
+source ~/.zsh_plugins/autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh_plugins/powerlevel10k/powerlevel10k.zsh-theme
+source ~/.zsh_plugins/syntax-highlighting/zsh-syntax-highlighting.zsh
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 

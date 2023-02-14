@@ -5,7 +5,6 @@ tap 'homebrew/cask'
 tap 'homebrew/cask-versions' unless personal
 tap 'homebrew/core'
 tap 'homebrew/services'
-tap 'romkatv/powerlevel10k'
 brew 'python@3.9', link: false
 brew 'python@3.10', link: false
 brew 'python@3.11', link: true
@@ -32,7 +31,6 @@ brew 'node@18', conflicts_with: ['node'], link: true
 brew 'openssl@3'
 brew 'php@8.1', conflicts_with: ['php'], link: true, restart_service: true
 brew 'redis', restart_service: true unless personal
-brew 'romkatv/powerlevel10k/powerlevel10k'
 brew 'starship'
 brew 'vim'
 cask 'aerial'
