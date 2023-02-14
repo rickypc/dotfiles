@@ -7,14 +7,14 @@ tap 'homebrew/core'
 tap 'homebrew/services'
 brew 'python@3.9', link: false
 brew 'python@3.10', link: false
-brew 'python@3.11', link: true
+brew 'python@3.11', link: :overwrite
 brew 'awscli'
 brew 'cloc' unless personal
 brew 'colima' unless personal
 brew 'coreutils'
 brew 'curl'
 brew 'dive' unless personal
-brew 'docker', link: true unless personal
+brew 'docker', link: :overwrite unless personal
 brew 'dos2unix' unless personal
 brew 'ffmpeg'
 brew 'git'
@@ -27,9 +27,9 @@ brew 'imagemagick'
 brew 'jq'
 brew 'mysql', restart_service: true
 brew 'nginx', restart_service: true
-brew 'node@18', conflicts_with: ['node'], link: true
+brew 'node@18', conflicts_with: ['node'], link: :overwrite
 brew 'openssl@3'
-brew 'php@8.1', conflicts_with: ['php'], link: true, restart_service: true
+brew 'php@8.1', conflicts_with: ['php'], link: :overwrite, restart_service: true
 brew 'redis', restart_service: true unless personal
 brew 'starship'
 brew 'vim'

@@ -25,9 +25,7 @@ if ! [ -x "$(command -v xcode-select)" ]; then
 fi
 
 # Ensure $LOCAL/sbin exists.
-if [ ! -d $LOCAL/sbin ]; then
-  sudo -- sh -c "mkdir -p $LOCAL/sbin; chown $(id -u):admin $LOCAL/sbin"
-fi
+[ ! -d $LOCAL/sbin ] && sudo -- sh -c "mkdir -p $LOCAL/sbin; chown $(id -u):admin $LOCAL/sbin"
 
 step "Install latest Homebrew"
   if ! [ -x "$(command -v brew)" ]; then
@@ -83,7 +81,8 @@ step "Setup NodeJS v$NODE_LTS"
   try npm install --force --location=global --no-audit --no-fund yarn
 next
 
-step "Setup Python v3 and its dependencies"
+step "Setup Python v$PYTHON_LTS and its dependencies"
+  try brew link --force --overwrite python@$PYTHON_LTS
   ln -sf $LOCAL/bin/python3 $LOCAL/bin/python && ln -sf $LOCAL/bin/pip3 $LOCAL/bin/pip
   try $LOCAL/bin/pip3 install --user gitpython
 next
@@ -113,18 +112,10 @@ step "Setup PHP v$PHP_LTS"
   try brew link --force --overwrite php@$PHP_LTS
   try mkdir -p $LOCAL/lib/php/pecl
   try pecl channel-update pecl.php.net
-  if [ -z "$(php -i | grep -w ast)" ]; then
-    try pecl install ast
-  fi
-  if [ -z "$(php -i | grep -w igbinary)" ]; then
-    try pecl install igbinary
-  fi
-  if [ -z "$(php -i | grep -w redis)" ]; then
-    try pecl install redis
-  fi
-  if [ -z "$(php -i | grep -w xdebug)" ]; then
-    try pecl install xdebug
-  fi
+  [ -z "$(php -i | grep -w ast)" ] && try pecl install ast
+  [ -z "$(php -i | grep -w igbinary)" ] && try pecl install igbinary
+  [ -z "$(php -i | grep -w redis)" ] && try pecl install redis
+  [ -z "$(php -i | grep -w xdebug)" ] && try pecl install xdebug
   # Install latest Composer.
   curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
   try brew services restart php@$PHP_LTS
@@ -200,9 +191,7 @@ step "Setup latest Nginx"
   try sudo brew services restart nginx
 next
 
-if [ ! -d ~/.sqlworkbench/drivers ]; then
-  try mkdir -p ~/.sqlworkbench/drivers
-fi
+[ ! -d ~/.sqlworkbench/drivers ] && try mkdir -p ~/.sqlworkbench/drivers
 
 if [ ! -f ~/.sqlworkbench/drivers/sqljdbc42.jar ]; then
   step "Download latest Microsoft JDBC driver"
@@ -218,9 +207,7 @@ if [ ! -f ~/.sqlworkbench/drivers/redshiftjdbc42.jar ]; then
 fi
 
 step "Clean Docker containers and images"
-  if [ -n "$(brew list --versions docker)" ]; then
-    try brew link --force --overwrite docker
-  fi
+  [ -n "$(brew list --versions docker)" ] && try brew link --force --overwrite docker
   try ~/bin/docker-cleanup
 next
 

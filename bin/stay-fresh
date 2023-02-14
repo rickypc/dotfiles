@@ -28,9 +28,7 @@ sudo -v
 step "Clear Kernel caches"
   # try sudo update_dyld_shared_cache -force
   try qlmanage -r
-  if [ -n "$(ps aux | grep Finder | grep -v grep)" ]; then
-    try killall Finder
-  fi
+  [ -n "$(ps aux | grep Finder | grep -v grep)" ] && try killall Finder
 next
 
 step "Purge inactive memory"
@@ -97,19 +95,10 @@ step "Clear caches"
 next
 
 step "Vacuum Outlook data"
-  if [ -n "$(ps aux | grep "Microsoft Outlook" | grep -v grep)" ]; then
-    killall "Microsoft Outlook"
-  fi
-  if [ -f "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" ]; then
-    try sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" "PRAGMA integrity_check" && sqlite3 "$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite" vacuum
-  fi
+  [ -n "$(ps aux | grep 'Microsoft Outlook' | grep -v grep)" ] && killall 'Microsoft Outlook'
+  OUTLOOK_DATA="$HOME/Library/Group\ Containers/UBF8T346G9.Office/Outlook/Outlook\ 15\ Profiles/Main\ Profile/Data/Outlook.sqlite"
+  [ -f "$OUTLOOK_DATA" ] && try sqlite3 "$OUTLOOK_DATA" "PRAGMA integrity_check" && sqlite3 "$OUTLOOK_DATA" vacuum
 next
-
-# Clear docker containers and images.
-if [ -n "$(brew list --versions docker)" ]; then
-  brew link --force --overwrite docker
-fi
-~/bin/docker-cleanup
 
 step "Update Homebrew formulae"
   BREW_REPO=$(brew --repo)
@@ -130,44 +119,30 @@ step "Update Homebrew formulae"
 next
 
 step "Upgrade Homebrew formulae"
+  [ -n "$(brew list --versions docker)" ] && try brew unlink docker
+  [ -n "$(brew list --versions node@$NODE_LTS)" ] && try brew unlink node@$NODE_LTS
+  [ -n "$(brew list --versions php@$PHP_LTS)" ] && try brew unlink php@$PHP_LTS
+  [ -n "$(brew list --versions python@$PYTHON_LTS)" ] && try brew unlink python@$PYTHON_LTS
+
   sudo chown -R $(whoami) $LOCAL_BIN
   chmod u+w $LOCAL_BIN
   echo
   # Upgrade all installed unpinned brews.
   brew bundle --global --verbose
 
-  # Link node.js to the latest.
+  [ -n "$(brew list --versions docker)" ] && try brew link --force --overwrite docker
+  [ -n "$(brew list --versions node@$NODE_LTS)" ] && try brew link --force --overwrite node@$NODE_LTS
+  [ -n "$(brew list --versions php@$PHP_LTS)" ] && try brew link --force --overwrite php@$PHP_LTS
+  [ -n "$(brew list --versions python@$PYTHON_LTS)" ] && try brew link --force --overwrite python@$PYTHON_LTS
+
+  # Install the latest npm and yarn.
   if [ -n "$(brew list --versions node@$NODE_LTS)" ]; then
-    try brew unlink node@$NODE_LTS
-    try brew link --force --overwrite node@$NODE_LTS
-    if [ -n "$(npm outdated --location=global npm)" ]; then
-      try npm install --force --location=global --no-audit --no-fund npm
-    fi
-    if [ -n "$(npm outdated --location=global yarn)" ]; then
-      try npm install --force --location=global --no-audit --no-fund yarn
-    fi
+    [ -n "$(npm outdated --location=global npm)" ] && try npm install --force --location=global --no-audit --no-fund npm
+    [ -n "$(npm outdated --location=global yarn)" ] && try npm install --force --location=global --no-audit --no-fund yarn
   fi
 
-  # Link PHP to the latest.
-  if [ -n "$(brew list --versions php@$PHP_LTS)" ]; then
-    try brew unlink php@$PHP_LTS
-    try brew link --force --overwrite php@$PHP_LTS
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
-    brew services restart php@$PHP_LTS
-  fi
-
-  # Restart services.
-  output_start
-  if [ -n "$(brew list --versions mysql)" ]; then
-    brew services restart mysql
-  fi
-  if [ -n "$(brew list --versions nginx)" ]; then
-    sudo brew services restart nginx
-  fi
-  if [ -n "$(brew list --versions redis)" ]; then
-    brew services restart redis
-  fi
-  output_end
+  # Install the latest composer.
+  [ -n "$(brew list --versions php@$PHP_LTS)" ] && curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer
 next
 
 step "Clean Homebrew caches"
@@ -182,14 +157,13 @@ step "Clean Homebrew caches"
   brew tap --repair
 next
 
+# Clear docker containers and images.
+~/bin/docker-cleanup
+
 step "Activate default virtual env"
   # Make sure symlink exists.
-  if [ ! -f $LOCAL_BIN/python ]; then
-    try ln -sf $LOCAL_BIN/python3 $LOCAL_BIN/python
-  fi
-  if [ ! -f $LOCAL_BIN/pip ]; then
-    try ln -sf $LOCAL_BIN/pip3 $LOCAL_BIN/pip
-  fi
+  [ ! -f $LOCAL_BIN/python ] && try ln -sf $LOCAL_BIN/python3 $LOCAL_BIN/python
+  [ ! -f $LOCAL_BIN/pip ] && try ln -sf $LOCAL_BIN/pip3 $LOCAL_BIN/pip
   try rm -rf $WORKON_HOME/default
   try ~/bin/get-virtualenv
   try . $WORKON_HOME/default/bin/activate
@@ -201,17 +175,11 @@ step "Activate Python dependencies"
   if [ -d "$PYTHON_USER_BASE/bin" ]; then
     # Remove old Python user base from the PATH.
     export PATH=${PATH/:$HOME\/Library\/Python\/[0-9].[0-9]\/bin}
-
     export PYTHON_USER_SITE=`$LOCAL_BIN/python3 -m site --user-site`
-
-    if [[ $PATH != *$PYTHON_USER_BASE/bin* ]]; then
-      export PATH=$PYTHON_USER_BASE/bin:$PATH
-    fi
+    [[ $PATH != *$PYTHON_USER_BASE/bin* ]] && export PATH=$PYTHON_USER_BASE/bin:$PATH
   fi
 
-  if [ -z "$(pip3 list --user | grep gitpython)" ]; then
-    try $LOCAL_BIN/pip3 install --user gitpython
-  fi
+  [ -z "$(pip3 list --user | grep gitpython)" ] && try $LOCAL_BIN/pip3 install --user gitpython
 next
 
 # Clear {ba|z}sh history.
