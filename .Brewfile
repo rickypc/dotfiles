@@ -6,7 +6,6 @@ tap 'homebrew/cask-versions' unless personal
 tap 'homebrew/core'
 tap 'homebrew/services'
 brew 'python@3.9', link: false
-brew 'python@3.10', link: false
 brew 'python@3.11', link: :overwrite
 brew 'awscli'
 brew 'cloc' unless personal
