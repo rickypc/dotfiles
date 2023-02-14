@@ -76,6 +76,7 @@ __pycache__/
 .vscode
 .yarn
 .yarnrc
+.zcompdump*
 .zsh_history
 .zsh_sessions
 Applications
