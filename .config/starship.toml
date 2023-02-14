@@ -10,6 +10,7 @@ $directory\
 [\uE0B4](bg:#dfaf87 fg:#5f87af)\
 $git_branch\
 $git_status\
+${custom.git_origin}\
 [\uE0B4](bg:#5f87af fg:#dfaf87)\
 $python\
 $dotnet\
@@ -32,6 +33,11 @@ threshold = 100
 [cmd_duration]
 format = '[  $duration ](bg:#dfaf87)'
 min_time = 0
+
+[custom.git_origin]
+command = 'REMOTE=$(git remote get-url origin);[[ ${REMOTE%:*} =~ github.com ]] && echo "" || echo ""'
+detect_folders = ['.git']
+format = '[$output ](bg:#dfaf87)'
 
 [directory]
 format = '[ $path ](bg:#5f87af fg:#e4e4e4)'
@@ -63,16 +69,16 @@ symbol = ''
 [git_status]
 ahead = '⇡$count '
 behind = '⇣$count '
-conflicted = '=$count '
+conflicted = '~$count '
 deleted = '✘$count '
-diverged = '⇕⇡$ahead_count ⇣$behind_count '
-format = '[$conflicted$stashed$deleted$renamed$staged$modified$untracked$ahead_behind ](bg:#dfaf87)'
+diverged = '⇠$behind_count ⇢$ahead_count '
+format = '[$ahead_behind$stashed$conflicted$staged$deleted$renamed$modified$untracked](bg:#dfaf87)'
 modified = '!$count '
 renamed = '»$count '
 staged = '+$count '
 stashed = '*$count '
 untracked = '?$count '
-up_to_date = '[✓](bg:#dfaf87 bold fg:green)'
+up_to_date = ''
 
 [golang]
 format = '[ $symbol ($version) ](bg:#86bbd8)'
