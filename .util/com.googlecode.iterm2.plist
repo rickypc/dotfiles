@@ -1180,7 +1180,9 @@
 								<key>algorithm</key>
 								<integer>0</integer>
 								<key>auto-rainbow style</key>
-								<integer>0</integer>
+								<integer>3</integer>
+								<key>font</key>
+								<string>.AppleSystemUIFont 12</string>
 								<key>remove empty components</key>
 								<false/>
 							</dict>
@@ -1265,8 +1267,10 @@
 						<dict>
 							<key>knobs</key>
 							<dict>
-								<key>base: compression resistance</key>
+								<key>ShowPercentage</key>
 								<integer>1</integer>
+								<key>ShowTime</key>
+								<integer>0</integer>
 								<key>base: priority</key>
 								<real>5</real>
 								<key>shared text color</key>
