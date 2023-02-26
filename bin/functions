@@ -23,7 +23,7 @@ MACHINE=$(uname -m)
 [ $MACHINE = 'arm64' ] && LOCAL=/opt/homebrew || LOCAL=/usr/local
 LOCAL_BIN=$LOCAL/bin
 MOVE_TO_COL="echo -en \\033[${RES_COL}G"
-NETCORE_LTS=6.0.11
+NETCORE_LTS=7.0
 NODE_LTS=18
 PHP_LTS=8.1
 PYTHON_LTS=3.11

@@ -128,7 +128,7 @@ step "Upgrade Homebrew formulae"
   chmod u+w $LOCAL_BIN
   echo
   # Upgrade all installed unpinned brews.
-  brew bundle --global --verbose
+  HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew bundle --global --verbose
 
   [ -n "$(brew list --versions docker)" ] && try brew link --force --overwrite docker
   [ -n "$(brew list --versions node@$NODE_LTS)" ] && try brew link --force --overwrite node@$NODE_LTS
