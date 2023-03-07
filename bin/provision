@@ -55,7 +55,7 @@ step "Clean Homebrew caches"
 next
 
 step "Install Homebrew packages"
-  try HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew bundle --global --verbose
+  try HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew bundle --force --global --verbose
 next
 
 step "Setup OpenSSL keys"

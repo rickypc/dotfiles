@@ -74,7 +74,8 @@ network:
   # EXAMPLE
   # dnsHosts:
   #   example.com: 1.2.3.4
-  dnsHosts: {}
+  dnsHosts:
+    host.docker.internal: host.lima.internal
   
   # Network driver to use (slirp, gvproxy), (requires vmType `qemu`)
   #   - slirp is the default user mode networking provided by Qemu
@@ -129,7 +130,11 @@ docker:
 # vz is macOS virtualization framework and requires macOS 13
 #
 # Default: qemu
-vmType: ""
+vmType: qemu
+
+# Utilise rosetta for amd64 emulation (requires m1 mac and vmType `vz`)
+# Default: false
+rosetta: false
 
 # Volume mount driver for the virtual machine (virtiofs, 9p, sshfs).
 #
@@ -141,13 +146,13 @@ vmType: ""
 # of concurrent reads or writes).
 #
 # Default: virtiofs (for vz), sshfs (for qemu)
-mountType: virtiofs
+mountType: sshfs
 
 # The CPU type for the virtual machine (requires vmType `qemu`).
 # Options available for host emulation can be checked with: `qemu-system-$(arch) -cpu help`.
 # Instructions are also supported by appending to the cpu type e.g. "qemu64,+ssse3".
 # Default: host
-cpuType: ""
+cpuType: host
 
 # For a more general purpose virtual machine, Ubuntu container is optionally provided
 # as a layer on the virtual machine.
