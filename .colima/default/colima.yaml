@@ -74,8 +74,7 @@ network:
   # EXAMPLE
   # dnsHosts:
   #   example.com: 1.2.3.4
-  dnsHosts:
-    host.docker.internal: host.lima.internal
+  dnsHosts: {}
   
   # Network driver to use (slirp, gvproxy), (requires vmType `qemu`)
   #   - slirp is the default user mode networking provided by Qemu

@@ -14,6 +14,7 @@ brew 'coreutils'
 brew 'curl'
 brew 'dive' unless personal
 brew 'docker', link: :overwrite unless personal
+brew 'docker-buildx', link: :overwrite unless personal
 brew 'dos2unix' unless personal
 brew 'ffmpeg'
 brew 'git'
