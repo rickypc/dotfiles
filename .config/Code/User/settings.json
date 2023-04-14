@@ -41,6 +41,7 @@
   },
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
+  "http.proxySupport": "off",
   "javascript.validate.enable": false,
   "omnisharp.enableRoslynAnalyzers": true,
   "omnisharp.path": "latest",
