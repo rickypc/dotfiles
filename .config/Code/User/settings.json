@@ -1,5 +1,5 @@
 {
-  "application.shellEnvironmentResolutionTimeout": 15,
+  "application.shellEnvironmentResolutionTimeout": 60,
   "diffEditor.ignoreTrimWhitespace": false,
   "editor.codeLens": false,
   "editor.fontFamily": "Source Code Pro",
