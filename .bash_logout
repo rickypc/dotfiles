@@ -6,8 +6,7 @@ if [ "$(ps -u $USER | grep bash | wc -l)" = "2" ]; then
     # see hidden files
     shopt -s dotglob
 
-    colima stop
-    limactl stop colima -f
+    [ -x limactl ] && limactl stop colima -f
 
     # when leaving the console, clear the screen to increase privacy
     [ -x /usr/bin/clear ] && /usr/bin/clear -q
