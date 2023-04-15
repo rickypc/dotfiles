@@ -6,7 +6,7 @@ if [ "$(ps -u $USER | grep zsh | wc -l)" = "2" ]; then
     # see hidden files
     setopt GLOB_DOTS
 
-    [ -x limactl ] && limactl stop colima -f
+    [ -x $LOCAL_BIN/limactl ] && $LOCAL_BIN/limactl stop colima -f
 
     # when leaving the console, clear the screen to increase privacy
     [ -x /usr/bin/clear ] && /usr/bin/clear -q

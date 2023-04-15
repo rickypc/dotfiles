@@ -29,5 +29,4 @@ fi
 # Both would be ('ignoreboth'). See bash(1) for more options.
 export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoreboth
 
-[[ $(colima status 2>&1) =~ "colima is not running" ]] \
-  && (limactl stop colima -f; colima start 2>/dev/null)
+[ -f ~/.lima/colima/ha.pid ] || (limactl stop colima -f; colima start 2>/dev/null)
