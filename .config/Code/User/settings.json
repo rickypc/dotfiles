@@ -25,7 +25,8 @@
     "*.install": "php",
     "*.module": "php",
     "*.php": "php",
-    "*.theme": "php"
+    "*.theme": "php",
+    "crontab": "shellscript"
   },
   "files.exclude": {
     "**/.DS_Store": true,
