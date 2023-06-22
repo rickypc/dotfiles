@@ -43,6 +43,7 @@
   },
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
+  "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
   "javascript.validate.enable": false,
