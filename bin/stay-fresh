@@ -45,7 +45,7 @@ next
 step "Clear log files"
   [ -f $LOCAL/var/log/php-fpm.log ] && try :>$LOCAL/var/log/php-fpm.log
   [ -f $LOCAL/var/log/php_errors.log ] && try :>$LOCAL/var/log/php_errors.log
-  sudo -- bash -c "truncate --size 0 $LOCAL/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null"
+  sudo -- bash -c "truncate -s 0 $LOCAL/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null"
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
   try rm -rf ~/.npm/_logs/*
   if [ -x "$(command -v mysql)" ]; then
