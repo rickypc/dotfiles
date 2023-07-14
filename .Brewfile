@@ -1,9 +1,7 @@
 personal = `hostname -s`.strip.start_with?('Ric')
 tap 'golangci/tap'
 tap 'homebrew/bundle'
-tap 'homebrew/cask'
 tap 'homebrew/cask-versions' unless personal
-tap 'homebrew/core'
 tap 'homebrew/services'
 brew 'python@3.9', link: false
 brew 'python@3.11', link: :overwrite
