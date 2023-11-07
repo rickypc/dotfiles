@@ -1,1 +1,231 @@
-/Users/rhuang/.config/Code/User/settings.json
+{
+  "application.shellEnvironmentResolutionTimeout": 60,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.codeLens": false,
+  "editor.fontFamily": "Source Code Pro",
+  "editor.fontSize": 14,
+  "editor.formatOnPaste": true,
+  "editor.lineHeight": 19,
+  "editor.minimap.enabled": false,
+  "editor.quickSuggestions": {
+    "comments": "off",
+    "other": "off",
+    "strings": "off"
+  },
+  "editor.rulers": [80, 100, 120],
+  "editor.stickyTabStops": true,
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+  "errorLens.gutterIconsEnabled": true,
+  "eslint.packageManager": "yarn",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "files.associations": {
+    "*.inc": "php",
+    "*.install": "php",
+    "*.module": "php",
+    "*.php": "php",
+    "*.theme": "php",
+    "crontab": "shellscript"
+  },
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/.git": true,
+    "**/.idea": true,
+    "**/*.lock": true,
+    "**/*.pyc": true
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.watcherExclude": {
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/vendor/**": true
+  },
+  "flow.showUncovered": true,
+  "git.ignoreLimitWarning": true,
+  "http.proxyAuthorization": null,
+  "http.proxyStrictSSL": false,
+  "http.proxySupport": "off",
+  "javascript.validate.enable": false,
+  "omnisharp.enableRoslynAnalyzers": true,
+  "omnisharp.path": "latest",
+  "outline.showFunctions": false,
+  "outline.showVariables": false,
+  "php.files.exclude": [
+    ".git/**/**",
+    "**/contrib/**/**",
+    "vendor/**/**"
+  ],
+  "php.memoryLimit": "1024M",
+  "php.suggest.basic": false,
+  "php.validate.enable": false,
+  "phpcs.autoConfigSearch": false,
+  "phpcs.executablePath": "./vendor/bin/phpcs",
+  "phpcs.lintOnType": false,
+  "phpcs.standard": ".phpcs.xml",
+  "phpmd.command": "./vendor/bin/phpmd",
+  "phpmd.rules": ".phpmd.xml",
+  "psi-header.changes-tracking": {
+    "autoHeader": "manualSave",
+    "excludeGlob": [
+      "**/*.min.*"
+    ],
+    "isActive": false
+  },
+  "psi-header.config": {
+    "blankLinesAfter": 1,
+    "forceToTop": true,
+    "license": "Custom"
+  },
+  "psi-header.lang-config": [
+    {
+      "begin": "",
+      "end": "",
+      "language": "csharp",
+      "prefix": "// "
+    },
+    {
+      "beforeHeader": [
+        "#!/usr/bin/env perl",
+        ""
+      ],
+      "begin": "",
+      "end": "",
+      "language": "perl",
+      "prefix": "# "
+    },
+    {
+      "beforeHeader": [
+        "<?php",
+        "",
+        "namespace <<namespace>>;",
+        ""
+      ],
+      "begin": "/**",
+      "end": " */",
+      "language": "php",
+      "prefix": " * "
+    },
+    {
+      "beforeHeader": [
+        "#!/usr/bin/env python",
+        "# -*- coding: utf-8 -*-",
+        ""
+      ],
+      "begin": "",
+      "end": "",
+      "language": "python",
+      "prefix": "# "
+    },
+    {
+      "beforeHeader": [
+        "#!/bin/sh",
+        ""
+      ],
+      "begin": "",
+      "end": "",
+      "language": "shellscript",
+      "prefix": "# "
+    },
+    {
+      "begin": "{#",
+      "end": " #}",
+      "language": "twig",
+      "prefix": " # "
+    },
+    {
+      "begin": "",
+      "end": "",
+      "language": "yaml",
+      "prefix": "# "
+    }
+  ],
+  "psi-header.templates": [
+    {
+      "language": "*",
+      "template": [
+        "<<name>> - <<description>>",
+        "Copyright (C) <<projectCreationYear>> - <<year>> <<author>> <<<authoremail>>>",
+        "",
+        "This program is free software: you can redistribute it and/or modify",
+        "it under the terms of the GNU Affero General Public License as",
+        "published by the Free Software Foundation, either version 3 of the",
+        "License, or (at your option) any later version.",
+        "",
+        "This program is distributed in the hope that it will be useful,",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+        "GNU Affero General Public License for more details.",
+        "",
+        "You should have received a copy of the GNU Affero General Public License",
+        "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+      ]
+    },
+    {
+      "language": "php",
+      "template": [
+        "@file",
+        "Contains \\<<namespace>>\\<<filenamebase>>.",
+        "",
+        "<<name>> - <<description>>",
+        "Copyright (C) <<projectCreationYear>> - <<year>> <<author>> <<<authoremail>>>",
+        "",
+        "This program is free software: you can redistribute it and/or modify",
+        "it under the terms of the GNU Affero General Public License as",
+        "published by the Free Software Foundation, either version 3 of the",
+        "License, or (at your option) any later version.",
+        "",
+        "This program is distributed in the hope that it will be useful,",
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+        "GNU Affero General Public License for more details.",
+        "",
+        "You should have received a copy of the GNU Affero General Public License",
+        "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+      ]
+    }
+  ],
+  "psi-header.variables": [
+    [
+      "author",
+      "Richard Huang"
+    ],
+    [
+      "authoremail",
+      "rickypc@users.noreply.github.com"
+    ],
+    [
+      "projectCreationYear",
+      "1995"
+    ]
+  ],
+  "python.showStartPage": false,
+  "redhat.telemetry.enabled": false,
+  "rest-client.enableTelemetry": false,
+  "search.exclude": {
+    "**/coverage": true,
+    "**/dist": true,
+    "**/.DS_Store": true,
+    "**/.git": true,
+    "**/vendor": true
+  },
+  "security.workspace.trust.untrustedFiles": "newWindow",
+  "telemetry.telemetryLevel": "off",
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontFamily": "SauceCodePro Nerd Font Mono",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.shellIntegration.showWelcome": false,
+  "update.showReleaseNotes": false,
+  "window.newWindowDimensions": "inherit",
+  "workbench.colorTheme": "Zenburn",
+  "workbench.editor.closeOnFileDelete": true,
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.preferredDarkColorTheme": "Zenburn",
+  "workbench.startupEditor": "none",
+  "veracode.Auto-Scan on Save": true
+}
