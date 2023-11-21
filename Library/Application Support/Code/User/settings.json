@@ -50,8 +50,6 @@
   "javascript.validate.enable": false,
   "omnisharp.enableRoslynAnalyzers": true,
   "omnisharp.path": "latest",
-  "outline.showFunctions": false,
-  "outline.showVariables": false,
   "php.files.exclude": [
     ".git/**/**",
     "**/contrib/**/**",
@@ -220,12 +218,12 @@
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.shellIntegration.showWelcome": false,
   "update.showReleaseNotes": false,
+  "veracode.Auto-Scan on Save": true,
   "window.newWindowDimensions": "inherit",
   "workbench.colorTheme": "Zenburn",
   "workbench.editor.closeOnFileDelete": true,
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredDarkColorTheme": "Zenburn",
-  "workbench.startupEditor": "none",
-  "veracode.Auto-Scan on Save": true
+  "workbench.startupEditor": "none"
 }
