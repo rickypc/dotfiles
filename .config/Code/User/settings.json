@@ -48,6 +48,7 @@
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
   "javascript.validate.enable": false,
+  "notebook.outline.showCodeCells": true,
   "omnisharp.enableRoslynAnalyzers": true,
   "omnisharp.path": "latest",
   "outline.showFunctions": false,
