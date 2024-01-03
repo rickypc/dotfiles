@@ -4,7 +4,7 @@ tap 'homebrew/bundle'
 tap 'homebrew/cask-versions' unless personal
 tap 'homebrew/services'
 brew 'python@3.9', link: false
-brew 'python@3.11', link: :overwrite
+brew "python@#{ENV['HOMEBREW_PYTHON_LTS']}", link: :overwrite
 brew 'awscli'
 brew 'cloc' unless personal
 brew 'colima' unless personal
@@ -25,12 +25,13 @@ brew 'imagemagick'
 brew 'jq'
 brew 'mysql', restart_service: true
 brew 'nginx', restart_service: true
-brew 'node@18', conflicts_with: ['node'], link: :overwrite
+brew "node@#{ENV['HOMEBREW_NODE_LTS']}", conflicts_with: ['node'], link: :overwrite
 brew 'openssl@3'
-brew 'php@8.1', conflicts_with: ['php'], link: :overwrite, restart_service: true
+brew "php@#{ENV['HOMEBREW_PHP_LTS']}", conflicts_with: ['php'], link: :overwrite, restart_service: true
 brew 'redis', restart_service: true unless personal
 brew 'starship'
 brew 'vim'
+brew 'virtualenv', link: :overwrite
 cask 'aerial'
 cask 'dotnet-sdk' unless personal
 cask 'firefox'

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #    Environment Provisioner - Provision development environment.
-#    Copyright (C) 2015-2023  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2015-2024  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -55,7 +55,13 @@ step "Clean Homebrew caches"
 next
 
 step "Install Homebrew packages"
-  try HOMEBREW_FORCE_BREWED_GIT=1 HOMEBREW_INSTALL_CLEANUP=1 HOMEBREW_NO_ENV_HINTS=1 brew bundle --force --global --verbose
+  try HOMEBREW_FORCE_BREWED_GIT=1 \
+  HOMEBREW_INSTALL_CLEANUP=1 \
+  HOMEBREW_NO_ENV_HINTS=1 \
+  HOMEBREW_NODE_LTS=$NODE_LTS \
+  HOMEBREW_PHP_LTS=$PHP_LTS \
+  HOMEBREW_PYTHON_LTS=$PYTHON_LTS \
+  brew bundle --force --global --verbose
 next
 
 step "Setup OpenSSL keys"
