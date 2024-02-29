@@ -7,7 +7,7 @@ brew 'python@3.9', link: false
 brew "python@#{ENV['HOMEBREW_PYTHON_LTS']}", link: :overwrite
 brew 'awscli'
 brew 'cloc' unless personal
-brew 'colima' unless personal
+brew 'colima', restart_service: true unless personal
 brew 'coreutils'
 brew 'curl'
 brew 'dive' unless personal

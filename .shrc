@@ -28,12 +28,3 @@ fi
 # GNU Midnight Commander's setting of 'ignorespace'.
 # Both would be ('ignoreboth'). See bash(1) for more options.
 export HISTCONTROL=$HISTCONTROL${HISTCONTROL+,}ignoreboth
-
-# Atomic operation using mkdir.
-if mkdir ~/.lima/colima/.lock 2>/dev/null; then
-  if [[ ! -f ~/.lima/colima/ha.pid || $(colima status 2>&1) =~ "colima is not running" ]]; then
-    limactl stop colima -f
-    colima start 2>/dev/null
-  fi
-  rmdir ~/.lima/colima/.lock
-fi
