@@ -14,11 +14,7 @@
   },
   "editor.rulers": [80, 100, 120],
   "editor.stickyTabStops": true,
-  "emmet.includeLanguages": {
-    "javascript": "javascriptreact"
-  },
   "errorLens.gutterIconsEnabled": true,
-  "eslint.packageManager": "yarn",
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "files.associations": {
@@ -47,9 +43,10 @@
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
+  "[javascript]": {
+    "outline.showProperties": false
+  },
   "javascript.validate.enable": false,
-  "omnisharp.enableRoslynAnalyzers": true,
-  "omnisharp.path": "latest",
   "php.files.exclude": [
     ".git/**/**",
     "**/contrib/**/**",
@@ -198,7 +195,6 @@
       "1995"
     ]
   ],
-  "python.showStartPage": false,
   "redhat.telemetry.enabled": false,
   "rest-client.enableTelemetry": false,
   "search.exclude": {
@@ -216,7 +212,6 @@
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontFamily": "SauceCodePro Nerd Font Mono",
   "terminal.integrated.fontSize": 14,
-  "terminal.integrated.shellIntegration.showWelcome": false,
   "update.showReleaseNotes": false,
   "veracode.Auto-Scan on Save": true,
   "window.newWindowDimensions": "inherit",
