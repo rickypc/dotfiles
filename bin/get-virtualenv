@@ -27,9 +27,8 @@ if [ ! -f $LOCAL_BIN/virtualenv3 ]; then
 fi
 
 if [ ! -d $VENVS/default ]; then
-  VERSION=$($LOCAL_BIN/python3 -c 'import sys;print(str(sys.version_info[0])+"."+str(sys.version_info[1]))')
   rm -rf $VENVS/default
   mkdir -p $VENVS
-  $LOCAL_BIN/virtualenv3 -q $VENVS/$VERSION
-  mv $VENVS/$VERSION $VENVS/default
+  $LOCAL_BIN/virtualenv3 -q $VENVS/$PYTHON_LTS
+  mv $VENVS/$PYTHON_LTS $VENVS/default
 fi
