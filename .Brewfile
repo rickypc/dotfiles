@@ -15,6 +15,7 @@ brew 'docker', link: :overwrite unless personal
 brew 'docker-buildx', link: :overwrite unless personal
 brew 'dos2unix' unless personal
 brew 'ffmpeg'
+brew 'gh'
 brew 'git'
 brew 'gnupg' if personal
 brew 'go'
