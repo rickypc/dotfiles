@@ -40,6 +40,7 @@
   },
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
+  "git.openRepositoryInParentFolders": "never",
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
