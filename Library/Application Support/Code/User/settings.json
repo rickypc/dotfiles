@@ -23,6 +23,7 @@
     "*.module": "php",
     "*.php": "php",
     "*.theme": "php",
+    "*.ts": "javascript",
     "crontab": "shellscript"
   },
   "files.exclude": {
@@ -62,6 +63,7 @@
   "phpcs.standard": ".phpcs.xml",
   "phpmd.command": "./vendor/bin/phpmd",
   "phpmd.rules": ".phpmd.xml",
+  "playwright.reuseBrowser": false,
   "psi-header.changes-tracking": {
     "autoHeader": "manualSave",
     "excludeGlob": [
