@@ -101,7 +101,7 @@ Public
 test-results
 xcuserdata
 
-# Except this files
+# Except these files. VSCode config is sync-ed, but it's good to have it here.
 !.config/Code/User/settings.json
 !.drush/drush.complete.sh
 !Library/Application Support/Code/User/settings.json

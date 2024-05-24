@@ -27,6 +27,7 @@
     "*.module": "php",
     "*.php": "php",
     "*.theme": "php",
+    "*.ts": "javascript",
     "crontab": "shellscript"
   },
   "files.exclude": {
@@ -44,14 +45,17 @@
   },
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
+  "git.openRepositoryInParentFolders": "never",
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
+  "[javascript]": {
+    "outline.showProperties": false
+  },
   "javascript.validate.enable": false,
   "notebook.outline.showCodeCells": true,
   "omnisharp.enableRoslynAnalyzers": true,
   "omnisharp.path": "latest",
-  "outline.showFunctions": false,
   "outline.showVariables": false,
   "php.files.exclude": [
     ".git/**/**",
@@ -67,6 +71,7 @@
   "phpcs.standard": ".phpcs.xml",
   "phpmd.command": "./vendor/bin/phpmd",
   "phpmd.rules": ".phpmd.xml",
+  "playwright.reuseBrowser": false,
   "psi-header.changes-tracking": {
     "autoHeader": "manualSave",
     "excludeGlob": [
@@ -221,7 +226,9 @@
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.shellIntegration.showWelcome": false,
   "update.showReleaseNotes": false,
+  "veracode.Auto-Scan on Save": false,
   "window.newWindowDimensions": "inherit",
+  "window.restoreWindows": "all",
   "workbench.colorTheme": "Zenburn",
   "workbench.editor.closeOnFileDelete": true,
   "workbench.editor.highlightModifiedTabs": true,
