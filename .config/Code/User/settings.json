@@ -46,6 +46,7 @@
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
   "git.openRepositoryInParentFolders": "never",
+  "github.copilot.editor.enableAutoCompletions": true,
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
