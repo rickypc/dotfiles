@@ -21,7 +21,7 @@ __pycache__/
 .cisco
 .colima
 .composer
-.config
+.config/*
 .cpan
 .cups
 .dart*
@@ -101,7 +101,7 @@ Public
 test-results
 xcuserdata
 
-# Except these files. VSCode config is sync-ed, but it's good to have it here.
-!.config/Code/User/settings.json
+# Except these files. VSCode config & extensions are sync-ed, but it's good to have it here.
+!.config/Code/User/*
 !.drush/drush.complete.sh
 !Library/Application Support/Code/User/settings.json
