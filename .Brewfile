@@ -32,6 +32,7 @@ brew "php@#{ENV['HOMEBREW_PHP_LTS']}", conflicts_with: ['php'], link: :overwrite
 brew 'redis', restart_service: true unless personal
 brew 'starship'
 brew 'vim'
+brew 'vips' if personal
 brew 'virtualenv', link: :overwrite
 cask 'aerial'
 cask 'dotnet-sdk' unless personal
