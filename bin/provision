@@ -136,8 +136,8 @@ done
 mysql_secure_installation
 
 # Further MySQL config customization.
-if [ -z "$(grep -o "default_authentication_plugin = mysql_native_password" $PREFIX/etc/my.cnf)" ]; then
-  echo 'default_authentication_plugin = mysql_native_password' >> $PREFIX/etc/my.cnf
+if [ -z "$(grep -o "default_authentication_plugin = caching_sha2_password" $PREFIX/etc/my.cnf)" ]; then
+  echo 'default_authentication_plugin = caching_sha2_password' >> $PREFIX/etc/my.cnf
 fi
 
 if [ -z "$(grep -o "explicit_defaults_for_timestamp = 1" $PREFIX/etc/my.cnf)" ]; then
@@ -178,7 +178,7 @@ EOF
   chmod 600 $HOME/.my.cnf
 fi
 
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_PASSWD'; FLUSH PRIVILEGES;"
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '$MYSQL_PASSWD'; FLUSH PRIVILEGES;"
 
 step "Setup latest Nginx"
   try rm -f $PREFIX/var/www/index.html && ln -sf $HOME/.www/index.html $PREFIX/var/www/index.html

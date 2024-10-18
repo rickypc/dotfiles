@@ -18,6 +18,7 @@
     "javascript": "javascriptreact"
   },
   "errorLens.gutterIconsEnabled": true,
+  "eslint.experimental.useFlatConfig": false,
   "eslint.packageManager": "yarn",
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,

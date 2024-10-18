@@ -1,7 +1,6 @@
 personal = `hostname -s`.strip.start_with?('Ric')
 tap 'golangci/tap'
 tap 'homebrew/bundle'
-tap 'homebrew/cask-versions' unless personal
 tap 'homebrew/services'
 brew 'python@3.9', link: false
 brew "python@#{ENV['HOMEBREW_PYTHON_LTS']}", link: :overwrite
@@ -42,11 +41,8 @@ cask 'google-chrome'
 cask 'iterm2'
 cask 'microsoft-auto-update'
 cask 'microsoft-edge'
-cask 'mono-mdk-for-visual-studio' unless personal
 cask 'omnidisksweeper'
 cask 'opera'
 cask 'redisinsight' unless personal
-cask 'sqlworkbenchj' unless personal
 cask 'temurin8' unless personal
-cask 'visual-studio' unless personal
 cask 'visual-studio-code'
