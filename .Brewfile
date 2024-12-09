@@ -2,7 +2,6 @@ personal = `hostname -s`.strip.start_with?('Ric')
 tap 'golangci/tap'
 tap 'homebrew/bundle'
 tap 'homebrew/services'
-brew 'python@3.9', link: false
 brew "python@#{ENV['HOMEBREW_PYTHON_LTS']}", link: :overwrite
 brew 'awscli'
 brew 'cloc' unless personal
@@ -37,7 +36,7 @@ cask 'aerial'
 cask 'dotnet-sdk' unless personal
 cask 'firefox'
 cask 'gimp'
-cask 'google-chrome'
+cask 'google-chrome' if personal
 cask 'iterm2'
 cask 'microsoft-auto-update'
 cask 'microsoft-edge'
