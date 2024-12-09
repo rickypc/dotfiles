@@ -25,7 +25,7 @@ LOCAL_BIN=$LOCAL/bin
 MOVE_TO_COL="echo -en \\033[${RES_COL}G"
 # One major-version lower.
 NETCORE_LTS=7.0
-NODE_LTS=20
+NODE_LTS=22
 PHP_LTS=8.2
 PYTHON_LTS=3.12
 SET_COLOR_BOLD="echo -en \\033[1m"       # White Bold
