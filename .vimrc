@@ -139,7 +139,7 @@ if version >= 700
   let g:airline_theme='powerlineish'
   " fugitive mapping
   map <leader>gb :Git blame<cr>
-  map <leader>gd :Gvdiffsplit<cr>
+  map <leader>gd :Gvdiffsplit HEAD<cr>
 else
   let &rtp=substitute(&rtp, '\.vim', '&6', 'g')
   map <leader>cv :GITDiff<cr>
