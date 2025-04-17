@@ -16,7 +16,8 @@ memory: 16
 #
 # NOTE: value cannot be changed after virtual machine is created.
 # Default: host
-arch: x86_64
+# arch: x86_64
+arch: arm64
 
 # Container runtime to be used (docker, containerd).
 #
@@ -57,7 +58,6 @@ network:
   # Assign reachable IP address to the virtual machine.
   # NOTE: this is currently macOS only and ignored on Linux.
   # Default: false
-  # address: false
   address: true
 
   # Custom DNS resolvers for the virtual machine.
@@ -139,7 +139,6 @@ docker:
 #
 # NOTE: value cannot be changed after virtual machine is created.
 # Default: qemu
-# vmType: qemu
 vmType: vz
 
 # Utilise rosetta for amd64 emulation (requires m1 mac and vmType `vz`)
@@ -171,7 +170,6 @@ mountInotify: false
 # Options available for host emulation can be checked with: `qemu-system-$(arch) -cpu help`.
 # Instructions are also supported by appending to the cpu type e.g. "qemu64,+ssse3".
 # Default: host
-# cpuType: qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt,+lahf_lm,+movbe
 cpuType: host
 
 # Custom provision scripts for the virtual machine.
