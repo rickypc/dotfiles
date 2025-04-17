@@ -57,7 +57,7 @@ network:
   # Assign reachable IP address to the virtual machine.
   # NOTE: this is currently macOS only and ignored on Linux.
   # Default: false
-  address: true
+  address: false
   
   # Custom DNS resolvers for the virtual machine.
   #
@@ -138,7 +138,7 @@ docker:
 #
 # NOTE: value cannot be changed after virtual machine is created.
 # Default: qemu
-vmType: vz
+vmType: qemu
 
 # Utilise rosetta for amd64 emulation (requires m1 mac and vmType `vz`)
 # Default: false
@@ -169,7 +169,7 @@ mountInotify: false
 # Options available for host emulation can be checked with: `qemu-system-$(arch) -cpu help`.
 # Instructions are also supported by appending to the cpu type e.g. "qemu64,+ssse3".
 # Default: host
-cpuType: host
+cpuType: qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt,+lahf_lm,+movbe
 
 # Custom provision scripts for the virtual machine.
 # Provisioning scripts are executed on startup and therefore needs to be idempotent.
