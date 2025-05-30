@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #    Clean pack - Sanitize the source and pack them all.
-#    Copyright (C) 1995-2022  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 1995-2025  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -24,29 +24,49 @@ TMP=$(mktemp -d -t "$SOURCE")
 mkdir -p $TMP/$SOURCE
 
 # Copy source to target folder.
-rsync --archive \
-  --exclude '*/bin/Debug/' \
-  --exclude '*/bin/Release/' \
-  --exclude '*/contrib/' \
-  --exclude '*/core/' \
-  --exclude '*/*coverage/' \
-  --exclude '*/dist/' \
-  --exclude '*/docs/' \
-  --exclude '*/.DS_Store' \
-  --exclude '*/files/' \
-  --exclude '*/.idea' \
+time rsync --archive \
+  --exclude '*.apk' \
+  --exclude 'bin/Debug/' \
+  --exclude 'bin/Release/' \
+  --exclude 'build/' \
+  --exclude '.clinic' \
+  --exclude 'contrib/' \
+  --exclude 'core/' \
+  --exclude '*coverage/' \
+  --exclude 'datadog' \
+  --exclude 'dependency-check' \
+  --exclude 'dist/' \
+  --exclude 'docs/' \
+  --exclude '.DS_Store' \
+  --exclude '*files' \
+  --exclude '.git/' \
+  --exclude '.idea' \
   --exclude '*.lock' \
-  --exclude '*/node_modules*' \
-  --exclude '*/obj/Debug/' \
-  --exclude '*/obj/Release/' \
-  --exclude '*/site-packages/' \
-  --exclude '*/srcclr/' \
-  --exclude '*/*-tmp' \
-  --exclude '*/vendor/' \
+  --exclude '*.log' \
+  --exclude 'megalinter-reports' \
+  --exclude '*.mp4' \
+  --exclude 'node_modules' \
+  --exclude 'obj/Debug/' \
+  --exclude 'obj/Release/' \
+  --exclude '*.pem' \
+  --exclude '*.phar' \
+  --exclude 'playwright-report' \
+  --exclude '__pycache__' \
+  --exclude 'scannercli' \
+  --exclude 'site-packages/' \
+  --exclude '.snapshots' \
+  --exclude 'sql' \
+  --exclude 'srcclr/' \
+  --exclude '*.swp' \
+  --exclude '*.tar.gz' \
+  --exclude 'test-results' \
+  --exclude '*-tmp' \
+  --exclude 'vendor/' \
+  --exclude '*.zip' \
   . $TMP/$SOURCE
 
 # Compress target folder.
-tar -cf $PARENT/$SOURCE.txz -C $TMP --use-compress-program='xz -1T0' $SOURCE
+time tar -cf $PARENT/$SOURCE.txz -C $TMP --use-compress-program='xz -1T0' $SOURCE
 
 # Remove tmp folder.
 rm -rf $TMP
