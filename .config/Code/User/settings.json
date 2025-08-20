@@ -1,6 +1,7 @@
 {
   "application.shellEnvironmentResolutionTimeout": 60,
   "diffEditor.ignoreTrimWhitespace": false,
+  "docker.extension.enableComposeLanguageServer": false,
   "editor.codeLens": false,
   "editor.fontFamily": "Source Code Pro",
   "editor.fontSize": 14,
