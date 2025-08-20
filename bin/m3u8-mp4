@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #    m3u8 to mp4 - Convert m3u8 playlist to mp4.
-#    Copyright (C) 2009-2022  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2009-2025  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -25,7 +25,7 @@ die () {
 }
 
 usage () {
-  echo "Usage: $0 -f </path/to/video.mp4> -h -u </path/to/index.m3u8>\n"
+  echo "Usage: $0 -f </path/to/video.mp4> -h -u </path/to/index.m3u8\?a\=b>\n"
   echo "The following switches are recognized."
   echo "  -f -- The target video file path."
   echo "  -h -- Show this usage."
@@ -50,4 +50,4 @@ if [ -z "$(brew list --versions ffmpeg)" ]; then
   next
 fi
 
-ffmpeg -i "$URL" -c copy -loglevel 24 -stats $FILE
+ffmpeg -allowed_extensions ALL -protocol_whitelist crypto,data,file,http,https,tcp,tls -i "$URL" -c copy -loglevel 24 -stats $FILE
