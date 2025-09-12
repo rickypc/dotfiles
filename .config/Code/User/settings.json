@@ -13,14 +13,10 @@
     "other": "off",
     "strings": "off"
   },
-  "editor.rulers": [80, 100, 120],
+  "editor.renderWhitespace": "none",
+  "editor.rulers": [79, 99, 119],
   "editor.stickyTabStops": true,
-  "emmet.includeLanguages": {
-    "javascript": "javascriptreact"
-  },
   "errorLens.gutterIconsEnabled": true,
-  "eslint.experimental.useFlatConfig": false,
-  "eslint.packageManager": "yarn",
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "files.associations": {
@@ -48,7 +44,6 @@
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
   "git.openRepositoryInParentFolders": "never",
-  "github.copilot.editor.enableAutoCompletions": true,
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
@@ -57,8 +52,6 @@
   },
   "javascript.validate.enable": false,
   "notebook.outline.showCodeCells": true,
-  "omnisharp.enableRoslynAnalyzers": true,
-  "omnisharp.path": "latest",
   "outline.showVariables": false,
   "php.files.exclude": [
     ".git/**/**",
@@ -209,7 +202,6 @@
       "1995"
     ]
   ],
-  "python.showStartPage": false,
   "redhat.telemetry.enabled": false,
   "rest-client.enableTelemetry": false,
   "search.exclude": {
@@ -227,7 +219,6 @@
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontFamily": "SauceCodePro Nerd Font Mono",
   "terminal.integrated.fontSize": 14,
-  "terminal.integrated.shellIntegration.showWelcome": false,
   "update.showReleaseNotes": false,
   "veracode.Auto-Scan on Save": false,
   "window.newWindowDimensions": "inherit",
