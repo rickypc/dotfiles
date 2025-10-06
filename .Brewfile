@@ -1,9 +1,7 @@
 personal = `hostname -s`.strip.start_with?('Ric')
-tap 'golangci/tap'
-tap 'homebrew/bundle'
-tap 'homebrew/services'
+tap 'golangci/tap' unless personal
 brew "python@#{ENV['HOMEBREW_PYTHON_LTS']}", link: :overwrite
-brew 'awscli'
+brew 'awscli' unless personal
 brew 'cloc' unless personal
 brew 'colima', restart_service: true unless personal
 brew 'coreutils'
@@ -16,23 +14,22 @@ brew 'ffmpeg'
 brew 'gh'
 brew 'git'
 brew 'gnupg' if personal
-brew 'go'
-brew 'golangci/tap/golangci-lint'
+brew 'go' unless personal
+brew 'golangci/tap/golangci-lint' unless personal
 brew 'gource' unless personal
 brew 'html-xml-utils' unless personal
 brew 'imagemagick'
 brew 'jq'
-brew 'mysql', restart_service: true
-brew 'nginx', restart_service: true
+brew 'mysql', restart_service: true unless personal
+brew 'nginx', restart_service: true unless personal
 brew "node@#{ENV['HOMEBREW_NODE_LTS']}", conflicts_with: ['node'], link: :overwrite
 brew 'openssl@3'
-brew "php@#{ENV['HOMEBREW_PHP_LTS']}", conflicts_with: ['php'], link: :overwrite, restart_service: true
+brew "php@#{ENV['HOMEBREW_PHP_LTS']}", conflicts_with: ['php'], link: :overwrite, restart_service: true unless personal
 brew 'redis', restart_service: true unless personal
 brew 'starship'
 brew 'vim'
 brew 'vips' if personal
 brew 'virtualenv', link: :overwrite
-cask 'aerial'
 cask 'dotnet-sdk' unless personal
 cask 'firefox'
 cask 'gimp'
@@ -43,5 +40,5 @@ cask 'microsoft-edge'
 cask 'omnidisksweeper'
 cask 'opera'
 cask 'redisinsight' unless personal
-cask 'temurin8' unless personal
+cask 'temurin' unless personal
 cask 'visual-studio-code'
