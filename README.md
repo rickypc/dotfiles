@@ -1,58 +1,85 @@
-[Ricky Huang](http://ricky.one) dot files
-=================================================
+# [Ricky Huang](https://ricky.one) Dotfiles
 
-Central repository for maintaining [dot files](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments), a compilation of configurations as well as [scripts and tools](#user-content-script-and-tool-list) developed over the years for various applications that I use daily.
+This repository serves as a centralized collection of my personal
+[dotfiles](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments) -
+configuration files, [scripts, and tools](#user-content-script-and-tool-list)
+I've curated over the years to support my daily workflows across various platforms.
 
-They might not work for you, but feel free to try them.
+While these setups are tailored to my environment, you're welcome to explore
+and adapt them to your own needs.
 
-Platforms: [GNU/Linux](https://www.gnu.org/gnu/linux-and-gnu.en.html) ([RHEL](https://en.wikipedia.org/wiki/Red_Hat_Enterprise_Linux)/[CentOS](https://www.centos.org/)) and [Darwin](https://en.wikipedia.org/wiki/Darwin_(operating_system))/OS X ([Apple Silicon](https://en.wikipedia.org/wiki/Apple_silicon#M_series)/Intel)
+## Supported Platforms
 
-Installation
--
-Install necessary softwares and clone dotfiles repository with single command.
+- [GNU/Linux](https://www.gnu.org/gnu/linux-and-gnu.en.html):
+  including [RHEL](https://en.wikipedia.org/wiki/Red_Hat_Enterprise_Linux)
+  and [CentOS](https://www.centos.org/)
+- [Darwin](https://en.wikipedia.org/wiki/Darwin_(operating_system))/macOS:
+  compatible with both [Apple Silicon](https://en.wikipedia.org/wiki/Apple_silicon#M_series)
+  and Intel architectures
+
+## Installation
+
+To install required software and clone the dotfiles repository in one step:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/rickypc/dotfiles/main/bin/pre-provision)"
 ```
 
-Or, you can git clone dotfiles into your non-empty home directory with one command (free from [symlink](https://en.wikipedia.org/wiki/Symbolic_link) or bootstrap business):
+Alternatively, you can manually clone the repository into a non-empty
+home directory - no symlinks or bootstrapping required:
 
 ```bash
-cd; git init -b main; git remote add origin https://github.com/rickypc/dotfiles.git; git pull origin main; git branch --set-upstream-to origin/main; git submodule init; git submodule update
+cd
+git init -b main
+git remote add origin https://github.com/rickypc/dotfiles.git
+git pull origin main
+git branch --set-upstream-to origin/main
+git submodule init
+git submodule update
 ```
 
-Or, if you would like to use SSH clone URL, like myself:
+Prefer SSH? Here's the equivalent setup:
 
 ```bash
-cd; git init -b main; git remote add origin git@github.com:rickypc/dotfiles.git; git pull origin main; git branch --set-upstream-to origin/main; git submodule init; git submodule update
+cd
+git init -b main
+git remote add origin git@github.com:rickypc/dotfiles.git
+git pull origin main
+git branch --set-upstream-to origin/main
+git submodule init
+git submodule update
+
 ```
 
-Removal
--
-You can remove all the files came from this git repo from your machine if necessary:
+## Removal
+
+To remove all files tracked by this repository from your system:
 
 ```bash
 rm -rf $(git ls-files)
 ```
 
-Apply Stored Stat Information
--
-You can apply back any stored stat information for files/directories ownership and/or permissions.
+## Restoring File Metadata
 
-[git-stat-cache](bin/git-stat-cache) in your ``$PATH``:
+To reapply stored ownership and permission metadata for files and directories,
+use the [git-stat-cache](bin/git-stat-cache) utility:
+
+If it's in your `$PATH`:
 
 ```bash
 git stat-cache -a
 ```
 
-Or, not:
+Otherwise, run it directly:
 
 ```bash
 ./bin/git-stat-cache -a
 ```
 
-Script and Tool List
--
+## Script and Tool List
+
+Below is a curated list of scripts and utilities included in this repository.
+
 Script Name                                         | Language | Description
 ----------------------------------------------------|----------|------------
 [apply](bin/apply)                                  | Bash     | Apply all available patches.
@@ -115,6 +142,7 @@ Script Name                                         | Language | Description
 [x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
 [x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
 
-License
--
-[MIT License](https://opensource.org/licenses/MIT), unless otherwise noted.
+## License
+
+This repository is licensed under the [MIT License](https://opensource.org/licenses/MIT),
+unless explicitly stated otherwise for specific files or components.
