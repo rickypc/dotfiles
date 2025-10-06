@@ -24,7 +24,7 @@
 [gc]
   auto = 1000
 [init]
-  defaultBranch = master
+  defaultBranch = main
 [merge]
   renameLimit = 100000
 [pack]

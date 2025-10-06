@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #    Environment Pre-provisioner - Pre-provision development environment.
-#    Copyright (C) 2015-2022  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2015-2025  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -51,10 +51,10 @@ softwareupdate -a -i
 # Dot files setup.
 if [ ! -d ~/.git ]; then
   cd ~
-  git init -b master
+  git init -b main
   git remote add origin git@github.com:rickypc/dotfiles.git
-  git pull origin master
-  git branch --set-upstream-to origin/master
+  git pull origin main
+  git branch --set-upstream-to origin/main
   git submodule init
   git submodule update
 fi
@@ -65,20 +65,10 @@ if [[ ! -f ~/Library/Fonts/Roboto-Regular.ttf || ! -f ~/Library/Fonts/SourceCode
 fi
 
 # Install Homebrew.
-if [ `uname -m` = 'arm64' ]; then
-  if [ ! -d /opt/homebrew ]; then
-    sudo -- bash -c "mkdir -p /opt/homebrew; chown -R $(whoami) /opt/homebrew"
-    curl -Ls https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C /opt/homebrew
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-    brew update --force --quiet
-    chmod -R go-w "$(brew --prefix)/share/zsh"
-    brew analytics off
-  fi
-else
-  if [ ! -d /usr/local/homebrew ]; then
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    brew analytics off
-  fi
+[ `uname -m` = 'arm64' ] && LOCAL=/opt || LOCAL=/usr/local
+if [ ! -d $LOCAL/homebrew ]; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  brew analytics off
 fi
 
 # Reset PATH.

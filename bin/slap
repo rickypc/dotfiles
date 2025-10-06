@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 #    Slap - Pull and rebase the code from git repository.
-#    Copyright (C) 2007-2020  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright (C) 2007-2025  Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -39,7 +39,7 @@ TARGET=$1
 TOPIC=`git branch | grep '\*' | awk '{print $2}'`
 
 if [ -z "$TARGET" ]; then
-    TARGET=master
+    TARGET=main
 fi
 
 if [[ $TOPIC != "$TARGET" ]]; then
