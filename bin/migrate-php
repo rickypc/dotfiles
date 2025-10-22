@@ -52,6 +52,8 @@ step "Config setup for PHP@$NEW_VERSION"
   content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $NEW_INI
   content_replace "s{;html_errors = On}{html_errors = On}" $NEW_INI
   # Size matters.
+  content_replace "s{max_execution_time = 30}{max_execution_time = 60}" $NEW_INI
+  content_replace "s{memory_limit = 128M}{memory_limit = 256M}" $NEW_INI
   content_replace "s{post_max_size = 8M}{post_max_size = 100M}" $NEW_INI
   content_replace "s{upload_max_filesize = 2M}{upload_max_filesize = 100M}" $NEW_INI
   # OPCache configs.
@@ -83,7 +85,15 @@ step "Install dependencies for PHP@$NEW_VERSION"
   fi
   if [ -z "$(php -i | grep -w redis)" ]; then
     # 6 questions.
-    try printf "yes\n\n\n\n\n\n" | pecl install -f redis
+    #try printf "yes\n\n\n\n\n\n" | pecl install -f redis
+    try pecl install redis <<EOF
+yes
+
+
+
+
+
+EOF
   fi
   if [ -z "$(php -i | grep -w xdebug)" ]; then
     try pecl install -f xdebug
