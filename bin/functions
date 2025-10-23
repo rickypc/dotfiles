@@ -26,7 +26,7 @@ MOVE_TO_COL="echo -en \\033[${RES_COL}G"
 # One major-version lower.
 NETCORE_LTS=8.0
 NODE_LTS=24
-PHP_LTS=8.3
+PHP_LTS=8.4
 PYTHON_LTS=3.13
 SET_COLOR_BOLD="echo -en \\033[1m"       # White Bold
 SET_COLOR_DIM="echo -en \\033[2m"        # White Dim
