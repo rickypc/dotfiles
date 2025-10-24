@@ -38,6 +38,6 @@ cask 'microsoft-auto-update'
 cask 'microsoft-edge'
 cask 'omnidisksweeper'
 cask 'opera'
-cask 'redisinsight' unless personal
+cask 'redis-insight' unless personal
 cask 'temurin' unless personal
 cask 'visual-studio-code'

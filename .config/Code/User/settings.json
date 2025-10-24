@@ -46,6 +46,8 @@
   },
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
   "git.openRepositoryInParentFolders": "never",
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
