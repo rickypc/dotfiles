@@ -29,8 +29,8 @@
     "*.module": "php",
     "*.php": "php",
     "*.theme": "php",
-    "*.ts": "javascript",
-    "*.tsx": "javascriptreact"
+    "*.ts": "typescript",
+    "*.tsx": "typescriptreact"
   },
   "files.exclude": {
     "**/.DS_Store": true,
