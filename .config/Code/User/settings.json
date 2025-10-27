@@ -23,13 +23,14 @@
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "files.associations": {
+    "crontab": "shellscript",
     "*.inc": "php",
     "*.install": "php",
     "*.module": "php",
     "*.php": "php",
     "*.theme": "php",
     "*.ts": "javascript",
-    "crontab": "shellscript"
+    "*.tsx": "javascriptreact"
   },
   "files.exclude": {
     "**/.DS_Store": true,
