@@ -1,6 +1,6 @@
 /*
  *    Browser file loader for development mode - Load all files, including transpilation.
- *    Copyright (C) 2014-2021  Richard Huang <rickypc@users.noreply.github.com>
+ *    Copyright (C) 2014-2025  Richard Huang <rickypc@users.noreply.github.com>
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU Affero General Public License as
@@ -81,7 +81,7 @@ const getModuleParts = (path) => {
 // After getModuleParts definition.
 const getModuleFileName = (path) => {
   const parts = getModuleParts(path);
-  return parts[parts.length - 1].replace(/\.json$|\.js$/g, '');
+  return parts[parts.length - 1].replace(/\.(json|jsx?|tsx?)$/g, '');
 };
 
 const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
@@ -121,7 +121,7 @@ const getGlobals = (path, depth = 4) => {
   }
 
   const name = getModuleId(path);
-  const relative = path.replace(/\/index|\.js$/g, '');
+  const relative = path.replace(/\/index|\.(jsx?|tsx?)$/g, '');
   globals[relative] = name;
   const rels = getModuleParts(relative);
 
@@ -157,18 +157,12 @@ const getPlugins = (url, globals) => ([
 ]);
 
 const getPresets = () => ([
+  [Babel.availablePresets.typescript, { allExtensions: true, isTSX: true }],
   [
     Babel.availablePresets.env,
     {
-      exclude: [
-        'transform-typeof-symbol',
-      ],
-      targets: {
-        browsers: [
-          'last 2 versions',
-          '> 5%',
-        ],
-      },
+      exclude: ['transform-typeof-symbol'],
+      targets: { browsers: ['last 2 versions', '> 5%'] },
     },
   ],
   Babel.availablePresets.react,
