@@ -17,14 +17,15 @@
  */
 
 // yarn add @babel/standalone --optional
+// yarn add babel-plugin-module-resolver-standalone --optional
 
 /* global Babel */
 
-const attachScript = ({ text, transformed = false }) => {
+const attachScript = ({ text, type = '' }) => {
   const script = document.createElement('script');
   script.text = text;
-  if (transformed) {
-    script.type = 'module';
+  if (type) {
+    script.type = type;
   }
   (document.head || document.querySelector('head')).appendChild(script);
 };
@@ -143,18 +144,42 @@ const getAllGlobals = (paths, overrides) => {
   return Object.assign({}, ...(paths.map((path) => getGlobals(path, depth))), overrides);
 };
 
-const getPlugins = (url, globals) => ([
-  Babel.availablePlugins['proposal-class-properties'],
-  [
-    Babel.availablePlugins['transform-modules-umd'],
-    {
-      exactGlobals: true,
-      getModuleId: () => getModuleId(url, globals),
-      globals,
-      moduleIds: true,
-    },
-  ],
-]);
+const getPlugins = (url, globals, imports) => {
+  const plugins = [
+    Babel.availablePlugins['proposal-class-properties'],
+    [
+      Babel.availablePlugins['transform-modules-umd'],
+      {
+        exactGlobals: true,
+        getModuleId: () => getModuleId(url, globals),
+        globals,
+        moduleIds: true,
+      },
+    ],
+  ];
+  if (imports) {
+    try {
+      if (!!moduleResolver) {
+        plugins.push([moduleResolver, {
+          resolvePath(source) {
+            const keys = Object.keys(imports);
+            for (let i = 0, j = keys.length; i < j; i += 1) {
+              const key = keys[i];
+              if (source.includes(key)) {
+                return source.replace(key, imports[key]);
+              }
+            }
+            return source;
+          },
+        }, 'module-resolver']);
+      }
+    } catch {
+      // eslint-disable-next-line no-console
+      console.error('Did you forget to install babel-plugin-module-resolver-standalone?');
+    }
+  }
+  return plugins;
+};
 
 const getPresets = () => ([
   [Babel.availablePresets.typescript, { allExtensions: true, isTSX: true }],
@@ -181,7 +206,7 @@ const getSource = async (url) => {
 
 let inflight = false;
 
-const loadScript = async ({ globals, path, transformed = false }) => {
+const loadScript = async ({ globals, imports, path, transformed = false }) => {
   const url = `${getBaseUrl(path)}/${path}`;
   const source = await getSource(url);
 
@@ -195,7 +220,7 @@ const loadScript = async ({ globals, path, transformed = false }) => {
   const { code } = Babel.transform(source, {
     comments: false,
     compact: false,
-    plugins: getPlugins(url, globals),
+    plugins: getPlugins(url, globals, imports),
     presets: getPresets(),
     sourceFileName: path,
     sourceMaps: 'inline',
@@ -204,7 +229,7 @@ const loadScript = async ({ globals, path, transformed = false }) => {
   return attachScript({
     text: code.replace(/# sourceMappingURL=(.*)/g,
       `# source=${path}\n//# sourceMappingUrl=$1`),
-    transformed,
+    type: transformed ? 'module' : '',
   });
 };
 
@@ -228,7 +253,7 @@ const waitUntil = (predicate) => new Promise((resolve) => {
 
 // After waitUntil definition.
 // eslint-disable-next-line no-unused-vars
-const loadTransforms = async (paths, globalsOverrides) => {
+const loadTransforms = async (paths, globalsOverrides, imports) => {
   let found = false;
   try {
     found = !!Babel;
@@ -244,7 +269,7 @@ const loadTransforms = async (paths, globalsOverrides) => {
 
   await paths.reduce(async (accumulator, path) => {
     await accumulator;
-    return loadScript({ globals, path, transformed: true });
+    return loadScript({ globals, imports, path, transformed: true });
   }, Promise.resolve());
 
   inflight = false;
