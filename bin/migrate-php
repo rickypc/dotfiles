@@ -51,6 +51,7 @@ step "Config setup for PHP@$NEW_VERSION"
   content_replace "s{;date.timezone =}{date.timezone = UTC}" $NEW_INI
   content_replace "s{;error_log = php_errors.log}{error_log = $PREFIX/var/log/php_errors.log}" $NEW_INI
   content_replace "s{;html_errors = On}{html_errors = On}" $NEW_INI
+  content_replace "s{session.cookie_samesite =}{session.cookie_samesite = Lax}" $NEW_INI
   # Size matters.
   content_replace "s{max_execution_time = 30}{max_execution_time = 60}" $NEW_INI
   content_replace "s{memory_limit = 128M}{memory_limit = 256M}" $NEW_INI
