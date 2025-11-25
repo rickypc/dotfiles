@@ -47,6 +47,10 @@
   },
   "flow.showUncovered": true,
   "git.ignoreLimitWarning": true,
+  "github.copilot.chat.agent.autoFix": false,
+  "github.copilot.enable": {
+    "*": false
+  },
   "gitlens.ai.model": "vscode",
   "gitlens.ai.vscode.model": "copilot:gpt-4.1",
   "git.openRepositoryInParentFolders": "never",
