@@ -57,12 +57,9 @@
   "http.proxyAuthorization": null,
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
-  "[javascript]": {
-    "outline.showProperties": false
-  },
   "javascript.validate.enable": false,
   "notebook.outline.showCodeCells": true,
-  "outline.showVariables": false,
+  "outline.showVariables": true,
   "php.files.exclude": [
     ".git/**/**",
     "**/contrib/**/**",
