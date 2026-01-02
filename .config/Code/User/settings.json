@@ -158,7 +158,7 @@
       "language": "*",
       "template": [
         "<<name>> - <<description>>",
-        "Copyright (C) <<projectCreationYear>> - <<year>> <<author>> <<<authoremail>>>",
+        "Copyright © <<projectCreationYear>> <<author>> <<<authoremail>>>",
         "",
         "This program is free software: you can redistribute it and/or modify",
         "it under the terms of the GNU Affero General Public License as",
@@ -181,7 +181,7 @@
         "Contains \\<<namespace>>\\<<filenamebase>>.",
         "",
         "<<name>> - <<description>>",
-        "Copyright (C) <<projectCreationYear>> - <<year>> <<author>> <<<authoremail>>>",
+        "Copyright © <<projectCreationYear>> <<author>> <<<authoremail>>>",
         "",
         "This program is free software: you can redistribute it and/or modify",
         "it under the terms of the GNU Affero General Public License as",
