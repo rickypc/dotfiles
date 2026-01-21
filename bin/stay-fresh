@@ -175,8 +175,7 @@ step "Activate default venv"
   try ln -sf $LOCAL_BIN/python3 $LOCAL_BIN/python
   try ln -sf $LOCAL_BIN/pip$PYTHON_LTS $LOCAL_BIN/pip3
   try ln -sf $LOCAL_BIN/pip3 $LOCAL_BIN/pip
-  try ~/bin/get-venv
-  try . $WORKON_HOME/default/bin/activate
+  try ~/bin/venv
 next
 
 step "Activate Python dependencies"

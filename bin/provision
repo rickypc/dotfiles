@@ -218,8 +218,8 @@ step "Clean Docker containers and images"
   try ~/bin/docker-cleanup
 next
 
-step "Get venv"
-  try ~/bin/get-venv
+step "Activate default venv"
+  try ~/bin/venv
 next
 
 step "Show all files in finder"

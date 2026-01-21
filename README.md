@@ -95,7 +95,6 @@ Script Name                                         | Language | Description
 [download-site](bin/download-site)                  | Bash     | Download any site for offline fair use.
 [download-site-partial](bin/download-site-partial)  | Bash     | Download any site partially for offline fair use.
 [flac-bits](bin/flac-bits)                          | Bash     | Get actual and advertised [FLAC](https://en.wikipedia.org/wiki/FLAC) bits.
-[get-venv](bin/get-venv)                            | Bash     | Install Python 3.x virtual environment.
 [getinfo.sh](bin/getinfo.sh)                        | Bash     | Collects [CentOS](https://www.centos.org/) system hardware and software information.
 [git-author-fix](bin/git-author-fix)                | Bash     | Fix author name and email in git history.
 [git-blame-summary](bin/git-blame-summary)          | Perl     | Show total [LOC](https://en.wikipedia.org/wiki/Source_lines_of_code), author list, contribution percentage, and timestamp.
@@ -139,6 +138,7 @@ Script Name                                         | Language | Description
 [stressor](bin/stressor)                            | Bash     | HTTP stressor with some degree of ramp up.
 [unprovision](bin/unprovision)                      | Bash     | Unprovision [development environment](https://en.wikipedia.org/wiki/Deployment_environment#Development).
 [update-aws-credentials](bin/update-aws-credentials)| Bash     | Update AWS [credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-where) file.
+[venv](bin/venv)                                    | Bash     | Install Python 3.x virtual environment.
 [x-launcher-client.c](bin/x-launcher-client.c)      | C        | Send command to socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux).
 [x-launcher.c](bin/x-launcher.c)                    | C        | A socket server running inside [Colinux](https://en.wikipedia.org/wiki/Cooperative_Linux) to execute requested command.
 

@@ -20,12 +20,24 @@
 # Source function library.
 . ~/bin/functions
 
+NAME="${1:-default}"
+SYSTEM_VER=$(/usr/bin/python3 --version 2>&1 | awk '{print $2}' | cut -d. -f1-2)
 WORKON_HOME="${WORKON_HOME:-$HOME/.venv}"
+# After $WORKON_HOME assignment.
+TARGET_DIR="$WORKON_HOME/${NAME/default/$PYTHON_LTS}"
 
-if [ ! -d $WORKON_HOME/default ]; then
-  [ -n "$VIRTUAL_ENV" ] && deactivate
-  rm -rf $(readlink -f $WORKON_HOME/default) $WORKON_HOME/default
-  # Set VIRTUAL_ENV_PROMPT to PYTHON_LTS.
-  $LOCAL_BIN/python3 -m venv $WORKON_HOME/$PYTHON_LTS
-  ln -sf $WORKON_HOME/$PYTHON_LTS $WORKON_HOME/default
+[ -n "$VIRTUAL_ENV" ] && type deactivate &>/dev/null && deactivate
+if [ "$NAME" = "default" ]; then
+  rm -rf "$(readlink -f "$WORKON_HOME/default")" "$WORKON_HOME/default"
+else
+  rm -rf "$TARGET_DIR"
 fi
+if [ "$NAME" = "$SYSTEM_VER" ]; then
+  /usr/bin/python3 -m venv "$TARGET_DIR"
+else
+  "$LOCAL_BIN/python3" -m venv "$TARGET_DIR"
+fi
+if [ "$NAME" = "default" ]; then
+  ln -sf "$TARGET_DIR" "$WORKON_HOME/default"
+fi
+source "$TARGET_DIR/bin/activate"
