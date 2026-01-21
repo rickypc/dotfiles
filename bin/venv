@@ -26,7 +26,8 @@ WORKON_HOME="${WORKON_HOME:-$HOME/.venv}"
 # After $WORKON_HOME assignment.
 TARGET_DIR="$WORKON_HOME/${NAME/default/$PYTHON_LTS}"
 
-[ -n "$VIRTUAL_ENV" ] && type deactivate &>/dev/null && deactivate
+# Need to deactivate outside this script.
+# [ -n "$VIRTUAL_ENV" ] && type deactivate &>/dev/null && deactivate
 if [ "$NAME" = "default" ]; then
   rm -rf "$(readlink -f "$WORKON_HOME/default")" "$WORKON_HOME/default"
 else
@@ -40,4 +41,8 @@ fi
 if [ "$NAME" = "default" ]; then
   ln -sf "$TARGET_DIR" "$WORKON_HOME/default"
 fi
-source "$TARGET_DIR/bin/activate"
+# Need to activate outside this script.
+# source "$TARGET_DIR/bin/activate"
+
+echo "This script can't modify your shell environment."
+echo "Run 'deactivate' to exit, then 'source \"$TARGET_DIR/bin/activate\"' to enter the new venv."
