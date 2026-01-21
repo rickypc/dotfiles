@@ -164,8 +164,8 @@ fi
 
 [ -d "$LOCAL/opt/python/libexec/bin" ] && export_to_path "$LOCAL/opt/python/libexec/bin"
 
-if [ -d ~/.virtualenvs ]; then
-  export WORKON_HOME=~/.virtualenvs
+if [ -d ~/.venv ]; then
+  export WORKON_HOME=~/.venv
   [ -d $WORKON_HOME/default ] && . $WORKON_HOME/default/bin/activate
 fi
 

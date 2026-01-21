@@ -169,14 +169,13 @@ next
 # Clear docker containers and images.
 ~/bin/docker-cleanup
 
-step "Activate default virtual env"
+step "Activate default venv"
   # Make sure symlink exists.
   try ln -sf $LOCAL_BIN/python$PYTHON_LTS $LOCAL_BIN/python3
   try ln -sf $LOCAL_BIN/python3 $LOCAL_BIN/python
   try ln -sf $LOCAL_BIN/pip$PYTHON_LTS $LOCAL_BIN/pip3
   try ln -sf $LOCAL_BIN/pip3 $LOCAL_BIN/pip
-  try rm -rf $WORKON_HOME/default
-  try ~/bin/get-virtualenv
+  try ~/bin/get-venv
   try . $WORKON_HOME/default/bin/activate
 next
 

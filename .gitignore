@@ -72,7 +72,7 @@ __pycache__/
 .templateengine
 .Trash
 .v8flags.*
-.virtualenvs
+.venv
 .viminfo
 .vscode
 .yarn

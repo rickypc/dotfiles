@@ -20,15 +20,12 @@
 # Source function library.
 . ~/bin/functions
 
-VENVS=~/.virtualenvs
+WORKON_HOME="${WORKON_HOME:-$HOME/.venv}"
 
-if [ ! -f $LOCAL_BIN/virtualenv3 ]; then
-  ln -sf $LOCAL_BIN/virtualenv $LOCAL_BIN/virtualenv3
-fi
-
-if [ ! -d $VENVS/default ]; then
-  rm -rf $VENVS/default
-  mkdir -p $VENVS
-  $LOCAL_BIN/virtualenv3 -q $VENVS/$PYTHON_LTS
-  mv $VENVS/$PYTHON_LTS $VENVS/default
+if [ ! -d $WORKON_HOME/default ]; then
+  [ -n "$VIRTUAL_ENV" ] && deactivate
+  rm -rf $(readlink -f $WORKON_HOME/default) $WORKON_HOME/default
+  # Set VIRTUAL_ENV_PROMPT to PYTHON_LTS.
+  $LOCAL_BIN/python3 -m venv $WORKON_HOME/$PYTHON_LTS
+  ln -sf $WORKON_HOME/$PYTHON_LTS $WORKON_HOME/default
 fi
