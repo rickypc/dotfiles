@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #    Apply patches - Apply all available patches.
-#    Copyright (C) 1995-2022  Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright © 1995 Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as

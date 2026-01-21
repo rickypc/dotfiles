@@ -3,7 +3,7 @@
 # pylint: disable=invalid-name
 
 #    Robot Parallel - Run Robot Framework data sources in parallel.
-#    Copyright (c) 2014, 2015, 2016 Richard Huang <rickypc@users.noreply.github.com>
+#    Copyright © 2014 Richard Huang <rickypc@users.noreply.github.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
