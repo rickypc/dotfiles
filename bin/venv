@@ -20,7 +20,9 @@
 # Source function library.
 . ~/bin/functions
 
+GREEN="\\033[1;32m"
 NAME="${1:-default}"
+RESET="\\033[0m"
 SYSTEM_VER=$(/usr/bin/python3 --version 2>&1 | awk '{print $2}' | cut -d. -f1-2)
 WORKON_HOME="${WORKON_HOME:-$HOME/.venv}"
 # After $WORKON_HOME assignment.
@@ -45,4 +47,4 @@ fi
 # source "$TARGET_DIR/bin/activate"
 
 echo "This script can't modify your shell environment."
-echo "Run 'deactivate' to exit, then 'source \"$TARGET_DIR/bin/activate\"' to enter the new venv."
+echo -e "Run '${GREEN}deactivate${RESET}' to exit, then '${GREEN}source \"${TARGET_DIR}/bin/activate\"${RESET}' to enter the new venv."
