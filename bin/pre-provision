@@ -61,7 +61,7 @@ fi
 
 # Install fonts.
 if [[ ! -f ~/Library/Fonts/Roboto-Regular.ttf || ! -f ~/Library/Fonts/SourceCodePro-Regular.ttf ]]; then
-  cp ~/.util/Roboto-Regular.ttf ~/.util/SourceCodePro-Regular.ttf ~/Library/Fonts
+  cp ~/.util/*.ttf ~/Library/Fonts
 fi
 
 # Install Homebrew.
