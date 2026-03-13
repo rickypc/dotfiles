@@ -44,7 +44,7 @@ next
 
 step "Upgrade Homebrew formulae"
   # Upgrade all installed unpinned brews
-  try HOMEBREW_INSTALL_CLEANUP=1 brew upgrade --ignore-pinned
+  try HOMEBREW_INSTALL_CLEANUP=1 brew upgrade
 next
 
 step "Clean Homebrew caches"
@@ -73,6 +73,8 @@ step "Setup OpenSSL keys"
   if [ ! -f $SSL_PREFIX/private/host.test.key ]; then
     openssl req -new -newkey rsa:4096 -days 1825 -nodes -x509 -subj "/C=US/ST=CA/OU=Technology/CN=*.test" -keyout $SSL_PREFIX/private/host.test.key -out $SSL_PREFIX/certs/host.test.crt
   fi
+  try chmod 700 $SSL_PREFIX/private
+  try chmod 600 $SSL_PREFIX/private/*.key
 next
 
 if [ ! -f ~/.dotnet/tools/reportgenerator ]; then
@@ -121,7 +123,17 @@ step "Setup PHP v$PHP_LTS"
   try pecl channel-update pecl.php.net
   [ -z "$(php -i | grep -w ast)" ] && try pecl install ast
   [ -z "$(php -i | grep -w igbinary)" ] && try pecl install igbinary
-  [ -z "$(php -i | grep -w redis)" ] && try pecl install redis
+  if [ -z "$(php -i | grep -w redis)" ]; then
+    # 6 questions.
+    try pecl install redis <<EOF
+yes
+
+
+
+
+
+EOF
+  fi
   [ -z "$(php -i | grep -w xdebug)" ] && try pecl install xdebug
   # Install latest Composer.
   curl -sS https://getcomposer.org/installer | php -- --install-dir=$LOCAL_BIN --filename=composer

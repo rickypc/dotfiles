@@ -77,13 +77,9 @@ next
 step "Install dependencies for PHP@$NEW_VERSION"
   try mkdir -p $LOCAL/lib/php/pecl
   try pecl channel-update pecl.php.net
-  if [ -z "$(php -i | grep -w ast)" ]; then
-    try pecl install -f ast
-  fi
-  if [ -z "$(php -i | grep -w igbinary)" ]; then
-    # Try to reinstall if igbinary.h 404.
-    try pecl install -f igbinary
-  fi
+  [ -z "$(php -i | grep -w ast)" ] && try pecl install -f ast
+  # Try to reinstall if igbinary.h 404.
+  [ -z "$(php -i | grep -w igbinary)" ] && try pecl install -f igbinary
   if [ -z "$(php -i | grep -w redis)" ]; then
     # 6 questions.
     #try printf "yes\n\n\n\n\n\n" | pecl install -f redis
