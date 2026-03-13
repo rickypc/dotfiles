@@ -1,4 +1,5 @@
 personal = `hostname -s`.strip.start_with?('Ric')
+cask_args = personal ? {} : { appdir: '~/Applications' }
 tap 'golangci/tap' unless personal
 brew "python@#{ENV['HOMEBREW_PYTHON_LTS']}", link: :overwrite
 brew 'awscli' unless personal
@@ -28,15 +29,14 @@ brew "php@#{ENV['HOMEBREW_PHP_LTS']}", conflicts_with: ['php'], link: :overwrite
 brew 'redis', restart_service: true unless personal
 brew 'starship'
 brew 'vim'
-cask 'dotnet-sdk' unless personal
-cask 'firefox'
-cask 'gimp'
+cask 'firefox' if personal
+cask 'gimp', args: cask_args
 cask 'google-chrome' if personal
-cask 'iterm2'
-cask 'microsoft-auto-update'
-cask 'microsoft-edge'
-cask 'omnidisksweeper'
-cask 'opera'
+case 'imageoptim', args: cask_args
+cask 'iterm2', args: cask_args
+cask 'microsoft-auto-update' if personal
+cask 'microsoft-edge' if personal
+cask 'omnidisksweeper' if personal
+cask 'opera' if personal
 cask 'redis-insight' unless personal
-cask 'temurin' unless personal
-cask 'visual-studio-code'
+cask 'visual-studio-code' if personal
