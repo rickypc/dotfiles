@@ -18,6 +18,7 @@ brew 'gnupg' if personal
 brew 'go' unless personal
 brew 'golangci/tap/golangci-lint' unless personal
 brew 'gource' unless personal
+brew 'graphviz' unless personal
 brew 'html-xml-utils' unless personal
 brew 'imagemagick'
 brew 'jq'
