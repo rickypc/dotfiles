@@ -42,7 +42,7 @@ const getBaseUrl = (path) => {
   const href = `${origin}${pathname}`;
   const response = href.substring(0, href.lastIndexOf('/'));
 
-  if (path.startsWith(protocol) && !~path.indexOf(response)) {
+  if (path.startsWith(protocol) && !path.includes(response)) {
     return origin;
   }
 
@@ -50,8 +50,7 @@ const getBaseUrl = (path) => {
 };
 
 const getDepth = (paths) => paths.reduce((accumulator, current) => {
-  // eslint-disable-next-line no-bitwise
-  if (!~current.indexOf('node_modules')) {
+  if (!current.includes('node_modules')) {
     const depth = current
       .replace(/\/index|\.js$/g, '')
       .split('/')
@@ -62,13 +61,13 @@ const getDepth = (paths) => paths.reduce((accumulator, current) => {
 }, 0);
 
 const getModuleParts = (path) => {
-  // eslint-disable-next-line no-bitwise
-  const sanitized = ~path.indexOf('node_modules')
+  const sanitized = path.includes('node_modules')
     ? path : path.replace(`${getBaseUrl(path)}/`, '');
   const parts = sanitized.split('/');
 
   // Any index.*.js.
-  if (/index(?:\..+)?\.js/.test(parts[parts.length - 1])) {
+  // eslint-disable-next-line security/detect-unsafe-regex
+  if (/index(?:\.[^/]+)?\.js$/.test(parts.at(-1))) {
     parts.pop();
   }
 
@@ -82,7 +81,7 @@ const getModuleParts = (path) => {
 // After getModuleParts definition.
 const getModuleFileName = (path) => {
   const parts = getModuleParts(path);
-  return parts[parts.length - 1].replace(/\.(json|jsx?|tsx?)$/g, '');
+  return parts.at(-1).replace(/\.(json|jsx?|tsx?)$/g, '');
 };
 
 const titleCase = (value) => value.charAt(0).toUpperCase() + value.slice(1);
@@ -94,8 +93,7 @@ const titleCaseByDelimiter = (value, delimiter = /[-_.]/) => value.split(delimit
 const getModuleId = (path, globals = {}) => {
   const fileName = getModuleFileName(path);
 
-  // eslint-disable-next-line no-bitwise
-  if (~path.indexOf('node_modules')) {
+  if (path.includes('node_modules')) {
     const matches = Object.keys(globals || {})
       .filter((key) => key.includes(fileName));
     return matches.length ? globals[matches[0]] : fileName;
@@ -104,11 +102,11 @@ const getModuleId = (path, globals = {}) => {
   // Add support for same name on different namespace.
   const parts = getModuleParts(path);
   // We already have the last element.
-  parts.pop()
+  parts.pop();
 
   return `${parts
     .filter((part) => part !== '..')
-    .map((part, index) => index === 0 ? part.toLowerCase() : titleCaseByDelimiter(part))
+    .map((part, index) => (index === 0 ? part.toLowerCase() : titleCaseByDelimiter(part)))
     .join('')}${titleCaseByDelimiter(fileName)}`;
 };
 
@@ -116,13 +114,13 @@ const getModuleId = (path, globals = {}) => {
 const getGlobals = (path, depth = 4) => {
   const globals = {};
 
-  // eslint-disable-next-line no-bitwise
-  if (~path.indexOf('node_modules')) {
+  if (path.includes('node_modules')) {
     return globals;
   }
 
   const name = getModuleId(path);
   const relative = path.replace(/\/index|\.(jsx?|tsx?)$/g, '');
+  // eslint-disable-next-line security/detect-object-injection
   globals[relative] = name;
   const rels = getModuleParts(relative);
 
@@ -159,13 +157,15 @@ const getPlugins = (url, globals, imports) => {
   ];
   if (imports) {
     try {
-      if (!!moduleResolver) {
+      if (moduleResolver) {
         plugins.push([moduleResolver, {
           resolvePath(source) {
             const keys = Object.keys(imports);
             for (let i = 0, j = keys.length; i < j; i += 1) {
+              // eslint-disable-next-line security/detect-object-injection
               const key = keys[i];
               if (source.includes(key)) {
+                // eslint-disable-next-line security/detect-object-injection
                 return source.replace(key, imports[key]);
               }
             }
@@ -194,26 +194,24 @@ const getPresets = () => ([
 ]);
 
 const getSource = async (url) => {
-  let response = await fetch(url);
-  if (response.status !== 200) {
-    response = null;
-    return '';
-  }
-  const source = await response.text();
-  response = null;
-  return source;
+  const response = await fetch(url);
+  return response.status === 200 ? response.text() : '';
 };
 
 let inflight = false;
 
-const loadScript = async ({ globals, imports, path, transformed = false }) => {
+const loadScript = async ({
+  globals, imports, path, transformed = false,
+}) => {
   const url = `${getBaseUrl(path)}/${path}`;
   const source = await getSource(url);
 
   if (!transformed) {
     return attachScript({
-      text: source.replace(/# sourceMappingURL=(.*)/g,
-        `# source=${path}\n//# sourceMappingUrl=${getBasePath(path)}/$1`),
+      text: source.replace(
+        /# sourceMappingURL=(.*)/g,
+        `# source=${path}\n//# sourceMappingUrl=${getBasePath(path)}/$1`,
+      ),
     });
   }
 
@@ -227,18 +225,20 @@ const loadScript = async ({ globals, imports, path, transformed = false }) => {
   });
 
   return attachScript({
-    text: code.replace(/# sourceMappingURL=(.*)/g,
-      `# source=${path}\n//# sourceMappingUrl=$1`),
+    text: code.replace(
+      /# sourceMappingURL=(.*)/g,
+      `# source=${path}\n//# sourceMappingUrl=$1`,
+    ),
     type: transformed ? 'module' : '',
   });
 };
 
 // eslint-disable-next-line no-unused-vars
-const loadStyles = (styles) => {
-  (document.head || document.querySelector('head'))
-    .insertAdjacentHTML('beforeend',
-      `<style>${styles.map((style) => `@import'${style}'`).join(';')}</style>`);
-};
+const loadStyles = (styles) => (document.head || document.querySelector('head'))
+  .insertAdjacentHTML(
+    'beforeend',
+    `<style>${styles.map((style) => `@import'${style}'`).join(';')}</style>`,
+  );
 
 const waitUntil = (predicate) => new Promise((resolve) => {
   // 1m.
@@ -269,7 +269,9 @@ const loadTransforms = async (paths, globalsOverrides, imports) => {
 
   await paths.reduce(async (accumulator, path) => {
     await accumulator;
-    return loadScript({ globals, imports, path, transformed: true });
+    return loadScript({
+      globals, imports, path, transformed: true,
+    });
   }, Promise.resolve());
 
   inflight = false;
