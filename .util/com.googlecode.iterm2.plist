@@ -26,6 +26,8 @@
 	<integer>10000000</integer>
 	<key>AitermURL</key>
 	<string>http://localhost:11434/api/chat</string>
+	<key>AllowClipboardAccess</key>
+	<true/>
 	<key>AlternateMouseScroll</key>
 	<true/>
 	<key>Custom Color Presets</key>
@@ -1122,6 +1124,8 @@
 			<string>kNextWindowPointerAction</string>
 		</dict>
 	</dict>
+	<key>Print In Black And White</key>
+	<true/>
 	<key>PromptOnQuit</key>
 	<false/>
 	<key>QuitWhenAllWindowsClosed</key>
