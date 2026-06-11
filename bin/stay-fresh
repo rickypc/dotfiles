@@ -23,7 +23,7 @@
 shopt -s dotglob
 
 # Prompt for sudo password early on.
-sudo -v
+# sudo -v
 
 step "Clear Kernel caches"
   # try sudo update_dyld_shared_cache -force
@@ -31,21 +31,21 @@ step "Clear Kernel caches"
   [ -n "$(ps aux | grep Finder | grep -v grep)" ] && try killall Finder
 next
 
-step "Purge inactive memory"
-  sudo /usr/sbin/purge
-next
+# step "Purge inactive memory"
+#   sudo /usr/sbin/purge
+# next
 
-step "Remove outdated .NET Core Runtime and SDK"
+# step "Remove outdated .NET Core Runtime and SDK"
   # https://github.com/dotnet/cli-lab/releases
-  if [ -x "$(command -v dotnet-core-uninstall)" ]; then
-    sudo -- sh -c "dotnet-core-uninstall remove --all-below $NETCORE_LTS --runtime -y; dotnet-core-uninstall remove --all-below $NETCORE_LTS --sdk -y"
-  fi
-next
+#   if [ -x "$(command -v dotnet-core-uninstall)" ]; then
+#     sudo -- sh -c "dotnet-core-uninstall remove --all-below $NETCORE_LTS --runtime -y; dotnet-core-uninstall remove --all-below $NETCORE_LTS --sdk -y"
+#   fi
+# next
 
 step "Clear log files"
   [ -f $LOCAL/var/log/php-fpm.log ] && try :>$LOCAL/var/log/php-fpm.log
   [ -f $LOCAL/var/log/php_errors.log ] && try :>$LOCAL/var/log/php_errors.log
-  sudo -- bash -c "truncate -s 0 $LOCAL/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null"
+  # sudo -- bash -c "truncate -s 0 $LOCAL/var/log/nginx/*.log; rm -f /var/log/*.bz2 /var/log/*.gz /var/log/*.old /var/log/*/*.gz; find /Library/Logs/DiagnosticReports -type f -exec rm -f '{}' \; &>/dev/null"
   try find ~/Library/Logs -type f -exec rm -f '{}' \; &>/dev/null
   try rm -rf ~/.npm/_logs/*
   if [ -x "$(command -v mysql)" ]; then

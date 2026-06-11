@@ -33,11 +33,10 @@ brew 'vim'
 cask 'firefox' if personal
 cask 'gimp', args: cask_args
 cask 'google-chrome' if personal
-case 'imageoptim', args: cask_args
+cask 'imageoptim', args: cask_args
 cask 'iterm2', args: cask_args
 cask 'microsoft-auto-update' if personal
 cask 'microsoft-edge' if personal
 cask 'omnidisksweeper' if personal
 cask 'opera' if personal
-cask 'redis-insight' unless personal
 cask 'visual-studio-code' if personal
