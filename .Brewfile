@@ -39,4 +39,5 @@ cask 'microsoft-auto-update' if personal
 cask 'microsoft-edge' if personal
 cask 'omnidisksweeper' if personal
 cask 'opera' if personal
+cask 'pearcleaner' if personal
 cask 'visual-studio-code' if personal
