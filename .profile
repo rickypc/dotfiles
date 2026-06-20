@@ -108,6 +108,7 @@ if [ -d ~/bin ]; then
 fi
 
 [ -d ~/.dotnet/tools ] && export_to_path ~/.dotnet/tools
+[ -d ~/.local/bin ] && export_to_path ~/.local/bin
 
 PYTHON_USER_BASE=`$LOCAL/bin/python3 -m site --user-base`
 

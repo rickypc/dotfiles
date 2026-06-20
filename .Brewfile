@@ -29,6 +29,7 @@ brew 'openssl@3'
 brew "php@#{ENV['HOMEBREW_PHP_LTS']}", conflicts_with: ['php'], link: :overwrite, restart_service: true unless personal
 brew 'redis', restart_service: true unless personal
 brew 'starship'
+brew 'uv'
 brew 'vim'
 cask 'firefox' if personal
 cask 'gimp', args: cask_args

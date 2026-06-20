@@ -42,6 +42,7 @@ __pycache__/
 .m2
 .MacOSX
 .microsoft
+.models
 .mono
 .my.cnf
 .mysql_history
