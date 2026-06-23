@@ -144,7 +144,7 @@ const getAllGlobals = (paths, overrides) => {
 
 const getPlugins = (url, globals, imports) => {
   const plugins = [
-    Babel.availablePlugins['proposal-class-properties'],
+    Babel.availablePlugins['transform-class-properties'],
     [
       Babel.availablePlugins['transform-modules-umd'],
       {
@@ -182,7 +182,7 @@ const getPlugins = (url, globals, imports) => {
 };
 
 const getPresets = () => ([
-  [Babel.availablePresets.typescript, { allExtensions: true, isTSX: true }],
+  Babel.availablePresets.typescript,
   [
     Babel.availablePresets.env,
     {
@@ -190,7 +190,7 @@ const getPresets = () => ([
       targets: { browsers: ['last 2 versions', '> 5%'] },
     },
   ],
-  Babel.availablePresets.react,
+  [Babel.availablePresets.react, { runtime: 'classic' }],
 ]);
 
 const getSource = async (url) => {
