@@ -6,6 +6,12 @@
   },
   "name": "agent-infrastructure",
   "private": true,
-  "version": "0.0.0",
-  "type": "module"
+  "scripts": {
+    "test": "bun run test:lint & pid1=$!; bun run test:unit & pid2=$!; bun run test:type & pid3=$!; wait $pid1 && wait $pid2 && wait $pid3",
+    "test:lint": "biome check .",
+    "test:unit": "bun test .",
+    "test:type": "tsc"
+  },
+  "type": "module",
+  "version": "0.0.0"
 }
