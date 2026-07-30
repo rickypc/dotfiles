@@ -1,5 +1,13 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on",
+        "useSortedKeys": "on"
+      }
+    }
+  },
   "files": {
     "includes": ["**", "!!**/coverage", "!!**/node_modules"]
   },
