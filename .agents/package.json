@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@types/bun": "latest",
+    "typescript": "latest"
+  },
+  "name": "agent-infrastructure",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module"
+}
