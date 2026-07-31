@@ -1,3 +1,5 @@
+import matter = require('gray-matter');
+
 import type { WorkflowState } from './state.js';
 
 export interface WorkflowIntent {
@@ -10,39 +12,58 @@ export interface WorkflowIntent {
 }
 
 const frontmatter = (intent: WorkflowIntent): string =>
-  [
-    '---',
-    `intent_id: ${intent.intentId}`,
-    `state: ${intent.state}`,
-    `target: ${intent.target}`,
-    `attempt: ${intent.attempt}`,
-    `attempt_budget: ${intent.attemptBudget}`,
-    `matrix_fingerprint: ${intent.matrixFingerprint}`,
-    '---',
-  ].join('\n');
+  matter
+    .stringify('', {
+      attempt: intent.attempt,
+      attempt_budget: intent.attemptBudget,
+      intent_id: intent.intentId,
+      matrix_fingerprint: intent.matrixFingerprint,
+      state: intent.state,
+      target: intent.target,
+    })
+    .trimEnd();
 
-export const parseIntent = (content: string): WorkflowIntent => {
-  const match =
-    /^---\nintent_id: (.+)\nstate: (.+)\ntarget: (.+)\nattempt: (\d+)\nattempt_budget: (\d+)\nmatrix_fingerprint: (.+)\n---/u.exec(
-      content,
-    );
-  if (!match) {
+const integerMetadata = (
+  data: Record<string, unknown>,
+  name: string,
+): number => {
+  const value = data[name];
+  if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
     throw new Error('Intent frontmatter is invalid.');
   }
-  const attempt = Number(match[4]);
-  const attemptBudget = Number(match[5]);
+  return value;
+};
+
+export const renderIntent = (intent: WorkflowIntent): string =>
+  `${frontmatter(intent)}\n\n# ${intent.intentId}\n`;
+
+const stringMetadata = (
+  data: Record<string, unknown>,
+  name: string,
+): string => {
+  const value = data[name];
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error('Intent frontmatter is invalid.');
+  }
+  return value;
+};
+
+export const parseIntent = (content: string): WorkflowIntent => {
+  const parsed = matter(content);
+  if (!matter.test(content) || content.indexOf('\n---', 4) < 0) {
+    throw new Error('Intent frontmatter is invalid.');
+  }
+  const attempt = integerMetadata(parsed.data, 'attempt');
+  const attemptBudget = integerMetadata(parsed.data, 'attempt_budget');
   if (attempt < 0 || attemptBudget < 1 || attempt > attemptBudget) {
     throw new Error('Intent attempt metadata is invalid.');
   }
   return {
     attempt,
     attemptBudget,
-    intentId: match[1],
-    matrixFingerprint: match[6],
-    state: match[2] as WorkflowState,
-    target: match[3],
+    intentId: stringMetadata(parsed.data, 'intent_id'),
+    matrixFingerprint: stringMetadata(parsed.data, 'matrix_fingerprint'),
+    state: stringMetadata(parsed.data, 'state') as WorkflowState,
+    target: stringMetadata(parsed.data, 'target'),
   };
 };
-
-export const renderIntent = (intent: WorkflowIntent): string =>
-  `${frontmatter(intent)}\n\n# ${intent.intentId}\n`;

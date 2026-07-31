@@ -162,6 +162,40 @@ test('renders and parses OKF concepts, indexes, and observed lessons', () => {
   expect(() => validateLesson({ ...lesson, cause: '' })).toThrow('cause');
 });
 
+test('parses YAML metadata and rejects invalid tag metadata', () => {
+  expect(
+    parseOkfConcept(
+      [
+        '---',
+        'tags:',
+        '  - team',
+        '  - rule',
+        'type: note',
+        'description: Description',
+        'title: Title',
+        '---',
+        '',
+        'Body.',
+      ].join('\n'),
+    ),
+  ).toEqual({
+    description: 'Description',
+    tags: ['team', 'rule'],
+    title: 'Title',
+    type: 'note',
+  });
+  expect(() =>
+    parseOkfConcept(
+      '---\ntags: team\ntype: note\ntitle: T\ndescription: D\n---\n',
+    ),
+  ).toThrow('tags');
+  expect(() =>
+    parseOkfConcept(
+      '---\ntags: [team]\ntype: note\ntitle: T\ndescription: 1\n---\n',
+    ),
+  ).toThrow('description');
+});
+
 test('searches validated KB concepts and returns an empty result when absent', async () => {
   const concept = renderOkfConcept(
     {

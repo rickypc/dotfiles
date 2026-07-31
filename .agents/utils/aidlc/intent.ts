@@ -1,3 +1,5 @@
+import matter = require('gray-matter');
+
 import type { FileSystem } from '../filesystem.js';
 import { readText, removeFile, writeText } from '../filesystem.js';
 import {
@@ -103,6 +105,29 @@ export const aidlcIntentStatusFor = (
     ? 'completed'
     : 'active';
 
+const aidlcFrontmatterData = (
+  intent: AidlcIntent,
+): Record<string, unknown> => ({
+  approval: intent.approval,
+  cbm_index: intent.cbmIndex,
+  distillation_status:
+    intent.route.find((record) => record.slug === 'knowledge-distillation')
+      ?.status === 'completed'
+      ? 'completed'
+      : 'pending',
+  id: intent.id,
+  kb_context: intent.kbContext,
+  kb_references: [],
+  lifecycle: intent.lifecycle,
+  ...(intent.supersededBy ? { superseded_by: intent.supersededBy } : {}),
+  route: intent.route,
+  stage: intent.stage,
+  status: aidlcIntentStatusFor(intent),
+  summary: intent.summary,
+  validation_summary: 'pending',
+  workflow: 'universal-code-change',
+});
+
 export const assertNoIntentCollision = (
   existing: AidlcIntent | undefined,
   summary: string,
@@ -159,10 +184,9 @@ export const advanceAidlcIntent = (intent: AidlcIntent): AidlcIntent => {
   return activateNext(intent, intent.route);
 };
 
-const field = (content: string, name: string): string => {
-  const match = new RegExp(`^${name}: (.+)$`, 'mu').exec(content);
-  if (!match) throw new Error('AIDLC intent frontmatter is invalid.');
-  return match[1];
+const field = (data: Record<string, unknown>, name: string): unknown => {
+  if (!(name in data)) throw new Error('AIDLC intent frontmatter is invalid.');
+  return data[name];
 };
 
 export const intentPathFor = (
@@ -172,13 +196,12 @@ export const intentPathFor = (
 ): string =>
   `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents/${intentId}.md`;
 
-const optionalField = (content: string, name: string): string | undefined =>
-  new RegExp(`^${name}: (.+)$`, 'mu').exec(content)?.[1];
-
-const parseKnowledgeContext = (content: string): AidlcKnowledgeContext => {
-  const value = optionalField(content, 'kb_context');
-  if (!value) return emptyAidlcKnowledgeContext();
-  const context = JSON.parse(value) as AidlcKnowledgeContext;
+const parseKnowledgeContext = (
+  data: Record<string, unknown>,
+): AidlcKnowledgeContext => {
+  const value = data.kb_context;
+  if (value === undefined) return emptyAidlcKnowledgeContext();
+  const context = value as AidlcKnowledgeContext;
   if (
     !context?.bindings ||
     !Array.isArray(context.rules) ||
@@ -190,6 +213,9 @@ const parseKnowledgeContext = (content: string): AidlcKnowledgeContext => {
   }
   return context;
 };
+
+export const renderAidlcFrontmatter = (intent: AidlcIntent): string =>
+  matter.stringify('', aidlcFrontmatterData(intent)).trimEnd();
 
 const renderStageLedger = (intent: AidlcIntent): string =>
   intent.route
@@ -205,6 +231,57 @@ const stageLedger = (intent: AidlcIntent): string =>
     '| --- | --- | --- | --- | --- |',
     renderStageLedger(intent),
   ].join('\n');
+
+export const renderAidlcIntent = (intent: AidlcIntent): string =>
+  matter.stringify(
+    [
+      `# ${intent.summary}`,
+      '',
+      '## Adopted AI-DLC stages',
+      '',
+      'Selected upstream stages retain their upstream number, phase, slug, and name. Knowledge Distillation is a local closure extension.',
+      '',
+      stageLedger(intent),
+      '',
+      '## Research',
+      '',
+      '## Decisions',
+      '',
+      '## Plan',
+      '',
+      '## Execution evidence',
+      '',
+      '## Validation evidence',
+      '',
+      '## Outcome',
+      '',
+      '## Audit trail',
+      '',
+    ].join('\n'),
+    aidlcFrontmatterData(intent),
+  );
+
+export const saveAidlcIntent = async (
+  fileSystem: FileSystem,
+  path: string,
+  intent: AidlcIntent,
+): Promise<void> => writeText(fileSystem, path, renderAidlcIntent(intent));
+
+const stringField = (data: Record<string, unknown>, name: string): string => {
+  const value = field(data, name);
+  if (typeof value !== 'string') {
+    throw new Error('AIDLC intent frontmatter is invalid.');
+  }
+  return value;
+};
+
+const optionalStringField = (
+  data: Record<string, unknown>,
+  name: string,
+): string | undefined => {
+  if (!(name in data)) return undefined;
+  return stringField(data, name);
+};
 
 export const supersedeAidlcIntent = (
   intent: AidlcIntent,
@@ -289,27 +366,34 @@ const validateRoute = (route: readonly AidlcStageRecord[]): void => {
 };
 
 export const parseAidlcIntent = (content: string): AidlcIntent => {
-  if (!content.startsWith('---\n')) {
+  const parsed = matter(content);
+  if (!matter.test(content) || content.indexOf('\n---', 4) < 0) {
     throw new Error('AIDLC intent frontmatter is invalid.');
   }
-  const approval = field(content, 'approval') as AidlcIntent['approval'];
+  const approval = stringField(
+    parsed.data,
+    'approval',
+  ) as AidlcIntent['approval'];
   if (!['pending', 'approved', 'declined'].includes(approval)) {
     throw new Error('AIDLC intent approval is invalid.');
   }
-  const stage = field(content, 'stage') as AidlcStageSlug;
-  const route = JSON.parse(field(content, 'route')) as AidlcStageRecord[];
+  const stage = stringField(parsed.data, 'stage') as AidlcStageSlug;
+  const route = field(parsed.data, 'route') as AidlcStageRecord[];
+  if (!Array.isArray(route)) {
+    throw new Error('AIDLC intent route is invalid.');
+  }
   validateRoute(route);
   const intent = {
     approval,
-    cbmIndex: field(content, 'cbm_index'),
-    id: field(content, 'id'),
-    kbContext: parseKnowledgeContext(content),
-    lifecycle: (optionalField(content, 'lifecycle') ??
+    cbmIndex: stringField(parsed.data, 'cbm_index'),
+    id: stringField(parsed.data, 'id'),
+    kbContext: parseKnowledgeContext(parsed.data),
+    lifecycle: (optionalStringField(parsed.data, 'lifecycle') ??
       'active') as AidlcLifecycle,
     route,
     stage,
-    summary: JSON.parse(field(content, 'summary')) as string,
-    supersededBy: optionalField(content, 'superseded_by'),
+    summary: stringField(parsed.data, 'summary'),
+    supersededBy: optionalStringField(parsed.data, 'superseded_by'),
   };
   if (!['active', 'superseded'].includes(intent.lifecycle)) {
     throw new Error('AIDLC intent lifecycle is invalid.');
@@ -392,6 +476,30 @@ export const retireAidlcIntent = async (
   await removeFile(fileSystem, path);
 };
 
+export const updateAidlcIntent = async (
+  fileSystem: FileSystem,
+  path: string,
+  intent: AidlcIntent,
+): Promise<void> => {
+  const existing = await readText(fileSystem, path);
+  parseAidlcIntent(existing);
+  const frontmatterUpdated = matter(existing);
+  const ledgerPattern =
+    /^\| # \| Phase \| Stage \| Status \| Evidence or skip reason \|\n\| --- \| --- \| --- \| --- \| --- \|\n(?:\| [^\n]+\|\n?)*\n*/mu;
+  if (!ledgerPattern.test(frontmatterUpdated.content)) {
+    throw new Error('AIDLC intent stage ledger is missing.');
+  }
+  const body = frontmatterUpdated.content.replace(
+    ledgerPattern,
+    `${stageLedger(intent)}\n\n`,
+  );
+  await writeText(
+    fileSystem,
+    path,
+    matter.stringify(body, aidlcFrontmatterData(intent)),
+  );
+};
+
 export const withAidlcKnowledgeContext = (
   intent: AidlcIntent,
   kbContext: AidlcKnowledgeContext,
@@ -401,87 +509,3 @@ export const workspacePathFor = (
   agentsRoot: string,
   cbmIndex: string,
 ): string => `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/workspace.md`;
-
-const yamlValue = (value: string): string => JSON.stringify(value);
-
-export const renderAidlcFrontmatter = (intent: AidlcIntent): string =>
-  [
-    '---',
-    `id: ${intent.id}`,
-    `summary: ${yamlValue(intent.summary)}`,
-    `cbm_index: ${intent.cbmIndex}`,
-    'workflow: universal-code-change',
-    `stage: ${intent.stage}`,
-    `approval: ${intent.approval}`,
-    `lifecycle: ${intent.lifecycle}`,
-    ...(intent.supersededBy ? [`superseded_by: ${intent.supersededBy}`] : []),
-    `route: ${JSON.stringify(intent.route)}`,
-    `kb_context: ${JSON.stringify(intent.kbContext)}`,
-    `status: ${aidlcIntentStatusFor(intent)}`,
-    'kb_references: []',
-    'validation_summary: pending',
-    `distillation_status: ${
-      intent.route.find((record) => record.slug === 'knowledge-distillation')
-        ?.status === 'completed'
-        ? 'completed'
-        : 'pending'
-    }`,
-    '---',
-  ].join('\n');
-
-export const renderAidlcIntent = (intent: AidlcIntent): string =>
-  [
-    renderAidlcFrontmatter(intent),
-    '',
-    `# ${intent.summary}`,
-    '',
-    '## Adopted AI-DLC stages',
-    '',
-    'Selected upstream stages retain their upstream number, phase, slug, and name. Knowledge Distillation is a local closure extension.',
-    '',
-    stageLedger(intent),
-    '',
-    '## Research',
-    '',
-    '## Decisions',
-    '',
-    '## Plan',
-    '',
-    '## Execution evidence',
-    '',
-    '## Validation evidence',
-    '',
-    '## Outcome',
-    '',
-    '## Audit trail',
-    '',
-  ].join('\n');
-
-export const saveAidlcIntent = async (
-  fileSystem: FileSystem,
-  path: string,
-  intent: AidlcIntent,
-): Promise<void> => writeText(fileSystem, path, renderAidlcIntent(intent));
-
-export const updateAidlcIntent = async (
-  fileSystem: FileSystem,
-  path: string,
-  intent: AidlcIntent,
-): Promise<void> => {
-  const existing = await readText(fileSystem, path);
-  parseAidlcIntent(existing);
-  const frontmatterUpdated = existing.replace(
-    /^---\n[\s\S]*?\n---/u,
-    renderAidlcFrontmatter(intent),
-  );
-  const ledgerPattern =
-    /^\| # \| Phase \| Stage \| Status \| Evidence or skip reason \|\n\| --- \| --- \| --- \| --- \| --- \|\n(?:\| [^\n]+\|\n?)*\n*/mu;
-  if (!ledgerPattern.test(frontmatterUpdated)) {
-    throw new Error('AIDLC intent stage ledger is missing.');
-  }
-  const updated = frontmatterUpdated.replace(
-    ledgerPattern,
-    `${stageLedger(intent)}\n\n`,
-  );
-  await writeText(fileSystem, path, updated);
-};

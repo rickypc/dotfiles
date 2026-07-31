@@ -202,6 +202,9 @@ test('preserves the intent body while updating the route frontmatter', async () 
   expect(files.get('/agents/intent.md')).toContain(
     '## Audit trail\nKeep this evidence.',
   );
+  expect(parseAidlcIntent(files.get('/agents/intent.md') ?? '')).toEqual(
+    completeAidlcStage(intent, 'created'),
+  );
   await expect(
     loadAidlcIntent(filesystem, '/agents/intent.md'),
   ).resolves.toEqual(completeAidlcStage(intent, 'created'));
@@ -274,21 +277,34 @@ test('rejects malformed routes and conflicting intent IDs', () => {
     ),
   ).toThrow('approval');
   expect(() =>
-    parseAidlcIntent(renderAidlcIntent(intent).replace('"active"', '"bad"')),
+    parseAidlcIntent(
+      renderAidlcIntent(intent).replace('status: active', 'status: bad'),
+    ),
   ).toThrow('route');
   expect(() =>
     parseAidlcIntent(
-      renderAidlcIntent(intent).replace('"active"', '"pending"'),
+      renderAidlcIntent(intent).replace(
+        /route:\n[\s\S]*?\nstage:/u,
+        'route: invalid\nstage:',
+      ),
+    ),
+  ).toThrow('route');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent(intent).replace('status: active', 'status: pending'),
     ),
   ).toThrow('current stage is pending');
   expect(() =>
     parseAidlcIntent(
-      renderAidlcIntent(intent).replace('"rules":[]', '"rules":[""]'),
+      renderAidlcIntent(intent).replace('  rules: []', "  rules:\n    - ''"),
     ),
   ).toThrow('knowledge context');
   expect(() =>
     parseAidlcIntent(
-      renderAidlcIntent(intent).replace('"sources":[]', '"sources":[""]'),
+      renderAidlcIntent(intent).replace(
+        '  sources: []',
+        "  sources:\n    - ''",
+      ),
     ),
   ).toThrow('knowledge context');
   expect(
@@ -329,4 +345,7 @@ test('preserves identity while marking an intent superseded', () => {
       } as typeof intent),
     ),
   ).toThrow('replacement');
+  expect(() =>
+    parseAidlcIntent(renderAidlcIntent(intent).replace('id: old', 'id: 1')),
+  ).toThrow('frontmatter');
 });

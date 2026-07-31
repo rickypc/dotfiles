@@ -1,3 +1,5 @@
+import matter = require('gray-matter');
+
 import {
   type CbmSearchFallbackReceipt,
   searchWithCbmFallback,
@@ -136,6 +138,14 @@ export const scopeIndexPath = (path: string): string => {
   return `${path.split('/')[0]}/index.md`;
 };
 
+const stringMetadata = (data: Record<string, unknown>, key: string): string => {
+  const value = data[key];
+  if (typeof value !== 'string') {
+    throw new Error(`OKF metadata field is required: ${key}`);
+  }
+  return value;
+};
+
 export const validateLesson = (lesson: Lesson): void => {
   for (const [name, value] of Object.entries(lesson)) {
     if (!value.trim()) {
@@ -168,106 +178,27 @@ export const validateOkfMetadata = (metadata: OkfMetadata): void => {
   }
 };
 
-const valueFor = (frontmatter: string, key: string): string => {
-  const match = new RegExp(`^${key}: (.+)$`, 'mu').exec(frontmatter);
-  if (!match) {
-    throw new Error(`OKF metadata field is required: ${key}`);
-  }
-  return match[1];
-};
-
 export const parseOkfConcept = (content: string): OkfMetadata => {
-  const match = /^---\n([\s\S]*?)\n---\n/u.exec(content);
-  if (!match) {
+  const parsed = matter(content);
+  if (!matter.test(content) || content.indexOf('\n---', 4) < 0) {
     throw new Error('OKF concept frontmatter is required.');
   }
-  const frontmatter = match[1];
-  const tagsValue = valueFor(frontmatter, 'tags');
-  const tags = tagsValue
-    .replace(/^\[/u, '')
-    .replace(/\]$/u, '')
-    .split(',')
-    .map((tag) => tag.trim().replaceAll(/^"|"$/gu, ''))
-    .filter(Boolean);
+  const tagsValue = parsed.data.tags;
+  if (
+    !Array.isArray(tagsValue) ||
+    tagsValue.some((tag) => typeof tag !== 'string')
+  ) {
+    throw new Error('OKF metadata field is required: tags');
+  }
   const metadata = {
-    description: JSON.parse(valueFor(frontmatter, 'description')) as string,
-    tags,
-    title: JSON.parse(valueFor(frontmatter, 'title')) as string,
-    type: JSON.parse(valueFor(frontmatter, 'type')) as string,
+    description: stringMetadata(parsed.data, 'description'),
+    tags: tagsValue,
+    title: stringMetadata(parsed.data, 'title'),
+    type: stringMetadata(parsed.data, 'type'),
   };
   validateOkfMetadata(metadata);
   return metadata;
 };
-
-export const searchKnowledgeBase = async (
-  fileSystem: FileSystem,
-  kbRoot: string,
-  query: string,
-): Promise<readonly KnowledgeSearchResult[]> => {
-  if (!kbRoot.startsWith('/')) {
-    throw new Error('KB root must be an absolute path.');
-  }
-  const needle = query.trim().toLowerCase();
-  if (!needle) throw new Error('KB search query is required.');
-  const results: KnowledgeSearchResult[] = [];
-  const resultForEntry = async (
-    directory: string,
-    entry: DirectoryEntry,
-  ): Promise<KnowledgeSearchResult | undefined> => {
-    if (entry.name === 'index.md' || !entry.name.endsWith('.md'))
-      return undefined;
-    const path = `${directory}/${entry.name}`;
-    const content = await readText(fileSystem, path);
-    const metadata = parseOkfConcept(content);
-    const searchable = `${path}\n${metadata.title}\n${metadata.description}\n${content}`;
-    if (!searchable.toLowerCase().includes(needle)) return undefined;
-    return {
-      description: metadata.description,
-      path: path.slice(kbRoot.replace(/\/$/u, '').length + 1),
-      title: metadata.title,
-      type: metadata.type,
-    };
-  };
-  const walk = async (directory: string): Promise<void> => {
-    const entries = await optionalDirectory(fileSystem, directory);
-    for (const entry of [...entries].sort((left, right) =>
-      left.name.localeCompare(right.name),
-    )) {
-      const path = `${directory}/${entry.name}`;
-      if (entry.isDirectory()) {
-        await walk(path);
-        continue;
-      }
-      const result = await resultForEntry(directory, entry);
-      if (result) results.push(result);
-    }
-  };
-  await walk(kbRoot.replace(/\/$/u, ''));
-  return results;
-};
-
-export const searchKnowledgeBaseWithFallback = async (
-  fileSystem: FileSystem,
-  executor: CommandExecutor,
-  kbRoot: string,
-  cbmIndex: string,
-  query: string,
-): Promise<KnowledgeBaseSearchReceipt> => {
-  const [concepts, discovery] = await Promise.all([
-    searchKnowledgeBase(fileSystem, kbRoot, query),
-    searchWithCbmFallback(executor, {
-      allowedRoots: [kbRoot],
-      query,
-      root: { index: cbmIndex, root: kbRoot },
-    }),
-  ]);
-  return {
-    concepts,
-    discovery,
-  };
-};
-
-const yamlString = (value: string): string => JSON.stringify(value);
 
 export const renderOkfConcept = (
   metadata: OkfMetadata,
@@ -277,17 +208,7 @@ export const renderOkfConcept = (
   if (!body.trim()) {
     throw new Error('OKF concept body is required.');
   }
-  return [
-    '---',
-    `type: ${yamlString(metadata.type)}`,
-    `title: ${yamlString(metadata.title)}`,
-    `description: ${yamlString(metadata.description)}`,
-    `tags: [${metadata.tags.map(yamlString).join(', ')}]`,
-    '---',
-    '',
-    body.trim(),
-    '',
-  ].join('\n');
+  return matter.stringify(body.trim(), metadata);
 };
 
 export const renderCapturedConcept = (
@@ -359,5 +280,73 @@ export const captureConcept = async (
     rootIndexPath: rootIndexFilePath,
     scopeIndexPath: scopeIndexFilePath,
     subjectIndexPath: subjectIndexFilePath,
+  };
+};
+
+export const searchKnowledgeBase = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+  query: string,
+): Promise<readonly KnowledgeSearchResult[]> => {
+  if (!kbRoot.startsWith('/')) {
+    throw new Error('KB root must be an absolute path.');
+  }
+  const needle = query.trim().toLowerCase();
+  if (!needle) throw new Error('KB search query is required.');
+  const results: KnowledgeSearchResult[] = [];
+  const resultForEntry = async (
+    directory: string,
+    entry: DirectoryEntry,
+  ): Promise<KnowledgeSearchResult | undefined> => {
+    if (entry.name === 'index.md' || !entry.name.endsWith('.md'))
+      return undefined;
+    const path = `${directory}/${entry.name}`;
+    const content = await readText(fileSystem, path);
+    const metadata = parseOkfConcept(content);
+    const searchable = `${path}\n${metadata.title}\n${metadata.description}\n${content}`;
+    if (!searchable.toLowerCase().includes(needle)) return undefined;
+    return {
+      description: metadata.description,
+      path: path.slice(kbRoot.replace(/\/$/u, '').length + 1),
+      title: metadata.title,
+      type: metadata.type,
+    };
+  };
+  const walk = async (directory: string): Promise<void> => {
+    const entries = await optionalDirectory(fileSystem, directory);
+    for (const entry of [...entries].sort((left, right) =>
+      left.name.localeCompare(right.name),
+    )) {
+      const path = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) {
+        await walk(path);
+        continue;
+      }
+      const result = await resultForEntry(directory, entry);
+      if (result) results.push(result);
+    }
+  };
+  await walk(kbRoot.replace(/\/$/u, ''));
+  return results;
+};
+
+export const searchKnowledgeBaseWithFallback = async (
+  fileSystem: FileSystem,
+  executor: CommandExecutor,
+  kbRoot: string,
+  cbmIndex: string,
+  query: string,
+): Promise<KnowledgeBaseSearchReceipt> => {
+  const [concepts, discovery] = await Promise.all([
+    searchKnowledgeBase(fileSystem, kbRoot, query),
+    searchWithCbmFallback(executor, {
+      allowedRoots: [kbRoot],
+      query,
+      root: { index: cbmIndex, root: kbRoot },
+    }),
+  ]);
+  return {
+    concepts,
+    discovery,
   };
 };
