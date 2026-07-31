@@ -4,6 +4,7 @@
     "actions": {
       "source": {
         "organizeImports": "on",
+        "useSortedInterfaceMembers": "on",
         "useSortedKeys": "on"
       }
     }
@@ -23,7 +24,27 @@
   },
   "linter": {
     "rules": {
-      "preset": "recommended"
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": { "maxAllowedComplexity": 10 }
+        },
+        "noExcessiveLinesPerFunction": {
+          "level": "error",
+          "options": {
+            "maxLines": 100,
+            "skipBlankLines": true,
+            "skipIifes": true
+          }
+        }
+      },
+      "preset": "recommended",
+      "style": {
+        "noExcessiveLinesPerFile": {
+          "level": "error",
+          "options": { "maxLines": 1000, "skipBlankLines": true }
+        }
+      }
     }
   }
 }
