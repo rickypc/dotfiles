@@ -65,7 +65,10 @@ also report the remaining queue.
 2. Read every path in the returned packet before working. Read the stage's
    fixed condition. If it applies, perform the stated work. If it does not
    apply, record a specific evidence-based reason; do not fabricate an artifact
-   merely to mark a stage complete.
+   merely to mark a stage complete. A skipped stage is never a stopping point:
+   record the skip, run its sensors, immediately request the next stage packet,
+   and continue. Stop only for an approval gate, a material unresolved question,
+   missing authority, or an unrecoverable deterministic gate.
 3. At `practices-discovery`, resolve context before reading its packet. Ask for
    missing organization, team, and project KB concept paths together, use `-`
    only when no record exists, then run:
@@ -124,7 +127,9 @@ bun ~/.agents/scripts/aidlc.ts approve "<intent-path>"
 8. After approval, continue through every remaining stage. Stop only for a
    material unresolved question, missing authority, failed deterministic gate
    that cannot be repaired safely, or a required user action. Never stop at a
-   component milestone.
+   component milestone, after a skipped stage, or while an approved intent has an
+   active stage. Do not send a final response or yield control until a true
+   terminal condition is reached.
 
 `advance` is intentionally unavailable: it cannot bypass a stage without
 evidence or a skip reason.
