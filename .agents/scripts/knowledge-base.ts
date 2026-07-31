@@ -66,7 +66,7 @@ const runConceptIndex = (
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/knowledge-base.ts <concept-index|validate|render-index|search|capture> <arguments>';
+  'Usage: bun ~/.agents/scripts/knowledge-base.ts <capture|concept-index|render-index|search|validate> <arguments>';
 
 export const run = async (
   args: readonly string[],

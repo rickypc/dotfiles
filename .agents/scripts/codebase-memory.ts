@@ -36,7 +36,7 @@ const commandForSimple = (
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/codebase-memory.ts <list-projects|index-status|architecture|search-graph|search-code|snippet|trace|schema|query|discover> <arguments>';
+  'Usage: bun ~/.agents/scripts/codebase-memory.ts <architecture|discover|index-status|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
 
 const positiveLimit = (value: string): number => {
   const limit = Number(value);

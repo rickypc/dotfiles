@@ -12,7 +12,7 @@ import {
 } from '../utils/skill-manager.js';
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/skill-manager.ts packet <intent-id> <draft|candidate_requested|candidate_checked> <skill-path> [assertion-id,...] | evaluate <baseline|candidate|challenge> <matrix-jsonl-path> <target-path>';
+  'Usage: bun ~/.agents/scripts/skill-manager.ts packet <intent-id> <candidate_checked|candidate_requested|draft> <skill-path> [assertion-id,...] | evaluate <baseline|candidate|challenge> <matrix-jsonl-path> <target-path>';
 
 const defaultRead = readText.bind(undefined, nodeFileSystem);
 

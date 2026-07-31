@@ -2,7 +2,7 @@ import { isCodingAssistant, renderAdapterHandoff } from '../utils/adapters.js';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/adapter.ts <opencode|codex|claude-code|kiro-ide> <agents-root>';
+  'Usage: bun ~/.agents/scripts/adapter.ts <claude-code|codex|kiro-ide|opencode> <agents-root>';
 
 export const run = (
   args: readonly string[],
