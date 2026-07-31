@@ -2,6 +2,7 @@
   "devDependencies": {
     "@biomejs/biome": "latest",
     "@types/bun": "latest",
+    "gray-matter": "latest",
     "tree-sitter": "latest",
     "tree-sitter-typescript": "latest",
     "typescript": "latest"
