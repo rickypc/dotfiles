@@ -2,6 +2,7 @@ import { resolveAidlcKnowledgeContext } from '../../utils/aidlc/context.js';
 import {
   appendAidlcAuditEvent,
   loadAidlcIntent,
+  type AidlcKnowledgeContext,
   updateAidlcIntent,
   withAidlcKnowledgeContext,
 } from '../../utils/aidlc/intent.js';
@@ -10,6 +11,16 @@ import { nodeFileSystem } from '../../utils/filesystem.js';
 
 export const bindingFor = (value: string): string | undefined =>
   value === '-' ? undefined : value;
+
+const bindingsFor = (
+  organization: string,
+  team: string,
+  project: string,
+): AidlcKnowledgeContext['bindings'] => ({
+  ...(organization === '-' ? {} : { organization }),
+  ...(team === '-' ? {} : { team }),
+  ...(project === '-' ? {} : { project }),
+});
 
 export const usage = (): string =>
   'Usage: bun ~/.agents/scripts/aidlc/context.ts resolve <intent-path> <kb-root> <organization-ref|-> <team-ref|-> <project-ref|->';
@@ -44,11 +55,7 @@ export const run = async (
   const kbContext = await resolve(
     nodeFileSystem,
     kbRoot,
-    {
-      organization: bindingFor(organization),
-      project: bindingFor(project),
-      team: bindingFor(team),
-    },
+    bindingsFor(organization, team, project),
     now(),
     intent.cbmIndex,
   );

@@ -1,5 +1,4 @@
-import matter = require('gray-matter');
-
+import matter from 'gray-matter';
 import {
   type CbmSearchFallbackReceipt,
   searchWithCbmFallback,

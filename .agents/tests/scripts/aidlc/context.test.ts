@@ -17,6 +17,12 @@ test('resolves and persists context through injected boundaries', async () => {
   const intent = practicesIntent();
   const update = mock(async () => undefined);
   const write = mock();
+  const resolve = mock(async () => ({
+    bindings: {},
+    resolvedAt: 'now',
+    rules: [],
+    sources: [],
+  }));
   await run(
     [
       'resolve',
@@ -30,12 +36,7 @@ test('resolves and persists context through injected boundaries', async () => {
     write,
     mock(async () => intent),
     update,
-    mock(async () => ({
-      bindings: {},
-      resolvedAt: 'now',
-      rules: [],
-      sources: [],
-    })),
+    resolve,
     mock(async () => undefined),
   );
   expect(update).toHaveBeenCalled();
@@ -46,13 +47,15 @@ test('resolves and persists context through injected boundaries', async () => {
     mock(),
     mock(async () => intent),
     mock(async () => undefined),
-    mock(async () => ({
-      bindings: {},
-      resolvedAt: 'now',
-      rules: [],
-      sources: [],
-    })),
+    resolve,
     mock(async () => undefined),
+  );
+  expect(resolve).toHaveBeenLastCalledWith(
+    expect.anything(),
+    '/kb',
+    {},
+    expect.anything(),
+    'repo',
   );
 });
 
