@@ -1,0 +1,3 @@
+{
+  "finalGate": "bun run --cwd .agents test"
+}
