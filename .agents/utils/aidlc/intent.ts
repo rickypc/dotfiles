@@ -61,6 +61,17 @@ export interface CreateAidlcIntentOptions {
   readonly uiRequired?: boolean;
 }
 
+export const acceptanceChecklistFor = (
+  summary: string,
+  uiRequired: boolean,
+): readonly string[] => [
+  `Deliver the requested outcome: ${summary}`,
+  ...(uiRequired
+    ? ['Verify the user-facing UI through its requested observable behavior.']
+    : []),
+  'Pass the configured final acceptance gate.',
+];
+
 const assertCbmIndexName = (cbmIndex: string): void => {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(cbmIndex)) {
     throw new Error(
@@ -282,6 +293,12 @@ export const renderAidlcIntent = (intent: AidlcIntent): string =>
   matter.stringify(
     [
       `# ${intent.summary}`,
+      '',
+      '## Acceptance checklist',
+      '',
+      ...acceptanceChecklistFor(intent.summary, intent.uiRequired).map(
+        (criterion) => `- [ ] ${criterion}`,
+      ),
       '',
       '## Adopted AI-DLC stages',
       '',

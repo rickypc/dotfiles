@@ -1,13 +1,15 @@
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 
 import {
   assertAllowedCbmRoot,
   assertKnownCbmProject,
   cbmCommands,
   cbmOutputHasMatches,
+  cbmProjectForRoot,
   cbmProjectNames,
   indexIsReady,
   readWithReadyIndex,
+  resolveCbmProjectForRoot,
   searchWithCbmFallback,
 } from '../../utils/codebase-memory.js';
 
@@ -18,6 +20,71 @@ test('accepts only a CBM project name returned by the project list', () => {
   expect(() => assertKnownCbmProject('made-up', projects)).toThrow(
     'not a listed',
   );
+});
+
+test('resolves a project only from an explicit indexed-root mapping', () => {
+  const projects = JSON.stringify({
+    projects: [
+      { name: 'Users-rhuang', repository_path: '/Users/rhuang' },
+      {
+        name: 'Users-rhuang-Github-bento',
+        repository_path: '/Users/rhuang/Github/bento',
+      },
+    ],
+  });
+  expect(cbmProjectForRoot('/Users/rhuang/tmp-sum-app', projects)).toBe(
+    'Users-rhuang',
+  );
+  expect(cbmProjectForRoot('/Users/rhuang/Github/bento/src', projects)).toBe(
+    'Users-rhuang-Github-bento',
+  );
+  expect(() => cbmProjectForRoot('/other', projects)).toThrow(
+    'explicit indexed root',
+  );
+  expect(() =>
+    cbmProjectForRoot(
+      '/Users/rhuang/tmp-sum-app',
+      '{"projects":[{"name":"Users-rhuang"}]}',
+    ),
+  ).toThrow('explicit indexed root');
+  expect(() =>
+    cbmProjectForRoot(
+      '/Users/rhuang/tmp-sum-app',
+      JSON.stringify({
+        projects: [
+          { name: 'one', repository_path: '/Users/rhuang' },
+          { name: 'two', repository_path: '/Users/rhuang' },
+        ],
+      }),
+    ),
+  ).toThrow('Multiple CBM projects');
+  expect(() => cbmProjectForRoot('/Users/rhuang/tmp-sum-app', '{')).toThrow(
+    'explicit indexed root',
+  );
+});
+
+test('resolves the index in-process from the single project-list command', async () => {
+  const execute = mock(async () => ({
+    code: 0,
+    stderr: '',
+    stdout: JSON.stringify({
+      projects: [
+        { name: 'home', repository_path: '/Users/rhuang' },
+        { name: 'repo', repository_path: '/Users/rhuang/Github/repo' },
+      ],
+    }),
+  }));
+  await expect(
+    resolveCbmProjectForRoot('/Users/rhuang/Github/repo/src', execute),
+  ).resolves.toBe('repo');
+  expect(execute).toHaveBeenCalledTimes(1);
+  await expect(
+    resolveCbmProjectForRoot('/Users/rhuang', async () => ({
+      code: 1,
+      stderr: 'offline',
+      stdout: '',
+    })),
+  ).rejects.toThrow('project list is unavailable');
 });
 
 test('builds CLI-only CBM command specifications', () => {

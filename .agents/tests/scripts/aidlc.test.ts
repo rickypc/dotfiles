@@ -1,6 +1,7 @@
 import { expect, mock, test } from 'bun:test';
 
 import {
+  resolveCbmIndexForStart,
   run,
   runMain,
   runWhenMain,
@@ -42,6 +43,41 @@ test('prepares one temporary AIDLC intent', async () => {
     ),
   );
   expect(verify).toHaveBeenCalledWith('repo');
+});
+
+test('starts in one call by resolving the CBM index from the project root', async () => {
+  const saved: unknown[][] = [];
+  const save: typeof saveAidlcIntent = async (fileSystem, path, intent) => {
+    saved.push([fileSystem, path, intent]);
+  };
+  const write = mock();
+  await run(
+    ['start', '/agents', '/project', 'Build KB'],
+    save,
+    write,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    mock(async (projectRoot: string) => {
+      expect(projectRoot).toBe('/project');
+      return 'resolved-repo';
+    }),
+  );
+  expect(saved[0]?.[1]).toBe('/agents/aidlc/resolved-repo/intents/build-kb.md');
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"cbmIndex":"resolved-repo"'),
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"acceptanceChecklist"'),
+  );
+});
+
+test('rejects a start command when no CBM resolver is configured', async () => {
+  await expect(
+    run(['start', '/agents', '/project', 'Build KB']),
+  ).rejects.toThrow('requires CBM project resolution');
 });
 
 test('marks only the UI stage as applicable from prepare metadata', async () => {
@@ -109,6 +145,13 @@ test('rejects invalid commands and only runs the main boundary when requested', 
   expect(runner).toHaveBeenCalledTimes(1);
 });
 
+test('returns the command contract without a failing help probe', async () => {
+  const write = mock();
+  await run(['complete', '--help'], undefined, write);
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('Commands:'));
+  expect(usage()).toContain('start <agents-root>');
+});
+
 test('main runner keeps CBM validation at the prepare boundary', async () => {
   await runMain(['queue', '/agents-that-do-not-exist', 'repo']);
 });
@@ -130,13 +173,25 @@ test('requires a listed CBM project before a temporary intent is created', async
   ).rejects.toThrow('project list is unavailable');
 });
 
+test('resolves the startup CBM index through an injected project-list boundary', async () => {
+  await expect(
+    resolveCbmIndexForStart('/project', async () => ({
+      code: 0,
+      stderr: '',
+      stdout: JSON.stringify({
+        projects: [{ name: 'project', repository_path: '/project' }],
+      }),
+    })),
+  ).resolves.toBe('project');
+});
+
 test('records stage evidence, skips with a reason, and approves only a gate', async () => {
   const intent = createAidlcIntent('repo', 'X');
   const save = mock(async () => undefined);
   const update = mock(async () => undefined);
   const write = mock();
   await run(
-    ['complete', '/intent.md', 'created record'],
+    ['complete', '/agents/aidlc/repo/intents/x.md', 'created record'],
     save,
     write,
     mock(async () => intent),
@@ -144,10 +199,14 @@ test('records stage evidence, skips with a reason, and approves only a gate', as
     mock(async () => undefined),
   );
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('workspace-detection'),
+    expect.stringContaining('"stage": "workspace-detection"'),
   );
   await run(
-    ['skip', '/intent.md', 'already classified externally'],
+    [
+      'skip',
+      '/agents/aidlc/repo/intents/x.md',
+      'already classified externally',
+    ],
     save,
     write,
     mock(async () => intent),
@@ -155,11 +214,11 @@ test('records stage evidence, skips with a reason, and approves only a gate', as
     mock(async () => undefined),
   );
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('workspace-detection'),
+    expect.stringContaining('"stage": "workspace-detection"'),
   );
   await expect(
     run(
-      ['approve', '/intent.md'],
+      ['approve', '/agents/aidlc/repo/intents/x.md'],
       save,
       write,
       mock(async () => intent),
@@ -173,7 +232,7 @@ test('records stage evidence, skips with a reason, and approves only a gate', as
   }
   awaitingApproval = completeAidlcStage(awaitingApproval, 'plan ready');
   await run(
-    ['approve', '/intent.md'],
+    ['approve', '/agents/aidlc/repo/intents/x.md'],
     save,
     write,
     mock(async () => awaitingApproval),
@@ -181,9 +240,140 @@ test('records stage evidence, skips with a reason, and approves only a gate', as
     mock(async () => undefined),
   );
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('reverse-engineering'),
+    expect.stringContaining('resolve-knowledge-context'),
   );
   expect(update).toHaveBeenCalledTimes(3);
+});
+
+test('records consecutive stage outcomes in one response without crossing gates', async () => {
+  const intent = createAidlcIntent('repo', 'Batch');
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  const write = mock();
+  await run(
+    [
+      'record',
+      '/agents/aidlc/repo/intents/batch.md',
+      JSON.stringify([
+        {
+          evidence: 'workspace path is valid',
+          outcome: 'complete',
+          stage: 'workspace-scaffold',
+        },
+        {
+          evidence: 'project root is known',
+          outcome: 'complete',
+          stage: 'workspace-detection',
+        },
+      ]),
+    ],
+    undefined,
+    write,
+    mock(async () => intent),
+    update,
+    appendAudit,
+  );
+  expect(update).toHaveBeenCalledTimes(2);
+  expect(appendAudit).toHaveBeenCalledTimes(2);
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"stage": "state-init"'),
+  );
+});
+
+test('rejects malformed, nonconsecutive, and boundary-crossing record batches', async () => {
+  const intent = createAidlcIntent('repo', 'Batch validation');
+  const dependencies = [
+    undefined,
+    mock(),
+    mock(async () => intent),
+    mock(async () => undefined),
+    mock(async () => undefined),
+  ] as const;
+  for (const [input, message] of [
+    ['not json', 'valid JSON'],
+    ['[]', 'one or more'],
+    [JSON.stringify([null]), 'must be an object'],
+    [
+      JSON.stringify([{ evidence: 'x', outcome: 'bad', stage: 'x' }]),
+      'requires stage',
+    ],
+    [
+      JSON.stringify([
+        { evidence: 'x', outcome: 'complete', stage: 'wrong-stage' },
+      ]),
+      'must be consecutive',
+    ],
+  ] as const) {
+    await expect(
+      run(
+        ['record', '/agents/aidlc/repo/intents/batch.md', input],
+        ...dependencies,
+      ),
+    ).rejects.toThrow(message);
+  }
+  let atScope = createAidlcIntent('repo', 'Boundary');
+  while (atScope.stage !== 'scope-definition') {
+    atScope = completeAidlcStage(atScope, 'evidence');
+  }
+  await expect(
+    run(
+      [
+        'record',
+        '/agents/aidlc/repo/intents/boundary.md',
+        JSON.stringify([
+          {
+            evidence: 'scope complete',
+            outcome: 'complete',
+            stage: 'scope-definition',
+          },
+          {
+            evidence: 'approval ready',
+            outcome: 'complete',
+            stage: 'approval-handoff',
+          },
+          {
+            evidence: 'must not cross',
+            outcome: 'complete',
+            stage: 'reverse-engineering',
+          },
+        ]),
+      ],
+      undefined,
+      mock(),
+      mock(async () => atScope),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('cannot cross');
+});
+
+test('returns approval and path-repair actions instead of a separate next call', async () => {
+  let atApproval = createAidlcIntent('repo', 'Approval');
+  while (atApproval.stage !== 'approval-handoff') {
+    atApproval = completeAidlcStage(atApproval, 'evidence');
+  }
+  const write = mock();
+  await run(
+    ['complete', '/agents/aidlc/repo/intents/approval.md', 'plan ready'],
+    undefined,
+    write,
+    mock(async () => atApproval),
+    mock(async () => undefined),
+    mock(async () => undefined),
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('await-user-approval'),
+  );
+  await expect(
+    run(
+      ['complete', '/invalid-intent.md', 'evidence'],
+      undefined,
+      mock(),
+      mock(async () => createAidlcIntent('repo', 'X')),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('must be under an absolute');
 });
 
 test('retires a terminal intent only through the explicit command', async () => {
@@ -201,7 +391,7 @@ test('retires a terminal intent only through the explicit command', async () => 
   expect(retire).toHaveBeenCalledWith(expect.anything(), '/intent.md', '/kb', [
     'repo/agent/lesson.md',
   ]);
-  expect(write).toHaveBeenCalledWith('Retired AIDLC intent: /intent.md');
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"done"'));
 });
 
 test('reports the queue and records replan and supersession lifecycle events', async () => {
@@ -212,7 +402,11 @@ test('reports the queue and records replan and supersession lifecycle events', a
   const write = mock();
   await run(['queue', '/agents-that-do-not-exist', 'repo'], undefined, write);
   await run(
-    ['replan', '/intent.md', 'Scope was clarified.'],
+    [
+      'replan',
+      '/agents/aidlc/repo/intents/lifecycle.md',
+      'Scope was clarified.',
+    ],
     undefined,
     write,
     load,
@@ -220,7 +414,7 @@ test('reports the queue and records replan and supersession lifecycle events', a
     appendAudit,
   );
   await run(
-    ['supersede', '/intent.md', 'replacement'],
+    ['supersede', '/agents/aidlc/repo/intents/lifecycle.md', 'replacement'],
     undefined,
     write,
     load,
@@ -229,6 +423,9 @@ test('reports the queue and records replan and supersession lifecycle events', a
   );
   expect(appendAudit).toHaveBeenCalledTimes(2);
   expect(update).toHaveBeenCalledTimes(1);
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('start-replacement-intent'),
+  );
 });
 
 test('reports the remaining queue after terminal intent completion', async () => {
@@ -257,5 +454,8 @@ test('reports the remaining queue after terminal intent completion', async () =>
     mock(async () => undefined),
     mock(async () => undefined),
   );
-  expect(write).toHaveBeenCalledTimes(2);
+  expect(write).toHaveBeenCalledTimes(1);
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('knowledge-base-closeout-and-retire'),
+  );
 });

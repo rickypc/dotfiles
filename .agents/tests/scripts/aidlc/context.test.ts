@@ -20,7 +20,7 @@ test('resolves and persists context through injected boundaries', async () => {
   await run(
     [
       'resolve',
-      '/intent.md',
+      '/agents/aidlc/repo/intents/x.md',
       '/kb',
       'shared/organization/rules.md',
       '-',
@@ -39,9 +39,9 @@ test('resolves and persists context through injected boundaries', async () => {
     mock(async () => undefined),
   );
   expect(update).toHaveBeenCalled();
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('resolvedAt'));
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"stagePacket"'));
   await run(
-    ['resolve', '/intent.md', '/kb', '-', '-', '-'],
+    ['resolve', '/agents/aidlc/repo/intents/x.md', '/kb', '-', '-', '-'],
     undefined,
     mock(),
     mock(async () => intent),
@@ -85,4 +85,24 @@ test('rejects context resolution before reverse engineering', async () => {
       mock(async () => undefined),
     ),
   ).rejects.toThrow('reverse-engineering');
+});
+
+test('rejects a resolved context outside the global AIDLC intent location', async () => {
+  const intent = reverseEngineeringIntent();
+  await expect(
+    run(
+      ['resolve', '/intent.md', '/kb', '-', '-', '-'],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      mock(async () => undefined),
+      mock(async () => ({
+        bindings: {},
+        resolvedAt: 'now',
+        rules: [],
+        sources: [],
+      })),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('must be under an absolute');
 });

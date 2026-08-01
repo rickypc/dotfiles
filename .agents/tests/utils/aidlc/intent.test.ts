@@ -1,6 +1,7 @@
 import { expect, mock, test } from 'bun:test';
 
 import {
+  acceptanceChecklistFor,
   advanceAidlcIntent,
   aidlcIntentStatusFor,
   appendAidlcAuditEvent,
@@ -56,6 +57,11 @@ test('creates a local route and holds at the plan gate', () => {
     intent.route.find((record) => record.slug === 'refined-mockups'),
   ).toMatchObject({ status: 'skipped' });
   expect(renderAidlcIntent(intent)).toContain('## Adopted AI-DLC stages');
+  expect(renderAidlcIntent(intent)).toContain('## Acceptance checklist');
+  expect(acceptanceChecklistFor('Build KB', false)).toEqual([
+    'Deliver the requested outcome: Build KB',
+    'Pass the configured final acceptance gate.',
+  ]);
   expect(renderAidlcIntent(intent)).toContain(
     '| 1.7 | ideation | approval-handoff |',
   );
@@ -144,6 +150,9 @@ test('keeps Refined Mockups active only for an explicit UI intent', () => {
     uiRequired: true,
   });
   expect(intent.projectRoot).toBe('/project');
+  expect(acceptanceChecklistFor('Build UI', true)).toContain(
+    'Verify the user-facing UI through its requested observable behavior.',
+  );
   expect(
     intent.route.find((record) => record.slug === 'refined-mockups'),
   ).toMatchObject({ status: 'pending' });

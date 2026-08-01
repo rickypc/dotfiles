@@ -5,6 +5,7 @@ import {
   withAidlcKnowledgeContext,
 } from '../../../utils/aidlc/intent.js';
 import {
+  renderAidlcStagePacket,
   stagePacketFor,
   validateAidlcStageAssets,
 } from '../../../utils/aidlc/stage.js';
@@ -20,6 +21,7 @@ test('builds one packet containing stage, roles, knowledge, and sensors', () => 
   expect(packet.knowledgePaths).toContain(
     '/agents/aidlc/knowledge/roles/delivery/workflow-planning-guide.md',
   );
+  expect(renderAidlcStagePacket(packet)).toContain('workspace-scaffold');
 });
 
 test('rejects empty or missing stage assets', async () => {

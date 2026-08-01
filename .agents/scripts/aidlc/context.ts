@@ -6,8 +6,20 @@ import {
   updateAidlcIntent,
   withAidlcKnowledgeContext,
 } from '../../utils/aidlc/intent.js';
+import { stagePacketFor } from '../../utils/aidlc/stage.js';
 import { runWhenMain as runCliWhenMain } from '../../utils/cli.js';
 import { nodeFileSystem } from '../../utils/filesystem.js';
+
+const agentsRootForIntent = (intentPath: string): string => {
+  const marker = '/aidlc/';
+  const markerIndex = intentPath.lastIndexOf(marker);
+  if (!intentPath.startsWith('/') || markerIndex <= 0) {
+    throw new Error(
+      'AIDLC intent path must be under an absolute <agents-root>/aidlc directory.',
+    );
+  }
+  return intentPath.slice(0, markerIndex);
+};
 
 export const bindingFor = (value: string): string | undefined =>
   value === '-' ? undefined : value;
@@ -61,7 +73,16 @@ export const run = async (
     stage: intent.stage,
     type: 'context-resolved',
   });
-  write(JSON.stringify(kbContext));
+  write(
+    JSON.stringify(
+      {
+        intent: updated,
+        kbContext,
+        stagePacket: stagePacketFor(agentsRootForIntent(intentPath), updated),
+      },
+      null,
+    ),
+  );
 };
 
 export const runWhenMain = runCliWhenMain;

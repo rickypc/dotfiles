@@ -35,6 +35,11 @@ export interface CbmSearchFallbackRequest {
   readonly root: CbmRoot;
 }
 
+interface ListedCbmProject {
+  readonly name: string;
+  readonly roots: readonly string[];
+}
+
 export const cbmCommand = (
   operation: string,
   args: readonly string[] = [],
@@ -201,6 +206,17 @@ export const cbmProjectNames = (output: string): readonly string[] =>
     (match) => match[1] ?? '',
   );
 
+const rootPropertyNames = new Set([
+  'path',
+  'repo_path',
+  'repoPath',
+  'repository_path',
+  'repositoryPath',
+  'root',
+  'root_path',
+  'rootPath',
+]);
+
 export const assertKnownCbmProject = (
   project: string,
   listProjectsOutput: string,
@@ -210,9 +226,74 @@ export const assertKnownCbmProject = (
   }
 };
 
+const containsPath = (parent: string, child: string): boolean =>
+  child === parent || child.startsWith(`${parent}/`);
+
 export const indexIsReady = (output: string): boolean =>
   /\b(ready|complete|indexed)\b/iu.test(output) &&
   !/\b(not.ready|failed|error)\b/iu.test(output);
+
+const listedProjectEntries = (output: string): readonly ListedCbmProject[] => {
+  try {
+    const parsed = JSON.parse(output) as { readonly projects?: unknown };
+    if (!Array.isArray(parsed.projects)) return [];
+    return parsed.projects.flatMap((project) => {
+      if (!project || typeof project !== 'object') return [];
+      const record = project as Record<string, unknown>;
+      if (typeof record.name !== 'string' || !record.name.trim()) return [];
+      return [
+        {
+          name: record.name,
+          roots: Object.entries(record).flatMap(([key, value]) =>
+            rootPropertyNames.has(key) &&
+            typeof value === 'string' &&
+            value.startsWith('/')
+              ? [canonicalPath(value)]
+              : [],
+          ),
+        },
+      ];
+    });
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Resolves only an explicit CBM root mapping. A shared home directory is not
+ * evidence that a child repository belongs to the home index.
+ */
+export const cbmProjectForRoot = (
+  projectRoot: string,
+  projectsOutput: string,
+): string => {
+  const requestedRoot = canonicalPath(projectRoot);
+  const candidates = listedProjectEntries(projectsOutput)
+    .flatMap((project) =>
+      project.roots
+        .filter((root) => containsPath(root, requestedRoot))
+        .map((root) => ({ name: project.name, root })),
+    )
+    .sort((left, right) => right.root.length - left.root.length);
+  const best = candidates[0];
+  if (!best) {
+    throw new Error(
+      `No CBM project has an explicit indexed root for ${requestedRoot}. Index the intended project first; do not guess from parent directories or project names.`,
+    );
+  }
+  if (
+    candidates.some(
+      (candidate) =>
+        candidate.root.length === best.root.length &&
+        candidate.name !== best.name,
+    )
+  ) {
+    throw new Error(
+      `Multiple CBM projects match ${requestedRoot} at the same root depth. Resolve the duplicate index mapping before starting AIDLC.`,
+    );
+  }
+  return best.name;
+};
 
 const outputFor = (stdout: string, stderr: string): string =>
   [stdout, stderr].filter(Boolean).join('\n');
@@ -252,6 +333,17 @@ export const readWithReadyIndex = async (
     output: outputFor(read.stdout, read.stderr),
     project: request.root.index,
   };
+};
+
+export const resolveCbmProjectForRoot = async (
+  projectRoot: string,
+  execute: CommandExecutor,
+): Promise<string> => {
+  const projects = await execute(cbmCommands.listProjects());
+  if (projects.code !== 0) {
+    throw new Error('CBM project list is unavailable.');
+  }
+  return cbmProjectForRoot(projectRoot, projects.stdout);
 };
 
 export const searchWithCbmFallback = async (
