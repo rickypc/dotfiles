@@ -58,7 +58,8 @@ intent is malformed, surface the clear invalid-frontmatter error to the
 assistant/user and repair through the supported boundary; never use an
 unhandled parser exception or invent replacement state.
 
-At 3.6 execute `aidlc/gate.ts run` once per attempt. Its resolved configured
-command is the only final gate. On failure, fix and rerun the same command;
-on success, capture reusable knowledge through `knowledge-base` if warranted
-and retire the central intent.
+At 3.6 invoke `aidlc.ts complete <intent-path>` once per attempt with no
+evidence. It executes the resolved configured command as the only final gate.
+On failure, fix and rerun the same lifecycle command; on success, capture
+reusable knowledge through `knowledge-base` if warranted and retire the central
+intent.

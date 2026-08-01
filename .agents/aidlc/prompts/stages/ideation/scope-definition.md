@@ -1,12 +1,12 @@
 ---
-stage: feasibility
-number: "1.3"
+stage: scope-definition
+number: "1.4"
 phase: ideation
-condition: "when material uncertainty remains"
+condition: "always"
 route_authority: "~/.agents/utils/aidlc/stages.ts"
 ---
 
-# 1.3 feasibility
+# 1.4 scope definition
 
 ## Universal runtime contract
 
@@ -22,8 +22,9 @@ expect assistant-native orchestration or lifecycle storage. For repository
 facts, invoke `codebase-memory`; for persistent knowledge, invoke
 `knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval; 3.6 runs exactly the one configured final
-gate through `~/.agents/scripts/aidlc/gate.ts`.
+reason. Only 1.7 waits for approval. At 3.6, invoke
+`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
+configured final gate and returns the result.
 
 MANDATORY: Follow stage-protocol.md for the universal question contract and completion evidence.
 
@@ -31,37 +32,32 @@ MANDATORY: Follow stage-protocol.md for the universal question contract and comp
 
 ### Step 1: Load Agent Personas
 
-Apply the architect role perspective from the stage packet and its knowledge paths.
-Orchestrator will separately invoke the relevant platform or compliance perspective and the relevant platform or compliance perspective for their perspectives.
+Apply the product role perspective from the stage packet and its knowledge paths.
 
 ### Step 2: Load Prior Context
 
 - Read intent statement from the relevant central intent section
-- Read market research from the relevant central intent section (if exists)
-- Load guardrails from
-  the validated knowledge-base context and the central intent.
+- Read feasibility assessment from the relevant central intent section (if exists)
+- Read constraint register and RAID log (if exist)
 
 ### Step 3: Generate Clarifying Questions
 
 Create the relevant central intent section with questions:
-- What existing systems must this integrate with?
-- Are there regulatory/compliance requirements (PCI, HIPAA, SOC2, data residency)?
-- What is the team's current tech stack and skill profile?
-- What are the budget and timeline constraints?
-- Are there organizational blockers (change freeze, competing priorities)?
-- What AWS services and accounts are currently in use?
+- What is the minimum viable scope that delivers value?
+- What capabilities are must-have vs. nice-to-have?
+- What are the dependencies between capabilities?
+- What is the sequencing preference (risk-first, value-first, dependency-first)?
+- Are there hard deadlines tied to specific capabilities?
 
 Follow stage-protocol.md question flow.
 
 ### Step 4: Collect and Analyze Answers
 
-Run ambiguity detection and contradiction analysis.
+Run ambiguity detection, contradiction analysis, and scope-vs-timeline validation.
 
 ### Step 5: Generate Artifacts
 
-Create feasibility assessment (technical viability, risk analysis), constraint register (technical, organizational, regulatory), and RAID log (Risks, Assumptions, Issues, Dependencies).
-
-The orchestrator will pass these artifacts to the relevant platform or compliance perspective for AWS landscape assessment and the relevant platform or compliance perspective for regulatory scanning, then synthesize all inputs.
+Create scope definition document (in/out boundary), prioritized intent backlog (proto-Units using MoSCoW/WSJF/RICE), and value stream map.
 
 ### Step 6: Completion Handoff
 
@@ -71,7 +67,7 @@ The Use the universal lifecycle script to record the stage outcome.
 
 ### Completion handoff
 
-Completion emoji: :test_tube:
+Completion emoji: :dart:
 Review path: the relevant central intent section
 No additional approval gate applies; report the evidence and continue.
 

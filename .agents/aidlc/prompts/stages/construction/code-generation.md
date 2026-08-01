@@ -22,8 +22,9 @@ expect assistant-native orchestration or lifecycle storage. For repository
 facts, invoke `codebase-memory`; for persistent knowledge, invoke
 `knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval; 3.6 runs exactly the one configured final
-gate through `~/.agents/scripts/aidlc/gate.ts`.
+reason. Only 1.7 waits for approval. At 3.6, invoke
+`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
+configured final gate and returns the result.
 
 Implement only the scope approved at 1.7 and the design decisions captured by
 the selected Inception and Construction stages. This is not a second approval
@@ -44,6 +45,10 @@ instead of silently expanding the work.
 
 ## Implementation rules
 
+- Apply the canonical **Code changes** policy in `~/.agents/AGENTS.md`. It
+  governs minimum-scope implementation, reuse of existing code, removal of
+  dead artifacts created by this change, and the user decision required before
+  cleaning unrelated pre-existing dead code.
 - Modify the selected project in place; do not create duplicate replacement
   classes or write application code under the global AIDLC directory.
 - Preserve established repository conventions unless the approved architecture

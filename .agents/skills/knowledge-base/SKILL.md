@@ -61,6 +61,6 @@ shared/team/<concept>.md
 <cbm-index>/project/<concept>.md
 ```
 
-Use `~/.agents/prompts/aidlc/templates/practice-record.md` as the public
+Use `~/.agents/aidlc/prompts/templates/practice-record.md` as the public
 structure reference. The resolver rejects a matching `ALWAYS` / `NEVER` rule
 conflict; do not create placeholder organization, team, or project records.

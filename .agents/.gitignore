@@ -2,5 +2,7 @@
 /aidlc/*/
 !/aidlc/knowledge/
 !/aidlc/*.md
+!/aidlc/prompts/
 !/aidlc/protocols/
+!/aidlc/roles/
 /coverage/

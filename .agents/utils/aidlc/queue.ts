@@ -2,6 +2,7 @@ import type { DirectoryEntry, FileSystem } from '../filesystem.js';
 import {
   type AidlcIntent,
   aidlcIntentStatusFor,
+  assertAidlcIntentPath,
   loadAidlcIntent,
 } from './intent.js';
 
@@ -42,12 +43,9 @@ const categoryFor = (intent: AidlcIntent): AidlcQueueCategory => {
 };
 
 const intentsDirectory = (agentsRoot: string, cbmIndex: string): string => {
-  if (!agentsRoot.startsWith('/') || !cbmIndex.trim()) {
-    throw new Error(
-      'AIDLC queue requires an absolute agents root and CBM index.',
-    );
-  }
-  return `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents`;
+  const placeholderPath = `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents/queue-placeholder.md`;
+  assertAidlcIntentPath(placeholderPath);
+  return placeholderPath.slice(0, -'queue-placeholder.md'.length - 1);
 };
 
 const itemFor = async (

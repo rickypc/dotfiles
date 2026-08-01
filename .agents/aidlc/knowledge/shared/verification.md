@@ -22,8 +22,9 @@ that do not validate the requested behavior.
 ## Final-gate rule
 
 The gate is exactly the one string in the project’s `aidlc.config.json`
-`finalGate`, or `bun run test` when absent. Execute it through
-`scripts/aidlc/gate.ts`. Lint, type checks, focused tests, coverage, visual
+`finalGate`, or `bun run test` when absent. At 3.6 invoke
+`scripts/aidlc.ts complete <intent-path>` with no evidence; it executes the
+gate. Lint, type checks, focused tests, coverage, visual
 checks, and a prior green run can provide development evidence, but none can
 substitute for the final receipt:
 

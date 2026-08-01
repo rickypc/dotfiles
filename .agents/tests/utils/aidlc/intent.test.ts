@@ -6,6 +6,7 @@ import {
   aidlcIntentStatusFor,
   appendAidlcAuditEvent,
   approveAidlcIntent,
+  assertAidlcIntentPath,
   assertNoIntentCollision,
   canAdvanceAidlcIntent,
   completeAidlcStage,
@@ -47,6 +48,68 @@ test('rejects empty summaries and reports deterministic paths', () => {
   expect(workspacePathFor('/agents/', 'repo')).toBe(
     '/agents/aidlc/repo/workspace.md',
   );
+});
+
+test('allows lifecycle I/O only for canonical temporary intent paths', () => {
+  expect(() =>
+    assertAidlcIntentPath('/agents/aidlc/repo/intents/build-kb.md'),
+  ).not.toThrow();
+  for (const path of [
+    '/agents/aidlc/conductor.md',
+    '/agents/aidlc/knowledge/shared/rule.md',
+    '/agents/aidlc/prompts/sensors/intent-evidence.md',
+    '/agents/aidlc/protocols/runtime.md',
+    '/agents/aidlc/roles/developer.md',
+    '/agents/aidlc/repo/workspace.md',
+    '/agents/aidlc/knowledge/intents/escaped.md',
+    '/agents/aidlc/prompts/intents/escaped.md',
+    '/agents/aidlc/protocols/intents/escaped.md',
+    '/agents/aidlc/roles/intents/escaped.md',
+    '/agents/aidlc/repo/intents/../conductor.md',
+    '/agents/aidlc/knowledge/aidlc/repo/intents/escaped.md',
+    '/agents/aidlc/outer/aidlc/repo/intents/escaped.md',
+    '/agents/aidlc/repo/intents/escaped.txt',
+    '/agents/aidlc/repo/intents/escaped--id.md',
+  ]) {
+    expect(() => assertAidlcIntentPath(path)).toThrow();
+  }
+});
+
+test('rejects protected AIDLC assets before lifecycle I/O', async () => {
+  const intent = createAidlcIntent('repo', 'Protect runtime assets');
+  const readFile = mock(async () => renderAidlcIntent(intent));
+  const writeFile = mock(async () => undefined);
+  const rm = mock(async () => undefined);
+  const fileSystem = {
+    mkdir: mock(async () => undefined),
+    readFile,
+    rm,
+    writeFile,
+  };
+  const protectedPath = '/agents/aidlc/conductor.md';
+  await expect(
+    saveAidlcIntent(fileSystem, protectedPath, intent),
+  ).rejects.toThrow('temporary intent');
+  await expect(loadAidlcIntent(fileSystem, protectedPath)).rejects.toThrow(
+    'temporary intent',
+  );
+  await expect(
+    updateAidlcIntent(fileSystem, protectedPath, intent),
+  ).rejects.toThrow('temporary intent');
+  await expect(
+    appendAidlcAuditEvent(fileSystem, protectedPath, {
+      at: '2026-07-31T00:00:00.000Z',
+      detail: 'attempted write',
+      stage: intent.stage,
+      type: 'stage-completed',
+    }),
+  ).rejects.toThrow('temporary intent');
+  await expect(retireAidlcIntent(fileSystem, protectedPath)).rejects.toThrow(
+    'temporary intent',
+  );
+  expect(readFile).not.toHaveBeenCalled();
+  expect(writeFile).not.toHaveBeenCalled();
+  expect(rm).not.toHaveBeenCalled();
 });
 
 test('creates a local route and holds at the plan gate', () => {
@@ -299,7 +362,7 @@ test('retires only a completed intent after verified KB capture', async () => {
     }
   }
   const files = new Map([
-    ['/agents/complete.md', renderAidlcIntent(complete)],
+    ['/agents/aidlc/repo/intents/complete.md', renderAidlcIntent(complete)],
     [
       '/kb/repo/agent/lesson.md',
       renderOkfConcept(
@@ -325,33 +388,46 @@ test('retires only a completed intent after verified KB capture', async () => {
     rm,
     writeFile: mock(async () => undefined),
   };
-  await retireAidlcIntent(fileSystem, '/agents/complete.md', '/kb', [
-    'repo/agent/lesson.md',
-  ]);
-  expect(rm).toHaveBeenCalledWith('/agents/complete.md', { force: true });
+  await retireAidlcIntent(
+    fileSystem,
+    '/agents/aidlc/repo/intents/complete.md',
+    '/kb',
+    ['repo/agent/lesson.md'],
+  );
+  expect(rm).toHaveBeenCalledWith('/agents/aidlc/repo/intents/complete.md', {
+    force: true,
+  });
   await expect(
-    retireAidlcIntent(fileSystem, '/agents/missing.md'),
+    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/missing.md'),
   ).rejects.toThrow('frontmatter');
   const active = createAidlcIntent('repo', 'Active');
-  files.set('/agents/active.md', renderAidlcIntent(active));
+  files.set('/agents/aidlc/repo/intents/active.md', renderAidlcIntent(active));
   await expect(
-    retireAidlcIntent(fileSystem, '/agents/active.md'),
+    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/active.md'),
   ).rejects.toThrow('completed AIDLC intent');
-  files.set('/agents/complete.md', renderAidlcIntent(complete));
+  files.set(
+    '/agents/aidlc/repo/intents/complete.md',
+    renderAidlcIntent(complete),
+  );
   await expect(
-    retireAidlcIntent(fileSystem, '/agents/complete.md', undefined, [
-      'not-a-kb-concept',
-    ]),
+    retireAidlcIntent(
+      fileSystem,
+      '/agents/aidlc/repo/intents/complete.md',
+      undefined,
+      ['not-a-kb-concept'],
+    ),
   ).rejects.toThrow('verified KB concept references');
-  await retireAidlcIntent(fileSystem, '/agents/complete.md');
-  expect(rm).toHaveBeenCalledWith('/agents/complete.md', { force: true });
+  await retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/complete.md');
+  expect(rm).toHaveBeenCalledWith('/agents/aidlc/repo/intents/complete.md', {
+    force: true,
+  });
 });
 
 test('preserves the intent body while updating the route frontmatter', async () => {
   const intent = createAidlcIntent('repo', 'X');
   const content = `${renderAidlcIntent(intent)}Keep this evidence.\n`;
   expect(parseAidlcIntent(content)).toEqual(intent);
-  const files = new Map([['/agents/intent.md', content]]);
+  const files = new Map([['/agents/aidlc/repo/intents/intent.md', content]]);
   const writeFile = mock(async (path: string, value: string) => {
     files.set(path, value);
   });
@@ -361,39 +437,43 @@ test('preserves the intent body while updating the route frontmatter', async () 
     rm: mock(),
     writeFile,
   };
-  await saveAidlcIntent(filesystem, '/agents/saved.md', intent);
-  expect(files.get('/agents/saved.md')).toContain('# X');
+  await saveAidlcIntent(
+    filesystem,
+    '/agents/aidlc/repo/intents/saved.md',
+    intent,
+  );
+  expect(files.get('/agents/aidlc/repo/intents/saved.md')).toContain('# X');
   await updateAidlcIntent(
     filesystem,
-    '/agents/intent.md',
+    '/agents/aidlc/repo/intents/intent.md',
     completeAidlcStage(intent, 'created'),
   );
   expect(writeFile).toHaveBeenLastCalledWith(
-    '/agents/intent.md',
+    '/agents/aidlc/repo/intents/intent.md',
     expect.stringContaining('Keep this evidence.'),
     'utf8',
   );
-  expect(files.get('/agents/intent.md')).toContain(
+  expect(files.get('/agents/aidlc/repo/intents/intent.md')).toContain(
     '| 0.1 | initialization | workspace-scaffold | completed | created |',
   );
-  expect(files.get('/agents/intent.md')).toContain(
+  expect(files.get('/agents/aidlc/repo/intents/intent.md')).toContain(
     '| 3.6 | construction | build-and-test | pending |  |\n\n## Research',
   );
-  expect(files.get('/agents/intent.md')).toContain(
+  expect(files.get('/agents/aidlc/repo/intents/intent.md')).toContain(
     '## Audit trail\nKeep this evidence.',
   );
-  expect(parseAidlcIntent(files.get('/agents/intent.md') ?? '')).toEqual(
-    completeAidlcStage(intent, 'created'),
-  );
+  expect(
+    parseAidlcIntent(files.get('/agents/aidlc/repo/intents/intent.md') ?? ''),
+  ).toEqual(completeAidlcStage(intent, 'created'));
   await expect(
-    loadAidlcIntent(filesystem, '/agents/intent.md'),
+    loadAidlcIntent(filesystem, '/agents/aidlc/repo/intents/intent.md'),
   ).resolves.toEqual(completeAidlcStage(intent, 'created'));
   const ledgerless = renderAidlcFrontmatter(intent);
-  files.set('/agents/intent.md', ledgerless);
+  files.set('/agents/aidlc/repo/intents/intent.md', ledgerless);
   await expect(
     updateAidlcIntent(
       filesystem,
-      '/agents/intent.md',
+      '/agents/aidlc/repo/intents/intent.md',
       completeAidlcStage(intent, 'created'),
     ),
   ).rejects.toThrow('stage ledger is missing');
@@ -402,7 +482,7 @@ test('preserves the intent body while updating the route frontmatter', async () 
 test('updates frontmatter when the rendered stage ledger is unchanged', async () => {
   const intent = createAidlcIntent('repo', 'Context update');
   const content = renderAidlcIntent(intent);
-  const files = new Map([['/agents/intent.md', content]]);
+  const files = new Map([['/agents/aidlc/repo/intents/intent.md', content]]);
   const filesystem = {
     mkdir: mock(async () => undefined),
     readFile: mock(async (path: string) => files.get(path) ?? ''),
@@ -411,14 +491,22 @@ test('updates frontmatter when the rendered stage ledger is unchanged', async ()
       files.set(path, value);
     }),
   };
-  await updateAidlcIntent(filesystem, '/agents/intent.md', intent);
+  await updateAidlcIntent(
+    filesystem,
+    '/agents/aidlc/repo/intents/intent.md',
+    intent,
+  );
   expect(filesystem.writeFile).toHaveBeenCalledTimes(1);
-  expect(files.get('/agents/intent.md')).toContain('kb_context:');
+  expect(files.get('/agents/aidlc/repo/intents/intent.md')).toContain(
+    'kb_context:',
+  );
 });
 
 test('appends a deterministic audit record without changing intent state', async () => {
   const intent = createAidlcIntent('repo', 'X');
-  const files = new Map([['/agents/intent.md', renderAidlcIntent(intent)]]);
+  const files = new Map([
+    ['/agents/aidlc/repo/intents/intent.md', renderAidlcIntent(intent)],
+  ]);
   const filesystem = {
     mkdir: async () => undefined,
     readFile: async (path: string) => files.get(path) ?? '',
@@ -427,16 +515,24 @@ test('appends a deterministic audit record without changing intent state', async
       files.set(path, content);
     },
   };
-  await appendAidlcAuditEvent(filesystem, '/agents/intent.md', {
-    at: '2026-07-30T00:00:00.000Z',
-    detail: 'stage evidence written',
-    stage: intent.stage,
-    type: 'stage-completed',
-  });
-  expect(files.get('/agents/intent.md')).toContain('## Audit trail');
-  expect(files.get('/agents/intent.md')).toContain('stage-completed');
+  await appendAidlcAuditEvent(
+    filesystem,
+    '/agents/aidlc/repo/intents/intent.md',
+    {
+      at: '2026-07-30T00:00:00.000Z',
+      detail: 'stage evidence written',
+      stage: intent.stage,
+      type: 'stage-completed',
+    },
+  );
+  expect(files.get('/agents/aidlc/repo/intents/intent.md')).toContain(
+    '## Audit trail',
+  );
+  expect(files.get('/agents/aidlc/repo/intents/intent.md')).toContain(
+    'stage-completed',
+  );
   await expect(
-    appendAidlcAuditEvent(filesystem, '/agents/intent.md', {
+    appendAidlcAuditEvent(filesystem, '/agents/aidlc/repo/intents/intent.md', {
       at: '',
       detail: '',
       stage: intent.stage,

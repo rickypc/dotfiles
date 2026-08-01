@@ -36,6 +36,8 @@ Treat these sources as distinct:
 - The temporary intent establishes prior stage evidence, decisions, route, and
   approval status; its frontmatter is read and written only through the
   gray-matter lifecycle script.
+- `aidlc/protocols/runtime.md` defines the protected runtime boundary: stage
+  work may modify only the canonical temporary intent, never its packet assets.
 
 Label claims as observed, user-provided, inferred, or unknown. Preserve a
 contradiction until it is resolved; never silently choose the convenient one.
@@ -79,10 +81,10 @@ affected downstream work, and revisit only that evidence-backed boundary.
 
 ## Construction closeout
 
-At 3.6 run exactly one project final gate through
-`~/.agents/scripts/aidlc/gate.ts run <absolute-project-root>`. The project may
-define one `finalGate` in `aidlc.config.json`; otherwise the command is `bun
-run test`. A non-zero result is failure, including a cosmetic failure: repair
-and rerun the same one command. Once it passes, ask `knowledge-base` whether a
-validated durable lesson should be captured, then retire the temporary intent.
+At 3.6 invoke `~/.agents/scripts/aidlc.ts complete <intent-path>` with no
+evidence. The project may define one `finalGate` in `aidlc.config.json`;
+otherwise the command is `bun run test`. A non-zero result is failure,
+including a cosmetic failure: repair and rerun the same lifecycle command.
+Once it passes, ask `knowledge-base` whether a validated durable lesson should
+be captured, then retire the temporary intent.
 There is no Operation phase and no separate Closure phase.

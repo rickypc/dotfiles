@@ -61,7 +61,7 @@ test('returns an empty report when the intent directory is absent', async () => 
 test('rejects a relative root', async () => {
   await expect(
     inventoryAidlcIntents(fileSystemFor(new Map(), []), 'agents', 'repo'),
-  ).rejects.toThrow('absolute');
+  ).rejects.toThrow('temporary intent');
 });
 
 test('propagates unexpected directory errors', async () => {

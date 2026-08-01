@@ -1,4 +1,6 @@
 import { expect, test } from 'bun:test';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 import {
   createAidlcIntent,
@@ -13,15 +15,29 @@ import {
 test('builds one packet containing stage, roles, knowledge, and sensors', () => {
   const packet = stagePacketFor('/agents', createAidlcIntent('repo', 'X'));
   expect(packet.stage).toBe('workspace-scaffold');
-  expect(packet.rolePaths).toEqual(['/agents/agents/aidlc/delivery.md']);
+  expect(packet.rolePaths).toEqual(['/agents/aidlc/roles/delivery.md']);
   expect(packet.sensorPaths).toEqual([
-    '/agents/prompts/aidlc/sensors/intent-evidence.md',
+    '/agents/aidlc/prompts/sensors/intent-evidence.md',
   ]);
   expect(packet.commonPaths).toHaveLength(6);
   expect(packet.knowledgePaths).toContain(
     '/agents/aidlc/knowledge/roles/delivery/workflow-planning-guide.md',
   );
   expect(renderAidlcStagePacket(packet)).toContain('workspace-scaffold');
+});
+
+test('keeps AIDLC prompt assets in one non-nested namespace', () => {
+  const promptRoot = fileURLToPath(
+    new URL('../../../aidlc/prompts/', import.meta.url),
+  );
+  for (const path of [
+    'stages/initialization/workspace-scaffold.md',
+    'sensors/intent-evidence.md',
+    'templates/practice-record.md',
+  ]) {
+    expect(existsSync(`${promptRoot}/${path}`)).toBeTrue();
+  }
+  expect(existsSync(`${promptRoot}/aidlc`)).toBeFalse();
 });
 
 test('rejects empty or missing stage assets', async () => {

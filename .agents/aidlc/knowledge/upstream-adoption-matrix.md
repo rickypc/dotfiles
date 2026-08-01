@@ -29,13 +29,13 @@ state engine, custom tool, or assistant-specific lifecycle.
 
 | Upstream role | Decision | Universal destination | Reason |
 | --- | --- | --- | --- |
-| architect | Adapt | `agents/aidlc/architect.md` + `knowledge/roles/architect/` | Leads retained design stages. |
-| delivery | Adapt | `agents/aidlc/delivery.md` + `knowledge/roles/delivery/` | Owns approval and delivery sequencing. |
-| design | Adapt | `agents/aidlc/design.md` + `knowledge/roles/design/` | Needed only for conditional 2.5 and UI design support. |
-| developer | Adapt | `agents/aidlc/developer.md` + `knowledge/roles/developer/` | Owns CBM-mediated code research and implementation. |
-| devsecops | Adapt as security | `agents/aidlc/security.md` + `knowledge/roles/security/` | Security is retained through NFRs, implementation, and the final gate. |
-| product | Adapt | `agents/aidlc/product.md` + `knowledge/roles/product/` | Owns retained intent, scope, requirements. |
-| quality | Adapt | `agents/aidlc/quality.md` + `knowledge/roles/quality/` | Owns test strategy and final-gate evidence. |
+| architect | Adapt | `aidlc/roles/architect.md` + `knowledge/roles/architect/` | Leads retained design stages. |
+| delivery | Adapt | `aidlc/roles/delivery.md` + `knowledge/roles/delivery/` | Owns approval and delivery sequencing. |
+| design | Adapt | `aidlc/roles/design.md` + `knowledge/roles/design/` | Needed only for conditional 2.5 and UI design support. |
+| developer | Adapt | `aidlc/roles/developer.md` + `knowledge/roles/developer/` | Owns CBM-mediated code research and implementation. |
+| devsecops | Adapt as security | `aidlc/roles/security.md` + `knowledge/roles/security/` | Security is retained through NFRs, implementation, and the final gate. |
+| product | Adapt | `aidlc/roles/product.md` + `knowledge/roles/product/` | Owns retained intent, scope, requirements. |
+| quality | Adapt | `aidlc/roles/quality.md` + `knowledge/roles/quality/` | Owns test strategy and final-gate evidence. |
 | architecture-reviewer, product-lead | Fold in | architect/product review checklists | Separate agent dispatch is not portable; adversarial review remains. |
 | aws-platform, compliance, pipeline-deploy | Fold in | architecture/security knowledge | Their cloud, compliance, CI knowledge is useful, but their Operation-stage ownership is not selected. |
 | composer | Omit | none | OpenCode composition/runtime authoring, not a project workflow role. |
@@ -44,7 +44,7 @@ state engine, custom tool, or assistant-specific lifecycle.
 ## Stage contracts and prompts
 
 All 18 selected upstream stage documents are adopted as substantive,
-universal stage prompts at `prompts/aidlc/stages/<phase>/<stage>.md`.
+universal stage prompts at `aidlc/prompts/stages/<phase>/<stage>.md`.
 The typed route remains in `utils/aidlc/stages.ts`; it is the executable
 source of order and conditions. There is no duplicate `aidlc/stages/` prompt
 tree that can drift from the executable packet.
@@ -100,13 +100,13 @@ only the small relevant set in their packet.
 | Upstream family | Decision | Universal destination |
 | --- | --- | --- |
 | all scopes | Omit | The typed 18-stage route and factual conditional skips replace a second scope-routing surface. |
-| sensors: intent evidence, context snapshot, approval gate, validation evidence | Adapt | `prompts/aidlc/sensors/` documents the live contracts; `utils/aidlc/sensors.ts` executes them. |
+| sensors: intent evidence, context snapshot, approval gate, validation evidence | Adapt | `aidlc/prompts/sensors/` documents the live contracts; `utils/aidlc/sensors.ts` executes them. |
 | sensors: claim-sources, required-sections, upstream-coverage, linter, type-check | Omit | They were duplicate, non-executable surfaces. Source provenance and final-gate semantics are covered by the live sensor contracts and protocol. |
 | skills: root aidlc | Adapt | `skills/aidlc/` remains the route entry point |
 | skills: bugfix/feature/refactor/security-patch | Adapt | thin scope entry points, all backed by one engine |
 | skills: selected retained-stage runners | Adapt | thin stage entry points only when a user explicitly invokes a stage |
 | skills: compose/replay/outcomes/session-cost and all unselected stage skills | Omit | Runtime/analytics or stage surface not selected. |
-| hooks: audit, transition guard, validate state, sensor fire | Replace | intent lifecycle and `scripts/aidlc/{stage,sensors}.ts` own these deterministically |
+| hooks: audit, transition guard, validate state, sensor fire | Replace | intent lifecycle plus `scripts/aidlc.ts`, `scripts/aidlc/context.ts`, and `scripts/aidlc/sensors.ts` own these deterministically |
 | hooks: session/start/end/statusline/stop/log-subagent/mint/reviewer/runtime compile/sync | Omit or adapter-only | Native lifecycle UI and subagent mechanics are assistant-specific, never universal hooks. |
 | tools: state, orchestrate, runtime, validate, sensor implementations | Replace | `scripts/aidlc.ts` and `utils/aidlc/` |
 | tools: audit/log/directive/graph/includes/jump/learnings/swarm/worktree/version | Omit | Upstream engine-specific or nonessential to selected route. |

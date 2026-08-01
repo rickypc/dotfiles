@@ -8,6 +8,7 @@ import {
   usage,
   verifyCbmIndex,
 } from '../../scripts/aidlc.js';
+import type { AidlcGateExecutor } from '../../utils/aidlc/gate.js';
 import {
   completeAidlcStage,
   createAidlcIntent,
@@ -135,6 +136,14 @@ test('surfaces a malformed existing intent instead of treating it as absent', as
 test('rejects invalid commands and only runs the main boundary when requested', async () => {
   await expect(run([])).rejects.toThrow(usage());
   await expect(run(['advance'])).rejects.toThrow('cannot bypass');
+  await expect(
+    run(
+      ['complete', '/agents/aidlc/repo/intents/x.md'],
+      undefined,
+      mock(),
+      mock(async () => createAidlcIntent('repo', 'X')),
+    ),
+  ).rejects.toThrow(usage());
   const runner = mock(async () => undefined);
   runWhenMain(
     true,
@@ -245,7 +254,7 @@ test('records stage evidence, skips with a reason, and approves only a gate', as
   expect(update).toHaveBeenCalledTimes(3);
 });
 
-test('records consecutive stage outcomes in one response without crossing gates', async () => {
+test('records consecutive explicit stage outcomes in one response without crossing gates', async () => {
   const intent = createAidlcIntent('repo', 'Batch');
   const update = mock(async () => undefined);
   const appendAudit = mock(async () => undefined);
@@ -280,6 +289,68 @@ test('records consecutive stage outcomes in one response without crossing gates'
   );
 });
 
+test('returns the active approval-handoff packet before plan evidence is recorded', async () => {
+  let atScope = createAidlcIntent('repo', 'Approval packet');
+  while (atScope.stage !== 'scope-definition') {
+    atScope = completeAidlcStage(atScope, 'evidence');
+  }
+  const write = mock();
+  await run(
+    [
+      'record',
+      '/agents/aidlc/repo/intents/approval-packet.md',
+      JSON.stringify([
+        {
+          evidence: 'Scope and acceptance criteria are explicit.',
+          outcome: 'complete',
+          stage: 'scope-definition',
+        },
+      ]),
+    ],
+    undefined,
+    write,
+    mock(async () => atScope),
+    mock(async () => undefined),
+    mock(async () => undefined),
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"stage": "approval-handoff"'),
+  );
+  expect(write).not.toHaveBeenCalledWith(
+    expect.stringContaining('await-user-approval'),
+  );
+});
+
+test('records an explicit skip when a batch outcome is inapplicable', async () => {
+  const intent = createAidlcIntent('repo', 'Skipped batch stage');
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  await run(
+    [
+      'record',
+      '/agents/aidlc/repo/intents/skipped-batch-stage.md',
+      JSON.stringify([
+        {
+          evidence: 'workspace was already scaffolded by the project template',
+          outcome: 'skip',
+          stage: 'workspace-scaffold',
+        },
+      ]),
+    ],
+    undefined,
+    mock(),
+    mock(async () => intent),
+    update,
+    appendAudit,
+  );
+  expect(update).toHaveBeenCalledTimes(1);
+  expect(appendAudit).toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/skipped-batch-stage.md',
+    expect.objectContaining({ type: 'stage-skipped' }),
+  );
+});
+
 test('rejects malformed, nonconsecutive, and boundary-crossing record batches', async () => {
   const intent = createAidlcIntent('repo', 'Batch validation');
   const dependencies = [
@@ -294,8 +365,12 @@ test('rejects malformed, nonconsecutive, and boundary-crossing record batches', 
     ['[]', 'one or more'],
     [JSON.stringify([null]), 'must be an object'],
     [
+      JSON.stringify([{ evidence: 'x', stage: 'workspace-scaffold' }]),
+      'requires string stage, evidence, and outcome',
+    ],
+    [
       JSON.stringify([{ evidence: 'x', outcome: 'bad', stage: 'x' }]),
-      'requires stage',
+      'requires string stage, evidence, and outcome',
     ],
     [
       JSON.stringify([
@@ -428,8 +503,10 @@ test('reports the queue and records replan and supersession lifecycle events', a
   );
 });
 
-test('reports the remaining queue after terminal intent completion', async () => {
-  const initial = createAidlcIntent('repo', 'Terminal');
+test('runs the final gate within Build and Test and returns knowledge closeout', async () => {
+  const initial = createAidlcIntent('repo', 'Terminal', {
+    projectRoot: '/a-project-without-a-config',
+  });
   const intent = {
     ...initial,
     route: initial.route.map((record) => ({
@@ -442,20 +519,124 @@ test('reports the remaining queue after terminal intent completion', async () =>
     stage: 'build-and-test' as const,
   };
   const write = mock();
+  const executeGate = mock(() => ({ status: 0 }));
   await run(
-    [
-      'complete',
-      '/agents/aidlc/repo/intents/terminal.md',
-      'final gate: bun run test passed (exit 0)',
-    ],
+    ['complete', '/agents/aidlc/repo/intents/terminal.md'],
     undefined,
     write,
     mock(async () => intent),
     mock(async () => undefined),
     mock(async () => undefined),
+    undefined,
+    undefined,
+    undefined,
+    executeGate as unknown as AidlcGateExecutor,
   );
+  expect(executeGate).toHaveBeenCalledTimes(1);
   expect(write).toHaveBeenCalledTimes(1);
   expect(write).toHaveBeenCalledWith(
     expect.stringContaining('knowledge-base-closeout-and-retire'),
   );
+});
+
+test('reports and preserves Build and Test state when its automatic gate fails', async () => {
+  const initial = createAidlcIntent('repo', 'Failed terminal', {
+    projectRoot: '/a-project-without-a-config',
+  });
+  const intent = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status:
+        record.slug === 'build-and-test'
+          ? ('active' as const)
+          : ('completed' as const),
+    })),
+    stage: 'build-and-test' as const,
+  };
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  const write = mock();
+  try {
+    await run(
+      ['complete', '/agents/aidlc/repo/intents/failed-terminal.md'],
+      undefined,
+      write,
+      mock(async () => intent),
+      update,
+      appendAudit,
+      undefined,
+      undefined,
+      undefined,
+      mock(() => ({ status: 2 })) as unknown as AidlcGateExecutor,
+    );
+    expect(update).not.toHaveBeenCalled();
+    expect(appendAudit).toHaveBeenCalledWith(
+      expect.anything(),
+      '/agents/aidlc/repo/intents/failed-terminal.md',
+      expect.objectContaining({ type: 'final-gate-failed' }),
+    );
+    expect(write).toHaveBeenCalledWith(
+      expect.stringContaining('repair-and-rerun-final-gate'),
+    );
+    expect(process.exitCode).toBe(2);
+  } finally {
+    process.exitCode = 0;
+  }
+});
+
+test('rejects model-written Build and Test evidence', async () => {
+  const initial = createAidlcIntent('repo', 'Manual terminal evidence', {
+    projectRoot: '/a-project-without-a-config',
+  });
+  const intent = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status:
+        record.slug === 'build-and-test'
+          ? ('active' as const)
+          : ('completed' as const),
+    })),
+    stage: 'build-and-test' as const,
+  };
+  await expect(
+    run(
+      [
+        'complete',
+        '/agents/aidlc/repo/intents/manual-terminal-evidence.md',
+        'final gate: bun run test passed (exit 0)',
+      ],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('runs its configured final gate automatically');
+});
+
+test('requires a project root before Build and Test can run its gate', async () => {
+  const initial = createAidlcIntent('repo', 'Missing final gate root');
+  const intent = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status:
+        record.slug === 'build-and-test'
+          ? ('active' as const)
+          : ('completed' as const),
+    })),
+    stage: 'build-and-test' as const,
+  };
+  await expect(
+    run(
+      ['complete', '/agents/aidlc/repo/intents/missing-final-gate-root.md'],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('requires an absolute project root');
 });

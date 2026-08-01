@@ -22,8 +22,9 @@ expect assistant-native orchestration or lifecycle storage. For repository
 facts, invoke `codebase-memory`; for persistent knowledge, invoke
 `knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval; 3.6 runs exactly the one configured final
-gate through `~/.agents/scripts/aidlc/gate.ts`.
+reason. Only 1.7 waits for approval. At 3.6, invoke
+`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
+configured final gate and returns the result.
 
 This is the mandatory construction closeout. It runs exactly one command: the
 project's configured final gate. The command is defined once by the project in
@@ -37,26 +38,25 @@ single configured command is the final gate, and its non-zero exit is failure.
    files, and relevant tests. Use the quality and security role perspectives
    from the stage packet to review that evidence; do not create a separate
    testing strategy or instruction-file tree.
-2. Execute exactly one command through the gate runner:
+2. Invoke the lifecycle completion command with no evidence:
 
-   `bun ~/.agents/scripts/aidlc/gate.ts run <absolute-project-root>`
+   `bun ~/.agents/scripts/aidlc.ts complete <intent-path>`
 
-   The runner resolves the configured command and emits the command, exit code,
-   elapsed time, and output receipt. Record that receipt in the intent's
-   **Validation evidence** section without altering it.
-3. If the command fails, treat every failure as a real failure. Use its output
+   It resolves and executes the configured command once, persists the canonical
+   receipt on success, and returns the next action. Do not run a separate gate
+   helper or supply model-written final-gate evidence.
+3. If it returns a failed gate, treat every failure as a real failure. Use its output
    and `codebase-memory` where needed to locate the cause, repair the
    selected project, and rerun the same one gate. Do not replace it with a
    narrower command, waive a cosmetic failure, or proceed on partial success.
-4. When the same configured gate exits zero, run the packet's
-   validation-evidence sensor and record completion. After 3.6, invoke
+4. When it returns a passing gate, run the packet's validation-evidence sensor.
+   After 3.6, invoke
    `knowledge-base` for durable capture only when there is a validated,
    reusable lesson; otherwise record that no capture is warranted and retire
    the temporary intent.
 
 ## Evidence required
 
-The final record names the absolute project root, the resolved single command,
-its exit code, the receipt location or output, defects repaired during reruns,
-and the final pass. No number of preliminary commands can substitute for this
-receipt.
+The automatic final record names the absolute project root, the resolved single
+command, its exit code, defects repaired during reruns, and the final pass. No
+number of preliminary commands can substitute for this receipt.

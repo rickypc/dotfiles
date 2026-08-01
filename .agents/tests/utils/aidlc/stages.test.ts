@@ -61,13 +61,13 @@ test('maps every active stage to universal role, sensor, and prompt assets', () 
     'context-snapshot',
   ]);
   expect(stagePromptPathFor('/agents/', 'code-generation')).toBe(
-    '/agents/prompts/aidlc/stages/construction/code-generation.md',
+    '/agents/aidlc/prompts/stages/construction/code-generation.md',
   );
   expect(rolePromptPathFor('/agents', 'developer')).toBe(
-    '/agents/agents/aidlc/developer.md',
+    '/agents/aidlc/roles/developer.md',
   );
   expect(sensorPromptPathFor('/agents', 'validation-evidence')).toBe(
-    '/agents/prompts/aidlc/sensors/validation-evidence.md',
+    '/agents/aidlc/prompts/sensors/validation-evidence.md',
   );
   expect(knowledgePathsForStage('/agents', 'application-design')).toContain(
     '/agents/aidlc/knowledge/roles/architect/adr-template.md',

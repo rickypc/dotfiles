@@ -55,6 +55,9 @@ concepts. Do not create local code-KB or active-space state.
 
 ## Key Principles
 
+0. **Apply the universal Code changes policy** — Read `~/.agents/AGENTS.md`
+   before editing. It is the single source for minimum scope, reuse, removal of
+   newly dead artifacts, and escalation of unrelated pre-existing dead code.
 1. **Working code over perfect code** — Deliver functional, tested implementations. Refactor in subsequent iterations, not during initial generation.
 2. **Convention over configuration** — Follow the project's existing patterns. Consistency with the codebase trumps personal preference.
 3. **Explicit over clever** — Write code that is easy to read and debug. Avoid abstractions that obscure intent.

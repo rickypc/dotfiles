@@ -262,7 +262,7 @@ const rolesByStage: Readonly<Record<AidlcStageSlug, readonly AidlcRole[]>> = {
 export const rolePromptPathFor = (
   agentsRoot: string,
   role: AidlcRole,
-): string => `${agentsRoot.replace(/\/$/u, '')}/agents/aidlc/${role}.md`;
+): string => `${agentsRoot.replace(/\/$/u, '')}/aidlc/roles/${role}.md`;
 
 export const rolesForStage = (slug: AidlcStageSlug): readonly AidlcRole[] =>
   rolesByStage[slug];
@@ -342,7 +342,7 @@ export const sensorPromptPathFor = (
   agentsRoot: string,
   sensor: AidlcSensor,
 ): string =>
-  `${agentsRoot.replace(/\/$/u, '')}/prompts/aidlc/sensors/${sensor}.md`;
+  `${agentsRoot.replace(/\/$/u, '')}/aidlc/prompts/sensors/${sensor}.md`;
 
 export const sensorsForStage = (
   slug: AidlcStageSlug,
@@ -359,5 +359,5 @@ export const stagePromptPathFor = (
   slug: AidlcStageSlug,
 ): string => {
   const stage = stageDefinitionFor(slug);
-  return `${agentsRoot.replace(/\/$/u, '')}/prompts/aidlc/stages/${stage.phase}/${slug}.md`;
+  return `${agentsRoot.replace(/\/$/u, '')}/aidlc/prompts/stages/${stage.phase}/${slug}.md`;
 };

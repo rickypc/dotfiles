@@ -23,6 +23,7 @@ export interface AidlcAuditEvent {
 
 export type AidlcAuditEventType =
   | 'approval-granted'
+  | 'final-gate-failed'
   | 'intent-replanned'
   | 'intent-superseded'
   | 'context-resolved'
@@ -72,8 +73,35 @@ export const acceptanceChecklistFor = (
   'Pass the configured final acceptance gate.',
 ];
 
+const assertAidlcAgentsRoot = (agentsRoot: string): void => {
+  const segments = agentsRoot.split('/');
+  if (
+    !agentsRoot.startsWith('/') ||
+    agentsRoot.endsWith('/') ||
+    agentsRoot.includes('//') ||
+    segments
+      .slice(1)
+      .some((segment) => ['.', '..', 'aidlc', ''].includes(segment))
+  ) {
+    throw new Error(
+      'AIDLC agents root must be an absolute path outside the aidlc namespace.',
+    );
+  }
+};
+
+const protectedAidlcAssetNames = new Set([
+  'conductor.md',
+  'knowledge',
+  'prompts',
+  'protocols',
+  'roles',
+]);
+
 const assertCbmIndexName = (cbmIndex: string): void => {
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(cbmIndex)) {
+  if (
+    !/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(cbmIndex) ||
+    protectedAidlcAssetNames.has(cbmIndex)
+  ) {
     throw new Error(
       'CBM index must be a project name returned by codebase-memory, not a path.',
     );
@@ -95,6 +123,38 @@ export const intentIdFor = (summary: string): string => {
   if (!value)
     throw new Error('Intent summary must contain letters or numbers.');
   return value;
+};
+
+export const assertAidlcIntentPath = (path: string): void => {
+  const segments = path.split('/');
+  if (
+    !path.startsWith('/') ||
+    path.endsWith('/') ||
+    path.includes('//') ||
+    segments.some((segment) => segment === '.' || segment === '..') ||
+    segments.length < 6 ||
+    segments.at(-4) !== 'aidlc' ||
+    segments.at(-2) !== 'intents'
+  ) {
+    throw new Error(
+      'AIDLC lifecycle commands can access only canonical temporary intent files.',
+    );
+  }
+  const agentsRoot = segments.slice(0, -4).join('/');
+  const cbmIndex = segments.at(-3) ?? '';
+  const fileName = segments.at(-1) ?? '';
+  if (!fileName.endsWith('.md')) {
+    throw new Error(
+      'AIDLC lifecycle commands can access only canonical temporary intent files.',
+    );
+  }
+  assertAidlcAgentsRoot(agentsRoot);
+  assertCbmIndexName(cbmIndex);
+  if (intentIdFor(fileName.slice(0, -3)) !== fileName.slice(0, -3)) {
+    throw new Error(
+      'AIDLC lifecycle commands can access only canonical temporary intent files.',
+    );
+  }
 };
 
 const stageStatuses = new Set<AidlcStageRecord['status']>([
@@ -238,8 +298,11 @@ export const intentPathFor = (
   agentsRoot: string,
   cbmIndex: string,
   intentId: string,
-): string =>
-  `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents/${intentId}.md`;
+): string => {
+  const path = `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents/${intentId}.md`;
+  assertAidlcIntentPath(path);
+  return path;
+};
 
 const optionalBooleanField = (
   data: Record<string, unknown>,
@@ -328,7 +391,10 @@ export const saveAidlcIntent = async (
   fileSystem: FileSystem,
   path: string,
   intent: AidlcIntent,
-): Promise<void> => writeText(fileSystem, path, renderAidlcIntent(intent));
+): Promise<void> => {
+  assertAidlcIntentPath(path);
+  await writeText(fileSystem, path, renderAidlcIntent(intent));
+};
 
 const stringField = (data: Record<string, unknown>, name: string): string => {
   const value = field(data, name);
@@ -517,6 +583,7 @@ export const appendAidlcAuditEvent = async (
   path: string,
   event: AidlcAuditEvent,
 ): Promise<void> => {
+  assertAidlcIntentPath(path);
   const existing = await readText(fileSystem, path);
   parseAidlcIntent(existing);
   const marker = '## Audit trail\n';
@@ -530,7 +597,10 @@ export const appendAidlcAuditEvent = async (
 export const loadAidlcIntent = async (
   fileSystem: FileSystem,
   path: string,
-): Promise<AidlcIntent> => parseAidlcIntent(await readText(fileSystem, path));
+): Promise<AidlcIntent> => {
+  assertAidlcIntentPath(path);
+  return parseAidlcIntent(await readText(fileSystem, path));
+};
 
 export const retireAidlcIntent = async (
   fileSystem: FileSystem,
@@ -538,6 +608,7 @@ export const retireAidlcIntent = async (
   kbRoot?: string,
   kbReferences: readonly string[] = [],
 ): Promise<void> => {
+  assertAidlcIntentPath(path);
   const intent = await loadAidlcIntent(fileSystem, path);
   if (aidlcIntentStatusFor(intent) !== 'completed') {
     throw new Error('Only a completed AIDLC intent can be retired.');
@@ -581,6 +652,7 @@ export const updateAidlcIntent = async (
   path: string,
   intent: AidlcIntent,
 ): Promise<void> => {
+  assertAidlcIntentPath(path);
   const existing = await readText(fileSystem, path);
   parseAidlcIntent(existing);
   const frontmatterUpdated = matter(existing);

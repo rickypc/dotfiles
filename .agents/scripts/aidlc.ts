@@ -1,5 +1,10 @@
 import { runAidlcCliWhenMain } from '../utils/aidlc/cli.js';
 import {
+  type AidlcGateExecutor,
+  executeFinalGate,
+  resolveFinalGate,
+} from '../utils/aidlc/gate.js';
+import {
   type AidlcIntent,
   acceptanceChecklistFor,
   aidlcIntentStatusFor,
@@ -27,7 +32,6 @@ import {
 import { nodeFileSystem } from '../utils/filesystem.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
-import { resolveFinalGate } from './aidlc/gate.js';
 
 interface AidlcRecordInput {
   readonly evidence: string;
@@ -61,6 +65,11 @@ const assertRecordCanContinue = (
   }
 };
 
+const isAutomaticBuildAndTest = (
+  args: readonly string[],
+): args is readonly ['complete', string] =>
+  args[0] === 'complete' && args.length === 2 && Boolean(args[1]);
+
 const isPrepare = (
   args: readonly string[],
 ): args is
@@ -83,11 +92,16 @@ const nextActionFor = (intentPath: string, intent: AidlcIntent): object => {
   if (aidlcIntentStatusFor(intent) === 'completed') {
     return { intent, next: { action: 'knowledge-base-closeout-and-retire' } };
   }
-  if (intent.stage === 'approval-handoff' && intent.approval !== 'approved') {
-    return {
-      intent,
-      next: { action: 'await-user-approval', stage: intent.stage },
-    };
+  if (intent.stage === 'approval-handoff') {
+    const status = intent.route.find(
+      (record) => record.slug === intent.stage,
+    )?.status;
+    if (status === 'awaiting-approval' && intent.approval !== 'approved') {
+      return {
+        intent,
+        next: { action: 'await-user-approval', stage: intent.stage },
+      };
+    }
   }
   if (intent.stage === 'reverse-engineering' && !intent.kbContext.resolvedAt) {
     return {
@@ -126,7 +140,7 @@ const parseRecordInputs = (value: string): readonly AidlcRecordInput[] => {
       (record.outcome !== 'complete' && record.outcome !== 'skip')
     ) {
       throw new Error(
-        'Each AIDLC record outcome requires stage, outcome (complete|skip), and evidence strings.',
+        'Each AIDLC record outcome requires string stage, evidence, and outcome (complete|skip).',
       );
     }
     return {
@@ -170,6 +184,61 @@ const runApprove = async (
   });
   write(JSON.stringify(nextActionFor(intentPath, next), null, 2));
   return true;
+};
+
+const runBuildAndTest = async (
+  intentPath: string,
+  intent: AidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  write: (message: string) => void,
+  executeGate?: AidlcGateExecutor,
+): Promise<void> => {
+  if (!intent.projectRoot) {
+    throw new Error('Build and Test requires an absolute project root.');
+  }
+  const result = executeFinalGate(
+    intent.projectRoot,
+    resolveFinalGate(intent.projectRoot),
+    executeGate,
+  );
+  if (result.exitCode === 0) {
+    const next = completeAidlcStage(intent, result.receipt);
+    await update(nodeFileSystem, intentPath, next);
+    await appendAudit(nodeFileSystem, intentPath, {
+      at: new Date().toISOString(),
+      detail: result.receipt,
+      stage: intent.stage,
+      type: 'stage-completed',
+    });
+    write(
+      JSON.stringify(
+        { finalGate: result, ...nextActionFor(intentPath, next) },
+        null,
+      ),
+    );
+    return;
+  }
+  await appendAudit(nodeFileSystem, intentPath, {
+    at: new Date().toISOString(),
+    detail: result.receipt,
+    stage: intent.stage,
+    type: 'final-gate-failed',
+  });
+  write(
+    JSON.stringify(
+      {
+        finalGate: result,
+        intent,
+        next: {
+          action: 'repair-and-rerun-final-gate',
+          stage: intent.stage,
+        },
+      },
+      null,
+    ),
+  );
+  process.exitCode = result.exitCode;
 };
 
 const runQueue = async (
@@ -228,8 +297,23 @@ const runStage = async (
   update: typeof updateAidlcIntent,
   appendAudit: typeof appendAidlcAuditEvent,
   write: (message: string) => void,
+  executeGate?: AidlcGateExecutor,
 ): Promise<boolean> => {
   const [command, intentPath, evidence] = args;
+  if (isAutomaticBuildAndTest(args)) {
+    const [, buildIntentPath] = args;
+    const intent = await load(nodeFileSystem, buildIntentPath);
+    if (intent.stage !== 'build-and-test') return false;
+    await runBuildAndTest(
+      buildIntentPath,
+      intent,
+      update,
+      appendAudit,
+      write,
+      executeGate,
+    );
+    return true;
+  }
   if (
     (command !== 'complete' && command !== 'skip') ||
     !intentPath ||
@@ -238,6 +322,11 @@ const runStage = async (
   )
     return false;
   const intent = await load(nodeFileSystem, intentPath);
+  if (command === 'complete' && intent.stage === 'build-and-test') {
+    throw new Error(
+      'Build and Test runs its configured final gate automatically; use complete <intent-path> with no evidence.',
+    );
+  }
   const next =
     command === 'complete'
       ? completeAidlcStage(intent, evidence)
@@ -307,12 +396,13 @@ export const usage = (): string =>
     'Commands:',
     '  start <agents-root> <absolute-project-root> <intent-summary> [--ui]',
     '    Required bootstrap. Resolves the explicit CBM index, creates/resumes the intent, records 0.1-0.3, and returns the queue and 1.1 packet.',
-    '  complete <intent-path> <evidence>',
-    '    Records the active non-gated stage and returns the next actionable packet.',
+    '  complete <intent-path> <evidence> | complete <intent-path> (Build and Test only)',
+    '    Records an active non-gated stage. At Build and Test, omit evidence: it runs the one configured final gate and returns its receipt plus the next action.',
     '  skip <intent-path> <reason>',
     '    Factually skips the active non-gated stage and returns the next actionable packet.',
-    "  record <intent-path> '<stage-outcomes-json>'",
-    '    Records consecutive complete/skip outcomes in one call; it stops before approval and knowledge-context boundaries.',
+    '  record <intent-path> \'[{"stage":"<active-stage>","outcome":"complete|skip","evidence":"<factual evidence>"}, ...]\'',
+    '    Batches consecutive outcomes from the active stage and returns one next action. outcome is required on every entry.',
+    '    Use complete for satisfied work and skip only for a factual inapplicability. It stops before approval and knowledge-context boundaries.',
     '  approve <intent-path>',
     '    Records the user approval at 1.7 and returns the next required action.',
     '  replan <intent-path> <evidence> | supersede <intent-path> <replacement-id>',
@@ -477,6 +567,7 @@ const runHandledCommand = async (
   appendAudit: typeof appendAidlcAuditEvent,
   retire: typeof retireAidlcIntent,
   resolve: (projectRoot: string) => Promise<string>,
+  executeGate?: AidlcGateExecutor,
 ): Promise<boolean> => {
   if (runHelp(args, write)) return true;
   if (await runStart(args, save, write, load, resolve)) return true;
@@ -486,7 +577,7 @@ const runHandledCommand = async (
   if (await runReplan(args, load, appendAudit, write)) return true;
   if (await runApprove(args, load, update, appendAudit, write)) return true;
   if (await runRecord(args, load, update, appendAudit, write)) return true;
-  return runStage(args, load, update, appendAudit, write);
+  return runStage(args, load, update, appendAudit, write, executeGate);
 };
 
 export const run = async (
@@ -499,6 +590,7 @@ export const run = async (
   retire: typeof retireAidlcIntent = retireAidlcIntent,
   verify?: (index: string) => Promise<void>,
   resolve?: (projectRoot: string) => Promise<string>,
+  executeGate?: AidlcGateExecutor,
 ): Promise<void> => {
   const resolveProject =
     resolve ??
@@ -516,6 +608,7 @@ export const run = async (
       appendAudit,
       retire,
       resolveProject,
+      executeGate,
     )
   )
     return;

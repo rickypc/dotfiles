@@ -3,7 +3,8 @@
 ## Applies to
 
 Build and Test (3.6) only. The executable check is `utils/aidlc/sensors.ts`.
-It requires the exact successful receipt emitted by `scripts/aidlc/gate.ts`.
+It requires the exact successful receipt emitted automatically by
+`aidlc.ts complete <intent-path>` at 3.6.
 
 ## Pass condition
 
@@ -15,8 +16,8 @@ final gate: <command> passed (exit 0)
 
 `<command>` is the one project-owned `finalGate` declared in
 `<project-root>/aidlc.config.json`, or `bun run test` when the configuration is
-absent. The receipt must come from `bun ~/.agents/scripts/aidlc/gate.ts run
-<absolute-project-root>`.
+absent. The receipt must come from `bun ~/.agents/scripts/aidlc.ts complete
+<intent-path>` with no evidence argument.
 
 ## Required behavior
 

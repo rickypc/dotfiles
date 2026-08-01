@@ -1,6 +1,25 @@
+import { type SpawnSyncReturns, spawnSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 export interface AidlcGateConfig {
   readonly finalGate?: string;
 }
+
+export type AidlcGateExecutor = (
+  command: string,
+  args: readonly string[],
+  options: { readonly cwd: string; readonly stdio: 'inherit' },
+) => SpawnSyncReturns<Buffer>;
+
+export interface AidlcGateResult {
+  readonly exitCode: number;
+  readonly gate: string;
+  readonly receipt: string;
+}
+
+const configPathFor = (projectRoot: string): string =>
+  join(projectRoot, 'aidlc.config.json');
 
 export const finalGateFor = (config: AidlcGateConfig): string => {
   const gate = config.finalGate?.trim();
@@ -9,6 +28,19 @@ export const finalGateFor = (config: AidlcGateConfig): string => {
 
 export const finalGateReceipt = (gate: string, exitCode: number): string =>
   `final gate: ${gate} ${exitCode === 0 ? 'passed' : 'failed'} (exit ${exitCode})`;
+
+export const executeFinalGate = (
+  projectRoot: string,
+  gate: string,
+  execute: AidlcGateExecutor = spawnSync,
+): AidlcGateResult => {
+  const result = execute('/bin/sh', ['-lc', gate], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
+  const exitCode = result.status ?? 1;
+  return { exitCode, gate, receipt: finalGateReceipt(gate, exitCode) };
+};
 
 export const parseAidlcGateConfig = (content: string): AidlcGateConfig => {
   if (!content.trim()) return {};
@@ -30,6 +62,18 @@ export const parseAidlcGateConfig = (content: string): AidlcGateConfig => {
     );
   }
   return parsed as AidlcGateConfig;
+};
+
+export const resolveFinalGate = (projectRoot: string): string => {
+  if (!projectRoot.startsWith('/')) {
+    throw new Error('AIDLC gate requires an absolute project root.');
+  }
+  const configPath = configPathFor(projectRoot);
+  return finalGateFor(
+    existsSync(configPath)
+      ? parseAidlcGateConfig(readFileSync(configPath, 'utf8'))
+      : {},
+  );
 };
 
 export const defaultFinalGate = 'bun run test';
