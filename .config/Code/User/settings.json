@@ -118,9 +118,14 @@
   "notebook.outline.showCodeCells": true,
   "outline.showVariables": true,
   "php.files.exclude": [
-    ".git/**/**",
     "**/contrib/**/**",
-    "vendor/**/**"
+    "**/core/**/**",
+    "**/files/**/**",
+    ".git/**/**",
+    "**/Library/**/**",
+    "**/twig/**/**",
+    "**/vendor/**/**",
+    "**/Workspace/**/**"
   ],
   "php.memoryLimit": "1024M",
   "php.suggest.basic": false,
@@ -293,5 +298,13 @@
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredDarkColorTheme": "Zenburn",
-  "workbench.startupEditor": "none"
+  "workbench.startupEditor": "none",
+  "yaml.disableSchemaDetection": [
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml"
+  ]
 }
