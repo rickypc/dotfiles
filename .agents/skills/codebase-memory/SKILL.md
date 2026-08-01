@@ -13,11 +13,15 @@ destructive project operations, or an unapproved root.
 This skill is the sole owner for CBM command syntax. List projects, resolve the
 intended index by its returned `name`, inspect status, index only when no
 matching project index exists, re-check status, then retry the requested read
-once. Stop and report the exact command output when readiness remains
-unavailable.
+once. An AIDLC `<cbm-index>` is that returned project name, never an absolute
+path or a made-up slug. Stop and report the exact command output when readiness
+remains unavailable.
 
 Allowed roots are one repository/project root, the user-home root, and the
-private KB root. Never index a subdirectory as a separate project.
+private KB root. Sharing a parent directory never makes two repositories one
+project. A separately indexed repository or private-KB root remains valid even
+when it is nested under another indexed root or excluded from that parent’s
+graph; choose by the project list and the intended root, not path ancestry.
 
 Use the smallest read that answers the question. Commands are exact flags, not
 JSON payloads.

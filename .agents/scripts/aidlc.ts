@@ -1,8 +1,10 @@
+import { runAidlcCliWhenMain } from '../utils/aidlc/cli.js';
 import {
   type AidlcIntent,
   aidlcIntentStatusFor,
   appendAidlcAuditEvent,
   approveAidlcIntent,
+  assertNoIntentCollision,
   completeAidlcStage,
   createAidlcIntent,
   intentPathFor,
@@ -14,13 +16,25 @@ import {
   updateAidlcIntent,
 } from '../utils/aidlc/intent.js';
 import { inventoryAidlcIntents } from '../utils/aidlc/queue.js';
+import { stagePacketFor } from '../utils/aidlc/stage.js';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  assertKnownCbmProject,
+  cbmCommands,
+} from '../utils/codebase-memory.js';
 import { nodeFileSystem } from '../utils/filesystem.js';
+import type { CommandExecutor } from '../utils/process.js';
+import { bunExecutor } from '../utils/process.js';
+import { resolveFinalGate } from './aidlc/gate.js';
 
 const isPrepare = (
   args: readonly string[],
-): args is readonly [string, string, string, string] =>
-  args[0] === 'prepare' && args.length === 4 && args.slice(1).every(Boolean);
+): args is
+  | readonly [string, string, string, string, string]
+  | readonly [string, string, string, string, string, '--ui'] =>
+  args[0] === 'prepare' &&
+  (args.length === 5 || (args.length === 6 && args[5] === '--ui')) &&
+  args.slice(1, 5).every(Boolean);
 
 const rejectAdvance = (command: string | undefined): void => {
   if (command === 'advance') {
@@ -169,22 +183,60 @@ const runSupersede = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/aidlc.ts prepare <agents-root> <cbm-index> <intent-summary> | queue <agents-root> <cbm-index> | replan <intent-path> <evidence> | supersede <intent-path> <replacement-id> | complete <intent-path> <evidence> | skip <intent-path> <reason> | approve <intent-path> | retire <intent-path> [<private-kb-root> <concept-path>...]';
+  'Usage: bun ~/.agents/scripts/aidlc.ts prepare <agents-root> <cbm-index> <absolute-project-root> <intent-summary> [--ui] | queue <agents-root> <cbm-index> | replan <intent-path> <evidence> | supersede <intent-path> <replacement-id> | complete <intent-path> <evidence> | skip <intent-path> <reason> | approve <intent-path> | retire <intent-path> [<private-kb-root> <concept-path>...]';
 
 const runPrepare = async (
   args: readonly string[],
   save: typeof saveAidlcIntent,
   write: (message: string) => void,
+  load: typeof loadAidlcIntent,
+  verify: (index: string) => Promise<void>,
 ): Promise<void> => {
   if (!isPrepare(args)) throw new Error(usage());
-  const [, agentsRoot, cbmIndex, summary] = args;
-  const intent: AidlcIntent = createAidlcIntent(cbmIndex, summary);
+  const [, agentsRoot, cbmIndex, projectRoot, summary, uiFlag] = args;
+  await verify(cbmIndex);
+  let intent: AidlcIntent = createAidlcIntent(cbmIndex, summary, {
+    projectRoot,
+    uiRequired: uiFlag === '--ui',
+  });
   const path = intentPathFor(agentsRoot, cbmIndex, intent.id);
+  let existing: AidlcIntent | undefined;
+  try {
+    existing = await load(nodeFileSystem, path);
+  } catch (error) {
+    if (
+      !(error instanceof Error && 'code' in error && error.code === 'ENOENT')
+    ) {
+      throw error;
+    }
+  }
+  assertNoIntentCollision(existing, summary);
+  intent = completeAidlcStage(
+    intent,
+    'Workspace scaffolded: validated temporary intent path and CBM project index.',
+  );
+  intent = completeAidlcStage(
+    intent,
+    `Workspace detected: project root ${projectRoot}; final gate ${resolveFinalGate(projectRoot)}.`,
+  );
+  intent = completeAidlcStage(
+    intent,
+    'State initialized: selected four-phase route and deterministic UI applicability recorded.',
+  );
   await save(nodeFileSystem, path, intent);
-  write(path);
   write(
     JSON.stringify(
-      await inventoryAidlcIntents(nodeFileSystem, agentsRoot, cbmIndex),
+      {
+        finalGate: resolveFinalGate(projectRoot),
+        intentPath: path,
+        queue: await inventoryAidlcIntents(
+          nodeFileSystem,
+          agentsRoot,
+          cbmIndex,
+        ),
+        stagePacket: stagePacketFor(agentsRoot, intent),
+      },
+      null,
     ),
   );
 };
@@ -197,6 +249,7 @@ export const run = async (
   update: typeof updateAidlcIntent = updateAidlcIntent,
   appendAudit: typeof appendAidlcAuditEvent = appendAidlcAuditEvent,
   retire: typeof retireAidlcIntent = retireAidlcIntent,
+  verify?: (index: string) => Promise<void>,
 ): Promise<void> => {
   if (await runRetire(args, retire, write)) return;
   if (await runQueue(args, write)) return;
@@ -205,9 +258,33 @@ export const run = async (
   if (await runApprove(args, load, update, appendAudit, write)) return;
   if (await runStage(args, load, update, appendAudit, write)) return;
   rejectAdvance(args[0]);
-  await runPrepare(args, save, write);
+  if (!isPrepare(args)) throw new Error(usage());
+  if (!verify)
+    throw new Error('AIDLC prepare requires CBM project validation.');
+  await runPrepare(args, save, write, load, verify);
 };
+
+export async function verifyCbmIndex(
+  index: string,
+  execute: CommandExecutor = bunExecutor,
+): Promise<void> {
+  const result = await execute(cbmCommands.listProjects());
+  if (result.code !== 0) throw new Error('CBM project list is unavailable.');
+  assertKnownCbmProject(index, `${result.stdout}\n${result.stderr}`);
+}
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+export const runMain = (args: readonly string[]): Promise<void> =>
+  run(
+    args,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    verifyCbmIndex,
+  );
+
+runAidlcCliWhenMain(import.meta.main, Bun.argv.slice(2), runMain);

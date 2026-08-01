@@ -196,6 +196,20 @@ export const cbmOutputHasMatches = (
   }
 };
 
+export const cbmProjectNames = (output: string): readonly string[] =>
+  [...output.matchAll(/"name"\s*:\s*"([^"\\]+)"/gu)].map(
+    (match) => match[1] ?? '',
+  );
+
+export const assertKnownCbmProject = (
+  project: string,
+  listProjectsOutput: string,
+): void => {
+  if (!cbmProjectNames(listProjectsOutput).includes(project)) {
+    throw new Error(`CBM index is not a listed project: ${project}`);
+  }
+};
+
 export const indexIsReady = (output: string): boolean =>
   /\b(ready|complete|indexed)\b/iu.test(output) &&
   !/\b(not.ready|failed|error)\b/iu.test(output);

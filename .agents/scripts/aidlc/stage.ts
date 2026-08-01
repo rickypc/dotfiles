@@ -1,3 +1,4 @@
+import { runAidlcCliWhenMain } from '../../utils/aidlc/cli.js';
 import { loadAidlcIntent } from '../../utils/aidlc/intent.js';
 import {
   renderAidlcStagePacket,
@@ -31,4 +32,4 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+runAidlcCliWhenMain(import.meta.main, Bun.argv.slice(2), run);

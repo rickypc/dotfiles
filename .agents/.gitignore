@@ -1,2 +1,6 @@
-/aidlc/
+# Machine-local AIDLC state.  The committed workflow contracts remain visible.
+/aidlc/*/
+!/aidlc/knowledge/
+!/aidlc/*.md
+!/aidlc/protocols/
 /coverage/

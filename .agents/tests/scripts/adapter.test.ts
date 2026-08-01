@@ -14,6 +14,12 @@ test('renders the Kiro IDE manual adapter handoff', () => {
   expect(write).toHaveBeenCalledWith(expect.stringContaining('Kiro IDE'));
 });
 
+test('renders the VS Code universal adapter handoff', () => {
+  const write = mock();
+  run(['vscode', '/agents'], write);
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('VS Code'));
+});
+
 test('rejects invalid adapter input and protects the main boundary', () => {
   expect(() => run([])).toThrow(usage());
   const runner = mock();

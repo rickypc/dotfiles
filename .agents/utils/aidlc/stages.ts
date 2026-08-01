@@ -2,16 +2,13 @@ export type AidlcPhase =
   | 'initialization'
   | 'ideation'
   | 'inception'
-  | 'construction'
-  | 'operation'
-  | 'closure';
+  | 'construction';
 
 export type AidlcRole =
   | 'architect'
   | 'delivery'
   | 'design'
   | 'developer'
-  | 'operations'
   | 'product'
   | 'quality'
   | 'security';
@@ -46,11 +43,9 @@ export type AidlcStageStatus =
   | 'skipped'
   | 'pending';
 
-// Central immutable route contract for the universal AIDLC conductor.
-// These selected identifiers, names, phase names, and ordering are intentionally
-// aligned with AI-DLC v2. Conditions are deterministic single-intent adaptations
-// of the upstream stage contracts. Knowledge Distillation is a local extension:
-// the upstream workflow has no persistent private-KB lifecycle.
+// The global route intentionally keeps only the four phases and stages that
+// reduce planning ambiguity before implementation. Persistent KB capture is
+// Construction closeout after 3.6, never a synthetic Closure phase or stage.
 export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   {
     condition: 'Ensure the single private intent record exists.',
@@ -61,7 +56,8 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
     slug: 'workspace-scaffold',
   },
   {
-    condition: 'Scan and classify the selected workspace.',
+    condition:
+      'Classify the selected workspace and its project-owned final gate.',
     gate: false,
     name: 'Workspace Detection',
     number: '0.2',
@@ -69,7 +65,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
     slug: 'workspace-detection',
   },
   {
-    condition: 'Initialize the stage route from workspace evidence.',
+    condition: 'Initialize the selected route from workspace evidence.',
     gate: false,
     name: 'State Initialization',
     number: '0.3',
@@ -86,16 +82,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute only for external positioning, source research, or build-vs-buy; otherwise record why it is not applicable.',
-    gate: false,
-    name: 'Market Research',
-    number: '1.2',
-    phase: 'ideation',
-    slug: 'market-research',
-  },
-  {
-    condition:
-      'Execute for integrations, regulation, material risk, or technical uncertainty; otherwise record why it is not applicable.',
+      'Use only when integrations, regulation, or material technical uncertainty require it.',
     gate: false,
     name: 'Feasibility & Constraints',
     number: '1.3',
@@ -104,7 +91,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Define the in-scope boundary, exclusions, and success criteria.',
+      'Define the in-scope boundary, exclusions, acceptance criteria, and final gate.',
     gate: false,
     name: 'Scope Definition',
     number: '1.4',
@@ -113,15 +100,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute when a user-facing UI needs exploration; for API or browser interaction work, record the applicable interaction diagram or skip reason.',
-    gate: false,
-    name: 'Rough Mockups',
-    number: '1.6',
-    phase: 'ideation',
-    slug: 'rough-mockups',
-  },
-  {
-    condition: 'Compile the approved intent and implementation plan.',
+      'Compile the approved intent and implementation plan for explicit user approval.',
     gate: true,
     name: 'Approval & Handoff',
     number: '1.7',
@@ -130,7 +109,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute for an existing codebase; skip only for a verified greenfield workspace.',
+      'For brownfield work, discover current code through codebase-memory and resolve durable context through knowledge-base.',
     gate: false,
     name: 'Reverse Engineering',
     number: '2.1',
@@ -139,16 +118,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute when project practices are absent, stale, or relevant to the change; otherwise record the fresh evidence used.',
-    gate: false,
-    name: 'Practices Discovery',
-    number: '2.2',
-    phase: 'inception',
-    slug: 'practices-discovery',
-  },
-  {
-    condition:
-      'Turn the approved request and evidence into testable requirements.',
+      'Turn the approved request and verified context into testable requirements.',
     gate: false,
     name: 'Requirements Analysis',
     number: '2.3',
@@ -157,16 +127,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute for user-facing behavior, multiple personas, complex business logic, or cross-team work; otherwise record the alternative coverage.',
-    gate: false,
-    name: 'User Stories',
-    number: '2.4',
-    phase: 'inception',
-    slug: 'user-stories',
-  },
-  {
-    condition:
-      'Execute when user-facing UI or an interaction diagram needs refinement; otherwise record why it is not applicable.',
+      'Use only for user-facing UI; define the UI once from requirements, existing UI, and supplied visual references.',
     gate: false,
     name: 'Refined Mockups',
     number: '2.5',
@@ -175,7 +136,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute for new component, service, API, or browser/CLI boundary design; otherwise record why the existing design is sufficient.',
+      'Design the implementation approach and owning boundaries before units are generated.',
     gate: false,
     name: 'Application Design',
     number: '2.6',
@@ -183,8 +144,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
     slug: 'application-design',
   },
   {
-    condition:
-      'Execute for multiple dependent implementation units; otherwise record the single-unit plan.',
+    condition: 'Produce the implementation-unit dependency plan.',
     gate: false,
     name: 'Units Generation',
     number: '2.7',
@@ -192,8 +152,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
     slug: 'units-generation',
   },
   {
-    condition:
-      'Execute when units generation ran or build order, dependencies, or risk sequencing need an explicit plan; otherwise record the direct build plan.',
+    condition: 'Produce the construction sequence, risks, and validation plan.',
     gate: false,
     name: 'Delivery Planning',
     number: '2.8',
@@ -202,7 +161,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute for new data models, complex business rules, or non-trivial logic; otherwise record why requirements are sufficient.',
+      'Use when new data models, complex business logic, or business rules need a design.',
     gate: false,
     name: 'Functional Design',
     number: '3.1',
@@ -211,7 +170,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute for performance, security, scalability, reliability, or technology-selection requirements; otherwise record why it is not applicable.',
+      'Use when performance, security, scalability, reliability, or stack constraints need explicit requirements.',
     gate: false,
     name: 'NFR Requirements',
     number: '3.2',
@@ -220,7 +179,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Execute only when NFR Requirements ran and concrete NFR patterns require design.',
+      'Use only when NFR Requirements ran and concrete patterns must be designed.',
     gate: false,
     name: 'NFR Design',
     number: '3.3',
@@ -228,16 +187,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
     slug: 'nfr-design',
   },
   {
-    condition:
-      'Execute for infrastructure, deployment architecture, or cloud-resource changes; otherwise record why it is not applicable.',
-    gate: false,
-    name: 'Infrastructure Design',
-    number: '3.4',
-    phase: 'construction',
-    slug: 'infrastructure-design',
-  },
-  {
-    condition: 'Implement only the approved scope and its required tests.',
+    condition: 'Implement only approved units and their required tests.',
     gate: false,
     name: 'Code Generation',
     number: '3.5',
@@ -246,38 +196,29 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'Run and repair required build, behavior, coverage, lint, and type checks.',
+      'Run the single configured project final gate; repair every failure and rerun it until it passes.',
     gate: false,
     name: 'Build and Test',
     number: '3.6',
     phase: 'construction',
     slug: 'build-and-test',
   },
-  {
-    condition:
-      'Execute only when the request changes CI or the existing pipeline is inadequate for the new verification contract.',
-    gate: false,
-    name: 'CI Pipeline',
-    number: '3.7',
-    phase: 'construction',
-    slug: 'ci-pipeline',
-  },
-  {
-    condition:
-      'Capture approved durable knowledge, then validate and distill it.',
-    gate: false,
-    name: 'Knowledge Distillation',
-    number: 'local.1',
-    phase: 'closure',
-    slug: 'knowledge-distillation',
-  },
 ];
 
-export const initialAidlcRoute = (): AidlcStageRecord[] =>
-  universalCodeChangeStages.map((stage, index) => ({
-    slug: stage.slug,
-    status: index === 0 ? 'active' : 'pending',
-  }));
+export const initialAidlcRoute = (uiRequired = true): AidlcStageRecord[] =>
+  universalCodeChangeStages.map((stage, index) => {
+    if (stage.slug === 'refined-mockups' && !uiRequired) {
+      return {
+        evidence: 'Not applicable: intent declares no user-facing UI.',
+        slug: stage.slug,
+        status: 'skipped',
+      };
+    }
+    return {
+      slug: stage.slug,
+      status: index === 0 ? 'active' : 'pending',
+    };
+  });
 
 export const nextAidlcRouteStage = (
   route: readonly AidlcStageRecord[],
@@ -301,26 +242,19 @@ const rolesByStage: Readonly<Record<AidlcStageSlug, readonly AidlcRole[]>> = {
   'application-design': ['architect', 'design'],
   'approval-handoff': ['delivery', 'product'],
   'build-and-test': ['quality', 'security'],
-  'ci-pipeline': ['delivery', 'quality'],
   'code-generation': ['developer'],
   'delivery-planning': ['delivery', 'architect'],
   feasibility: ['architect', 'security'],
   'functional-design': ['architect', 'developer'],
-  'infrastructure-design': ['architect', 'security'],
   'intent-capture': ['product', 'architect'],
-  'knowledge-distillation': ['delivery'],
-  'market-research': ['product'],
   'nfr-design': ['architect', 'security'],
   'nfr-requirements': ['architect', 'quality', 'security'],
-  'practices-discovery': ['developer', 'quality', 'security'],
   'refined-mockups': ['design', 'product'],
   'requirements-analysis': ['product'],
   'reverse-engineering': ['developer', 'architect'],
-  'rough-mockups': ['design', 'product'],
   'scope-definition': ['product', 'delivery'],
   'state-init': ['delivery'],
   'units-generation': ['architect', 'delivery'],
-  'user-stories': ['product', 'design', 'developer', 'quality'],
   'workspace-detection': ['developer'],
   'workspace-scaffold': ['delivery'],
 };
@@ -333,6 +267,77 @@ export const rolePromptPathFor = (
 export const rolesForStage = (slug: AidlcStageSlug): readonly AidlcRole[] =>
   rolesByStage[slug];
 
+const knowledgeFilesByRole: Readonly<Record<AidlcRole, readonly string[]>> = {
+  architect: [
+    'adr-template.md',
+    'architecture-guide.md',
+    'architecture-patterns.md',
+    'ddd-patterns.md',
+    'nfr-design-guide.md',
+    'nfr-design-patterns.md',
+  ],
+  delivery: [
+    'mob-programming-guide.md',
+    'team-topologies.md',
+    'workflow-planning-guide.md',
+  ],
+  design: [
+    'accessibility-wcag.md',
+    'component-spec-template.md',
+    'interaction-design-patterns.md',
+    'ux-guide.md',
+    'wireframing-guide.md',
+  ],
+  developer: [
+    'api-design-guide.md',
+    'code-analysis-guide.md',
+    'code-generation-guide.md',
+    'code-generation-patterns.md',
+    'data-modelling-patterns.md',
+    're-artifacts.md',
+  ],
+  product: [
+    'functional-design-guide.md',
+    'market-research-methods.md',
+    'prioritization-frameworks.md',
+    'product-guide.md',
+    'requirements-elicitation.md',
+    'requirements-guide.md',
+    'user-story-patterns.md',
+  ],
+  quality: [
+    'nfr-reliability-guide.md',
+    'nfr-validation-methods.md',
+    'test-strategy-patterns.md',
+    'testing-guide.md',
+  ],
+  security: [
+    'devsecops-pipeline-patterns.md',
+    'nfr-requirements-guide.md',
+    'security-guide.md',
+    'threat-modelling-stride.md',
+  ],
+};
+
+export const knowledgePathsForStage = (
+  agentsRoot: string,
+  slug: AidlcStageSlug,
+): readonly string[] => {
+  const root = agentsRoot.replace(/\/$/u, '');
+  const shared = [
+    'ai-dlc-principles.md',
+    'brownfield.md',
+    'rules-reading.md',
+    'verification.md',
+  ].map((file) => `${root}/aidlc/knowledge/shared/${file}`);
+  const rolePaths = rolesForStage(slug).flatMap((role) =>
+    knowledgeFilesByRole[role].map(
+      (file) => `${root}/aidlc/knowledge/roles/${role}/${file}`,
+    ),
+  );
+  return [...shared, ...rolePaths];
+};
+
 export const sensorPromptPathFor = (
   agentsRoot: string,
   sensor: AidlcSensor,
@@ -343,7 +348,7 @@ export const sensorsForStage = (
   slug: AidlcStageSlug,
 ): readonly AidlcSensor[] => {
   const sensors: AidlcSensor[] = ['intent-evidence'];
-  if (slug === 'practices-discovery') sensors.push('context-snapshot');
+  if (slug === 'reverse-engineering') sensors.push('context-snapshot');
   if (slug === 'approval-handoff') sensors.push('approval-gate');
   if (slug === 'build-and-test') sensors.push('validation-evidence');
   return sensors;

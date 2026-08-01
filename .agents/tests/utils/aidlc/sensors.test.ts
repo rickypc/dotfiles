@@ -43,7 +43,8 @@ test('reports missing practice context and missing validation keywords', () => {
       status: 'passed',
     },
     {
-      detail: 'Validation evidence must record: bun run test: passed (exit 0).',
+      detail:
+        'Validation evidence must record: final gate: <command> passed (exit 0).',
       name: 'validation-evidence',
       status: 'failed',
     },
@@ -52,7 +53,10 @@ test('reports missing practice context and missing validation keywords', () => {
     ...build,
     route: build.route.map((record) =>
       record.slug === 'build-and-test'
-        ? { ...record, evidence: 'bun run test: passed (exit 0)' }
+        ? {
+            ...record,
+            evidence: 'final gate: bun run test passed (exit 0)',
+          }
         : record,
     ),
   };
@@ -61,7 +65,10 @@ test('reports missing practice context and missing validation keywords', () => {
     ...validationPass,
     route: validationPass.route.map((record) =>
       record.slug === 'build-and-test'
-        ? { ...record, evidence: 'bun run test: passed (exit 0).' }
+        ? {
+            ...record,
+            evidence: 'final gate: bun run test passed (exit 0).',
+          }
         : record,
     ),
   };
@@ -75,7 +82,7 @@ test('reports missing practice context and missing validation keywords', () => {
         ? {
             ...record,
             evidence:
-              'Validation evidence: bun run test: passed (exit 0). Aggregate gate passed.',
+              'Validation evidence: final gate: go test ./... passed (exit 0). Aggregate gate passed.',
           }
         : record,
     ),
@@ -87,7 +94,8 @@ test('reports missing practice context and missing validation keywords', () => {
       record.slug === 'build-and-test'
         ? {
             ...record,
-            evidence: 'Full bun run test: passed (exit 0); coverage passed.',
+            evidence:
+              'Full final gate: php artisan test passed (exit 0); coverage passed.',
           }
         : record,
     ),
@@ -95,21 +103,21 @@ test('reports missing practice context and missing validation keywords', () => {
   expect(runAidlcSensors(validationPassWithSemicolon)[1]?.status).toBe(
     'passed',
   );
-  const practice = {
+  const reverseEngineering = {
     ...intent,
     route: intent.route.map((record) =>
-      record.slug === 'practices-discovery'
+      record.slug === 'reverse-engineering'
         ? { ...record, evidence: 'resolved', status: 'active' as const }
         : record,
     ),
-    stage: 'practices-discovery' as const,
+    stage: 'reverse-engineering' as const,
   };
-  expect(runAidlcSensors(practice)[1]?.status).toBe('failed');
-  const contextPractice = {
-    ...practice,
+  expect(runAidlcSensors(reverseEngineering)[1]?.status).toBe('failed');
+  const contextReverseEngineering = {
+    ...reverseEngineering,
     kbContext: { bindings: {}, resolvedAt: 'now', rules: [], sources: [] },
   };
-  expect(runAidlcSensors(contextPractice)[1]?.status).toBe('passed');
+  expect(runAidlcSensors(contextReverseEngineering)[1]?.status).toBe('passed');
   const approval = {
     ...intent,
     route: intent.route.map((record) =>

@@ -1,4 +1,45 @@
-# Refined Mockups
+---
+stage: refined-mockups
+number: "2.5"
+phase: inception
+condition: "only for user-facing UI"
+route_authority: "~/.agents/utils/aidlc/stages.ts"
+---
 
-Refine only required user interactions or diagrams into testable states,
-transitions, and accessibility constraints. Skip non-user-facing work.
+# 2.5 Refined Mockups
+
+Run this stage only when the intent explicitly has user-facing UI. For a
+non-UI intent, record the deterministic `ui_required: false` skip and continue.
+This is the one UI-definition pass: do not require a rough-mockup or
+user-story stage beforehand and do not repeat the design later without new
+requirements.
+
+## Inputs
+
+Use approved requirements and acceptance criteria, existing UI, supplied
+screenshots, current component conventions, and the design role knowledge
+paths in the packet. For brownfield UI, use codebase-memory to verify the
+existing component boundaries and behavior before proposing replacement UI.
+
+## UI definition
+
+For every relevant screen or interaction, record enough detail for
+implementation and verification:
+
+- user goal, entry point, and success outcome;
+- information hierarchy, controls, states, validation, error, loading, empty,
+  and recovery behavior;
+- interaction flow, keyboard behavior, responsive behavior, and accessibility
+  criteria; and
+- design-system or component mapping, including where a new component is
+  actually justified.
+
+Use a visual mockup when it reduces ambiguity; otherwise a structured textual
+specification is sufficient. Link any project-owned design file from the
+central intent. Do not create a global mockup artifact tree.
+
+## Exit
+
+Trace each UI decision to a requirement and identify anything still requiring
+an answer. Run intent-evidence validation, record completion, and continue to
+Application Design without another approval gate.

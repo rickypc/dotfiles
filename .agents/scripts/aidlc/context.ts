@@ -1,8 +1,8 @@
+import { runAidlcCliWhenMain } from '../../utils/aidlc/cli.js';
 import { resolveAidlcKnowledgeContext } from '../../utils/aidlc/context.js';
 import {
   appendAidlcAuditEvent,
   loadAidlcIntent,
-  type AidlcKnowledgeContext,
   updateAidlcIntent,
   withAidlcKnowledgeContext,
 } from '../../utils/aidlc/intent.js';
@@ -11,16 +11,6 @@ import { nodeFileSystem } from '../../utils/filesystem.js';
 
 export const bindingFor = (value: string): string | undefined =>
   value === '-' ? undefined : value;
-
-const bindingsFor = (
-  organization: string,
-  team: string,
-  project: string,
-): AidlcKnowledgeContext['bindings'] => ({
-  ...(organization === '-' ? {} : { organization }),
-  ...(team === '-' ? {} : { team }),
-  ...(project === '-' ? {} : { project }),
-});
 
 export const usage = (): string =>
   'Usage: bun ~/.agents/scripts/aidlc/context.ts resolve <intent-path> <kb-root> <organization-ref|-> <team-ref|-> <project-ref|->';
@@ -47,15 +37,19 @@ export const run = async (
     throw new Error(usage());
   }
   const intent = await load(nodeFileSystem, intentPath);
-  if (intent.stage !== 'practices-discovery') {
+  if (intent.stage !== 'reverse-engineering') {
     throw new Error(
-      'AIDLC knowledge context can be resolved only at practices-discovery.',
+      'AIDLC knowledge context can be resolved only at reverse-engineering.',
     );
   }
   const kbContext = await resolve(
     nodeFileSystem,
     kbRoot,
-    bindingsFor(organization, team, project),
+    {
+      organization: bindingFor(organization),
+      project: bindingFor(project),
+      team: bindingFor(team),
+    },
     now(),
     intent.cbmIndex,
   );
@@ -72,4 +66,4 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+runAidlcCliWhenMain(import.meta.main, Bun.argv.slice(2), run);

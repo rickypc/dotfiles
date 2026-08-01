@@ -2,12 +2,23 @@ import { expect, test } from 'bun:test';
 
 import {
   assertAllowedCbmRoot,
+  assertKnownCbmProject,
   cbmCommands,
   cbmOutputHasMatches,
+  cbmProjectNames,
   indexIsReady,
   readWithReadyIndex,
   searchWithCbmFallback,
 } from '../../utils/codebase-memory.js';
+
+test('accepts only a CBM project name returned by the project list', () => {
+  const projects = '{"projects":[{"name":"Users-rhuang"},{"name":"Bento"}]}';
+  expect(cbmProjectNames(projects)).toEqual(['Users-rhuang', 'Bento']);
+  expect(() => assertKnownCbmProject('Bento', projects)).not.toThrow();
+  expect(() => assertKnownCbmProject('made-up', projects)).toThrow(
+    'not a listed',
+  );
+});
 
 test('builds CLI-only CBM command specifications', () => {
   expect(cbmCommands.listProjects()).toEqual({

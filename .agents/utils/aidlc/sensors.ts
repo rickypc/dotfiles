@@ -14,8 +14,8 @@ const failed = (name: string, detail: string): CheckResult => ({
   status: 'failed',
 });
 
-const hasSuccessfulFullBunGate = (evidence: string | undefined): boolean =>
-  /\bbun run test: passed \(exit 0\)(?:[.;,:!?]|\s|$)/u.test(evidence ?? '');
+const hasSuccessfulFinalGate = (evidence: string | undefined): boolean =>
+  /\bfinal gate: .+ passed \(exit 0\)(?:[.;,:!?]|\s|$)/u.test(evidence ?? '');
 
 const passed = (name: string, detail: string): CheckResult => ({
   detail,
@@ -46,11 +46,11 @@ const resultForSensor = (
       ? passed(sensor, 'Approval gate is recorded.')
       : failed(sensor, 'Approval gate is not recorded.');
   }
-  return hasSuccessfulFullBunGate(current.evidence)
-    ? passed(sensor, 'Successful default full Bun gate is recorded.')
+  return hasSuccessfulFinalGate(current.evidence)
+    ? passed(sensor, 'Successful configured final gate is recorded.')
     : failed(
         sensor,
-        'Validation evidence must record: bun run test: passed (exit 0).',
+        'Validation evidence must record: final gate: <command> passed (exit 0).',
       );
 };
 

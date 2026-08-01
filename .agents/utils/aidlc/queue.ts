@@ -8,7 +8,6 @@ import {
 export type AidlcQueueCategory =
   | 'active'
   | 'awaiting-approval'
-  | 'completed-but-undistilled'
   | 'invalid'
   | 'retirable'
   | 'superseded';
@@ -30,7 +29,6 @@ export interface AidlcQueueReport {
 const categoryOrder: readonly AidlcQueueCategory[] = [
   'active',
   'awaiting-approval',
-  'completed-but-undistilled',
   'invalid',
   'superseded',
   'retirable',
@@ -39,8 +37,6 @@ const categoryOrder: readonly AidlcQueueCategory[] = [
 const categoryFor = (intent: AidlcIntent): AidlcQueueCategory => {
   if (intent.lifecycle === 'superseded') return 'superseded';
   if (aidlcIntentStatusFor(intent) === 'completed') return 'retirable';
-  if (intent.stage === 'knowledge-distillation')
-    return 'completed-but-undistilled';
   if (intent.stage === 'approval-handoff') return 'awaiting-approval';
   return 'active';
 };

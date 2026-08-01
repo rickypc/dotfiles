@@ -20,6 +20,7 @@ import {
   skipAidlcStage,
   supersedeAidlcIntent,
   updateAidlcIntent,
+  withAidlcKnowledgeContext,
   workspacePathFor,
 } from '../../../utils/aidlc/intent.js';
 import { renderOkfConcept } from '../../../utils/knowledge-base.js';
@@ -33,6 +34,12 @@ test.each([
 
 test('rejects empty summaries and reports deterministic paths', () => {
   expect(() => intentIdFor('---')).toThrow('summary');
+  expect(() => createAidlcIntent('/Users/rhuang', 'Bad index')).toThrow(
+    'project name returned by codebase-memory',
+  );
+  expect(() =>
+    createAidlcIntent('repo', 'Relative project', { projectRoot: 'relative' }),
+  ).toThrow('project root must be absolute');
   expect(intentPathFor('/agents', 'repo', 'build-kb')).toBe(
     '/agents/aidlc/repo/intents/build-kb.md',
   );
@@ -41,9 +48,13 @@ test('rejects empty summaries and reports deterministic paths', () => {
   );
 });
 
-test('creates an upstream-aligned route and holds at the plan gate', () => {
+test('creates a local route and holds at the plan gate', () => {
   let intent = createAidlcIntent('repo', 'Build KB');
   expect(intent.stage).toBe('workspace-scaffold');
+  expect(intent.uiRequired).toBeFalse();
+  expect(
+    intent.route.find((record) => record.slug === 'refined-mockups'),
+  ).toMatchObject({ status: 'skipped' });
   expect(renderAidlcIntent(intent)).toContain('## Adopted AI-DLC stages');
   expect(renderAidlcIntent(intent)).toContain(
     '| 1.7 | ideation | approval-handoff |',
@@ -53,6 +64,134 @@ test('creates an upstream-aligned route and holds at the plan gate', () => {
   expect(() => completeAidlcStage(intent, '')).toThrow('evidence');
   expect(() => skipAidlcStage(intent, '')).toThrow('reason');
   expect(() => advanceAidlcIntent(intent)).toThrow('completed stage');
+});
+
+test('advances past the declared non-UI stage without emitting it', () => {
+  let intent = createAidlcIntent('repo', 'No UI');
+  while (intent.stage !== 'requirements-analysis') {
+    if (intent.stage === 'reverse-engineering') {
+      intent = withAidlcKnowledgeContext(intent, {
+        bindings: {},
+        resolvedAt: 'now',
+        rules: [],
+        sources: [],
+      });
+    }
+    intent = completeAidlcStage(intent, `evidence for ${intent.stage}`);
+    if (
+      intent.route.find((record) => record.slug === intent.stage)?.status ===
+      'awaiting-approval'
+    ) {
+      intent = approveAidlcIntent(intent);
+    }
+  }
+  intent = completeAidlcStage(intent, 'requirements are complete');
+  expect(intent.stage).toBe('application-design');
+});
+
+test('requires resolved knowledge context before Reverse Engineering completes', () => {
+  let intent = createAidlcIntent('repo', 'Context boundary');
+  while (intent.stage !== 'reverse-engineering') {
+    intent = completeAidlcStage(intent, `evidence for ${intent.stage}`);
+    if (
+      intent.route.find((record) => record.slug === intent.stage)?.status ===
+      'awaiting-approval'
+    ) {
+      intent = approveAidlcIntent(intent);
+    }
+  }
+  expect(() => completeAidlcStage(intent, 'research complete')).toThrow(
+    'requires a resolved knowledge context',
+  );
+  expect(
+    completeAidlcStage(
+      withAidlcKnowledgeContext(intent, {
+        bindings: {},
+        resolvedAt: 'now',
+        rules: [],
+        sources: [],
+      }),
+      'research complete',
+    ).stage,
+  ).toBe('requirements-analysis');
+});
+
+test('requires a passing final-gate receipt before Build and Test completes', () => {
+  const initial = createAidlcIntent('repo', 'Gate receipt');
+  const intent = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status:
+        record.slug === 'build-and-test'
+          ? ('active' as const)
+          : ('completed' as const),
+    })),
+    stage: 'build-and-test' as const,
+  };
+  expect(() => completeAidlcStage(intent, 'gate passed')).toThrow(
+    'exact passing final-gate receipt',
+  );
+  expect(
+    completeAidlcStage(intent, 'final gate: bun run test passed (exit 0)')
+      .stage,
+  ).toBe('build-and-test');
+});
+
+test('keeps Refined Mockups active only for an explicit UI intent', () => {
+  const intent = createAidlcIntent('repo', 'Build UI', {
+    projectRoot: '/project',
+    uiRequired: true,
+  });
+  expect(intent.projectRoot).toBe('/project');
+  expect(
+    intent.route.find((record) => record.slug === 'refined-mockups'),
+  ).toMatchObject({ status: 'pending' });
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent(createAidlcIntent('repo', 'No UI')).replace(
+        'status: skipped',
+        'status: pending',
+      ),
+    ),
+  ).toThrow('route');
+});
+
+test('preserves legacy UI intent behavior and rejects invalid UI metadata', () => {
+  const uiIntent = createAidlcIntent('repo', 'Legacy UI', { uiRequired: true });
+  expect(
+    parseAidlcIntent(
+      renderAidlcIntent(uiIntent).replace('ui_required: true\n', ''),
+    ).uiRequired,
+  ).toBeTrue();
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent(uiIntent).replace(
+        'ui_required: true',
+        'ui_required: invalid',
+      ),
+    ),
+  ).toThrow('frontmatter');
+});
+
+test('rejects invalid persisted lifecycle and project-root metadata', () => {
+  const intent = createAidlcIntent('repo', 'Persisted metadata', {
+    projectRoot: '/project',
+  });
+  const rendered = renderAidlcIntent(intent);
+  expect(() =>
+    parseAidlcIntent(
+      rendered.replace('project_root: /project', 'project_root: relative'),
+    ),
+  ).toThrow('project root');
+  expect(() =>
+    parseAidlcIntent(rendered.replace('lifecycle: active', 'lifecycle: bad')),
+  ).toThrow('lifecycle');
+  expect(() =>
+    parseAidlcIntent(
+      rendered.replace('lifecycle: active', 'lifecycle: superseded'),
+    ),
+  ).toThrow('replacement');
 });
 
 test('requires evidence or a skip reason for every non-gated stage', () => {
@@ -88,10 +227,23 @@ test('only allows approval after the completed approval-handoff stage', () => {
   expect(intent.stage).toBe('reverse-engineering');
 });
 
-test('records every stage through local knowledge-distillation closure', () => {
+test('completes the four-phase route before knowledge-base closeout', () => {
   let intent = createAidlcIntent('repo', 'Close the route');
-  while (intent.stage !== 'knowledge-distillation') {
-    intent = completeAidlcStage(intent, `evidence for ${intent.stage}`);
+  while (aidlcIntentStatusFor(intent) !== 'completed') {
+    if (intent.stage === 'reverse-engineering') {
+      intent = withAidlcKnowledgeContext(intent, {
+        bindings: {},
+        resolvedAt: 'now',
+        rules: [],
+        sources: [],
+      });
+    }
+    intent = completeAidlcStage(
+      intent,
+      intent.stage === 'build-and-test'
+        ? 'final gate: bun run test passed (exit 0)'
+        : `evidence for ${intent.stage}`,
+    );
     if (
       intent.route.find((record) => record.slug === intent.stage)?.status ===
       'awaiting-approval'
@@ -99,21 +251,37 @@ test('records every stage through local knowledge-distillation closure', () => {
       intent = approveAidlcIntent(intent);
     }
   }
-  intent = completeAidlcStage(intent, 'durable KB entry validated');
-  expect(intent.route.every((record) => record.status === 'completed')).toBe(
-    true,
-  );
+  expect(
+    intent.route.every(
+      (record) => record.status === 'completed' || record.status === 'skipped',
+    ),
+  ).toBe(true);
   expect(canAdvanceAidlcIntent(intent)).toBeTrue();
   expect(aidlcIntentStatusFor(intent)).toBe('completed');
   expect(renderAidlcIntent(intent)).toContain('status: completed');
-  expect(renderAidlcIntent(intent)).toContain('distillation_status: completed');
+  expect(renderAidlcIntent(intent)).toContain(
+    'knowledge-base owns durable capture',
+  );
   expect(advanceAidlcIntent(intent)).toEqual(intent);
 });
 
-test('retires only an intent with completed knowledge distillation', async () => {
+test('retires only a completed intent after verified KB capture', async () => {
   let complete = createAidlcIntent('repo', 'Close the route');
-  while (complete.stage !== 'knowledge-distillation') {
-    complete = completeAidlcStage(complete, `evidence for ${complete.stage}`);
+  while (aidlcIntentStatusFor(complete) !== 'completed') {
+    if (complete.stage === 'reverse-engineering') {
+      complete = withAidlcKnowledgeContext(complete, {
+        bindings: {},
+        resolvedAt: 'now',
+        rules: [],
+        sources: [],
+      });
+    }
+    complete = completeAidlcStage(
+      complete,
+      complete.stage === 'build-and-test'
+        ? 'final gate: bun run test passed (exit 0)'
+        : `evidence for ${complete.stage}`,
+    );
     if (
       complete.route.find((record) => record.slug === complete.stage)
         ?.status === 'awaiting-approval'
@@ -121,7 +289,6 @@ test('retires only an intent with completed knowledge distillation', async () =>
       complete = approveAidlcIntent(complete);
     }
   }
-  complete = completeAidlcStage(complete, 'durable KB entry validated');
   const files = new Map([
     ['/agents/complete.md', renderAidlcIntent(complete)],
     [
@@ -160,11 +327,15 @@ test('retires only an intent with completed knowledge distillation', async () =>
   files.set('/agents/active.md', renderAidlcIntent(active));
   await expect(
     retireAidlcIntent(fileSystem, '/agents/active.md'),
-  ).rejects.toThrow('terminal knowledge distillation');
+  ).rejects.toThrow('completed AIDLC intent');
   files.set('/agents/complete.md', renderAidlcIntent(complete));
   await expect(
-    retireAidlcIntent(fileSystem, '/agents/complete.md'),
-  ).rejects.toThrow('verified KB concept');
+    retireAidlcIntent(fileSystem, '/agents/complete.md', undefined, [
+      'not-a-kb-concept',
+    ]),
+  ).rejects.toThrow('verified KB concept references');
+  await retireAidlcIntent(fileSystem, '/agents/complete.md');
+  expect(rm).toHaveBeenCalledWith('/agents/complete.md', { force: true });
 });
 
 test('preserves the intent body while updating the route frontmatter', async () => {
@@ -197,7 +368,7 @@ test('preserves the intent body while updating the route frontmatter', async () 
     '| 0.1 | initialization | workspace-scaffold | completed | created |',
   );
   expect(files.get('/agents/intent.md')).toContain(
-    '| local.1 | closure | knowledge-distillation | pending |  |\n\n## Research',
+    '| 3.6 | construction | build-and-test | pending |  |\n\n## Research',
   );
   expect(files.get('/agents/intent.md')).toContain(
     '## Audit trail\nKeep this evidence.',
@@ -315,7 +486,16 @@ test('rejects malformed routes and conflicting intent IDs', () => {
   expect(() =>
     assertNoIntentCollision({ ...intent, summary: 'Other' }, 'X'),
   ).toThrow('collision');
-  expect(() => assertNoIntentCollision(intent, 'X')).not.toThrow();
+  expect(() => assertNoIntentCollision(intent, 'X')).toThrow('collision');
+  expect(() =>
+    assertNoIntentCollision(
+      { ...intent, lifecycle: 'superseded', summary: 'Other' },
+      'X',
+    ),
+  ).toThrow('different summary');
+  expect(() =>
+    assertNoIntentCollision({ ...intent, lifecycle: 'superseded' }, 'X'),
+  ).not.toThrow();
 });
 
 test('preserves identity while marking an intent superseded', () => {

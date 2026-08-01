@@ -11,7 +11,6 @@ import {
   type AidlcStageRecord,
   type AidlcStageSlug,
   initialAidlcRoute,
-  nextAidlcRouteStage,
   stageDefinitionFor,
 } from './stages.js';
 
@@ -36,10 +35,12 @@ export interface AidlcIntent {
   readonly id: string;
   readonly kbContext: AidlcKnowledgeContext;
   readonly lifecycle: AidlcLifecycle;
+  readonly projectRoot?: string;
   readonly route: readonly AidlcStageRecord[];
   readonly stage: AidlcStageSlug;
   readonly summary: string;
   readonly supersededBy?: string;
+  readonly uiRequired: boolean;
 }
 
 export interface AidlcKnowledgeContext {
@@ -54,6 +55,19 @@ export interface AidlcKnowledgeContext {
 }
 
 export type AidlcLifecycle = 'active' | 'superseded';
+
+export interface CreateAidlcIntentOptions {
+  readonly projectRoot?: string;
+  readonly uiRequired?: boolean;
+}
+
+const assertCbmIndexName = (cbmIndex: string): void => {
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(cbmIndex)) {
+    throw new Error(
+      'CBM index must be a project name returned by codebase-memory, not a path.',
+    );
+  }
+};
 
 export const emptyAidlcKnowledgeContext = (): AidlcKnowledgeContext => ({
   bindings: {},
@@ -84,8 +98,11 @@ const activateNext = (
   intent: AidlcIntent,
   route: readonly AidlcStageRecord[],
 ): AidlcIntent => {
-  const next = nextAidlcRouteStage(route, intent.stage);
-  if (!next) return { ...intent, route, stage: 'knowledge-distillation' };
+  const current = route.findIndex((record) => record.slug === intent.stage);
+  const next = route
+    .slice(current + 1)
+    .find((record) => record.status === 'pending')?.slug;
+  if (!next) return { ...intent, route };
   return {
     ...intent,
     route: route.map((item) =>
@@ -109,28 +126,36 @@ const aidlcFrontmatterData = (
 ): Record<string, unknown> => ({
   approval: intent.approval,
   cbm_index: intent.cbmIndex,
-  distillation_status:
-    intent.route.find((record) => record.slug === 'knowledge-distillation')
-      ?.status === 'completed'
-      ? 'completed'
-      : 'pending',
   id: intent.id,
   kb_context: intent.kbContext,
   kb_references: [],
   lifecycle: intent.lifecycle,
+  ...(intent.projectRoot ? { project_root: intent.projectRoot } : {}),
   ...(intent.supersededBy ? { superseded_by: intent.supersededBy } : {}),
   route: intent.route,
   stage: intent.stage,
   status: aidlcIntentStatusFor(intent),
   summary: intent.summary,
+  ui_required: intent.uiRequired,
   validation_summary: 'pending',
   workflow: 'universal-code-change',
 });
+
+const assertIntentFrontmatter = (content: string): void => {
+  if (!matter.test(content) || content.indexOf('\n---', 4) < 0) {
+    throw new Error('AIDLC intent frontmatter is invalid.');
+  }
+};
 
 export const assertNoIntentCollision = (
   existing: AidlcIntent | undefined,
   summary: string,
 ): void => {
+  if (existing?.lifecycle === 'active') {
+    throw new Error(
+      'An active AIDLC intent ID collision exists; resume or supersede it instead of overwriting it.',
+    );
+  }
   if (existing && existing.summary !== summary) {
     throw new Error(
       'Intent ID collision has a different summary; ask the user.',
@@ -148,16 +173,26 @@ const auditLineFor = (event: AidlcAuditEvent): string => {
 export const createAidlcIntent = (
   cbmIndex: string,
   summary: string,
-): AidlcIntent => ({
-  approval: 'pending',
-  cbmIndex,
-  id: intentIdFor(summary),
-  kbContext: emptyAidlcKnowledgeContext(),
-  lifecycle: 'active',
-  route: initialAidlcRoute(),
-  stage: 'workspace-scaffold',
-  summary,
-});
+  options: CreateAidlcIntentOptions = {},
+): AidlcIntent => {
+  assertCbmIndexName(cbmIndex);
+  if (options.projectRoot && !options.projectRoot.startsWith('/')) {
+    throw new Error('AIDLC project root must be absolute.');
+  }
+  const uiRequired = options.uiRequired ?? false;
+  return {
+    approval: 'pending',
+    cbmIndex,
+    id: intentIdFor(summary),
+    kbContext: emptyAidlcKnowledgeContext(),
+    lifecycle: 'active',
+    projectRoot: options.projectRoot,
+    route: initialAidlcRoute(uiRequired),
+    stage: 'workspace-scaffold',
+    summary,
+    uiRequired,
+  };
+};
 
 const currentRecord = (intent: AidlcIntent): AidlcStageRecord => {
   const record = intent.route.find((item) => item.slug === intent.stage);
@@ -194,6 +229,18 @@ export const intentPathFor = (
   intentId: string,
 ): string =>
   `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents/${intentId}.md`;
+
+const optionalBooleanField = (
+  data: Record<string, unknown>,
+  name: string,
+): boolean | undefined => {
+  if (!(name in data)) return undefined;
+  const value = field(data, name);
+  if (typeof value !== 'boolean') {
+    throw new Error('AIDLC intent frontmatter is invalid.');
+  }
+  return value;
+};
 
 const parseKnowledgeContext = (
   data: Record<string, unknown>,
@@ -238,7 +285,7 @@ export const renderAidlcIntent = (intent: AidlcIntent): string =>
       '',
       '## Adopted AI-DLC stages',
       '',
-      'Selected upstream stages retain their upstream number, phase, slug, and name. Knowledge Distillation is a local closure extension.',
+      'This local runtime uses the selected universal stages. After Build and Test, knowledge-base owns durable capture and this temporary record can be retired.',
       '',
       stageLedger(intent),
       '',
@@ -282,6 +329,16 @@ const optionalStringField = (
   return stringField(data, name);
 };
 
+const parseApproval = (
+  data: Record<string, unknown>,
+): AidlcIntent['approval'] => {
+  const approval = stringField(data, 'approval') as AidlcIntent['approval'];
+  if (!['pending', 'approved', 'declined'].includes(approval)) {
+    throw new Error('AIDLC intent approval is invalid.');
+  }
+  return approval;
+};
+
 export const supersedeAidlcIntent = (
   intent: AidlcIntent,
   replacementId: string,
@@ -321,6 +378,19 @@ export const completeAidlcStage = (
   const record = currentRecord(intent);
   if (record.status !== 'active')
     throw new Error('Only an active AIDLC stage can be completed.');
+  if (intent.stage === 'reverse-engineering' && !intent.kbContext.resolvedAt) {
+    throw new Error(
+      'Reverse Engineering requires a resolved knowledge context before completion.',
+    );
+  }
+  if (
+    intent.stage === 'build-and-test' &&
+    !/final gate: .+ passed \(exit 0\)/u.test(evidence)
+  ) {
+    throw new Error(
+      'Build and Test requires the exact passing final-gate receipt as evidence.',
+    );
+  }
   const stage = stageDefinitionFor(intent.stage);
   const updated = {
     ...record,
@@ -349,8 +419,26 @@ export const skipAidlcStage = (
   );
 };
 
-const validateRoute = (route: readonly AidlcStageRecord[]): void => {
-  const expected = initialAidlcRoute();
+const validateParsedIntent = (intent: AidlcIntent): void => {
+  if (!['active', 'superseded'].includes(intent.lifecycle)) {
+    throw new Error('AIDLC intent lifecycle is invalid.');
+  }
+  if (intent.projectRoot && !intent.projectRoot.startsWith('/')) {
+    throw new Error('AIDLC intent project root is invalid.');
+  }
+  if (intent.lifecycle === 'superseded' && !intent.supersededBy?.trim()) {
+    throw new Error('Superseded AIDLC intents require a replacement id.');
+  }
+  if (currentRecord(intent).status === 'pending') {
+    throw new Error('AIDLC current stage is pending.');
+  }
+};
+
+const validateRoute = (
+  route: readonly AidlcStageRecord[],
+  uiRequired: boolean,
+): void => {
+  const expected = initialAidlcRoute(uiRequired);
   if (route.length !== expected.length)
     throw new Error('AIDLC intent route is invalid.');
   for (const [index, record] of route.entries()) {
@@ -362,47 +450,48 @@ const validateRoute = (route: readonly AidlcStageRecord[]): void => {
       throw new Error('AIDLC intent route is invalid.');
     }
   }
+  if (!uiRequired) {
+    const mockups = route.find((record) => record.slug === 'refined-mockups');
+    if (
+      mockups?.status !== 'skipped' ||
+      mockups.evidence !== 'Not applicable: intent declares no user-facing UI.'
+    ) {
+      throw new Error('AIDLC intent route is invalid.');
+    }
+  }
+};
+
+const parseRoute = (
+  data: Record<string, unknown>,
+  uiRequired: boolean,
+): AidlcStageRecord[] => {
+  const route = field(data, 'route') as AidlcStageRecord[];
+  if (!Array.isArray(route)) {
+    throw new Error('AIDLC intent route is invalid.');
+  }
+  validateRoute(route, uiRequired);
+  return route;
 };
 
 export const parseAidlcIntent = (content: string): AidlcIntent => {
   const parsed = matter(content);
-  if (!matter.test(content) || content.indexOf('\n---', 4) < 0) {
-    throw new Error('AIDLC intent frontmatter is invalid.');
-  }
-  const approval = stringField(
-    parsed.data,
-    'approval',
-  ) as AidlcIntent['approval'];
-  if (!['pending', 'approved', 'declined'].includes(approval)) {
-    throw new Error('AIDLC intent approval is invalid.');
-  }
-  const stage = stringField(parsed.data, 'stage') as AidlcStageSlug;
-  const route = field(parsed.data, 'route') as AidlcStageRecord[];
-  if (!Array.isArray(route)) {
-    throw new Error('AIDLC intent route is invalid.');
-  }
-  validateRoute(route);
+  assertIntentFrontmatter(content);
+  const uiRequired = optionalBooleanField(parsed.data, 'ui_required') ?? true;
   const intent = {
-    approval,
+    approval: parseApproval(parsed.data),
     cbmIndex: stringField(parsed.data, 'cbm_index'),
     id: stringField(parsed.data, 'id'),
     kbContext: parseKnowledgeContext(parsed.data),
     lifecycle: (optionalStringField(parsed.data, 'lifecycle') ??
       'active') as AidlcLifecycle,
-    route,
-    stage,
+    projectRoot: optionalStringField(parsed.data, 'project_root'),
+    route: parseRoute(parsed.data, uiRequired),
+    stage: stringField(parsed.data, 'stage') as AidlcStageSlug,
     summary: stringField(parsed.data, 'summary'),
     supersededBy: optionalStringField(parsed.data, 'superseded_by'),
+    uiRequired,
   };
-  if (!['active', 'superseded'].includes(intent.lifecycle)) {
-    throw new Error('AIDLC intent lifecycle is invalid.');
-  }
-  if (intent.lifecycle === 'superseded' && !intent.supersededBy?.trim()) {
-    throw new Error('Superseded AIDLC intents require a replacement id.');
-  }
-  if (currentRecord(intent).status === 'pending') {
-    throw new Error('AIDLC current stage is pending.');
-  }
+  validateParsedIntent(intent);
   return intent;
 };
 
@@ -433,15 +522,10 @@ export const retireAidlcIntent = async (
   kbReferences: readonly string[] = [],
 ): Promise<void> => {
   const intent = await loadAidlcIntent(fileSystem, path);
-  const distillation = intent.route.find(
-    (record) => record.slug === 'knowledge-distillation',
-  );
-  if (aidlcIntentStatusFor(intent) !== 'completed' || !distillation) {
-    throw new Error(
-      'Only a completed AIDLC intent with terminal knowledge distillation can be retired.',
-    );
+  if (aidlcIntentStatusFor(intent) !== 'completed') {
+    throw new Error('Only a completed AIDLC intent can be retired.');
   }
-  if (distillation.status === 'completed') {
+  if (kbReferences.length > 0) {
     if (
       !kbRoot?.startsWith('/') ||
       kbReferences.length === 0 ||

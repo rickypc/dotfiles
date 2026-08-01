@@ -1,193 +1,100 @@
 ---
 name: aidlc
-description: Run a selected, upstream-aligned AI-DLC stage route from evidence through validated closure.
+description: Run the universal, four-phase AI-DLC route from a temporary machine-wide intent through one configured final project gate and knowledge-base closeout.
 ---
 
-# AIDLC
+# Universal AI-DLC
 
-Use this skill for a requested change that needs research, a plan, explicit
-approval, implementation, validation, and durable knowledge capture.
+Use this skill for a code change that needs evidence, a reviewed design, an
+explicit approval, implementation, one final project gate, and durable
+knowledge capture. This global workflow applies unless the selected project
+ships its own `aidlc` skill; a project-local AIDLC always wins.
 
-The single temporary record is:
+## Runtime boundaries
 
-```text
-~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md
-```
+- Temporary intent: `~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`.
+  It is the only transient workflow record and uses `gray-matter` frontmatter.
+- Durable knowledge: the external private KB, owned solely by
+  `knowledge-base`. Resolve its validated `shared/organization`, `shared/team`,
+  and `<cbm-index>/project` concepts; do not create a global `.agents/knowledge`
+  copy or persist KB content in an intent.
+- Code discovery: invoke `codebase-memory`. Do not invoke CBM, MCP, CLI, grep,
+  or another search fallback yourself; the skill owns that escalation.
+- Deterministic executables live only under `~/.agents/scripts/`. There is no
+  global `tools/` directory and no global hooks: native assistant hooks belong
+  to a project adapter, not the universal runtime.
 
-Do not create separate research, approval, run, validation, or log folders.
-Put research, questions and answers, decisions, plan, stage evidence,
-validation evidence, and outcome in this one intent. Persistent knowledge is
-captured only through `knowledge-base`, outside `~/.agents`.
+## Route
 
-## Stage route
+The route has four phases and exactly 18 stages. Operation is excluded. There
+is no Closure phase: successful Construction 3.6 immediately triggers
+knowledge-base capture/validation and retirement of the temporary intent.
 
-Use the stage route created by the AIDLC script. Selected stages retain the
-upstream AI-DLC v2 number, phase, slug, order, and name. Their conditions are
-the deterministic single-intent adaptations of the upstream contracts. Do not
-rename, merge, reorder, or silently omit them. `knowledge-distillation` is the
-one local closure extension because persistent private KB capture is outside
-the upstream workflow.
-
-| Phase | Selected stages |
+| Phase | Stages |
 | --- | --- |
-| Initialization | `workspace-scaffold`, `workspace-detection`, `state-init` |
-| Ideation | `intent-capture`, `market-research`, `feasibility`, `scope-definition`, `rough-mockups`, `approval-handoff` |
-| Inception | `reverse-engineering`, `practices-discovery`, `requirements-analysis`, `user-stories`, `refined-mockups`, `application-design`, `units-generation`, `delivery-planning` |
-| Construction | `functional-design`, `nfr-requirements`, `nfr-design`, `infrastructure-design`, `code-generation`, `build-and-test`, `ci-pipeline` |
-| Closure | `knowledge-distillation` |
+| Initialization | 0.1 Workspace Scaffold; 0.2 Workspace Detection; 0.3 State Initialization |
+| Ideation | 1.1 Intent Capture; 1.3 Feasibility; 1.4 Scope Definition; 1.7 Approval & Handoff |
+| Inception | 2.1 Reverse Engineering; 2.3 Requirements; 2.5 Refined Mockups; 2.6 Application Design; 2.7 Units Generation; 2.8 Delivery Planning |
+| Construction | 3.1 Functional Design; 3.2 NFR Requirements; 3.3 NFR Design; 3.5 Code Generation; 3.6 Build and Test |
 
-Operation stages are not in the normal code-change route. Add them only when
-the user explicitly requests deployment, environment provisioning,
-observability, incident response, performance validation, or feedback
-optimization; then use their unchanged upstream names and ordering.
+The substantive stage contracts are under
+`~/.agents/prompts/aidlc/stages/`; `utils/aidlc/stages.ts` is the typed route
+reference. Read every path returned by the stage packet, including the
+conductor, protocols, role cards, sensor contracts, and stage prompt.
+`aidlc/protocols/runtime.md` defines the universal boundaries and the selected
+route has no hidden dependencies on unselected stages.
 
-## Deterministic execution loop
+## Deterministic loop
 
-1. Create or resume the intent. Run the stage packet command; it is the only
-   authority for the active stage, role cards, stage contract, and sensors:
+1. Before work, inspect the queue:
 
-```bash
-bun ~/.agents/scripts/aidlc/stage.ts next ~/.agents "<intent-path>"
-```
+   ```text
+   bun ~/.agents/scripts/aidlc.ts queue ~/.agents <cbm-index>
+   ```
 
-Before creating or resuming work, inspect the metadata queue so unfinished,
-awaiting-approval, interrupted, superseded, or undistilled intents are visible:
+2. Create or resume one intent, then request its packet:
 
-```bash
-bun ~/.agents/scripts/aidlc.ts queue ~/.agents "<cbm-index>"
-```
+   ```text
+   bun ~/.agents/scripts/aidlc.ts prepare ~/.agents <cbm-index> <absolute-project-root> "<summary>" [--ui]
+   ```
 
-The queue report is read-only. Present its bounded metadata summary and let the
-user choose queue-first, current-first, or the deterministic recommendation;
-never silently discard a leftover intent. A terminal intent completion must
-also report the remaining queue.
+   `prepare` validates and records 0.1–0.3 in one deterministic bootstrap,
+   then returns the resolved final gate, new intent path, queue snapshot, and
+   1.1 stage packet in one response. Add `--ui` only when user-facing UI is in scope. If the
+   deterministic id is already active, resume it or explicitly supersede it;
+   prepare never overwrites active work. Use `stage.ts next` only after
+   recording the current stage outcome.
 
-2. Read every path in the returned packet before working. Read the stage's
-   fixed condition. If it applies, perform the stated work. If it does not
-   apply, record a specific evidence-based reason; do not fabricate an artifact
-   merely to mark a stage complete. A skipped stage is never a stopping point:
-   record the skip, run its sensors, immediately request the next stage packet,
-   and continue. Stop only for an approval gate, a material unresolved question,
-   missing authority, or an unrecoverable deterministic gate.
-3. At `practices-discovery`, resolve context before reading its packet. Ask for
-   missing organization, team, and project KB concept paths together, use `-`
-   only when no record exists, then run:
+3. At 2.1, resolve private KB context through `knowledge-base` before reading
+   the packet. Run the returned context command only after the skill provides
+   validated concept paths.
+4. Perform or evidence-skip each conditional stage. A skip is not a pause:
+   record a factual reason, run sensors, and request the next packet.
+5. At 1.7, present Approve / Re-plan / Decline and stop. Construction begins
+   only after the explicit approval is persisted.
+6. At 2.5, run one UI-definition pass only when user-facing UI is in scope.
+   Use requirements, existing UI, supplied screenshots, and observable UI
+   criteria. A non-UI intent has this stage deterministically marked skipped
+   from its `ui_required: false` gray-matter metadata. Do not require 1.6
+   rough mockups or 2.4 user stories.
+7. At 3.6, run exactly one configured final project command:
 
-```bash
-bun ~/.agents/scripts/aidlc/context.ts resolve "<intent-path>" "<private-kb-root>" "<organization-concept-or->" "<team-concept-or->" "<project-concept-or->"
-```
+   ```json
+   // <project-root>/aidlc.config.json
+   { "finalGate": "go test ./..." }
+   ```
 
-The resolver reads independent configured KB records together, then applies
-organization, team, and project rules in that exact precedence order.
+   The configuration has one optional string property and one command only.
+   If it is absent, use `bun run test`. Run exactly one configured project command through
+   `bun ~/.agents/scripts/aidlc/gate.ts run <absolute-project-root>` and save
+   its emitted receipt as evidence. Any non-zero result fails the gate and
+   must be repaired and rerun: failure is failure. Do not substitute cosmetic, lint,
+   coverage, or type commands for this final gate.
+8. After 3.6 passes, ask `knowledge-base` to capture any durable lesson,
+   validate the KB result, then retire the temporary intent. If no durable
+   lesson exists, record that factual outcome and retire without creating a
+   placeholder concept.
 
-4. Add concise factual evidence to the relevant intent section. Evidence names
-   the inspected paths, commands, outputs, decisions, or user answer. Never
-   record an inferred command result as evidence.
-5. Use one of these outcome commands; quote arguments
-   exactly and replace every pattern:
-
-```bash
-bun ~/.agents/scripts/aidlc.ts complete "<intent-path>" "<factual stage evidence>"
-```
-
-```bash
-bun ~/.agents/scripts/aidlc.ts skip "<intent-path>" "<specific condition and evidence-based reason>"
-```
-
-   The command updates the intent route and appends an audit entry.
-
-6. Run the packet's sensors against the completed or skipped stage before
-   making a completion or approval claim:
-
-```bash
-bun ~/.agents/scripts/aidlc/sensors.ts check "<intent-path>" "<completed-stage>"
-```
-
-   Repair failed sensors before advancing. The approval sensor runs after the
-   approval command because it verifies the recorded user decision.
-
-Use explicit lifecycle commands when a record is re-planned or superseded:
-
-```bash
-bun ~/.agents/scripts/aidlc.ts replan "<intent-path>" "<evidence>"
-bun ~/.agents/scripts/aidlc.ts supersede "<intent-path>" "<replacement-intent-id>"
-```
-
-These preserve the original identity and audit trail; they do not delete or
-silently overwrite the record.
-
-7. At `approval-handoff`, complete the plan and stop. Present an explicit
-   Approve / Re-plan / Decline choice. Do not build, test, or advance until the
-   user approves. On approval, run:
-
-```bash
-bun ~/.agents/scripts/aidlc.ts approve "<intent-path>"
-```
-
-8. After approval, continue through every remaining stage. Stop only for a
-   material unresolved question, missing authority, failed deterministic gate
-   that cannot be repaired safely, or a required user action. Never stop at a
-   component milestone, after a skipped stage, or while an approved intent has an
-   active stage. Do not send a final response or yield control until a true
-   terminal condition is reached.
-
-`advance` is intentionally unavailable: it cannot bypass a stage without
-evidence or a skip reason.
-
-## Stage contracts
-
-- `workspace-detection`: classify the workspace, stack, package root, tests,
-  and browser/runtime boundaries. Use `codebase-memory` only after the CBM
-  index readiness check.
-- `intent-capture`, `market-research`, and `feasibility`: collect only relevant
-  facts. Ask all material unanswered questions together; add answers to the
-  intent before planning.
-- `scope-definition`, `rough-mockups`, and `refined-mockups`: state in-scope
-  work, exclusions, acceptance criteria, risks, commands, exact validation,
-  and any required UI or interaction evidence before the gate.
-- `reverse-engineering` and `practices-discovery`: inspect existing code and
-  project conventions. Use `knowledge-base` when durable project, team, or
-  organization knowledge is available; do not invent either.
-- `requirements-analysis` through `infrastructure-design`: make only the
-  applicable design decisions. A conditional skip must state why existing
-  evidence makes it unnecessary.
-- `code-generation`: make only approved changes. Generate Bun tests directly
-  for new tests. Convert an existing selected Jest test only when it exists;
-  do not preserve a Jest test by default.
-- `build-and-test`: run behavior, coverage, lint, and type gates. When the
-  selected package exposes it, `bun run test` is the non-negotiable default
-  aggregate gate: run it and record its exit-zero receipt before Stage 3.6 can
-  complete. A different gate requires an explicit project-specific exception
-  recorded in the intent before validation. Use
-  `bun-test-generator` for selected JavaScript/TypeScript SUT tests and
-  `biome-tsc-checker` for every changed selected JS/TS path. For a TypeScript
-  declaration-order packet, treat its static facts as baseline evidence, make
-  only the permitted whole-declaration reorder as the candidate, rerun the
-  checker, and record the candidate result before closure.
-- `ci-pipeline`: execute only for CI changes or a demonstrated missing check.
-- `knowledge-distillation`: ask `knowledge-base` to capture approved durable
-  lessons, then validate and distill. Do not retain transient intent noise.
-  After the KB concept and its indexes are verified and this terminal stage is
-  completed, retire the one temporary intent with its private KB root and each
-  captured concept path; never retire an active or undistilled record:
-
-```bash
-bun ~/.agents/scripts/aidlc.ts retire "<intent-path>" "<private-kb-root>" "<concept-path>" ["<concept-path>"...]
-```
-
-If no durable knowledge exists, skip `knowledge-distillation` with its factual
-reason, then retire the completed intent without KB arguments.
-
-## Browser verification without a callable browser
-
-When a local browser check is required but this session cannot control a
-browser, do not claim the check passed. Give the user the exact generated file
-URL and the expected visible result using the standard user-action protocol:
-
-```text
-file:///<absolute-path-to-page>.html
-```
-
-The user action must say what to open, what interaction to perform, the exact
-expected result, and the reply that resumes the workflow. Record the user's
-reply as browser-validation evidence in the intent.
+Use `complete`, `skip`, `approve`, `replan`, `supersede`, and `retire` through
+`scripts/aidlc.ts`. Never hand-edit lifecycle frontmatter or create another
+intent/log directory.

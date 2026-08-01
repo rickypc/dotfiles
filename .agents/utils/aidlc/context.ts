@@ -12,6 +12,13 @@ const conflictKeyFor = (
   return { mode: match[1], subject: match[2].toLowerCase() };
 };
 
+const definedBindings = (
+  bindings: AidlcKnowledgeContext['bindings'],
+): AidlcKnowledgeContext['bindings'] =>
+  Object.fromEntries(
+    Object.entries(bindings).filter(([, value]) => value !== undefined),
+  );
+
 const optionalRead = async (
   fileSystem: FileSystem,
   path: string,
@@ -118,5 +125,5 @@ export const resolveAidlcKnowledgeContext = async (
     }
     resolved.set(subject, mode);
   }
-  return { bindings, resolvedAt, rules, sources };
+  return { bindings: definedBindings(bindings), resolvedAt, rules, sources };
 };

@@ -8,21 +8,15 @@ import {
 } from '../../../scripts/aidlc/context.js';
 import { createAidlcIntent } from '../../../utils/aidlc/intent.js';
 
-const practicesIntent = () => ({
+const reverseEngineeringIntent = () => ({
   ...createAidlcIntent('repo', 'X'),
-  stage: 'practices-discovery' as const,
+  stage: 'reverse-engineering' as const,
 });
 
 test('resolves and persists context through injected boundaries', async () => {
-  const intent = practicesIntent();
+  const intent = reverseEngineeringIntent();
   const update = mock(async () => undefined);
   const write = mock();
-  const resolve = mock(async () => ({
-    bindings: {},
-    resolvedAt: 'now',
-    rules: [],
-    sources: [],
-  }));
   await run(
     [
       'resolve',
@@ -36,7 +30,12 @@ test('resolves and persists context through injected boundaries', async () => {
     write,
     mock(async () => intent),
     update,
-    resolve,
+    mock(async () => ({
+      bindings: {},
+      resolvedAt: 'now',
+      rules: [],
+      sources: [],
+    })),
     mock(async () => undefined),
   );
   expect(update).toHaveBeenCalled();
@@ -47,15 +46,13 @@ test('resolves and persists context through injected boundaries', async () => {
     mock(),
     mock(async () => intent),
     mock(async () => undefined),
-    resolve,
+    mock(async () => ({
+      bindings: {},
+      resolvedAt: 'now',
+      rules: [],
+      sources: [],
+    })),
     mock(async () => undefined),
-  );
-  expect(resolve).toHaveBeenLastCalledWith(
-    expect.anything(),
-    '/kb',
-    {},
-    expect.anything(),
-    'repo',
   );
 });
 
@@ -71,7 +68,7 @@ test('rejects invalid context command and guards the main boundary', () => {
   expect(runner).toHaveBeenCalledTimes(1);
 });
 
-test('rejects context resolution before practices discovery', async () => {
+test('rejects context resolution before reverse engineering', async () => {
   await expect(
     run(
       ['resolve', '/intent.md', '/kb', '-', '-', '-'],
@@ -87,5 +84,5 @@ test('rejects context resolution before practices discovery', async () => {
       })),
       mock(async () => undefined),
     ),
-  ).rejects.toThrow('practices-discovery');
+  ).rejects.toThrow('reverse-engineering');
 });

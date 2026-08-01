@@ -54,6 +54,14 @@ test('resolves valid KB rules in strict organization-team-project order', async 
   expect(
     renderAidlcKnowledgeSnapshot({ bindings: {}, rules: [], sources: [] }),
   ).toContain('None configured or found.');
+  await expect(
+    resolveAidlcKnowledgeContext(
+      filesystem,
+      '/kb',
+      { organization: undefined, project: undefined, team: undefined },
+      '2026-07-30T00:00:00.000Z',
+    ),
+  ).resolves.toMatchObject({ bindings: {} });
 });
 
 test('reads independent KB layers together while preserving rule precedence', async () => {

@@ -9,14 +9,17 @@ import {
   validateAidlcStageAssets,
 } from '../../../utils/aidlc/stage.js';
 
-test('builds one packet containing stage, roles, and sensors', () => {
+test('builds one packet containing stage, roles, knowledge, and sensors', () => {
   const packet = stagePacketFor('/agents', createAidlcIntent('repo', 'X'));
   expect(packet.stage).toBe('workspace-scaffold');
   expect(packet.rolePaths).toEqual(['/agents/agents/aidlc/delivery.md']);
   expect(packet.sensorPaths).toEqual([
     '/agents/prompts/aidlc/sensors/intent-evidence.md',
   ]);
-  expect(packet.commonPaths).toHaveLength(3);
+  expect(packet.commonPaths).toHaveLength(6);
+  expect(packet.knowledgePaths).toContain(
+    '/agents/aidlc/knowledge/roles/delivery/workflow-planning-guide.md',
+  );
 });
 
 test('rejects empty or missing stage assets', async () => {
@@ -26,6 +29,7 @@ test('rejects empty or missing stage assets', async () => {
       ...packet.commonPaths,
       packet.stagePromptPath,
       ...packet.rolePaths,
+      ...packet.knowledgePaths,
       ...packet.sensorPaths,
     ].map((path) => [path, 'content']),
   );
@@ -42,10 +46,10 @@ test('rejects empty or missing stage assets', async () => {
   );
 });
 
-test('requires resolved context before practices discovery', () => {
+test('requires resolved context before reverse engineering', () => {
   let intent = createAidlcIntent('repo', 'X');
   const index = intent.route.findIndex(
-    (record) => record.slug === 'practices-discovery',
+    (record) => record.slug === 'reverse-engineering',
   );
   intent = {
     ...intent,
@@ -58,7 +62,7 @@ test('requires resolved context before practices discovery', () => {
             ? 'active'
             : 'pending',
     })),
-    stage: 'practices-discovery',
+    stage: 'reverse-engineering',
   };
   expect(() => stagePacketFor('/agents', intent)).toThrow('resolved knowledge');
   expect(
@@ -83,7 +87,7 @@ test('refuses to reopen a completed intent', () => {
       evidence: 'verified',
       status: 'completed' as const,
     })),
-    stage: 'knowledge-distillation' as const,
+    stage: 'build-and-test' as const,
   };
   expect(() => stagePacketFor('/agents', completed)).toThrow('completed');
 });

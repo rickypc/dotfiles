@@ -2,6 +2,7 @@ import type { FileSystem } from '../filesystem.js';
 import { readText } from '../filesystem.js';
 import { type AidlcIntent, aidlcIntentStatusFor } from './intent.js';
 import {
+  knowledgePathsForStage,
   rolePromptPathFor,
   rolesForStage,
   sensorPromptPathFor,
@@ -14,6 +15,7 @@ export interface AidlcStagePacket {
   readonly commonPaths: readonly string[];
   readonly contextRequired: boolean;
   readonly intentId: string;
+  readonly knowledgePaths: readonly string[];
   readonly phase: string;
   readonly rolePaths: readonly string[];
   readonly sensorPaths: readonly string[];
@@ -22,9 +24,12 @@ export interface AidlcStagePacket {
 }
 
 const commonPromptPathsFor = (agentsRoot: string): readonly string[] => [
-  `${agentsRoot}/prompts/aidlc/common/stage-protocol.md`,
-  `${agentsRoot}/prompts/aidlc/common/question-contract.md`,
-  `${agentsRoot}/prompts/aidlc/common/methodology.md`,
+  `${agentsRoot}/aidlc/conductor.md`,
+  `${agentsRoot}/aidlc/protocols/runtime.md`,
+  `${agentsRoot}/aidlc/protocols/stage-definition.md`,
+  `${agentsRoot}/aidlc/protocols/stage-protocol.md`,
+  `${agentsRoot}/aidlc/protocols/stage-protocol-governance.md`,
+  `${agentsRoot}/aidlc/protocols/stage-protocol-recovery.md`,
 ];
 
 export const renderAidlcStagePacket = (packet: AidlcStagePacket): string =>
@@ -40,16 +45,17 @@ export const stagePacketFor = (
     );
   }
   const stage = stageDefinitionFor(intent.stage);
-  const contextRequired = intent.stage === 'practices-discovery';
+  const contextRequired = intent.stage === 'reverse-engineering';
   if (contextRequired && !intent.kbContext.resolvedAt) {
     throw new Error(
-      'Practices Discovery requires a resolved knowledge context.',
+      'Reverse Engineering requires a resolved knowledge context.',
     );
   }
   return {
     commonPaths: commonPromptPathsFor(agentsRoot),
     contextRequired,
     intentId: intent.id,
+    knowledgePaths: knowledgePathsForStage(agentsRoot, intent.stage),
     phase: stage.phase,
     rolePaths: rolesForStage(intent.stage).map((role) =>
       rolePromptPathFor(agentsRoot, role),
@@ -70,6 +76,7 @@ export const validateAidlcStageAssets = async (
     ...packet.commonPaths,
     packet.stagePromptPath,
     ...packet.rolePaths,
+    ...packet.knowledgePaths,
     ...packet.sensorPaths,
   ];
   await Promise.all(
