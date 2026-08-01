@@ -1,0 +1,4 @@
+interface:
+  display_name: "Playwright Test Generator"
+  short_description: "Generate retained acceptance-driven browser tests"
+  default_prompt: "Use $playwright-test-generator to generate retained Playwright tests from accepted UI criteria."

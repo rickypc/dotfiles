@@ -18,6 +18,10 @@ Implement the approved acceptance contract using the smallest compatible change.
    and ask before cleaning unrelated pre-existing dead code.
 3. Add focused tests and smoke checks for each changed behavior. A green final
    gate cannot prove an acceptance item that has no mapped evidence.
+   For each applicable accepted UI/web criterion, invoke
+   `playwright-test-generator` before authoring a project-local Playwright test.
+   It retains generated browser coverage, uses semantic locators and project
+   conventions, and does not install dependencies or create a second gate.
 4. Record changed files, acceptance mapping, tests/smokes, decisions, and known
    limitations. Then use the action from `utils/aidlc/command-contract.ts` to
    record this stage, or batch it with the final gate when it is the last

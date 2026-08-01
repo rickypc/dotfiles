@@ -28,6 +28,43 @@ writing. Do not create a new concept when a matching concept can be safely
 updated. A new or updated concept must include source and verification evidence
 in its body, then its parent `index.md` must list it.
 
+## Cross-topic distillation
+
+One intent may contain several atomic lessons. Do not turn that fact into one
+file per intent or duplicate the same rule in several files. First use the
+related lookup to return candidate concepts from their titles, descriptions,
+and tags. Then make one explicit disposition for each atomic lesson:
+
+| Disposition | Use when | Required result |
+| --- | --- | --- |
+| `new-primary` | No current concept owns the rule. | Create one concept as the one canonical owner. |
+| `update-existing` | A current concept already owns the rule's subject. | Update that concept with verified, non-duplicated content. |
+| `link-related` | A separate concept supplies constraints, context, or a dependent practice. | Use bundle-relative Markdown links between the concepts; do not copy the related rule. |
+
+The semantic owner is a reviewed decision, not an inference from a directory
+name. Do not infer a taxonomy. Do not move, delete, or merge existing concepts
+during reconciliation. Ambiguous ownership is a user decision.
+
+For an approved non-AIDLC reconciliation, create one fixed reconciliation
+request JSON file and invoke the deterministic command below. The request has
+one `canonicalPath`, a non-empty `operations` array, and explicit links. Each
+operation identifies its `disposition`, `relativePath`, complete `metadata`,
+replacement `body`, and factual `evidence`. The runtime validates duplicate
+paths, create/update preconditions, one canonical owner, and declared
+bundle-relative Markdown links. It validates mechanical integrity; it cannot
+prove semantic equivalence or decide ownership for the caller.
+
+| When | Required inputs | Command pattern | Result |
+| --- | --- | --- |
+| Find candidates before a distillation decision | `<private-kb-root>`, `<query>` | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated concept candidates matching the supplied query. |
+| Apply an approved multi-concept reconciliation outside AIDLC | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. |
+
+Inside AIDLC, do not call `related` or `reconcile` directly. The AIDLC
+closeout boundary owns the same fixed reconciliation request through its one
+`capture-and-begin` action. It returns every guarded source path and its one
+`finalize-and-recover` action; do not bypass that transaction with standalone
+commands.
+
 When merging an older draft, treat the current validated KB as the starting
 authority and the older draft as a candidate source. fact-check every draft-only
 claim against live implementation, current tests, or another observed evidence

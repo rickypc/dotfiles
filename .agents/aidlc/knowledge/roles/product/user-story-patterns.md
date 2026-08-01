@@ -50,33 +50,27 @@ Separate "make it work" from "make it fast."
 - Story 1: "User searches products (basic query, < 1000 results)"
 - Story 2: "User searches products with sub-200ms response across 1M+ catalog"
 
-## Acceptance Criteria: Given/When/Then
+## Acceptance Criteria: Observable Behavior
 
 ### Format
 ```
-Given [precondition / initial state]
-When [action / trigger]
-Then [expected outcome / observable result]
+Condition: [precondition / initial state]
+Action: [user action / trigger]
+Outcome: [expected observable result]
 ```
 
 ### Example
 ```
 Story: As a customer, I want to reset my password, so that I can regain access to my account.
 
-AC 1:
-Given I am on the login page
-When I click "Forgot password" and enter my registered email
-Then I receive a password reset link within 5 minutes
+AC 1: On the login page, selecting "Forgot password" and entering a
+registered email results in a password-reset link within 5 minutes.
 
-AC 2:
-Given I have received a password reset link
-When I click the link after 24 hours
-Then I see a message that the link has expired with an option to request a new one
+AC 2: Opening a password-reset link after 24 hours shows an expiration message
+and an option to request a new one.
 
-AC 3:
-Given I am resetting my password
-When I enter a password shorter than 8 characters
-Then I see a validation error and the password is not changed
+AC 3: Submitting a password shorter than 8 characters shows a validation error
+and does not change the password.
 ```
 
 ### Tips
@@ -117,7 +111,7 @@ Draw a horizontal line across the map to define your MVP — everything above th
 ## Definition of Ready Checklist
 - [ ] Story follows standard format with clear value statement
 - [ ] INVEST criteria satisfied
-- [ ] 3-6 acceptance criteria written in Given/When/Then
+- [ ] 3-6 observable acceptance criteria written in plain language
 - [ ] Dependencies identified and resolved or accepted
 - [ ] UX design reviewed (if UI-facing)
 - [ ] Team has estimated the story

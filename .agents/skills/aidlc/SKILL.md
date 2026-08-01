@@ -69,7 +69,8 @@ never a stage bypass.
    retires only after success. If a durable concept must be newly captured and
    compressed, a bare successful gate returns the recovery action. Have
    `knowledge-base` determine the disposition, create the fixed request JSON,
-   then call `capture-and-begin` once. Edit only its returned source path and
+   then call `capture-and-begin` once. Edit only its returned source path or
+   paths and
    call its one returned `finalize-and-recover` action. This validates, records
    closeout, and retires together.
 
@@ -79,7 +80,7 @@ never a stage bypass.
 | --- | --- | --- | --- | --- | --- |
 | Direct durable-Markdown work | `md-compress` | No AIDLC session; one eligible Markdown source. | Call direct `begin`, edit only its returned source, then call its returned `finalize`. | Token validation and cleanup. | Do not capture KB knowledge or infer an AIDLC session. |
 | Standalone KB capture | `knowledge-base`, then `md-compress` | Durable capture is requested outside AIDLC. | Capture the validated concept, then use the direct `md-compress` route. | Captured concept and separate direct guard receipt. | Do not claim that AIDLC began compression. |
-| AIDLC durable closeout | AIDLC closeout boundary | Passed final gate, no persisted closeout/session, and one fixed capture-request JSON file. | Call `capture-and-begin`; edit only its returned source; call only returned `finalize-and-recover`. | Captured, guarded, validated KB concept; persisted closeout; retired intent. | Do not call direct `md-compress begin`, invoke `recover`, or create a second session. |
+| AIDLC durable closeout | AIDLC closeout boundary | Passed final gate, no persisted closeout/session, and one fixed single-capture or reconciliation request JSON file. | Call `capture-and-begin`; edit only its returned source path or paths; call only returned `finalize-and-recover`. | Every captured concept guarded and validated; persisted closeout; retired intent. | Do not call direct `md-compress begin`, `related`, `reconcile`, invoke `recover`, or create a second session. |
 
 An AIDLC compression-session packet is explicit data: owner, source path,
 backup path, lock path, and one exact next action. Its absence means no AIDLC

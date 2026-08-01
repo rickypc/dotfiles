@@ -79,6 +79,14 @@ test('searches a KB through an injected search boundary', async () => {
   );
 });
 
+test('returns related concepts through the validated search boundary', async () => {
+  const write = mock();
+  const search = mock(async () => []);
+  await run(['related', '/kb', 'testing'], write, undefined, search);
+  expect(search).toHaveBeenCalledWith(expect.anything(), '/kb', 'testing');
+  expect(write).toHaveBeenCalledWith('[]');
+});
+
 test('uses CBM and shared fallback for a three-argument KB discovery search', async () => {
   const write = mock();
   const discover = mock(
@@ -103,6 +111,46 @@ test('uses CBM and shared fallback for a three-argument KB discovery search', as
     'fixture',
   );
   expect(write).toHaveBeenCalledWith(expect.stringContaining('discovery'));
+});
+
+test('reconciles through one fixed request and an injected writer', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'knowledge-base-request-'));
+  const requestPath = join(directory, 'request.json');
+  const write = mock();
+  const reconcile = mock(async () => ({ concepts: [], links: [] }));
+  try {
+    await writeFile(
+      requestPath,
+      '{"canonicalPath":"shared/testing/a.md","links":[],"operations":[]}',
+    );
+    await run(
+      ['reconcile', '/kb', requestPath],
+      write,
+      undefined,
+      undefined,
+      undefined,
+      reconcile,
+    );
+    expect(reconcile).toHaveBeenCalledWith(expect.anything(), '/kb', {
+      canonicalPath: 'shared/testing/a.md',
+      links: [],
+      operations: [],
+    });
+    expect(write).toHaveBeenCalledWith(expect.stringContaining('concepts'));
+    await writeFile(requestPath, 'not-json');
+    await expect(
+      run(
+        ['reconcile', '/kb', requestPath],
+        write,
+        undefined,
+        undefined,
+        undefined,
+        reconcile,
+      ),
+    ).rejects.toThrow('valid JSON');
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
 });
 
 test('rejects invalid KB input and guards the main boundary', async () => {

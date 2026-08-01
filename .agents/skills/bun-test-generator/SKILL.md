@@ -9,6 +9,10 @@ Use for a selected SUT and `<all>`, method list, or method range. Resolve the
 nearest `package.json` project root and use exactly
 `<project-root>/tests/<sut-relative-path-without-extension>.test.ts`.
 
+For accepted user-facing browser flows, use `playwright-test-generator` instead
+of this unit-test skill. It retains project-local browser regression tests;
+this skill remains responsible for selected JavaScript or TypeScript SUT units.
+
 For normal new-test work, generate the TypeScript Bun test directly at that
 canonical path. Jest conversion is an exception only when an existing selected
 Jest test is found; it is not a prerequisite and it never creates a parallel

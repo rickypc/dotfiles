@@ -25,6 +25,7 @@ export interface AidlcAuditEvent {
 export type AidlcAuditEventType =
   | 'approval-granted'
   | 'final-gate-failed'
+  | 'final-gate-revalidated'
   | 'intent-replanned'
   | 'intent-superseded'
   | 'knowledge-closeout'
@@ -55,13 +56,21 @@ export interface AidlcKnowledgeCloseout {
   readonly references: readonly string[];
 }
 
-export interface AidlcKnowledgeCompressionSession {
-  readonly backupPath: string;
+export interface AidlcKnowledgeCompressionBundle {
+  readonly entries: readonly AidlcKnowledgeCompressionEntry[];
   readonly kbRoot: string;
+}
+
+export interface AidlcKnowledgeCompressionEntry {
+  readonly backupPath: string;
   readonly lockPath: string;
   readonly reference: string;
   readonly sourcePath: string;
 }
+
+export type AidlcKnowledgeCompressionSession =
+  | AidlcKnowledgeCompressionBundle
+  | AidlcLegacyKnowledgeCompressionSession;
 
 export interface AidlcKnowledgeContext {
   readonly bindings: {
@@ -72,6 +81,11 @@ export interface AidlcKnowledgeContext {
   readonly resolvedAt?: string;
   readonly rules: readonly string[];
   readonly sources: readonly string[];
+}
+
+export interface AidlcLegacyKnowledgeCompressionSession
+  extends AidlcKnowledgeCompressionEntry {
+  readonly kbRoot: string;
 }
 
 export type AidlcLifecycle = 'active' | 'superseded';
@@ -348,6 +362,57 @@ export const intentPathFor = (
   return path;
 };
 
+const invalidKnowledgeCompressionSession = (): never => {
+  throw new Error('AIDLC knowledge compression session is invalid.');
+};
+
+const compressionEntryFor = (
+  value: unknown,
+  kbRoot: string,
+): AidlcKnowledgeCompressionEntry => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return invalidKnowledgeCompressionSession();
+  }
+  const entry = value as Record<string, unknown>;
+  const values = [
+    entry.backupPath,
+    entry.lockPath,
+    entry.reference,
+    entry.sourcePath,
+  ];
+  if (
+    values.some(
+      (entryValue) => typeof entryValue !== 'string' || !entryValue.trim(),
+    ) ||
+    !String(entry.sourcePath).startsWith('/') ||
+    !String(entry.backupPath).startsWith('/') ||
+    !String(entry.lockPath).startsWith('/') ||
+    !isKbConceptPath(String(entry.reference)) ||
+    String(entry.sourcePath) !== `${kbRoot}/${String(entry.reference)}`
+  ) {
+    return invalidKnowledgeCompressionSession();
+  }
+  return entry as unknown as AidlcKnowledgeCompressionEntry;
+};
+
+const compressionBundleFor = (
+  entriesValue: unknown,
+  kbRoot: string,
+): AidlcKnowledgeCompressionBundle => {
+  if (!Array.isArray(entriesValue) || entriesValue.length === 0) {
+    return invalidKnowledgeCompressionSession();
+  }
+  const entries = entriesValue.map((entry) =>
+    compressionEntryFor(entry, kbRoot),
+  );
+  if (
+    new Set(entries.map((entry) => entry.reference)).size !== entries.length
+  ) {
+    return invalidKnowledgeCompressionSession();
+  }
+  return { entries, kbRoot };
+};
+
 const optionalBooleanField = (
   data: Record<string, unknown>,
   name: string,
@@ -401,29 +466,20 @@ const parseKnowledgeCompressionSession = (
   const value = data.kb_compression_session;
   if (value === undefined) return undefined;
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('AIDLC knowledge compression session is invalid.');
+    return invalidKnowledgeCompressionSession();
   }
   const session = value as Record<string, unknown>;
-  const values = [
-    session.backupPath,
-    session.kbRoot,
-    session.lockPath,
-    session.reference,
-    session.sourcePath,
-  ];
-  if (
-    values.some((value) => typeof value !== 'string' || !value.trim()) ||
-    !String(session.kbRoot).startsWith('/') ||
-    !String(session.sourcePath).startsWith('/') ||
-    !String(session.backupPath).startsWith('/') ||
-    !String(session.lockPath).startsWith('/') ||
-    !isKbConceptPath(String(session.reference)) ||
-    String(session.sourcePath) !==
-      `${String(session.kbRoot).replace(/\/$/u, '')}/${String(session.reference)}`
-  ) {
-    throw new Error('AIDLC knowledge compression session is invalid.');
+  if (typeof session.kbRoot !== 'string' || !session.kbRoot.startsWith('/')) {
+    return invalidKnowledgeCompressionSession();
   }
-  return session as unknown as AidlcKnowledgeCompressionSession;
+  const kbRoot = session.kbRoot.replace(/\/$/u, '');
+  if (session.entries !== undefined) {
+    return compressionBundleFor(session.entries, kbRoot);
+  }
+  return {
+    ...compressionEntryFor(session, kbRoot),
+    kbRoot,
+  } as AidlcLegacyKnowledgeCompressionSession;
 };
 
 const parseKnowledgeContext = (

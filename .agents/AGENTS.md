@@ -28,9 +28,11 @@ skill already supplies the command contract.
 | --- | --- | --- |
 | `aidlc` | From `<project-root>`, `bun <agents-root>/scripts/aidlc.ts start "<intent-summary>" [--ui]`; later commands use only the returned canonical `<intent-path>` action | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` from its executing script and never accepts either root as an argument. |
 | `codebase-memory` | `discover "<approved-root>" "<cbm-index>" "<query>"` | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
-| `knowledge-base` | `search "<private-kb-root>" "<kb-cbm-index>" "<query>"` | A private-KB decision, policy, prior lesson, capture, or OKF validation is needed. |
+| `knowledge-base` | `search "<private-kb-root>" "<kb-cbm-index>" "<query>"`; for approved standalone reconciliation, `related "<private-kb-root>" "<query>"` then `reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
 | `biome-tsc-checker` | `<path> [<path>...]` | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
 | `bun-test-generator` | One SUT plus `<all>`, a method list, or a method range | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
+| `frontend-design` | Approved UI brief, affected screens, existing design system, and acceptance criteria | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
+| `playwright-test-generator` | Accepted UI/web criteria, `<project-root>`, and the project's declared Playwright runner | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
 | `content-writer` | Objective, audience, format, constraints, and citation style | Research-backed content must be drafted, refreshed, or validated. |
 | `md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>` | Durable Markdown needs lossless compression with a verified temporary backup. |
 | `skill-manager` | For two or more independent skills: `batch <intent-id> <baseline|candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> [...]`; use `packet` or `evaluate` only for one selected or targeted repair path | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
@@ -59,3 +61,6 @@ use.
   `bun-test-generator` first. Use its behavior matrix, mock or inject every
   external boundary, run `validate-boundaries`, then use `biome-tsc-checker`
   for selected paths. The one AIDLC final gate remains the only final decision.
+- For retained browser acceptance coverage, invoke `playwright-test-generator`
+  instead. It uses the selected project's local Playwright runner and does not
+  replace unit coverage or modify global dependencies.

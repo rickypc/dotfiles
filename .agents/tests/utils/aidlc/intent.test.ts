@@ -207,6 +207,80 @@ test('parses a persisted compression session and rejects malformed session metad
   ).toThrow('knowledge closeout is invalid');
 });
 
+test('parses a multi-concept compression bundle and rejects duplicate references', () => {
+  const intent = {
+    ...createAidlcIntent('repo', 'Reconciliation compression session'),
+    kbCompressionSession: {
+      entries: [
+        {
+          backupPath: '/tmp/aidlc-md-compress/a/canonical.md.original',
+          lockPath: '/tmp/aidlc-md-compress/a/canonical.md.original.lock',
+          reference: 'Users-rhuang/project/canonical.md',
+          sourcePath: '/private-kb/Users-rhuang/project/canonical.md',
+        },
+        {
+          backupPath: '/tmp/aidlc-md-compress/b/related.md.original',
+          lockPath: '/tmp/aidlc-md-compress/b/related.md.original.lock',
+          reference: 'Users-rhuang/testing/related.md',
+          sourcePath: '/private-kb/Users-rhuang/testing/related.md',
+        },
+      ],
+      kbRoot: '/private-kb',
+    },
+  };
+  expect(
+    parseAidlcIntent(renderAidlcIntent(intent)).kbCompressionSession,
+  ).toEqual(intent.kbCompressionSession);
+  const duplicate = intent.kbCompressionSession.entries.at(0);
+  if (!duplicate) throw new Error('Fixture requires one compression entry.');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession: {
+          ...intent.kbCompressionSession,
+          entries: [duplicate, duplicate],
+        },
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession: {
+          ...intent.kbCompressionSession,
+          entries: [],
+        },
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession: {
+          ...intent.kbCompressionSession,
+          entries: [
+            null as unknown as (typeof intent.kbCompressionSession.entries)[number],
+          ],
+        },
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession: {
+          ...intent.kbCompressionSession,
+          kbRoot: 'relative-kb-root',
+        },
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+});
+
 test('creates a local route and holds at the plan gate', () => {
   let intent = createAidlcIntent('repo', 'Build KB');
   expect(intent.stage).toBe('workspace-scaffold');

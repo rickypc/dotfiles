@@ -20,6 +20,8 @@ Use approved requirements and acceptance criteria, existing UI, supplied
 screenshots, current component conventions, and the design role knowledge
 paths in the packet. For brownfield UI, use codebase-memory to verify the
 existing component boundaries and behavior before proposing replacement UI.
+Use `frontend-design` when the request creates, redesigns, or visually refreshes
+the UI; it is not required for behavior-only UI changes.
 
 ## UI definition
 
@@ -37,6 +39,11 @@ implementation and verification:
 Use a visual mockup when it reduces ambiguity; otherwise a structured textual
 specification is sufficient. Link any project-owned design file from the
 central intent. Do not create a global mockup artifact tree.
+
+For each UI acceptance item, name the later browser proof. Use
+`playwright-test-generator` to turn applicable accepted browser flows into
+retained project tests; do not use MCP, browser extensions, or disposable
+exploratory test files.
 
 ## Exit
 

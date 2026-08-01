@@ -42,12 +42,11 @@ Use these in order of preference for AI-DLC:
 
 ## Acceptance Criteria Pattern
 
-Use Given/When/Then (Gherkin) format:
+Use plain observable condition, action, and outcome language:
 ```
-Given [precondition or initial state]
-When [action or trigger]
-Then [expected outcome]
-And [additional outcomes if needed]
+Condition: [precondition or initial state]
+Action: [user action or trigger]
+Outcome: [observable expected result]
 ```
 
 Each requirement should have:

@@ -50,6 +50,12 @@ const afterFinalGate = (): AidlcIntent => {
   };
 };
 
+const firstCompressionEntryFor = (intent: AidlcIntent) => {
+  const session = intent.kbCompressionSession;
+  if (!session) return undefined;
+  return 'entries' in session ? session.entries[0] : session;
+};
+
 const missingFile = (): Error & { readonly code: 'ENOENT' } =>
   Object.assign(new Error('missing'), { code: 'ENOENT' as const });
 
@@ -258,6 +264,35 @@ test('runs the final gate, persists an explicit no-capture closeout, and retires
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"retired"'));
 });
 
+test('revalidates a previously passed final gate without reopening Build and Test', async () => {
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  const write = mock();
+  const executeGate = mock(() => ({ status: 0 }));
+  await run(
+    ['complete', '/agents/aidlc/repo/intents/revalidated-terminal.md'],
+    undefined,
+    write,
+    mock(async () => afterFinalGate()),
+    update,
+    appendAudit,
+    undefined,
+    undefined,
+    undefined,
+    executeGate as unknown as AidlcGateExecutor,
+  );
+  expect(executeGate).toHaveBeenCalledTimes(1);
+  expect(update).not.toHaveBeenCalled();
+  expect(appendAudit).toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/revalidated-terminal.md',
+    expect.objectContaining({ type: 'final-gate-revalidated' }),
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('knowledge-base-closeout-and-recover'),
+  );
+});
+
 test('recovers an interrupted atomic retirement without exposing retire', async () => {
   const initial = atBuildAndTest();
   const intent = {
@@ -439,13 +474,13 @@ test('captures, guards, validates, persists closeout, and retires through one ty
     dependencies,
   );
 
-  const session = persisted.kbCompressionSession;
-  expect(session?.sourcePath).toBe(
+  const entry = firstCompressionEntryFor(persisted);
+  expect(entry?.sourcePath).toBe(
     '/private-kb/Users-rhuang/project/typed-closeout-session.md',
   );
-  expect(files.get(session?.backupPath ?? '')).toContain('`token`');
+  expect(files.get(entry?.backupPath ?? '')).toContain('`token`');
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('edit-source-then-finalize-and-recover'),
+    expect.stringContaining('edit-sources-then-finalize-and-recover'),
   );
 
   await expect(
@@ -483,8 +518,8 @@ test('captures, guards, validates, persists closeout, and retires through one ty
   ).rejects.toThrow('knowledge compression is active');
 
   files.set(
-    session?.sourcePath ?? '',
-    `${files.get(session?.sourcePath ?? '')}\n\nConcise durable result.`,
+    entry?.sourcePath ?? '',
+    `${files.get(entry?.sourcePath ?? '')}\n\nConcise durable result.`,
   );
   await run(
     ['finalize-and-recover', intentPath],
@@ -507,6 +542,118 @@ test('captures, guards, validates, persists closeout, and retires through one ty
   expect(appendAudit).toHaveBeenCalledTimes(1);
   expect(retire).toHaveBeenCalledTimes(1);
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"retired"'));
+});
+
+test('captures and guards every concept in one AIDLC reconciliation session', async () => {
+  let persisted = afterFinalGate();
+  const { dependencies, files } = closeoutDependencies();
+  files.set(
+    '/private-kb/Users-rhuang/testing/strategy.md',
+    'Existing testing strategy with `preserved-token`.',
+  );
+  const reconciliation: AidlcCloseoutDependencies = {
+    ...dependencies,
+    digest: {
+      sha256: (value: string) =>
+        value.includes('strategy') ? 'strategy' : 'reconciliation',
+    },
+    readRequest: mock(async () =>
+      JSON.stringify({
+        canonicalPath: 'Users-rhuang/project/reconciliation.md',
+        links: [
+          {
+            from: 'Users-rhuang/project/reconciliation.md',
+            to: 'Users-rhuang/testing/strategy.md',
+          },
+        ],
+        operations: [
+          {
+            body: '## Rule\n\nUse [testing strategy](/Users-rhuang/testing/strategy.md).',
+            disposition: 'new-primary',
+            evidence:
+              'The implementation and its final gate verified the rule.',
+            metadata: {
+              description: 'Canonical reconciliation practice.',
+              tags: ['aidlc', 'knowledge-base'],
+              title: 'Reconciliation practice',
+              type: 'practice',
+            },
+            relativePath: 'Users-rhuang/project/reconciliation.md',
+          },
+          {
+            body: '## Related rule\n\nKeep `preserved-token`; see [reconciliation](/Users-rhuang/project/reconciliation.md).',
+            disposition: 'link-related',
+            evidence:
+              'The implementation and its final gate verified the link.',
+            metadata: {
+              description: 'Related testing strategy.',
+              tags: ['aidlc', 'testing'],
+              title: 'Testing strategy',
+              type: 'practice',
+            },
+            relativePath: 'Users-rhuang/testing/strategy.md',
+          },
+        ],
+      }),
+    ),
+  };
+  const update = mock(
+    async (_fileSystem: unknown, _path: string, next: AidlcIntent) => {
+      persisted = next;
+    },
+  );
+  const appendAudit = mock(async () => undefined);
+  const retire = mock(async () => undefined) as typeof retireAidlcIntent;
+  const write = mock();
+  const intentPath = '/agents/aidlc/repo/intents/reconciliation-closeout.md';
+
+  await run(
+    ['capture-and-begin', intentPath, '/private-kb', '/request/reconcile.json'],
+    undefined,
+    write,
+    mock(async () => persisted),
+    update,
+    appendAudit,
+    retire,
+    undefined,
+    undefined,
+    undefined,
+    '/project',
+    reconciliation,
+  );
+
+  const session = persisted.kbCompressionSession;
+  const entries = session && 'entries' in session ? session.entries : [];
+  const strategy = entries.find(
+    (entry) => entry.reference === 'Users-rhuang/testing/strategy.md',
+  );
+  expect(entries).toHaveLength(2);
+  expect(files.get(strategy?.backupPath ?? '')).toContain('`preserved-token`');
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('edit-sources-then-finalize-and-recover'),
+  );
+
+  await run(
+    ['finalize-and-recover', intentPath],
+    undefined,
+    write,
+    mock(async () => persisted),
+    update,
+    appendAudit,
+    retire,
+    undefined,
+    undefined,
+    undefined,
+    '/project',
+    reconciliation,
+  );
+
+  expect(persisted.kbCloseout?.references).toEqual([
+    'Users-rhuang/testing/strategy.md',
+    'Users-rhuang/project/reconciliation.md',
+  ]);
+  expect(retire).toHaveBeenCalledTimes(1);
+  expect(files.has(strategy?.backupPath ?? '')).toBeFalse();
 });
 
 test('rejects malformed capture request before writing lifecycle state', async () => {
@@ -537,6 +684,37 @@ test('rejects malformed capture request before writing lifecycle state', async (
       malformed,
     ),
   ).rejects.toThrow('capture request requires');
+  expect(update).not.toHaveBeenCalled();
+
+  const malformedReconciliation: AidlcCloseoutDependencies = {
+    ...dependencies,
+    readRequest: mock(async () =>
+      JSON.stringify({
+        canonicalPath: 'Users-rhuang/project/reconciliation.md',
+      }),
+    ),
+  };
+  await expect(
+    run(
+      [
+        'capture-and-begin',
+        '/agents/aidlc/repo/intents/malformed-reconciliation.md',
+        '/private-kb',
+        '/request/reconcile.json',
+      ],
+      undefined,
+      mock(),
+      mock(async () => afterFinalGate()),
+      update,
+      mock(async () => undefined),
+      mock(async () => undefined) as typeof retireAidlcIntent,
+      undefined,
+      undefined,
+      undefined,
+      '/project',
+      malformedReconciliation,
+    ),
+  ).rejects.toThrow('reconciliation request requires');
   expect(update).not.toHaveBeenCalled();
 });
 

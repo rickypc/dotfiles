@@ -12,7 +12,11 @@ This stage runs exactly one configured final project command. The command and
 closeout forms are defined only by `utils/aidlc/command-contract.ts`.
 
 1. Confirm Code Generation recorded changed files and mapped every acceptance
-   item to a test, smoke check, or observable result. Run those focused checks
+   item to a test, smoke check, or observable result. For applicable UI/web
+   criteria, confirm the mapped retained project Playwright test and that the
+   configured final gate executes it. A missing project-local runner or gate
+   coverage leaves the criterion open; it does not authorize an implicit
+   install, MCP, browser extension, or second command. Run focused checks
    before this stage and record their outputs.
 2. Use the lifecycle final-gate action. It resolves the project configuration
    or `bun run test` default, executes it once, and emits the only valid 3.6

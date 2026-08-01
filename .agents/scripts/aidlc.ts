@@ -15,6 +15,7 @@ import {
 import {
   type AidlcIntent,
   type AidlcKnowledgeCloseout,
+  type AidlcKnowledgeCompressionEntry,
   type AidlcKnowledgeCompressionSession,
   acceptanceChecklistFor,
   aidlcIntentStatusFor,
@@ -52,6 +53,8 @@ import {
   captureConcept,
   type OkfMetadata,
   parseOkfConcept,
+  type ReconciliationPlan,
+  reconcileConcepts,
 } from '../utils/knowledge-base.js';
 import {
   claimCompressionLock,
@@ -62,6 +65,15 @@ import {
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import { runAidlcApprove } from './aidlc/approval.js';
+
+interface AidlcCaptureBatch {
+  readonly entries: readonly AidlcKnowledgeCompressionEntry[];
+  readonly receipt: unknown;
+}
+
+type AidlcCaptureOrReconciliationRequest =
+  | AidlcCaptureRequest
+  | ReconciliationPlan;
 
 interface AidlcCaptureRequest {
   readonly body: string;
@@ -154,8 +166,28 @@ const assertManualStageCommandAllowed = (
   }
 };
 
-const captureRequestFor = (content: string): AidlcCaptureRequest => {
-  const request = JSON.parse(content) as Partial<AidlcCaptureRequest>;
+const captureRequestFor = (
+  content: string,
+): AidlcCaptureOrReconciliationRequest => {
+  const request = JSON.parse(content) as Partial<
+    AidlcCaptureRequest & ReconciliationPlan
+  >;
+  if (
+    request.canonicalPath !== undefined ||
+    request.links !== undefined ||
+    request.operations !== undefined
+  ) {
+    if (
+      !request.canonicalPath?.trim() ||
+      !Array.isArray(request.links) ||
+      !Array.isArray(request.operations)
+    ) {
+      throw new Error(
+        'AIDLC reconciliation request requires canonicalPath, links, and operations.',
+      );
+    }
+    return request as ReconciliationPlan;
+  }
   if (
     !request.body?.trim() ||
     !request.evidence?.trim() ||
@@ -223,6 +255,91 @@ const completeCloseoutCommandFor = (
 };
 
 const compressionBackupRoot = (): string => join(tmpdir(), 'aidlc-md-compress');
+
+const guardEntry = async (
+  dependencies: AidlcCloseoutDependencies,
+  sourcePath: string,
+  reference: string,
+) => {
+  const guard = await guardCompression(
+    dependencies.fileSystem,
+    compressionBackupRoot(),
+    sourcePath,
+    dependencies.digest,
+  );
+  await claimCompressionLock(
+    dependencies.fileSystem,
+    guard,
+    dependencies.clock,
+    60_000,
+  );
+  return {
+    backupPath: guard.backupPath,
+    lockPath: guard.lockPath,
+    reference,
+    sourcePath,
+  };
+};
+
+const captureReconciliationAndBegin = async (
+  request: ReconciliationPlan,
+  kbRoot: string,
+  dependencies: AidlcCloseoutDependencies,
+): Promise<AidlcCaptureBatch> => {
+  const entries: AidlcKnowledgeCompressionEntry[] = [];
+  for (const operation of request.operations) {
+    if (operation.disposition === 'new-primary') continue;
+    const sourcePath = `${kbRoot.replace(/\/$/u, '')}/${operation.relativePath}`;
+    entries.push(
+      await guardEntry(dependencies, sourcePath, operation.relativePath),
+    );
+  }
+  const receipt = await reconcileConcepts(
+    dependencies.fileSystem,
+    kbRoot,
+    request,
+  );
+  for (const operation of request.operations) {
+    if (operation.disposition !== 'new-primary') continue;
+    const sourcePath = `${kbRoot.replace(/\/$/u, '')}/${operation.relativePath}`;
+    entries.push(
+      await guardEntry(dependencies, sourcePath, operation.relativePath),
+    );
+  }
+  return { entries, receipt };
+};
+
+const captureSingleAndBegin = async (
+  request: AidlcCaptureRequest,
+  kbRoot: string,
+  dependencies: AidlcCloseoutDependencies,
+): Promise<AidlcCaptureBatch> => {
+  const captured = await captureConcept(
+    dependencies.fileSystem,
+    kbRoot,
+    request.relativePath,
+    request.metadata,
+    request.body,
+    request.evidence,
+  );
+  return {
+    entries: [
+      await guardEntry(
+        dependencies,
+        captured.conceptPath,
+        request.relativePath,
+      ),
+    ],
+    receipt: captured,
+  };
+};
+
+const isReconciliationRequest = (
+  request: AidlcCaptureOrReconciliationRequest,
+): request is ReconciliationPlan => 'operations' in request;
+
+const sessionEntriesFor = (session: AidlcKnowledgeCompressionSession) =>
+  'entries' in session ? session.entries : [session];
 
 const systemClock: AidlcCloseoutDependencies['clock'] = { now: Date.now };
 
@@ -394,13 +511,20 @@ const runBuildAndTest = async (
     executeGate,
   );
   if (result.exitCode === 0) {
-    const next = completeAidlcStage(intent, result.receipt);
-    await update(nodeFileSystem, intentPath, next);
+    const stageIsCompleted =
+      intent.route.find((record) => record.slug === intent.stage)?.status ===
+      'completed';
+    const next = stageIsCompleted
+      ? intent
+      : completeAidlcStage(intent, result.receipt);
+    if (!stageIsCompleted) {
+      await update(nodeFileSystem, intentPath, next);
+    }
     await appendAudit(nodeFileSystem, intentPath, {
       at: new Date().toISOString(),
       detail: result.receipt,
       stage: intent.stage,
-      type: 'stage-completed',
+      type: stageIsCompleted ? 'final-gate-revalidated' : 'stage-completed',
     });
     if (closeout) {
       const closed = withAidlcKnowledgeCloseout(next, closeout);
@@ -539,32 +663,12 @@ const runCaptureAndBegin = async (
   const request = captureRequestFor(
     await dependencies.readRequest(requestPath),
   );
-  const captured = await captureConcept(
-    dependencies.fileSystem,
-    kbRoot,
-    request.relativePath,
-    request.metadata,
-    request.body,
-    request.evidence,
-  );
-  const guard = await guardCompression(
-    dependencies.fileSystem,
-    compressionBackupRoot(),
-    captured.conceptPath,
-    dependencies.digest,
-  );
-  await claimCompressionLock(
-    dependencies.fileSystem,
-    guard,
-    dependencies.clock,
-    60_000,
-  );
+  const capture = isReconciliationRequest(request)
+    ? await captureReconciliationAndBegin(request, kbRoot, dependencies)
+    : await captureSingleAndBegin(request, kbRoot, dependencies);
   const session: AidlcKnowledgeCompressionSession = {
-    backupPath: guard.backupPath,
+    entries: capture.entries,
     kbRoot,
-    lockPath: guard.lockPath,
-    reference: request.relativePath,
-    sourcePath: captured.conceptPath,
   };
   await update(nodeFileSystem, intentPath, {
     ...intent,
@@ -572,10 +676,10 @@ const runCaptureAndBegin = async (
   });
   write(
     JSON.stringify({
-      capture: captured,
+      capture: capture.receipt,
       compressionSession: session,
       next: {
-        action: 'edit-source-then-finalize-and-recover',
+        action: 'edit-sources-then-finalize-and-recover',
         args: ['finalize-and-recover', intentPath],
       },
     }),
@@ -602,19 +706,22 @@ const runFinalizeAndRecover = async (
       'finalize-and-recover requires an active AIDLC knowledge compression session.',
     );
   }
-  const guard = await resumeCompressionGuard(
-    dependencies.fileSystem,
-    compressionBackupRoot(),
-    session.sourcePath,
-    dependencies.digest,
-  );
-  await finalizeCompression(dependencies.fileSystem, session.sourcePath, guard);
-  parseOkfConcept(await readText(dependencies.fileSystem, session.sourcePath));
+  const entries = sessionEntriesFor(session);
+  for (const entry of entries) {
+    const guard = await resumeCompressionGuard(
+      dependencies.fileSystem,
+      compressionBackupRoot(),
+      entry.sourcePath,
+      dependencies.digest,
+    );
+    await finalizeCompression(dependencies.fileSystem, entry.sourcePath, guard);
+    parseOkfConcept(await readText(dependencies.fileSystem, entry.sourcePath));
+  }
   const closeout: AidlcKnowledgeCloseout = {
     completedAt: new Date().toISOString(),
     disposition: 'captured',
-    evidence: `Captured and validated KB concepts: ${session.reference}.`,
-    references: [session.reference],
+    evidence: `Captured and validated KB concepts: ${entries.map((entry) => entry.reference).join(', ')}.`,
+    references: entries.map((entry) => entry.reference),
   };
   const next = withAidlcKnowledgeCloseout(
     { ...intent, kbCompressionSession: undefined },

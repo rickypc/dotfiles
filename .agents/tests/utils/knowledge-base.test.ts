@@ -5,6 +5,7 @@ import {
   conceptIndexPath,
   isKbConceptPath,
   parseOkfConcept,
+  reconcileConcepts,
   renderCapturedConcept,
   renderDirectoryIndex,
   renderLessonBody,
@@ -67,7 +68,7 @@ test('captures a concept and updates both deterministic indexes', async () => {
     'Observed evidence.',
   );
   expect(writes.get('/kb/shared/agent/index.md')).toContain(
-    '[lesson](lesson.md)',
+    '[T](lesson.md) - d',
   );
   expect(writes.get('/kb/shared/index.md')).toContain(
     '[agent/index](agent/index.md)',
@@ -194,6 +195,204 @@ test('parses YAML metadata and rejects invalid tag metadata', () => {
       '---\ntags: [team]\ntype: note\ntitle: T\ndescription: 1\n---\n',
     ),
   ).toThrow('description');
+});
+
+test('preserves optional OKF metadata and reconciles linked concepts', async () => {
+  const metadata = {
+    description: 'Browser testing constraints.',
+    generated: { at: '2026-08-01T00:00:00Z', by: 'process:test' },
+    tags: ['testing', 'playwright'],
+    title: 'Playwright testing',
+    type: 'practice',
+  };
+  expect(
+    parseOkfConcept(renderOkfConcept(metadata, 'Body.')).generated,
+  ).toEqual(metadata.generated);
+  const files = new Map<string, string>();
+  files.set(
+    '/kb/shared/testing/strategy.md',
+    renderOkfConcept(
+      {
+        description: 'General strategy.',
+        tags: ['testing'],
+        title: 'Strategy',
+        type: 'practice',
+      },
+      'Existing rules.',
+    ),
+  );
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async (path: string) => {
+      const value = files.get(path);
+      if (value === undefined)
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      return value;
+    },
+    rm: async () => undefined,
+    writeFile: async (path: string, content: string) => {
+      files.set(path, content);
+    },
+  };
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: 'shared/testing/playwright.md',
+      links: [
+        {
+          from: 'shared/testing/playwright.md',
+          to: 'shared/testing/strategy.md',
+        },
+        {
+          from: 'shared/testing/strategy.md',
+          to: 'shared/testing/playwright.md',
+        },
+      ],
+      operations: [
+        {
+          body: 'See [strategy](/shared/testing/strategy.md).',
+          disposition: 'new-primary',
+          evidence: 'Validated.',
+          metadata,
+          relativePath: 'shared/testing/playwright.md',
+        },
+        {
+          body: 'See [Playwright](/shared/testing/playwright.md).',
+          disposition: 'update-existing',
+          evidence: 'Validated.',
+          metadata: {
+            description: 'General strategy.',
+            tags: ['testing'],
+            title: 'Strategy',
+            type: 'practice',
+          },
+          relativePath: 'shared/testing/strategy.md',
+        },
+      ],
+    }),
+  ).resolves.toMatchObject({
+    concepts: [
+      { conceptPath: '/kb/shared/testing/playwright.md' },
+      { conceptPath: '/kb/shared/testing/strategy.md' },
+    ],
+  });
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: 'shared/testing/playwright.md',
+      links: [],
+      operations: [],
+    }),
+  ).rejects.toThrow('at least one operation');
+});
+
+test('rejects unsafe reconciliation plans', async () => {
+  const files = new Map<string, string>();
+  const metadata = {
+    description: 'General strategy.',
+    tags: ['testing'],
+    title: 'Strategy',
+    type: 'practice',
+  };
+  files.set(
+    '/kb/shared/testing/strategy.md',
+    renderOkfConcept(metadata, 'Existing rules.'),
+  );
+  files.set(
+    '/kb/shared/testing/playwright.md',
+    renderOkfConcept(metadata, 'Existing rules.'),
+  );
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async (path: string) => {
+      const value = files.get(path);
+      if (value === undefined)
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      return value;
+    },
+    rm: async () => undefined,
+    writeFile: async (path: string, content: string) => {
+      files.set(path, content);
+    },
+  };
+  const update = {
+    body: 'Existing body.',
+    disposition: 'update-existing' as const,
+    evidence: 'Validated.',
+    metadata: {
+      description: 'General strategy.',
+      tags: ['testing'],
+      title: 'Strategy',
+      type: 'practice',
+    },
+    relativePath: 'shared/testing/strategy.md',
+  };
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: '../invalid.md',
+      links: [],
+      operations: [update],
+    }),
+  ).rejects.toThrow('Invalid KB');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: 'shared/testing/missing.md',
+      links: [],
+      operations: [update],
+    }),
+  ).rejects.toThrow('canonical owner');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: update.relativePath,
+      links: [{ from: update.relativePath, to: 'shared/testing/missing.md' }],
+      operations: [update],
+    }),
+  ).rejects.toThrow('links must connect');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: update.relativePath,
+      links: [{ from: update.relativePath, to: update.relativePath }],
+      operations: [update],
+    }),
+  ).rejects.toThrow('missing declared link');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: 'shared/testing/playwright.md',
+      links: [],
+      operations: [
+        {
+          ...update,
+          relativePath: 'shared/testing/playwright.md',
+        },
+        update,
+        update,
+      ],
+    }),
+  ).rejects.toThrow('duplicate path');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: update.relativePath,
+      links: [],
+      operations: [{ ...update, body: '' }],
+    }),
+  ).rejects.toThrow('body and evidence');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: update.relativePath,
+      links: [],
+      operations: [{ ...update, disposition: 'new-primary' }],
+    }),
+  ).rejects.toThrow('new-primary already exists');
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: 'shared/testing/absent.md',
+      links: [],
+      operations: [
+        {
+          ...update,
+          relativePath: 'shared/testing/absent.md',
+        },
+      ],
+    }),
+  ).rejects.toThrow('requires an existing concept');
 });
 
 test('searches validated KB concepts and returns an empty result when absent', async () => {

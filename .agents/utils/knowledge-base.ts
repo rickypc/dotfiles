@@ -14,6 +14,12 @@ export interface CapturedConcept {
   readonly subjectIndexPath: string;
 }
 
+export interface DirectoryIndexEntry {
+  readonly description?: string;
+  readonly path: string;
+  readonly title?: string;
+}
+
 export interface KnowledgeBaseSearchReceipt {
   readonly concepts: readonly KnowledgeSearchResult[];
   readonly discovery: CbmSearchFallbackReceipt;
@@ -38,6 +44,36 @@ export interface OkfMetadata {
   readonly tags: readonly string[];
   readonly title: string;
   readonly type: string;
+  readonly [key: string]: unknown;
+}
+
+export type ReconciliationDisposition =
+  | 'link-related'
+  | 'new-primary'
+  | 'update-existing';
+
+export interface ReconciliationLink {
+  readonly from: string;
+  readonly to: string;
+}
+
+export interface ReconciliationOperation {
+  readonly body: string;
+  readonly disposition: ReconciliationDisposition;
+  readonly evidence: string;
+  readonly metadata: OkfMetadata;
+  readonly relativePath: string;
+}
+
+export interface ReconciliationPlan {
+  readonly canonicalPath: string;
+  readonly links: readonly ReconciliationLink[];
+  readonly operations: readonly ReconciliationOperation[];
+}
+
+export interface ReconciliationReceipt {
+  readonly concepts: readonly CapturedConcept[];
+  readonly links: readonly ReconciliationLink[];
 }
 
 const conceptPath =
@@ -65,6 +101,8 @@ const indexChildren = (content: string): readonly string[] =>
   [...content.matchAll(/^- \[[^\]]+\]\(([^)]+)\)$/gmu)].map(
     (match) => match[1],
   );
+
+const linkTarget = (path: string): string => `](/${path})`;
 
 const optionalDirectory = async (
   fileSystem: FileSystem,
@@ -109,21 +147,30 @@ const readOptionalText = async (
 
 export const renderDirectoryIndex = (
   title: string,
-  children: readonly string[],
+  children: readonly (DirectoryIndexEntry | string)[],
 ): string => {
   if (!title.trim()) {
     throw new Error('KB index title is required.');
   }
-  const links = [...new Set(children)]
-    .sort()
-    .map((child) => `- [${child.replace(/\.md$/u, '')}](${child})`);
+  const entries = new Map<string, DirectoryIndexEntry>();
+  for (const child of children) {
+    const entry = typeof child === 'string' ? { path: child } : child;
+    entries.set(entry.path, entry);
+  }
+  const links = [...entries.values()]
+    .sort((left, right) => left.path.localeCompare(right.path))
+    .map((entry) => {
+      const label = entry.title ?? entry.path.replace(/\.md$/u, '');
+      const description = entry.description ? ` - ${entry.description}` : '';
+      return `- [${label}](${entry.path})${description}`;
+    });
   return [`# ${title.trim()}`, '', ...links, ''].join('\n');
 };
 
 const mergedDirectoryIndex = (
   existing: string | undefined,
   title: string,
-  child: string,
+  child: DirectoryIndexEntry | string,
 ): string =>
   renderDirectoryIndex(title, [
     ...(existing ? indexChildren(existing) : []),
@@ -189,9 +236,10 @@ export const parseOkfConcept = (content: string): OkfMetadata => {
   ) {
     throw new Error('OKF metadata field is required: tags');
   }
-  const metadata = {
+  const metadata: OkfMetadata = {
+    ...parsed.data,
     description: stringMetadata(parsed.data, 'description'),
-    tags: tagsValue,
+    tags: tagsValue as readonly string[],
     title: stringMetadata(parsed.data, 'title'),
     type: stringMetadata(parsed.data, 'type'),
   };
@@ -257,7 +305,11 @@ export const captureConcept = async (
     writeText(
       fileSystem,
       subjectIndexFilePath,
-      mergedDirectoryIndex(existingSubjectIndex, subject, concept),
+      mergedDirectoryIndex(existingSubjectIndex, subject, {
+        description: metadata.description,
+        path: concept,
+        title: metadata.title,
+      }),
     ),
     writeText(
       fileSystem,
@@ -348,4 +400,113 @@ export const searchKnowledgeBaseWithFallback = async (
     concepts,
     discovery,
   };
+};
+
+const validateReconciliationHeader = (plan: ReconciliationPlan): void => {
+  if (!isKbConceptPath(plan.canonicalPath)) {
+    throw new Error(`Invalid KB concept path: ${plan.canonicalPath}`);
+  }
+  if (plan.operations.length === 0) {
+    throw new Error('KB reconciliation requires at least one operation.');
+  }
+  if (
+    plan.operations.filter(
+      (operation) => operation.relativePath === plan.canonicalPath,
+    ).length !== 1
+  ) {
+    throw new Error('KB reconciliation requires exactly one canonical owner.');
+  }
+};
+
+const validateReconciliationLinks = (
+  plan: ReconciliationPlan,
+  paths: ReadonlySet<string>,
+): void => {
+  for (const link of plan.links) {
+    if (!paths.has(link.from) || !paths.has(link.to)) {
+      throw new Error('KB reconciliation links must connect planned concepts.');
+    }
+    const source = plan.operations.find(
+      (operation) => operation.relativePath === link.from,
+    );
+    if (!source?.body.includes(linkTarget(link.to))) {
+      throw new Error(
+        `KB reconciliation is missing declared link: ${link.from} -> ${link.to}`,
+      );
+    }
+  }
+};
+
+const validateReconciliationOperation = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+  operation: ReconciliationOperation,
+  paths: Set<string>,
+): Promise<void> => {
+  if (
+    !isKbConceptPath(operation.relativePath) ||
+    paths.has(operation.relativePath)
+  ) {
+    throw new Error(
+      `KB reconciliation has an invalid or duplicate path: ${operation.relativePath}`,
+    );
+  }
+  paths.add(operation.relativePath);
+  validateOkfMetadata(operation.metadata);
+  if (!operation.body.trim() || !operation.evidence.trim()) {
+    throw new Error(
+      `KB reconciliation requires body and evidence: ${operation.relativePath}`,
+    );
+  }
+  const existing = await readOptionalText(
+    fileSystem,
+    `${kbRoot.replace(/\/$/u, '')}/${operation.relativePath}`,
+  );
+  if (operation.disposition === 'new-primary' && existing) {
+    throw new Error(
+      `KB reconciliation new-primary already exists: ${operation.relativePath}`,
+    );
+  }
+  if (operation.disposition !== 'new-primary' && !existing) {
+    throw new Error(
+      `KB reconciliation requires an existing concept: ${operation.relativePath}`,
+    );
+  }
+};
+
+const validateReconciliationPlan = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+  plan: ReconciliationPlan,
+): Promise<void> => {
+  validateReconciliationHeader(plan);
+  const paths = new Set<string>();
+  for (const operation of plan.operations) {
+    await validateReconciliationOperation(fileSystem, kbRoot, operation, paths);
+  }
+  validateReconciliationLinks(plan, paths);
+};
+
+export const reconcileConcepts = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+  plan: ReconciliationPlan,
+): Promise<ReconciliationReceipt> => {
+  if (!kbRoot.startsWith('/'))
+    throw new Error('KB root must be an absolute path.');
+  await validateReconciliationPlan(fileSystem, kbRoot, plan);
+  const concepts: CapturedConcept[] = [];
+  for (const operation of plan.operations) {
+    concepts.push(
+      await captureConcept(
+        fileSystem,
+        kbRoot,
+        operation.relativePath,
+        operation.metadata,
+        operation.body,
+        operation.evidence,
+      ),
+    );
+  }
+  return { concepts, links: plan.links };
 };

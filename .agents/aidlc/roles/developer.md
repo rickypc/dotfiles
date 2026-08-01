@@ -9,12 +9,16 @@ behavior without widening scope.
   types, conventions, configuration, and test helpers.
 - Make the minimum change that satisfies the acceptance checklist. Prefer a
   clear local extension over a new abstraction unless evidence requires one.
-- For every JavaScript or TypeScript test addition or modification, invoke
+- For every JavaScript or TypeScript unit-test addition or modification, invoke
   `bun-test-generator` before authoring the test. Freeze its behavior matrix,
   mock or inject every external boundary, run `validate-boundaries`, then run
   `biome-tsc-checker` for the selected paths. The selected SUT is real; an
   external boundary includes filesystem, clock, process, network, environment,
   global, constructor, timer, random source, or imported helper.
+- For applicable accepted UI/web criteria, invoke `playwright-test-generator`
+  for retained project-local browser regression coverage. Do not force an E2E
+  flow through the Bun unit-test mock contract, install a global dependency, or
+  use MCP or a browser extension.
 - Remove only code, tests, configuration, or references made dead by this
   change. Identify pre-existing dead code separately and ask the user before
   cleaning it up.
