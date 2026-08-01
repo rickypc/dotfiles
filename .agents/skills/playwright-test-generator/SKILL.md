@@ -26,13 +26,15 @@ condition, action, and outcome language. Do not use Gherkin.
 Read the selected project's manifest and Playwright configuration before using
 any command. Each placeholder below is a value declared by that project; do not
 invent a fallback command or run an installation command.
+Apply `aidlc/knowledge/shared/command-catalog.md`; this table is ordered from
+the normal flow to diagnostic work.
 
-| When | Required inputs | Project command pattern | Result |
-| --- | --- | --- | --- |
-| Discover test ownership | `<project-root>` | Read the project manifest and Playwright configuration. | Declared runner, test path, start path, and artifact policy. |
-| Run retained flow coverage | `<project-playwright-test-command>`, `<test-path>` | `<project-playwright-test-command> <test-path>` | Focused proof for one accepted flow. |
-| Run a configured browser | `<project-playwright-test-command>`, `<test-path>`, `<configured-browser>` | `<project-playwright-test-command> <test-path> --project <configured-browser>` | Browser-specific proof only when the project config defines that browser. |
-| Collect a configured diagnostic trace | `<project-playwright-test-command>`, `<test-path>`, `<project-trace-option>` | `<project-playwright-test-command> <test-path> <project-trace-option>` | Project-owned failure/debug artifact; not a final gate. |
+| Priority | When | Required inputs | Project command | Result | Next |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Discover test ownership. | `<project-root>` | Read the project manifest and Playwright configuration. | Declared runner, test path, start path, and artifact policy. | Map accepted criteria before generating coverage. |
+| 2 | Run retained flow coverage. | `<project-playwright-test-command>`, `<test-path>` | `<project-playwright-test-command> <test-path>` | Focused proof for one accepted flow. | Map the result to the acceptance criterion. |
+| 3 | Run a configured browser. | `<project-playwright-test-command>`, `<test-path>`, `<configured-browser>` | `<project-playwright-test-command> <test-path> --project <configured-browser>` | Browser-specific proof only when the project config defines that browser. | Report the configured-browser result. |
+| 4 | Collect a configured diagnostic trace. | `<project-playwright-test-command>`, `<test-path>`, `<project-trace-option>` | `<project-playwright-test-command> <test-path> <project-trace-option>` | Project-owned failure/debug artifact; not a final gate. | Repair the failed accepted behavior, then rerun the retained flow. |
 
 ## Acceptance-to-test workflow
 

@@ -275,6 +275,7 @@ const knowledgeFilesByStage: Readonly<
 > = {
   'application-design': [
     'shared/brownfield.md',
+    'shared/command-catalog.md',
     'roles/architect/adr-template.md',
     'roles/architect/architecture-patterns.md',
   ],
@@ -293,6 +294,7 @@ const knowledgeFilesByStage: Readonly<
     'roles/developer/re-artifacts.md',
   ],
   'delivery-planning': [
+    'shared/command-catalog.md',
     'shared/verification.md',
     'roles/delivery/team-topologies.md',
     'roles/delivery/workflow-planning-guide.md',
@@ -356,6 +358,7 @@ const knowledgeFilesByStage: Readonly<
   ],
   'state-init': [],
   'units-generation': [
+    'shared/command-catalog.md',
     'shared/verification.md',
     'roles/architect/architecture-guide.md',
     'roles/delivery/workflow-planning-guide.md',

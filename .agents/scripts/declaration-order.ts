@@ -17,7 +17,7 @@ interface DeclarationOrderScriptCheck {
 }
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/declaration-order.ts [--apply] [--summary] <path> [<path>...]';
+  'Usage: bun <agents-root>/scripts/declaration-order.ts <path>; use the biome-tsc-checker command catalog for apply and summary variants.';
 
 export const run = async (
   args: readonly string[],

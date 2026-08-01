@@ -3,7 +3,7 @@ import type { CheckResult, CheckStatus } from '../utils/contracts.js';
 import { requirePassingChecks, summarizeChecks } from '../utils/validation.js';
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/validate.ts <name>:<blocked|failed|not-applicable|passed>:<detail> [...]';
+  'Usage: bun <agents-root>/scripts/validate.ts <name>:<blocked|failed|not-applicable|passed>:<detail>';
 
 const statuses = new Set<CheckStatus>([
   'passed',

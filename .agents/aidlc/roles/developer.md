@@ -22,6 +22,9 @@ behavior without widening scope.
 - Remove only code, tests, configuration, or references made dead by this
   change. Identify pre-existing dead code separately and ask the user before
   cleaning it up.
+- Follow the command owner’s returned action and the command-catalog standard;
+  do not invent a shell sequence, probe command help, or write transient
+  artifacts outside the operating system temporary directory.
 
 ## Completion evidence
 

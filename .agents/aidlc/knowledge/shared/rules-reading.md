@@ -17,10 +17,11 @@ the private KB root. knowledge-base alone does that.
 
 - Read the user and applicable project instructions before planning.
 - Before committing Approval Handoff, ask knowledge-base to resolve only
-  concepts that materially affect the change, then pass its validated bindings
-  to `aidlc.ts approve ... --context ...`. The shared context utility validates
-  allowed concept prefixes and parses their OKF frontmatter. The separate
-  context script is recovery-only for older already-approved intents.
+  concepts that materially affect the change, then use the canonical AIDLC
+  command-catalog row for approval with validated context. The shared context
+  utility validates allowed concept prefixes and parses their OKF frontmatter.
+  The separate context script is recovery-only for older already-approved
+  intents.
 - Use codebase-memory for code facts. It has its own staged fallback; do not
   invoke CBM, MCP, CLI, grep, or a path guess directly.
 - Treat a concept's `ALWAYS` or `NEVER` rule as a constraint. Conflicting

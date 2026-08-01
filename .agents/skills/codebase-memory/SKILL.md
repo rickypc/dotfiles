@@ -24,7 +24,28 @@ when it is nested under another indexed root or excluded from that parent’s
 graph; choose by the project list and the intended root, not path ancestry.
 
 Use the smallest read that answers the question. Commands are exact flags, not
-JSON payloads.
+JSON payloads. Apply `aidlc/knowledge/shared/command-catalog.md` to every
+derived command table.
+
+## Command catalog
+
+| Priority | When | Command | Result | Next |
+| --- | --- | --- | --- | --- |
+| 1 | One code, symbol, call-path, architecture, or literal-text question is needed. | `bun <agents-root>/scripts/codebase-memory.ts discover "<approved-root>" "<cbm-index>" "<query>"` | One ordered CBM-first fallback receipt. | Read its attempts; never rerun one listed attempt. |
+| 2 | Several independent CBM reads are needed for one research decision. | `bun <agents-root>/scripts/codebase-memory.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"` | One resolved CBM index, one readiness result, and one ordered entry per requested read. | Use the receipt; do not run its individual CBM commands separately. |
+| 3 | The runtime explicitly needs one primitive operation that is not represented by discovery or inspection. | Use the exact flag command from the primitive catalog below. | One primitive CLI response. | Do not add a shell wrapper, JSON payload, help probe, or guessed retry. |
+
+The inspection request is JSONL only as script-local input. Every nonblank line
+is one validated operation; CBM receives documented flags only:
+
+```jsonl
+{"operation":"architecture","path":"<directory-prefix>"}
+{"operation":"schema"}
+{"operation":"search-graph","namePattern":"<regular-expression>","label":"<graph-label>","limit":<positive-integer>}
+{"operation":"snippet","qualifiedName":"<qualified-name>"}
+{"operation":"trace","qualifiedName":"<qualified-name>","direction":"<inbound-or-outbound>","depth":<positive-integer>}
+{"operation":"search-code","pattern":"<literal-pattern>","limit":<positive-integer>}
+```
 
 For a keyword or symbol discovery request, use the shared fallback command
 instead of separately retrying CBM or `rg`. It reads CBM first. A CBM graph
@@ -48,7 +69,7 @@ CBM_LOG_LEVEL=error codebase-memory-mcp cli get_graph_schema --project "<cbm-ind
 CBM_LOG_LEVEL=error codebase-memory-mcp cli search_graph --project "<cbm-index>" --name-pattern '.*<symbol-or-keyword>.*' --label "<label>" --limit 20
 CBM_LOG_LEVEL=error codebase-memory-mcp cli search_code --project "<cbm-index>" --pattern "<literal>" --mode compact --limit "<limit>"
 CBM_LOG_LEVEL=error codebase-memory-mcp cli get_code_snippet --project "<cbm-index>" --qualified-name "<qualified-name>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli trace_path --project "<cbm-index>" --function-name "<qualified-name>" --direction both --depth 3 --mode calls
+CBM_LOG_LEVEL=error codebase-memory-mcp cli trace_path --project "<cbm-index>" --function-name "<qualified-name>" --direction "<inbound-or-outbound>" --depth "<positive-integer>" --mode calls
 CBM_LOG_LEVEL=error codebase-memory-mcp cli detect_changes --project "<cbm-index>" --scope "<path-or-scope>"
 CBM_LOG_LEVEL=error codebase-memory-mcp cli get_architecture --project "<cbm-index>" --path "<directory-prefix>"
 CBM_LOG_LEVEL=error codebase-memory-mcp cli query_graph --project "<cbm-index>" --query '<cypher-query>' --max-rows 100

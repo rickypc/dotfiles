@@ -818,7 +818,7 @@ export const retireAidlcIntent = async (
   }
   if (!intent.kbCloseout) {
     throw new Error(
-      'Knowledge-base closeout is required before retirement; use complete <intent-path> --closeout ... at the final gate, or recover <intent-path> ... after a bare gate passes.',
+      'Knowledge-base closeout is required before retirement. Use the canonical final-gate closeout command or the exact recovery action returned after a bare gate pass.',
     );
   }
   await removeFile(fileSystem, path);

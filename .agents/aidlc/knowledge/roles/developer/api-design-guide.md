@@ -44,12 +44,12 @@ Use a consistent envelope for every error. Include a machine-readable code, a hu
 ```json
 {
   "error": {
-    "code": "VALIDATION_FAILED",
-    "message": "One or more fields failed validation.",
+    "code": "<error-code>",
+    "message": "<human-readable-message>",
     "details": [
-      { "field": "email", "reason": "Must be a valid email address." }
+      { "field": "<field-name>", "reason": "<validation-reason>" }
     ],
-    "requestId": "abc-123"
+    "requestId": "<request-id>"
   }
 }
 ```

@@ -1,11 +1,24 @@
+import { tmpdir } from 'node:os';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
 import {
   cbmCommands,
+  inspectCbm,
+  parseCbmInspectionJsonl,
+  resolveCbmProjectForRoot,
   searchWithCbmFallback,
 } from '../utils/codebase-memory.js';
 import type { CommandSpec } from '../utils/contracts.js';
+import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import { bunExecutor } from '../utils/process.js';
 import { commandText } from '../utils/search-fallback.js';
+
+const isTemporaryRequestPath = (
+  requestPath: string,
+  temporaryDirectory: string,
+): boolean => {
+  const base = temporaryDirectory.replace(/\/+$/u, '');
+  return requestPath.startsWith(`${base}/`);
+};
 
 const listProjectsFor = (
   command: string,
@@ -35,8 +48,46 @@ const commandForSimple = (
   return undefined;
 };
 
+const runInspect = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  read: (path: string) => Promise<string | Buffer>,
+  resolve: typeof resolveCbmProjectForRoot,
+  inspect: typeof inspectCbm,
+  temporaryDirectory: string,
+): Promise<boolean> => {
+  const [command, root, requestPath] = args;
+  if (command !== 'inspect' || !root || !requestPath || args.length !== 3) {
+    return false;
+  }
+  if (
+    !root.startsWith('/') ||
+    !isTemporaryRequestPath(requestPath, temporaryDirectory)
+  ) {
+    throw new Error(
+      'inspect requires an absolute <approved-root> and an absolute JSONL request path under the OS temporary directory.',
+    );
+  }
+  const [project, request] = await Promise.all([
+    resolve(root, bunExecutor),
+    read(requestPath),
+  ]);
+  write(
+    JSON.stringify(
+      await inspect(
+        bunExecutor,
+        { index: project, root },
+        parseCbmInspectionJsonl(String(request)),
+      ),
+      null,
+      2,
+    ),
+  );
+  return true;
+};
+
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/codebase-memory.ts <architecture|discover|index-status|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
+  'Usage: bun <agents-root>/scripts/codebase-memory.ts <architecture|discover|index-status|inspect|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
 
 const positiveLimit = (value: string): number => {
   const limit = Number(value);
@@ -121,7 +172,16 @@ export const run = async (
   args: readonly string[],
   write: (message: string) => void = console.log,
   search = searchWithCbmFallback,
+  read: (path: string) => Promise<string | Buffer> = readText.bind(
+    undefined,
+    nodeFileSystem,
+  ),
+  resolve = resolveCbmProjectForRoot,
+  inspect = inspectCbm,
+  temporaryDirectory = tmpdir(),
 ): Promise<void> => {
+  if (await runInspect(args, write, read, resolve, inspect, temporaryDirectory))
+    return;
   const [command, root, project, query] = args;
   if (command === 'discover' && root && project && query && args.length === 4) {
     write(

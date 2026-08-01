@@ -94,13 +94,13 @@ When using exceptions, follow this hierarchy:
 ### Structured Logging
 ```json
 {
-  "level": "INFO",
-  "message": "Order placed successfully",
-  "orderId": "ord-123",
-  "customerId": "cust-456",
-  "totalAmount": 99.99,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "correlationId": "req-789"
+  "level": "<log-level>",
+  "message": "<event-message>",
+  "orderId": "<order-id>",
+  "customerId": "<customer-id>",
+  "totalAmount": "<amount>",
+  "timestamp": "<timestamp>",
+  "correlationId": "<correlation-id>"
 }
 ```
 

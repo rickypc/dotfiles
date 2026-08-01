@@ -79,6 +79,7 @@ test('maps every active stage to universal role, sensor, and prompt assets', () 
   ]);
   expect(knowledgePathsForStage('/agents', 'application-design')).toEqual([
     '/agents/aidlc/knowledge/shared/brownfield.md',
+    '/agents/aidlc/knowledge/shared/command-catalog.md',
     '/agents/aidlc/knowledge/roles/architect/adr-template.md',
     '/agents/aidlc/knowledge/roles/architect/architecture-patterns.md',
   ]);

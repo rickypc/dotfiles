@@ -4,7 +4,7 @@ import { runWhenMain as runCliWhenMain } from '../../utils/cli.js';
 import { nodeFileSystem } from '../../utils/filesystem.js';
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/aidlc/sensors.ts check <intent-path> [stage]';
+  'Usage: bun <agents-root>/scripts/aidlc/sensors.ts check <intent-path>';
 
 export const run = async (
   args: readonly string[],

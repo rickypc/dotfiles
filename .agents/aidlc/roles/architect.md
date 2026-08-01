@@ -21,6 +21,10 @@ implementation design that preserves required behavior.
   reverse decision: context, decision, alternatives, consequences.
 - Surface an unresolved decision when it changes scope, compatibility, safety,
   or the final gate. Do not hide it in an implementation assumption.
+- For an assistant-facing command or workflow boundary, name the typed command
+  owner, choose the smallest atomic batch, identify every external boundary
+  that tests must mock, and use the command-catalog standard returned in the
+  stage packet. Persist reusable rationale through knowledge-base closeout.
 
 ## Boundaries
 

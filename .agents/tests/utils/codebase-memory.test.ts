@@ -4,10 +4,13 @@ import {
   assertAllowedCbmRoot,
   assertKnownCbmProject,
   cbmCommands,
+  cbmInspectionCommand,
   cbmOutputHasMatches,
   cbmProjectForRoot,
   cbmProjectNames,
   indexIsReady,
+  inspectCbm,
+  parseCbmInspectionJsonl,
   readWithReadyIndex,
   resolveCbmProjectForRoot,
   searchWithCbmFallback,
@@ -113,7 +116,7 @@ test('builds CLI-only CBM command specifications', () => {
   expect(cbmCommands.searchGraph('repo', 'service', 5).environment).toEqual({
     CBM_LOG_LEVEL: 'error',
   });
-  expect(cbmCommands.getArchitecture('repo').args).toContain('overview');
+  expect(cbmCommands.getArchitecture('repo').args).toContain('--path');
   expect(cbmCommands.getCodeSnippet('repo', 'a.b').args).toContain(
     '--qualified-name',
   );
@@ -130,6 +133,125 @@ test('builds CLI-only CBM command specifications', () => {
   expect(cbmCommands.tracePath('repo', 'a.b', 'inbound', 2).args).toContain(
     'calls',
   );
+});
+
+test('parses fixed local JSONL inspection requests and renders only CBM flags', () => {
+  const operations = parseCbmInspectionJsonl(
+    [
+      '{"operation":"architecture","path":""}',
+      '{"operation":"search-graph","namePattern":".*inspect.*","label":"Function","limit":20}',
+      '{"operation":"snippet","qualifiedName":"repo.utils.inspect"}',
+      '{"operation":"trace","qualifiedName":"repo.utils.inspect","direction":"inbound","depth":3}',
+      '{"operation":"search-code","pattern":"inspection","limit":20}',
+    ].join('\n'),
+  );
+  expect(operations).toHaveLength(5);
+  const searchGraph = operations.at(1);
+  expect(searchGraph).toBeDefined();
+  if (!searchGraph)
+    throw new Error('Expected search-graph inspection operation.');
+  expect(cbmInspectionCommand('repo', searchGraph).args).toEqual([
+    'cli',
+    'search_graph',
+    '--project',
+    'repo',
+    '--name-pattern',
+    '.*inspect.*',
+    '--label',
+    'Function',
+    '--limit',
+    '20',
+  ]);
+  expect(() => parseCbmInspectionJsonl('')).toThrow('at least one JSONL');
+  expect(() => parseCbmInspectionJsonl('{"operation":"unknown"}')).toThrow(
+    'Unsupported',
+  );
+  expect(() =>
+    parseCbmInspectionJsonl(
+      '{"operation":"trace","qualifiedName":"repo.f","direction":"both","depth":3}',
+    ),
+  ).toThrow('direction');
+  expect(() => parseCbmInspectionJsonl('[]')).toThrow('must be an object');
+  expect(() => parseCbmInspectionJsonl('{"operation":""}')).toThrow(
+    'non-empty string',
+  );
+  expect(() => parseCbmInspectionJsonl('{"operation":"architecture"}')).toThrow(
+    'architecture path',
+  );
+  expect(() =>
+    parseCbmInspectionJsonl(
+      '{"operation":"search-code","pattern":"value","limit":0}',
+    ),
+  ).toThrow('positive integer');
+  expect(() => parseCbmInspectionJsonl('not-json')).toThrow('line 1');
+});
+
+test('maps every declared inspection operation to one flag-based CLI specification', () => {
+  const operations = parseCbmInspectionJsonl(
+    [
+      '{"operation":"architecture","path":"src"}',
+      '{"operation":"schema"}',
+      '{"operation":"search-graph","namePattern":".*a.*","label":"Function","limit":1}',
+      '{"operation":"snippet","qualifiedName":"repo.a"}',
+      '{"operation":"trace","qualifiedName":"repo.a","direction":"outbound","depth":1}',
+      '{"operation":"search-code","pattern":"needle","limit":1}',
+    ].join('\n'),
+  );
+  expect(
+    operations.map(
+      (operation) => cbmInspectionCommand('repo', operation).args[1],
+    ),
+  ).toEqual([
+    'get_architecture',
+    'get_graph_schema',
+    'search_graph',
+    'get_code_snippet',
+    'trace_path',
+    'search_code',
+  ]);
+});
+
+test('checks readiness once and concurrently returns every requested read receipt', async () => {
+  const execute = mock(async (spec) => {
+    if (spec.args.includes('index_status')) {
+      return { code: 0, stderr: '', stdout: 'ready' };
+    }
+    return {
+      code: spec.args.includes('get_code_snippet') ? 1 : 0,
+      stderr: '',
+      stdout: spec.args.join(' '),
+    };
+  });
+  const receipt = await inspectCbm(execute, { index: 'repo', root: '/repo' }, [
+    { operation: 'architecture', path: '' },
+    { operation: 'snippet', qualifiedName: 'repo.utils.inspect' },
+  ]);
+  expect(receipt).toMatchObject({
+    project: 'repo',
+    ready: true,
+    root: '/repo',
+  });
+  expect(receipt.entries.map((entry) => entry.operation)).toEqual([
+    'index-status',
+    'architecture',
+    'snippet',
+  ]);
+  expect(receipt.entries[2]).toMatchObject({ code: 1 });
+  expect(execute).toHaveBeenCalledTimes(3);
+});
+
+test('does not index, retry, or read declared operations when status is unavailable', async () => {
+  const execute = mock(async () => ({
+    code: 0,
+    stderr: '',
+    stdout: 'not ready',
+  }));
+  const receipt = await inspectCbm(execute, { index: 'repo', root: '/repo' }, [
+    { operation: 'schema' },
+  ]);
+  expect(receipt).toMatchObject({ ready: false });
+  expect(receipt.entries).toHaveLength(1);
+  expect(execute).toHaveBeenCalledTimes(1);
 });
 
 test('indexes one allowed root then retries the requested CBM read once', async () => {

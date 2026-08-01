@@ -33,6 +33,10 @@ regions are not a rule or source of ordering metadata.
 
 ## Declaration-order protocol
 
+Apply `aidlc/knowledge/shared/command-catalog.md`. These commands operate on
+one explicitly selected path; repeat the same complete command for another
+path rather than writing shorthand arguments.
+
 Use this protocol exactly in a new session. Without `--apply`, the script is an
 inspection and evidence command: it never edits a source file. It writes one JSON object with
 `checks`; each check has `path`, `status`, `detail`, and `actionPacket`. Treat
@@ -72,25 +76,25 @@ type checking through its own configuration, but this reusable checker does not
 infer or modify that configuration.
 
 ```bash
-bun <agents-root>/scripts/biome-tsc-checker.ts <path> [<path>...]
+bun <agents-root>/scripts/biome-tsc-checker.ts <path>
 ```
 
 To inspect the packet without running lint or type checking:
 
 ```bash
-bun ~/.agents/scripts/declaration-order.ts <path> [<path>...]
+bun <agents-root>/scripts/declaration-order.ts <path>
 ```
 
 Use the safe deterministic fixer only after reviewing a failed packet. It
 applies only CST-proven whole-declaration moves and returns the fresh receipt:
 
 ```bash
-bun ~/.agents/scripts/declaration-order.ts --apply <path> [<path>...]
+bun <agents-root>/scripts/declaration-order.ts --apply <path>
 ```
 
 For a concise multi-file gate receipt, use summary mode. It omits passing file
 records and includes only actionable errors:
 
 ```bash
-bun ~/.agents/scripts/declaration-order.ts --summary <path> [<path>...]
+bun <agents-root>/scripts/declaration-order.ts --summary <path>
 ```

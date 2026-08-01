@@ -21,6 +21,11 @@ a 2.5 definition only when UI is in scope, implementation units and their
 dependencies are explicit, and delivery planning identifies order, risks, and
 the validation approach. Conditional design stages may be skipped only with
 evidence; their absence must be handled explicitly by Code Generation.
+For an assistant-runtime or skill interface, also confirm one typed command
+owner, a priority-ordered catalog with one complete command per situation,
+safe atomic batching boundaries, OS-temporary handling for transient artifacts,
+mocked external unit-test boundaries, and the intended durable-knowledge
+destination.
 
 ## Construction closeout
 

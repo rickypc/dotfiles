@@ -42,6 +42,57 @@ test('runs discovery through the shared CBM fallback boundary', async () => {
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"source"'));
 });
 
+test('runs a typed inspection from an OS-temporary JSONL handoff in one receipt', async () => {
+  const write = mock();
+  const read = mock(
+    async () =>
+      '{"operation":"architecture","path":""}\n{"operation":"schema"}',
+  );
+  const resolve = mock(async () => 'repo');
+  const inspect = mock(async () => ({
+    entries: [],
+    project: 'repo',
+    ready: true,
+    root: '/repo',
+  }));
+  await run(
+    ['inspect', '/repo', '/os-temp/aidlc-cbm/request.jsonl'],
+    write,
+    undefined,
+    read,
+    resolve,
+    inspect,
+    '/os-temp',
+  );
+  expect(resolve).toHaveBeenCalledWith('/repo', expect.anything());
+  expect(read).toHaveBeenCalledWith('/os-temp/aidlc-cbm/request.jsonl');
+  expect(inspect).toHaveBeenCalledWith(
+    expect.anything(),
+    { index: 'repo', root: '/repo' },
+    expect.arrayContaining([{ operation: 'architecture', path: '' }]),
+  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"ready"'));
+});
+
+test('rejects an inspection request outside the OS temporary directory', async () => {
+  await expect(
+    run(
+      ['inspect', '/repo', '/project/request.jsonl'],
+      mock(),
+      undefined,
+      async () => '',
+      async () => 'repo',
+      async () => ({
+        entries: [],
+        project: 'repo',
+        ready: true,
+        root: '/repo',
+      }),
+      '/os-temp',
+    ),
+  ).rejects.toThrow('OS temporary directory');
+});
+
 test('rejects invalid CBM command shapes and guards the main boundary', async () => {
   expect(() => commandFor(['search-code', 'repo', 'x', '0'])).toThrow(usage());
   expect(() => commandFor(['trace', 'repo', 'a.b', 'both', '2'])).toThrow(

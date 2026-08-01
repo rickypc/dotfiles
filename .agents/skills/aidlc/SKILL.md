@@ -37,12 +37,12 @@ never a stage bypass.
 
 ## Operating route
 
-1. From the selected `<project-root>`, start once with
-   `bun <agents-root>/scripts/aidlc.ts start "<intent-summary>" [--ui]`. The
-   executing script derives `<agents-root>` and the current directory is the
-   project root; never supply either root, a guessed CBM index, or a workspace
-   path. It resolves the index, records Initialization, and returns the
-   checklist, exact final gate, intent path, and first packet.
+1. From the selected `<project-root>`, use the normal `start` row in the
+   canonical command catalog. The executing script derives `<agents-root>` and
+   the current directory is the project root; never supply either root, a
+   guessed CBM index, or a workspace path. It resolves the index, records
+   Initialization, and returns the checklist, exact final gate, intent path,
+   and first packet.
 2. Work only from the returned packet. Its knowledge paths are the typed,
    stage-curated required reading set; do not expand them to every file owned by
    an assigned role, reload unrelated material, or invent unselected stages.
@@ -86,23 +86,17 @@ An AIDLC compression-session packet is explicit data: owner, source path,
 backup path, lock path, and one exact next action. Its absence means no AIDLC
 session exists.
 
-The canonical command table in `utils/aidlc/command-contract.ts` owns the
-fixed request schema and all lifecycle argument grammar. Do not duplicate or
-infer another command form.
+`utils/aidlc/command-contract.ts` owns the complete command catalog. Apply
+`aidlc/knowledge/shared/command-catalog.md` when authoring any derived table;
+do not duplicate or infer command grammar here.
 
 ## Batching boundaries
 
-- Initial evidence may be included only when it is already established and the
-  batch ends at Approval Handoff.
-- Approval, validated KB context, and consecutive post-approval evidence can
-  be one action; never call `complete`, then `approve`, then `approve` again.
-- `record` accepts consecutive explicit outcomes in one JSON array. Every item
-  has `stage`, `outcome` (`complete` or `skip`), and factual `evidence`.
-- Approval Handoff and Build and Test are dedicated atomic boundaries. Build
-  and Test receives no model-written success evidence.
-- `queue`, `replan`, `supersede`, standalone context resolution, and `recover`
-  are conditional recovery/diagnostic actions. Use them only when the runtime
-  returns that action or the stated condition is demonstrably true.
+Use the canonical command catalog’s priority order. In particular, when user
+approval and factual post-approval evidence are both ready, use the one
+combined approval-and-record action; never call approval and record separately
+for the same facts. Approval Handoff and Build and Test remain atomic
+boundaries. Use recovery actions only when the runtime returns them.
 
 ## Stage quality
 

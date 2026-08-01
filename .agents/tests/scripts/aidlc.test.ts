@@ -184,8 +184,10 @@ test('rejects invalid commands and only runs the main boundary when requested', 
 test('returns the command contract without a failing help probe', async () => {
   const write = mock();
   await run(['complete', '--help'], undefined, write);
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('Commands:'));
-  expect(usage()).toContain('start <intent-summary>');
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('AIDLC command catalog'),
+  );
+  expect(usage()).toContain('Priority 1');
 });
 
 test('main runner keeps CBM resolution inside start rather than queue', async () => {
@@ -587,10 +589,10 @@ test('rejects removed closeout and retire commands instead of exposing a multi-c
       undefined,
       retire as typeof retireAidlcIntent,
     ),
-  ).rejects.toThrow('Usage:');
+  ).rejects.toThrow('AIDLC command catalog');
   await expect(
     run(['closeout', '/intent.md'], undefined, mock()),
-  ).rejects.toThrow('Usage:');
+  ).rejects.toThrow('AIDLC command catalog');
   expect(retire).not.toHaveBeenCalled();
 });
 

@@ -26,20 +26,21 @@ skill already supplies the command contract.
 
 | Skill | Required input or command arguments | Use when |
 | --- | --- | --- |
-| `aidlc` | From `<project-root>`, `bun <agents-root>/scripts/aidlc.ts start "<intent-summary>" [--ui]`; later commands use only the returned canonical `<intent-path>` action | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` from its executing script and never accepts either root as an argument. |
-| `codebase-memory` | `discover "<approved-root>" "<cbm-index>" "<query>"` | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
-| `knowledge-base` | `search "<private-kb-root>" "<kb-cbm-index>" "<query>"`; for approved standalone reconciliation, `related "<private-kb-root>" "<query>"` then `reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
-| `biome-tsc-checker` | `<path> [<path>...]` | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
+| `aidlc` | Selected `<project-root>` and `<intent-summary>`; use the priority-ordered catalog rendered by `utils/aidlc/command-contract.ts`. | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` from its executing script and never accepts either root as an argument. |
+| `codebase-memory` | `<approved-root>` plus either one `<query>` or one absolute OS-temporary `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
+| `knowledge-base` | `<private-kb-root>` plus the selected command-catalog inputs; standalone reconciliation uses one absolute OS-temporary request path. | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
+| `biome-tsc-checker` | One or more selected `<path>` values. | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
 | `bun-test-generator` | One SUT plus `<all>`, a method list, or a method range | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
 | `frontend-design` | Approved UI brief, affected screens, existing design system, and acceptance criteria | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
 | `playwright-test-generator` | Accepted UI/web criteria, `<project-root>`, and the project's declared Playwright runner | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
 | `content-writer` | Objective, audience, format, constraints, and citation style | Research-backed content must be drafted, refreshed, or validated. |
 | `md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>` | Durable Markdown needs lossless compression with a verified temporary backup. |
-| `skill-manager` | For two or more independent skills: `batch <intent-id> <baseline|candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> [...]`; use `packet` or `evaluate` only for one selected or targeted repair path | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
+| `skill-manager` | `<intent-id>`, evaluation phase, and paired absolute OS-temporary matrix paths with skill paths; read its command catalog first. | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
 
 `knowledge-base` alone owns the private-KB root. `codebase-memory` alone owns
-CBM command selection and fallback search. The arguments above are the public
-starting contracts; read the selected skill before running its complete flow.
+CBM command selection and fallback search. The arguments above are selection
+inputs, not executable grammar. Read the selected skill’s canonical command
+catalog before running a command.
 
 ## Code changes
 

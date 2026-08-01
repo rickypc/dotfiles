@@ -14,6 +14,11 @@ Concept paths must match
 directory has an `index.md`; concepts use Markdown frontmatter with required
 `type`, `title`, `description`, and `tags`.
 
+Apply `aidlc/knowledge/shared/command-catalog.md` to derived command tables.
+Any fixed reconciliation request is an absolute path under the operating system
+temporary directory; the request is parsed by this runtime, never passed to an
+external dependency as a raw payload.
+
 Retrieve project, organization, team, policy, or prior-decision knowledge only
 when it materially informs the work. Capture a lesson only with observed
 symptom, cause, durable fix, and evidence. Use `codebase-memory` only to speed
@@ -54,10 +59,10 @@ paths, create/update preconditions, one canonical owner, and declared
 bundle-relative Markdown links. It validates mechanical integrity; it cannot
 prove semantic equivalence or decide ownership for the caller.
 
-| When | Required inputs | Command pattern | Result |
-| --- | --- | --- |
-| Find candidates before a distillation decision | `<private-kb-root>`, `<query>` | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated concept candidates matching the supplied query. |
-| Apply an approved multi-concept reconciliation outside AIDLC | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. |
+| Priority | When | Required inputs | Command | Result | Next |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Find candidates before a distillation decision. | `<private-kb-root>`, `<query>` | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated concept candidates matching the supplied query. | Select one explicit disposition. |
+| 2 | Apply an approved multi-concept reconciliation outside AIDLC. | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. | Start the returned Markdown guard for every changed concept. |
 
 Inside AIDLC, do not call `related` or `reconcile` directly. The AIDLC
 closeout boundary owns the same fixed reconciliation request through its one

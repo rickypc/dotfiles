@@ -10,6 +10,8 @@ non-Markdown files, and raw private configuration. Guard before any prose edit,
 compress only in the current agent session, validate protected Markdown tokens
 (code fences, URLs, and inline code), then remove the verified backup. Never
 call a provider API, model subprocess, or dynamically evaluated Bun program.
+Apply `aidlc/knowledge/shared/command-catalog.md`; the direct transaction table
+below is already ordered and its script actions remain the sole command owner.
 
 ## Direct transaction contract
 
@@ -17,11 +19,11 @@ This table applies only when `md-compress` is invoked directly. An explicit
 AIDLC compression-session packet means the AIDLC closeout boundary already
 performed `begin`; in that context do not invoke this table's `begin` command.
 
-| Context | Owner | Preconditions | Assistant action | Script result | Prohibited action |
-| --- | --- | --- | --- | --- | --- |
-| Direct durable Markdown edit | `md-compress` | No AIDLC compression-session packet; one eligible `<absolute-markdown-path>`. | Run `begin` once. | Returns source, temporary backup/lock paths, and one exact `finalize` action. | Do not capture KB knowledge, use dynamic execution, or edit backup/lock files. |
-| Between returned actions | Assistant | A successful direct `begin` packet. | Edit only the returned source path in this session. | No script runs during this edit. | Do not start another transaction or change its arguments. |
-| Final direct validation | `md-compress` | The exact `finalize` action returned by `begin`. | Run it once after the edit. | Validates protected tokens, removes temp files, returns `done`. | Do not manually remove or move temporary files. |
+| Priority | Context | Owner | Preconditions | Command or action | Script result | Next | Prohibited action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Direct durable Markdown edit | `md-compress` | No AIDLC compression-session packet; one eligible `<absolute-markdown-path>`. | `bun <agents-root>/scripts/md-compress.ts begin "<absolute-markdown-path>"` | Returns source, temporary backup/lock paths, and one exact `finalize` action. | Edit only the returned source path. | Do not capture KB knowledge, use dynamic execution, or edit backup/lock files. |
+| 2 | Between returned actions | Assistant | A successful direct `begin` packet. | Edit only the returned source path in this session. | No script runs during this edit. | Execute only the returned finalize action. | Do not start another transaction or change its arguments. |
+| 3 | Final direct validation | `md-compress` | The exact `finalize` action returned by `begin`. | `bun <agents-root>/scripts/md-compress.ts finalize "<absolute-markdown-path>"` | Validates protected tokens, removes temp files, returns `done`. | Stop on `done`; repair only the returned source on failure. | Do not manually remove or move temporary files. |
 
 Use fixed-arity typed calls, never an inline filesystem program:
 

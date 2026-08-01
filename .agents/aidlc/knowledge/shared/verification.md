@@ -22,10 +22,9 @@ that do not validate the requested behavior.
 ## Final-gate rule
 
 The gate is exactly the one string in the project’s `aidlc.config.json`
-`finalGate`, or `bun run test` when absent. At 3.6 use
-`scripts/aidlc.ts complete <intent-path> --closeout ...` when a capture or
-no-capture disposition is already explicit; otherwise invoke bare `complete`
-with no evidence. It executes the gate. Lint, type checks, focused tests, coverage, visual
+`finalGate`, or `bun run test` when absent. At 3.6 use the canonical AIDLC
+command-catalog row for the known closeout disposition; otherwise use the
+bare final-gate row. It executes the gate. Lint, type checks, focused tests, coverage, visual
 checks, and a prior green run can provide development evidence, but none can
 substitute for the final receipt:
 

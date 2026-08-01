@@ -8,6 +8,42 @@ import {
   stagedRgSearch,
 } from './search-fallback.js';
 
+export interface CbmInspectionEntry {
+  readonly code: number;
+  readonly command: string;
+  readonly operation: CbmInspectionOperation['operation'] | 'index-status';
+  readonly output: string;
+}
+
+export type CbmInspectionOperation =
+  | { readonly operation: 'architecture'; readonly path: string }
+  | { readonly operation: 'schema' }
+  | {
+      readonly label: string;
+      readonly limit: number;
+      readonly namePattern: string;
+      readonly operation: 'search-graph';
+    }
+  | { readonly operation: 'snippet'; readonly qualifiedName: string }
+  | {
+      readonly depth: number;
+      readonly direction: 'inbound' | 'outbound';
+      readonly operation: 'trace';
+      readonly qualifiedName: string;
+    }
+  | {
+      readonly limit: number;
+      readonly operation: 'search-code';
+      readonly pattern: string;
+    };
+
+export interface CbmInspectionReceipt {
+  readonly entries: readonly CbmInspectionEntry[];
+  readonly project: string;
+  readonly ready: boolean;
+  readonly root: string;
+}
+
 export interface CbmReadRequest {
   readonly allowedRoots: readonly string[];
   readonly read: (project: string) => CommandSpec;
@@ -35,6 +71,10 @@ export interface CbmSearchFallbackRequest {
   readonly root: CbmRoot;
 }
 
+type InspectionOperationReader = (
+  record: Record<string, unknown>,
+) => CbmInspectionOperation;
+
 interface ListedCbmProject {
   readonly name: string;
   readonly roots: readonly string[];
@@ -50,13 +90,8 @@ export const cbmCommand = (
 });
 
 export const cbmCommands = {
-  getArchitecture: (project: string): CommandSpec =>
-    cbmCommand('get_architecture', [
-      '--project',
-      project,
-      '--aspects',
-      'overview',
-    ]),
+  getArchitecture: (project: string, path = ''): CommandSpec =>
+    cbmCommand('get_architecture', ['--project', project, '--path', path]),
   getCodeSnippet: (project: string, qualifiedName: string): CommandSpec =>
     cbmCommand('get_code_snippet', [
       '--project',
@@ -143,6 +178,85 @@ export const cbmCommands = {
     ]),
 };
 
+const architectureInspection = (
+  record: Record<string, unknown>,
+): CbmInspectionOperation => {
+  if (typeof record.path !== 'string') {
+    throw new Error('CBM inspection architecture path must be a string.');
+  }
+  return { operation: 'architecture', path: record.path };
+};
+
+const isPositiveInteger = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value > 0;
+
+const nonEmptyString = (value: unknown, name: string): string => {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`CBM inspection ${name} must be a non-empty string.`);
+  }
+  return value;
+};
+
+const operationRecord = (value: unknown): Record<string, unknown> => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Each CBM inspection JSONL line must be an object.');
+  }
+  return value as Record<string, unknown>;
+};
+
+const positiveInspectionValue = (value: unknown, name: string): number => {
+  if (!isPositiveInteger(value)) {
+    throw new Error(`CBM inspection ${name} must be a positive integer.`);
+  }
+  return value;
+};
+
+const searchGraphInspection = (
+  record: Record<string, unknown>,
+): CbmInspectionOperation => ({
+  label: nonEmptyString(record.label, 'search-graph label'),
+  limit: positiveInspectionValue(record.limit, 'search-graph limit'),
+  namePattern: nonEmptyString(record.namePattern, 'search-graph namePattern'),
+  operation: 'search-graph',
+});
+
+const snippetInspection = (
+  record: Record<string, unknown>,
+): CbmInspectionOperation => ({
+  operation: 'snippet',
+  qualifiedName: nonEmptyString(record.qualifiedName, 'snippet qualifiedName'),
+});
+
+const traceInspection = (
+  record: Record<string, unknown>,
+): CbmInspectionOperation => {
+  const direction = record.direction;
+  if (direction !== 'inbound' && direction !== 'outbound') {
+    throw new Error(
+      'CBM inspection trace direction must be inbound or outbound.',
+    );
+  }
+  return {
+    depth: positiveInspectionValue(record.depth, 'trace depth'),
+    direction,
+    operation: 'trace',
+    qualifiedName: nonEmptyString(record.qualifiedName, 'trace qualifiedName'),
+  };
+};
+
+const inspectionReaders: Readonly<Record<string, InspectionOperationReader>> = {
+  architecture: architectureInspection,
+  schema: () => ({ operation: 'schema' }),
+  'search-code': (record) => ({
+    limit: positiveInspectionValue(record.limit, 'search-code limit'),
+    operation: 'search-code',
+    pattern: nonEmptyString(record.pattern, 'search-code pattern'),
+  }),
+  'search-graph': searchGraphInspection,
+  snippet: snippetInspection,
+  trace: traceInspection,
+};
+
 const canonicalPath = (path: string): string => path.replace(/\/$/u, '');
 
 export const assertAllowedCbmRoot = (
@@ -166,6 +280,37 @@ const cbmAttempt = (
   status,
   strategy: 'cbm-search-graph',
 });
+
+export const cbmInspectionCommand = (
+  project: string,
+  operation: CbmInspectionOperation,
+): CommandSpec => {
+  if (operation.operation === 'architecture') {
+    return cbmCommands.getArchitecture(project, operation.path);
+  }
+  if (operation.operation === 'schema')
+    return cbmCommands.getGraphSchema(project);
+  if (operation.operation === 'search-graph') {
+    return cbmCommands.searchGraphByName(
+      project,
+      operation.namePattern,
+      operation.label,
+      operation.limit,
+    );
+  }
+  if (operation.operation === 'snippet') {
+    return cbmCommands.getCodeSnippet(project, operation.qualifiedName);
+  }
+  if (operation.operation === 'trace') {
+    return cbmCommands.tracePath(
+      project,
+      operation.qualifiedName,
+      operation.direction,
+      operation.depth,
+    );
+  }
+  return cbmCommands.searchCode(project, operation.pattern, operation.limit);
+};
 
 export const cbmOutputHasMatches = (
   output: string,
@@ -205,6 +350,84 @@ export const cbmProjectNames = (output: string): readonly string[] =>
   [...output.matchAll(/"name"\s*:\s*"([^"\\]+)"/gu)].map(
     (match) => match[1] ?? '',
   );
+
+const inspectionEntry = async (
+  executor: CommandExecutor,
+  operation: CbmInspectionEntry['operation'],
+  command: CommandSpec,
+): Promise<CbmInspectionEntry> => {
+  const result = await executor(command);
+  return {
+    code: result.code,
+    command: commandText(command),
+    operation,
+    output: outputFor(result.stdout, result.stderr),
+  };
+};
+
+/**
+ * Performs one deterministic readiness check, then concurrently executes only
+ * the caller-declared independent CBM reads. It never indexes or retries.
+ */
+export const inspectCbm = async (
+  executor: CommandExecutor,
+  root: CbmRoot,
+  operations: readonly CbmInspectionOperation[],
+): Promise<CbmInspectionReceipt> => {
+  const status = await inspectionEntry(
+    executor,
+    'index-status',
+    cbmCommands.indexStatus(root.index),
+  );
+  const ready = status.code === 0 && indexIsReady(status.output);
+  if (!ready) {
+    return { entries: [status], project: root.index, ready, root: root.root };
+  }
+  const entries = await Promise.all(
+    operations.map((operation) =>
+      inspectionEntry(
+        executor,
+        operation.operation,
+        cbmInspectionCommand(root.index, operation),
+      ),
+    ),
+  );
+  return {
+    entries: [status, ...entries],
+    project: root.index,
+    ready,
+    root: root.root,
+  };
+};
+
+const inspectionOperationFor = (value: unknown): CbmInspectionOperation => {
+  const record = operationRecord(value);
+  const operation = nonEmptyString(record.operation, 'operation');
+  const read = inspectionReaders[operation];
+  if (!read)
+    throw new Error(`Unsupported CBM inspection operation: ${operation}`);
+  return read(record);
+};
+
+/** Parses only script-local JSONL. CBM itself is always called with flags. */
+export const parseCbmInspectionJsonl = (
+  source: string,
+): readonly CbmInspectionOperation[] => {
+  const lines = source.split(/\r?\n/u).filter((line) => line.trim());
+  if (lines.length === 0) {
+    throw new Error(
+      'CBM inspection request must contain at least one JSONL line.',
+    );
+  }
+  return lines.map((line, index) => {
+    try {
+      return inspectionOperationFor(JSON.parse(line));
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`CBM inspection request line ${index + 1}: ${detail}`);
+    }
+  });
+};
 
 const rootPropertyNames = new Set([
   'path',

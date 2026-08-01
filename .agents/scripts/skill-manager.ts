@@ -13,7 +13,7 @@ import {
 } from '../utils/skill-manager.js';
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/skill-manager.ts packet <intent-id> <candidate_checked|candidate_requested|draft> <skill-path> [assertion-id,...] | evaluate <baseline|candidate|challenge> <matrix-jsonl-path> <target-path> | batch <intent-id> <baseline|candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> [<absolute-matrix-jsonl-path> <absolute-skill-file-path>...]';
+  'Use the skill-manager command catalog. packet requires <intent-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path>; evaluate requires <baseline-or-candidate-or-challenge> <absolute-matrix-jsonl-path> <absolute-skill-file-path>; batch requires <intent-id> <baseline-or-candidate> plus at least two absolute matrix-and-skill pairs.';
 
 const defaultRead = readText.bind(undefined, nodeFileSystem);
 

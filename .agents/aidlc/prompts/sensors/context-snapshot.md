@@ -4,7 +4,7 @@
 
 Reverse Engineering (2.1) only. The executable check is
 `utils/aidlc/sensors.ts`; normal routes persist validated context atomically
-through `scripts/aidlc.ts approve ... --context ...`. The separate
+through the canonical AIDLC approval-with-context command row. The separate
 `scripts/aidlc/context.ts` command is recovery-only for an already-approved
 older intent.
 
