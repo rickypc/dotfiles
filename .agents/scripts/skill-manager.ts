@@ -7,14 +7,50 @@ import type { WorkflowState } from '../utils/evidence-gated-workflow-controller/
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import {
   createSkillManagerPacket,
+  evaluateSkillManagerBatch,
   evaluateSkillMatrix,
   parseMatrixJsonl,
 } from '../utils/skill-manager.js';
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/skill-manager.ts packet <intent-id> <candidate_checked|candidate_requested|draft> <skill-path> [assertion-id,...] | evaluate <baseline|candidate|challenge> <matrix-jsonl-path> <target-path>';
+  'Usage: bun <agents-root>/scripts/skill-manager.ts packet <intent-id> <candidate_checked|candidate_requested|draft> <skill-path> [assertion-id,...] | evaluate <baseline|candidate|challenge> <matrix-jsonl-path> <target-path> | batch <intent-id> <baseline|candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> [<absolute-matrix-jsonl-path> <absolute-skill-file-path>...]';
 
 const defaultRead = readText.bind(undefined, nodeFileSystem);
+
+const batchPairsFor = (
+  args: readonly string[],
+): readonly {
+  readonly matrixPath: string;
+  readonly targetSkillPath: string;
+}[] => {
+  const pairs = args.slice(3);
+  if (
+    !args[1] ||
+    (args[2] !== 'baseline' && args[2] !== 'candidate') ||
+    pairs.length === 0 ||
+    pairs.length % 2 !== 0
+  ) {
+    throw new Error(usage());
+  }
+  const parsed = Array.from({ length: pairs.length / 2 }, (_, index) => ({
+    matrixPath: pairs[index * 2] ?? '',
+    targetSkillPath: pairs[index * 2 + 1] ?? '',
+  }));
+  if (
+    parsed.some(
+      ({ matrixPath, targetSkillPath }) =>
+        !matrixPath.startsWith('/') ||
+        !matrixPath.endsWith('.jsonl') ||
+        !targetSkillPath.startsWith('/') ||
+        !targetSkillPath.endsWith('/SKILL.md'),
+    )
+  ) {
+    throw new Error(
+      'batch requires absolute <matrix-jsonl-path> values and absolute <skill-file-path> values ending in /SKILL.md.',
+    );
+  }
+  return parsed;
+};
 
 const phaseFor = (
   phase: string,
@@ -31,6 +67,35 @@ export const run = async (
   write: (message: string) => void = console.log,
 ): Promise<void> => {
   const [command, first, second, third, fourth] = args;
+  if (command === 'batch') {
+    const pairs = batchPairsFor(args);
+    const sources = await Promise.all(
+      pairs.map(async ({ matrixPath, targetSkillPath }) => {
+        const [matrixContent, sourceContent] = await Promise.all([
+          read(matrixPath),
+          read(targetSkillPath),
+        ]);
+        return {
+          matrix: parseMatrixJsonl(String(matrixContent)),
+          matrixPath,
+          sourceText: String(sourceContent),
+          targetSkillPath,
+        };
+      }),
+    );
+    write(
+      JSON.stringify(
+        evaluateSkillManagerBatch(
+          first ?? '',
+          second as 'baseline' | 'candidate',
+          sources,
+        ),
+        null,
+        2,
+      ),
+    );
+    return;
+  }
   if (command === 'evaluate') {
     if (!first || !second || !third || fourth || args.length !== 4) {
       throw new Error(usage());

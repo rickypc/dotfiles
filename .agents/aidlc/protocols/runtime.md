@@ -1,68 +1,46 @@
 # Universal runtime protocol
 
-This is a locally authored universal runtime. It deliberately has no upstream
-runtime dependency, native-agent layout, `tools/` directory, hooks directory,
-Operation phase, or Closure phase.
+This is a machine-wide runtime for projects without a project-local AIDLC. It
+has no upstream runtime dependency, `tools/` directory, global hooks, Operation
+phase, Closure phase, or assistant-native agent requirement.
 
-## Local authority order
+## Authority order
 
-1. The user and the project-local AIDLC, when present.
-2. `utils/aidlc/stages.ts` for the 18-stage route, ordering, and gates.
-3. The temporary intent's validated `gray-matter` frontmatter and stage ledger.
-4. This protocol for universal runtime boundaries.
-5. The locally authored stage contract for its role, artifact, question, and
-   evidence quality.
+1. User request and project-local AIDLC, when present.
+2. `utils/aidlc/stages.ts` for selected route, conditions, and packet assets.
+3. Validated gray-matter intent frontmatter and stage ledger for lifecycle state.
+4. `utils/aidlc/command-contract.ts` for public command grammar and returned
+   lifecycle actions.
+5. This protocol for runtime protection; stage prompts for current work quality.
 
-## Runtime asset protection
+## Protected assets
 
-During a normal AIDLC run, the assistant may read the conductor, knowledge,
-prompts, protocols, and role cards, but it may write only one canonical
-temporary-intent path:
+During ordinary workflow execution, the only writable AIDLC path is:
 
 ```text
-~/.agents/aidlc/<validated-cbm-index>/intents/<intent-id>.md
+<agents-root>/aidlc/<validated-cbm-index>/intents/<intent-id>.md
 ```
 
-Everything else under `~/.agents` is runtime infrastructure: in particular
-`aidlc/conductor.md`, `aidlc/knowledge/`, `aidlc/prompts/`,
-`aidlc/protocols/`, `aidlc/roles/`, and all `scripts/`, `utils/`, `skills/`,
-configuration, adapters, and global instructions. Do not create, edit, move,
-or delete any of those assets as part of an intent or project change. The
-lifecycle functions reject non-canonical intent paths before they read, write,
-or remove a file.
+The intent is read and written only through the lifecycle runtime. The
+conductor, knowledge, prompts, protocols, roles, scripts, utils, skills,
+adapters, and global instructions are read-only runtime infrastructure. A
+runtime edit needs an explicit user request naming the asset and its own
+verification; it is never stage evidence. The validator rejects non-canonical
+intent paths, but filesystem permissions remain the technical safeguard for an
+untrusted assistant.
 
-Only an explicit user request naming the runtime asset authorizes a runtime
-change. Treat that as a separate code/documentation change with its own
-verification; it is never stage evidence and never a substitute for an intent
-update. Raw filesystem commands are prohibited by this workflow policy; the
-lifecycle validator protects script actions but is not an operating-system
-sandbox. Enforce filesystem permissions separately if an untrusted assistant
-must be technically unable to bypass the policy.
+## Universal adaptations
 
-## Required local adaptations
-
-- Use `~/.agents/scripts/aidlc.ts` and its `aidlc/context.ts` and `sensors.ts`
-  helpers. Universal deterministic actions live only in
-  `~/.agents/scripts/`; reusable code lives in `~/.agents/utils/`.
-- Reverse Engineering (2.1) is the code/context discovery boundary. First use
-  `codebase-memory`, then use `knowledge-base` for durable context. The removed
-  upstream Practices Discovery stage is not a prerequisite.
-- Refined Mockups (2.5) is the only UI-definition stage. It may start from
-  requirements, existing UI, user descriptions, or supplied screenshots. It
-  does not require a separate rough-mockup or user-story stage.
-- Application Design (2.6), Units Generation (2.7), and Delivery Planning
-  (2.8) produce the architecture and build sequence that guide Construction.
-  They must not require unselected upstream stages.
-- Construction 3.1–3.3 are conditional design work; 3.5 consumes whichever
-  approved design artifacts apply. Do not require the unselected
-  Infrastructure Design stage.
-- Build and Test (3.6) runs exactly one project-owned final gate. A project
-  declares it once in `<project-root>/aidlc.config.json` as
-  `{ "finalGate": "<command>" }`; `bun run test` is the fallback. At 3.6,
-  invoke `aidlc.ts complete <intent-path>` with no evidence; it runs the gate,
-  returns its receipt, and advances only on exit zero. Failure is failure
-  regardless of whether it is cosmetic.
-- After 3.6, there is no Closure stage. `knowledge-base` handles persistent
-  capture, validation, and any required compression. Persist either a captured
-  or factual no-capture result with `aidlc.ts closeout <intent-path> ...`; only
-  then can `aidlc.ts retire <intent-path>` remove the temporary intent.
+- `start` uses the selected current workspace and accepts only an explicit CBM
+  indexed-root match. Nested indexed roots remain independent projects.
+- Reverse Engineering uses `codebase-memory`; durable context and closeout use
+  `knowledge-base`. Neither may be bypassed by raw CBM, MCP, CLI, grep, intent,
+  or local reference path.
+- Refined Mockups is the sole UI-definition stage and is active only for UI
+  work. Unselected upstream stages never become hidden prerequisites.
+- Build and Test executes one project-owned `finalGate` from
+  `<project-root>/aidlc.config.json`, falling back to `bun run test`. Its
+  runtime receipt is the only 3.6 success evidence; non-zero is failure.
+- A known KB disposition uses the atomic closeout action. A disposition learned
+  after a bare pass uses the returned recovery action. There is no separate
+  Closure phase.

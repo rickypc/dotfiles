@@ -54,3 +54,41 @@ test('evaluates a matrix in one deterministic script phase', async () => {
     run(['evaluate', 'invalid', '/matrix', '/target'], read),
   ).rejects.toThrow(usage());
 });
+
+test('batches independent matrix and skill-file pairs into one receipt', async () => {
+  const matrix = JSON.stringify({
+    assertions: [{ expected: 'required', kind: 'required-text' }],
+    failureMode: 'f',
+    id: 'a',
+    repairBoundary: '/skill',
+    scenario: 's',
+    visibility: 'candidate',
+  });
+  const read = mock(async (path: string) =>
+    path.endsWith('.jsonl') ? matrix : 'required',
+  );
+  const write = mock();
+  await run(
+    [
+      'batch',
+      'intent',
+      'candidate',
+      '/matrix-a.jsonl',
+      '/skills/a/SKILL.md',
+      '/matrix-b.jsonl',
+      '/skills/b/SKILL.md',
+    ],
+    read,
+    write,
+  );
+  expect(read).toHaveBeenCalledTimes(4);
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"phase": "candidate"'),
+  );
+  await expect(
+    run(['batch', 'intent', 'baseline', '/matrix.jsonl', '/skills/a'], read),
+  ).rejects.toThrow('ending in /SKILL.md');
+  await expect(run(['batch', 'intent', 'baseline'], read)).rejects.toThrow(
+    usage(),
+  );
+});

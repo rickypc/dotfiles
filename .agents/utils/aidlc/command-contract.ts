@@ -1,0 +1,38 @@
+/** The sole AIDLC public-command grammar. `scripts/aidlc.ts` renders this text. */
+export const aidlcCommandContract = (): readonly string[] => [
+  'Usage: bun <agents-root>/scripts/aidlc.ts <command> ...',
+  '',
+  'Commands:',
+  '  start <intent-summary> [--ui] [--initial-record <json>]',
+  '    Bootstrap one intent from the current <project-root>. The executing script derives <agents-root>; never pass either root as an argument. It resolves the CBM index, records 0.1-0.3, and returns the acceptance checklist, resolved final gate, intent path, and current packet.',
+  '    --initial-record may contain only established consecutive evidence and must end at Approval Handoff.',
+  '  approve <intent-path> <approval-evidence> [--context <private-kb-root> <organization-ref|-> <team-ref|-> <project-ref|-> [--record <json>]]',
+  '    The only approval handoff command. It records explicit approval; context and already-established consecutive post-approval evidence are atomic options.',
+  '  record <intent-path> <json-array> [--final-gate [--closeout (--captured <private-kb-root> <concept-path> [<concept-path>] | --no-durable-lesson <knowledge-base-assessment>)]]',
+  '    Persist one or more consecutive non-gated outcomes. Every entry requires stage, outcome (complete|skip), and factual evidence. --final-gate runs the one configured gate; never supply model-written Build and Test evidence.',
+  '  complete <intent-path> <factual-evidence>',
+  '    Persist exactly one active non-gated stage.',
+  '  complete <intent-path> [--closeout (--captured <private-kb-root> <concept-path> [<concept-path>] | --no-durable-lesson <knowledge-base-assessment>)]',
+  '    Valid only at Build and Test. It runs the configured final gate; with an explicit closeout disposition it persists it and retires atomically after a pass.',
+  '  skip <intent-path> <factual-reason>',
+  '    Persist a factual inapplicability reason for the active non-gated stage.',
+  '  queue <cbm-index>',
+  '    Diagnostics only for explicit intent reconciliation. The executing script derives <agents-root>; never use queue for bootstrap.',
+  '  replan <intent-path> <factual-evidence> | supersede <intent-path> <replacement-intent-id>',
+  '    Conditional lifecycle corrections after a material user-directed change.',
+  '  recover <intent-path> (--captured <private-kb-root> <concept-path> [<concept-path>] | --no-durable-lesson <knowledge-base-assessment> | --retire-only)',
+  '    Recovery only after a bare passed final gate or an interrupted atomic retirement.',
+  '  capture-and-begin <intent-path> <private-kb-root> <absolute-capture-request-path>',
+  '    AIDLC closeout only after a passed final gate and before any closeout is persisted. AIDLC reads the fixed JSON request, captures the concept, creates a temporary Markdown guard, and persists one session.',
+  '  finalize-and-recover <intent-path>',
+  '    Only the exact action returned by capture-and-begin after the assistant has edited the returned source path. It validates protected Markdown tokens and the captured concept, persists closeout, then retires.',
+  '',
+  'Capture request JSON for capture-and-begin:',
+  '  {"relativePath":"<scope>/<subject>/<concept>.md","metadata":{"type":"<concept-type>","title":"<title>","description":"<description>","tags":["<tag>"]},"body":"<durable-markdown>","evidence":"<factual-capture-evidence>"}',
+  '  The caller creates this one absolute JSON file before the command. AIDLC owns capture, guard, persisted session, final validation, closeout, and retirement; the assistant edits only the returned concept source between commands.',
+  '',
+  'Use only the action returned by the previous lifecycle command. Do not probe with --help, retry altered arguments, invoke retired aliases, or run standalone CBM/gate helpers.',
+];
+
+export const renderAidlcCommandContract = (): string =>
+  aidlcCommandContract().join('\n');

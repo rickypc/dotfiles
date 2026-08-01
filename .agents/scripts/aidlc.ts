@@ -1,4 +1,11 @@
+// biome-ignore lint/style/noExcessiveLinesPerFile: AIDLC public CLI dispatch remains intentionally centralized.
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { runAidlcCliWhenMain } from '../utils/aidlc/cli.js';
+import { renderAidlcCommandContract } from '../utils/aidlc/command-contract.js';
 import {
   type AidlcGateExecutor,
   executeFinalGate,
@@ -8,10 +15,10 @@ import {
 import {
   type AidlcIntent,
   type AidlcKnowledgeCloseout,
+  type AidlcKnowledgeCompressionSession,
   acceptanceChecklistFor,
   aidlcIntentStatusFor,
   appendAidlcAuditEvent,
-  approveAidlcIntent,
   assertNoIntentCollision,
   completeAidlcStage,
   createAidlcIntent,
@@ -26,21 +33,65 @@ import {
   withAidlcKnowledgeCloseout,
 } from '../utils/aidlc/intent.js';
 import { inventoryAidlcIntents } from '../utils/aidlc/queue.js';
+import {
+  assertAidlcRecordCanContinue,
+  parseAidlcRecordInputs,
+  transitionForAidlcRecord,
+  validateAidlcRecordTransitions,
+} from '../utils/aidlc/record.js';
 import { stagePacketFor } from '../utils/aidlc/stage.js';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import { resolveCbmProjectForRoot } from '../utils/codebase-memory.js';
 import {
-  assertKnownCbmProject,
-  cbmCommands,
-  resolveCbmProjectForRoot,
-} from '../utils/codebase-memory.js';
-import { nodeFileSystem } from '../utils/filesystem.js';
+  type FileSystem,
+  nodeFileSystem,
+  parentDirectory,
+  readText,
+} from '../utils/filesystem.js';
+import {
+  captureConcept,
+  type OkfMetadata,
+  parseOkfConcept,
+} from '../utils/knowledge-base.js';
+import {
+  claimCompressionLock,
+  finalizeCompression,
+  guardCompression,
+  resumeCompressionGuard,
+} from '../utils/md-compress.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
+import { runAidlcApprove } from './aidlc/approval.js';
 
-interface AidlcRecordInput {
+interface AidlcCaptureRequest {
+  readonly body: string;
   readonly evidence: string;
-  readonly outcome: 'complete' | 'skip';
-  readonly stage: string;
+  readonly metadata: OkfMetadata;
+  readonly relativePath: string;
+}
+
+interface AidlcCloseoutCommand {
+  readonly details: readonly string[];
+  readonly disposition: string;
+}
+
+export interface AidlcCloseoutDependencies {
+  readonly clock: { readonly now: () => number };
+  readonly digest: { readonly sha256: (value: string) => string };
+  readonly fileSystem: FileSystem;
+  readonly readRequest: (path: string) => Promise<string>;
+}
+
+interface AidlcRecordOptions {
+  readonly closeout?: AidlcCloseoutCommand;
+  readonly finalGate: boolean;
+  readonly input: string;
+  readonly intentPath: string;
+}
+
+interface AidlcStartOptions {
+  readonly initialRecord?: string;
+  readonly uiRequired: boolean;
 }
 
 const agentsRootForIntent = (intentPath: string): string => {
@@ -52,6 +103,38 @@ const agentsRootForIntent = (intentPath: string): string => {
     );
   }
   return intentPath.slice(0, markerIndex);
+};
+
+export const agentsRootForScript = (scriptUrl = import.meta.url): string =>
+  parentDirectory(parentDirectory(fileURLToPath(scriptUrl)));
+
+const applyInitialRecord = (
+  intent: AidlcIntent,
+  initialRecord: string,
+): AidlcIntent => {
+  const transitions = parseAidlcRecordInputs(initialRecord);
+  let next = intent;
+  for (const [index, entry] of transitions.entries()) {
+    if (
+      entry.stage === 'approval-handoff' ||
+      entry.stage === 'build-and-test'
+    ) {
+      throw new Error(
+        'AIDLC start --initial-record cannot cross Approval Handoff or Build and Test.',
+      );
+    }
+    next =
+      entry.outcome === 'complete'
+        ? completeAidlcStage(next, entry.evidence)
+        : skipAidlcStage(next, entry.evidence);
+    assertAidlcRecordCanContinue(next, transitions.length - index - 1);
+  }
+  if (next.stage !== 'approval-handoff') {
+    throw new Error(
+      'AIDLC start --initial-record must end at Approval Handoff after consecutive evidence-backed stages.',
+    );
+  }
+  return next;
 };
 
 const assertManualStageCommandAllowed = (
@@ -66,25 +149,30 @@ const assertManualStageCommandAllowed = (
   }
   if (intent.stage === 'approval-handoff') {
     throw new Error(
-      'Approval Handoff is completed atomically by approve <intent-path> "<handoff evidence>" after explicit user approval.',
+      'Approval Handoff is completed atomically by approve <intent-path> "<approval-evidence>" after explicit user approval.',
     );
   }
 };
 
-const assertRecordCanContinue = (
-  intent: AidlcIntent,
-  remainingCount: number,
-): void => {
+const captureRequestFor = (content: string): AidlcCaptureRequest => {
+  const request = JSON.parse(content) as Partial<AidlcCaptureRequest>;
   if (
-    remainingCount > 0 &&
-    (intent.stage === 'approval-handoff' ||
-      (intent.stage === 'reverse-engineering' && !intent.kbContext.resolvedAt))
+    !request.body?.trim() ||
+    !request.evidence?.trim() ||
+    !request.relativePath?.trim() ||
+    !request.metadata
   ) {
     throw new Error(
-      'AIDLC record cannot cross an approval or knowledge-context boundary.',
+      'AIDLC capture request requires relativePath, metadata, body, and evidence.',
     );
   }
+  return request as AidlcCaptureRequest;
 };
+
+const closeoutCommandFor = (
+  disposition: string | undefined,
+  details: readonly string[],
+): AidlcCloseoutCommand => ({ details, disposition: disposition ?? '' });
 
 const closeoutFor = async (
   disposition: string,
@@ -94,7 +182,7 @@ const closeoutFor = async (
     const [evidence] = details;
     if (!evidence?.trim() || details.length !== 1) {
       throw new Error(
-        'No-capture knowledge closeout requires one factual assessment: closeout <intent-path> --no-durable-lesson "<knowledge-base assessment>".',
+        'No-capture knowledge closeout requires one factual assessment: --no-durable-lesson "<knowledge-base-assessment>".',
       );
     }
     return {
@@ -107,7 +195,7 @@ const closeoutFor = async (
     const [kbRoot, ...references] = details;
     if (!kbRoot || references.length === 0) {
       throw new Error(
-        'Captured knowledge closeout requires: closeout <intent-path> --captured <private-kb-root> <concept-path>.',
+        'Captured knowledge closeout requires: --captured <private-kb-root> <concept-path>.',
       );
     }
     await validateAidlcKnowledgeCloseoutReferences(
@@ -127,48 +215,58 @@ const closeoutFor = async (
   );
 };
 
+const completeCloseoutCommandFor = (
+  args: readonly string[],
+): AidlcCloseoutCommand | undefined => {
+  if (args[0] !== 'complete' || args[2] !== '--closeout') return undefined;
+  return closeoutCommandFor(args[3], args.slice(4));
+};
+
+const compressionBackupRoot = (): string => join(tmpdir(), 'aidlc-md-compress');
+
+const systemClock: AidlcCloseoutDependencies['clock'] = { now: Date.now };
+
+const systemDigest: AidlcCloseoutDependencies['digest'] = {
+  sha256: (value) => createHash('sha256').update(value).digest('hex'),
+};
+
+const readSystemRequest: AidlcCloseoutDependencies['readRequest'] =
+  readText.bind(undefined, nodeFileSystem);
+
+export const closeoutDependenciesFor = (
+  clock: AidlcCloseoutDependencies['clock'],
+  digest: AidlcCloseoutDependencies['digest'],
+  fileSystem: FileSystem,
+  readRequest: AidlcCloseoutDependencies['readRequest'],
+): AidlcCloseoutDependencies => ({ clock, digest, fileSystem, readRequest });
+
+export const defaultCloseoutDependencies = (): AidlcCloseoutDependencies =>
+  closeoutDependenciesFor(
+    systemClock,
+    systemDigest,
+    nodeFileSystem,
+    readSystemRequest,
+  );
+
 const isAutomaticBuildAndTest = (
   args: readonly string[],
 ): args is readonly ['complete', string] =>
   args[0] === 'complete' && args.length === 2 && Boolean(args[1]);
-
-const isPrepare = (
-  args: readonly string[],
-): args is
-  | readonly [string, string, string, string, string]
-  | readonly [string, string, string, string, string, '--ui'] =>
-  args[0] === 'prepare' &&
-  (args.length === 5 || (args.length === 6 && args[5] === '--ui')) &&
-  args.slice(1, 5).every(Boolean);
-
-const isStart = (
-  args: readonly string[],
-): args is
-  | readonly [string, string, string, string]
-  | readonly [string, string, string, string, '--ui'] =>
-  args[0] === 'start' &&
-  (args.length === 4 || (args.length === 5 && args[4] === '--ui')) &&
-  args.slice(1, 4).every(Boolean);
 
 const nextActionFor = (intentPath: string, intent: AidlcIntent): object => {
   if (aidlcIntentStatusFor(intent) === 'completed') {
     return {
       intent,
       next: intent.kbCloseout
-        ? { action: 'retire' }
-        : { action: 'knowledge-base-closeout-and-retire' },
+        ? { action: 'recover-retirement' }
+        : { action: 'knowledge-base-closeout-and-recover' },
     };
   }
-  if (intent.stage === 'approval-handoff') {
-    const status = intent.route.find(
-      (record) => record.slug === intent.stage,
-    )?.status;
-    if (status === 'awaiting-approval' && intent.approval !== 'approved') {
-      return {
-        intent,
-        next: { action: 'await-user-approval', stage: intent.stage },
-      };
-    }
+  if (intent.stage === 'approval-handoff' && intent.approval !== 'approved') {
+    return {
+      intent,
+      next: { action: 'await-user-approval', stage: intent.stage },
+    };
   }
   if (intent.stage === 'reverse-engineering' && !intent.kbContext.resolvedAt) {
     return {
@@ -186,36 +284,25 @@ const nextActionFor = (intentPath: string, intent: AidlcIntent): object => {
   };
 };
 
-const parseRecordInputs = (value: string): readonly AidlcRecordInput[] => {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(value);
-  } catch {
-    throw new Error('AIDLC record inputs must be valid JSON.');
+const recordOptionsFor = (
+  args: readonly string[],
+): AidlcRecordOptions | undefined => {
+  const [command, intentPath, input, ...options] = args;
+  if (command !== 'record' || !intentPath || !input) return undefined;
+  if (options.length === 0) {
+    return { finalGate: false, input, intentPath };
   }
-  if (!Array.isArray(parsed) || parsed.length === 0) {
-    throw new Error('AIDLC record requires one or more stage outcomes.');
+  if (options[0] !== '--final-gate') return undefined;
+  if (options.length === 1) {
+    return { finalGate: true, input, intentPath };
   }
-  return parsed.map((item) => {
-    if (!item || typeof item !== 'object') {
-      throw new Error('Each AIDLC record outcome must be an object.');
-    }
-    const record = item as Record<string, unknown>;
-    if (
-      typeof record.stage !== 'string' ||
-      typeof record.evidence !== 'string' ||
-      (record.outcome !== 'complete' && record.outcome !== 'skip')
-    ) {
-      throw new Error(
-        'Each AIDLC record outcome requires string stage, evidence, and outcome (complete|skip).',
-      );
-    }
-    return {
-      evidence: record.evidence,
-      outcome: record.outcome,
-      stage: record.stage,
-    };
-  });
+  if (options[1] !== '--closeout') return undefined;
+  return {
+    closeout: closeoutCommandFor(options[2], options.slice(3)),
+    finalGate: true,
+    input,
+    intentPath,
+  };
 };
 
 const rejectAdvance = (command: string | undefined): void => {
@@ -231,50 +318,61 @@ export const resolveCbmIndexForStart = (
   execute: CommandExecutor = bunExecutor,
 ): Promise<string> => resolveCbmProjectForRoot(projectRoot, execute);
 
-const runApprove = async (
-  args: readonly string[],
-  load: typeof loadAidlcIntent,
-  update: typeof updateAidlcIntent,
-  appendAudit: typeof appendAidlcAuditEvent,
+const runBootstrap = async (
+  agentsRoot: string,
+  cbmIndex: string,
+  projectRoot: string,
+  summary: string,
+  uiRequired: boolean,
+  save: typeof saveAidlcIntent,
   write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, intentPath, evidence] = args;
-  if (
-    command !== 'approve' ||
-    !intentPath ||
-    args.length < 2 ||
-    args.length > 3
-  )
-    return false;
-  const intent = await load(nodeFileSystem, intentPath);
-  const activeApprovalHandoff =
-    intent.stage === 'approval-handoff' &&
-    intent.route.find((record) => record.slug === intent.stage)?.status ===
-      'active';
-  if (activeApprovalHandoff && !evidence?.trim()) {
-    throw new Error(
-      'Approval Handoff is active. After the user explicitly approves, call approve <intent-path> "<handoff evidence>" once; do not call complete first.',
-    );
-  }
-  if (!activeApprovalHandoff && evidence !== undefined) {
-    throw new Error(
-      'Approval evidence is accepted only while Approval Handoff is active.',
-    );
-  }
-  const next = activeApprovalHandoff
-    ? approveAidlcIntent(completeAidlcStage(intent, evidence ?? ''))
-    : approveAidlcIntent(intent);
-  await update(nodeFileSystem, intentPath, next);
-  await appendAudit(nodeFileSystem, intentPath, {
-    at: new Date().toISOString(),
-    detail: activeApprovalHandoff
-      ? `User approval recorded with handoff evidence: ${evidence}`
-      : 'User approval recorded for a legacy awaiting-approval intent.',
-    stage: intent.stage,
-    type: 'approval-granted',
+  load: typeof loadAidlcIntent,
+  initialRecord?: string,
+): Promise<void> => {
+  let intent: AidlcIntent = createAidlcIntent(cbmIndex, summary, {
+    projectRoot,
+    uiRequired,
   });
-  write(JSON.stringify(nextActionFor(intentPath, next), null, 2));
-  return true;
+  const path = intentPathFor(agentsRoot, cbmIndex, intent.id);
+  let existing: AidlcIntent | undefined;
+  try {
+    existing = await load(nodeFileSystem, path);
+  } catch (error) {
+    if (
+      !(error instanceof Error && 'code' in error && error.code === 'ENOENT')
+    ) {
+      throw error;
+    }
+  }
+  assertNoIntentCollision(existing, summary);
+  const resolvedGate = resolveAidlcGate(projectRoot);
+  intent = completeAidlcStage(
+    intent,
+    'Workspace scaffolded: validated temporary intent path and CBM project index.',
+  );
+  intent = completeAidlcStage(
+    intent,
+    `Workspace detected: project root ${projectRoot}; final gate ${resolvedGate.command} (${resolvedGate.source} at ${resolvedGate.configPath}).`,
+  );
+  intent = completeAidlcStage(
+    intent,
+    'State initialized: selected four-phase route and deterministic UI applicability recorded.',
+  );
+  if (initialRecord) intent = applyInitialRecord(intent, initialRecord);
+  await save(nodeFileSystem, path, intent);
+  write(
+    JSON.stringify(
+      {
+        acceptanceChecklist: acceptanceChecklistFor(summary, uiRequired),
+        cbmIndex,
+        finalGate: resolvedGate,
+        initialRecordApplied: Boolean(initialRecord),
+        intentPath: path,
+        ...nextActionFor(path, intent),
+      },
+      null,
+    ),
+  );
 };
 
 const runBuildAndTest = async (
@@ -284,6 +382,8 @@ const runBuildAndTest = async (
   appendAudit: typeof appendAidlcAuditEvent,
   write: (message: string) => void,
   executeGate?: AidlcGateExecutor,
+  closeout?: AidlcKnowledgeCloseout,
+  retire: typeof retireAidlcIntent = retireAidlcIntent,
 ): Promise<void> => {
   if (!intent.projectRoot) {
     throw new Error('Build and Test requires an absolute project root.');
@@ -302,6 +402,30 @@ const runBuildAndTest = async (
       stage: intent.stage,
       type: 'stage-completed',
     });
+    if (closeout) {
+      const closed = withAidlcKnowledgeCloseout(next, closeout);
+      await update(nodeFileSystem, intentPath, closed);
+      await appendAudit(nodeFileSystem, intentPath, {
+        at: closeout.completedAt,
+        detail: closeout.evidence,
+        stage: next.stage,
+        type: 'knowledge-closeout',
+      });
+      await retire(nodeFileSystem, intentPath);
+      write(
+        JSON.stringify(
+          {
+            finalGate: result,
+            intentPath,
+            knowledgeCloseout: closeout,
+            next: { action: 'done', status: 'retired' },
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
     write(
       JSON.stringify(
         { finalGate: result, ...nextActionFor(intentPath, next) },
@@ -332,17 +456,312 @@ const runBuildAndTest = async (
   process.exitCode = result.exitCode;
 };
 
-const runCloseout = async (
+const runAutomaticBuildAndTest = async (
+  intentPath: string,
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  write: (message: string) => void,
+  executeGate?: AidlcGateExecutor,
+): Promise<boolean> => {
+  const intent = await load(nodeFileSystem, intentPath);
+  if (intent.stage !== 'build-and-test') return false;
+  await runBuildAndTest(
+    intentPath,
+    intent,
+    update,
+    appendAudit,
+    write,
+    executeGate,
+  );
+  return true;
+};
+
+const runBuildAndTestWithCloseout = async (
+  intentPath: string,
+  closeoutCommand: AidlcCloseoutCommand,
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  write: (message: string) => void,
+  retire: typeof retireAidlcIntent,
+  executeGate?: AidlcGateExecutor,
+): Promise<void> => {
+  const intent = await load(nodeFileSystem, intentPath);
+  if (intent.stage !== 'build-and-test') {
+    throw new Error(
+      'complete --closeout is valid only at active Build and Test.',
+    );
+  }
+  const closeout = await closeoutFor(
+    closeoutCommand.disposition,
+    closeoutCommand.details,
+  );
+  await runBuildAndTest(
+    intentPath,
+    intent,
+    update,
+    appendAudit,
+    write,
+    executeGate,
+    closeout,
+    retire,
+  );
+};
+
+const runCaptureAndBegin = async (
+  args: readonly string[],
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  write: (message: string) => void,
+  dependencies: AidlcCloseoutDependencies,
+): Promise<boolean> => {
+  const [command, intentPath, kbRoot, requestPath] = args;
+  if (
+    command !== 'capture-and-begin' ||
+    !intentPath ||
+    !kbRoot ||
+    !requestPath ||
+    args.length !== 4
+  )
+    return false;
+  const intent = await load(nodeFileSystem, intentPath);
+  if (aidlcIntentStatusFor(intent) !== 'completed' || intent.kbCloseout) {
+    throw new Error(
+      'capture-and-begin requires a passed final gate without a knowledge closeout.',
+    );
+  }
+  if (intent.kbCompressionSession) {
+    throw new Error(
+      'AIDLC knowledge compression is already active; use its returned finalize-and-recover action.',
+    );
+  }
+  const request = captureRequestFor(
+    await dependencies.readRequest(requestPath),
+  );
+  const captured = await captureConcept(
+    dependencies.fileSystem,
+    kbRoot,
+    request.relativePath,
+    request.metadata,
+    request.body,
+    request.evidence,
+  );
+  const guard = await guardCompression(
+    dependencies.fileSystem,
+    compressionBackupRoot(),
+    captured.conceptPath,
+    dependencies.digest,
+  );
+  await claimCompressionLock(
+    dependencies.fileSystem,
+    guard,
+    dependencies.clock,
+    60_000,
+  );
+  const session: AidlcKnowledgeCompressionSession = {
+    backupPath: guard.backupPath,
+    kbRoot,
+    lockPath: guard.lockPath,
+    reference: request.relativePath,
+    sourcePath: captured.conceptPath,
+  };
+  await update(nodeFileSystem, intentPath, {
+    ...intent,
+    kbCompressionSession: session,
+  });
+  write(
+    JSON.stringify({
+      capture: captured,
+      compressionSession: session,
+      next: {
+        action: 'edit-source-then-finalize-and-recover',
+        args: ['finalize-and-recover', intentPath],
+      },
+    }),
+  );
+  return true;
+};
+
+const runFinalizeAndRecover = async (
+  args: readonly string[],
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  retire: typeof retireAidlcIntent,
+  write: (message: string) => void,
+  dependencies: AidlcCloseoutDependencies,
+): Promise<boolean> => {
+  const [command, intentPath] = args;
+  if (command !== 'finalize-and-recover' || !intentPath || args.length !== 2)
+    return false;
+  const intent = await load(nodeFileSystem, intentPath);
+  const session = intent.kbCompressionSession;
+  if (!session) {
+    throw new Error(
+      'finalize-and-recover requires an active AIDLC knowledge compression session.',
+    );
+  }
+  const guard = await resumeCompressionGuard(
+    dependencies.fileSystem,
+    compressionBackupRoot(),
+    session.sourcePath,
+    dependencies.digest,
+  );
+  await finalizeCompression(dependencies.fileSystem, session.sourcePath, guard);
+  parseOkfConcept(await readText(dependencies.fileSystem, session.sourcePath));
+  const closeout: AidlcKnowledgeCloseout = {
+    completedAt: new Date().toISOString(),
+    disposition: 'captured',
+    evidence: `Captured and validated KB concepts: ${session.reference}.`,
+    references: [session.reference],
+  };
+  const next = withAidlcKnowledgeCloseout(
+    { ...intent, kbCompressionSession: undefined },
+    closeout,
+  );
+  await update(nodeFileSystem, intentPath, next);
+  await appendAudit(nodeFileSystem, intentPath, {
+    at: closeout.completedAt,
+    detail: closeout.evidence,
+    stage: intent.stage,
+    type: 'knowledge-closeout',
+  });
+  await retire(nodeFileSystem, intentPath);
+  write(
+    JSON.stringify({
+      intentPath,
+      knowledgeCloseout: closeout,
+      next: { action: 'done', status: 'retired' },
+    }),
+  );
+  return true;
+};
+
+const runKnowledgeCloseout = async (
+  args: readonly string[],
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  retire: typeof retireAidlcIntent,
+  write: (message: string) => void,
+  dependencies: AidlcCloseoutDependencies,
+): Promise<boolean> => {
+  if (await runCaptureAndBegin(args, load, update, write, dependencies)) {
+    return true;
+  }
+  return runFinalizeAndRecover(
+    args,
+    load,
+    update,
+    appendAudit,
+    retire,
+    write,
+    dependencies,
+  );
+};
+
+const runQueue = async (
+  args: readonly string[],
+  agentsRoot: string,
+  write: (message: string) => void,
+): Promise<boolean> => {
+  const [command, cbmIndex] = args;
+  if (command !== 'queue' || !cbmIndex || args.length !== 2) return false;
+  write(
+    JSON.stringify(
+      await inventoryAidlcIntents(nodeFileSystem, agentsRoot, cbmIndex),
+    ),
+  );
+  return true;
+};
+
+const runRecord = async (
   args: readonly string[],
   load: typeof loadAidlcIntent,
   update: typeof updateAidlcIntent,
   appendAudit: typeof appendAidlcAuditEvent,
   write: (message: string) => void,
+  retire: typeof retireAidlcIntent,
+  executeGate?: AidlcGateExecutor,
+): Promise<boolean> => {
+  const options = recordOptionsFor(args);
+  if (!options) return false;
+  const { closeout: closeoutCommand, finalGate, input, intentPath } = options;
+  const intent = await load(nodeFileSystem, intentPath);
+  const transitions = parseAidlcRecordInputs(input);
+  const projected = validateAidlcRecordTransitions(intent, transitions);
+  if (finalGate && projected.stage !== 'build-and-test') {
+    throw new Error(
+      'record --final-gate must end immediately before Build and Test.',
+    );
+  }
+  const closeout = closeoutCommand
+    ? await closeoutFor(closeoutCommand.disposition, closeoutCommand.details)
+    : undefined;
+  let persisted = intent;
+  for (const entry of transitions) {
+    const next = transitionForAidlcRecord(persisted, entry);
+    await update(nodeFileSystem, intentPath, next);
+    await appendAudit(nodeFileSystem, intentPath, {
+      at: new Date().toISOString(),
+      detail: entry.evidence,
+      stage: persisted.stage,
+      type: entry.outcome === 'complete' ? 'stage-completed' : 'stage-skipped',
+    });
+    persisted = next;
+  }
+  if (finalGate) {
+    await runBuildAndTest(
+      intentPath,
+      persisted,
+      update,
+      appendAudit,
+      write,
+      executeGate,
+      closeout,
+      retire,
+    );
+    return true;
+  }
+  write(JSON.stringify(nextActionFor(intentPath, persisted), null, 2));
+  return true;
+};
+
+const runRecover = async (
+  args: readonly string[],
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  retire: typeof retireAidlcIntent,
+  write: (message: string) => void,
 ): Promise<boolean> => {
   const [command, intentPath, disposition, ...details] = args;
-  if (command !== 'closeout') return false;
+  if (command !== 'recover') return false;
   if (!intentPath || !disposition) return false;
   const intent = await load(nodeFileSystem, intentPath);
+  if (intent.kbCompressionSession) {
+    throw new Error(
+      'AIDLC knowledge compression is active; use the returned finalize-and-recover action.',
+    );
+  }
+  if (disposition === '--retire-only') {
+    if (details.length !== 0) return false;
+    if (!intent.kbCloseout) {
+      throw new Error(
+        'recover --retire-only requires a persisted knowledge-base closeout.',
+      );
+    }
+    await retire(nodeFileSystem, intentPath);
+    write(
+      JSON.stringify(
+        { intentPath, next: { action: 'done', status: 'retired' } },
+        null,
+        2,
+      ),
+    );
+    return true;
+  }
   const closeout = await closeoutFor(disposition, details);
   const next = withAidlcKnowledgeCloseout(intent, closeout);
   await update(nodeFileSystem, intentPath, next);
@@ -352,26 +771,16 @@ const runCloseout = async (
     stage: intent.stage,
     type: 'knowledge-closeout',
   });
+  await retire(nodeFileSystem, intentPath);
   write(
     JSON.stringify(
-      { intent: next, knowledgeCloseout: closeout, next: { action: 'retire' } },
+      {
+        intentPath,
+        knowledgeCloseout: closeout,
+        next: { action: 'done', status: 'retired' },
+      },
       null,
       2,
-    ),
-  );
-  return true;
-};
-
-const runQueue = async (
-  args: readonly string[],
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, agentsRoot, cbmIndex] = args;
-  if (command !== 'queue' || !agentsRoot || !cbmIndex || args.length !== 3)
-    return false;
-  write(
-    JSON.stringify(
-      await inventoryAidlcIntents(nodeFileSystem, agentsRoot, cbmIndex),
     ),
   );
   return true;
@@ -394,67 +803,6 @@ const runReplan = async (
     type: 'intent-replanned',
   });
   write(JSON.stringify(nextActionFor(intentPath, intent), null, 2));
-  return true;
-};
-
-const runRetire = async (
-  args: readonly string[],
-  retire: typeof retireAidlcIntent,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, intentPath] = args;
-  if (command !== 'retire' || !intentPath || args.length !== 2) return false;
-  await retire(nodeFileSystem, intentPath);
-  write(
-    JSON.stringify({ intentPath, next: { action: 'done', status: 'retired' } }),
-  );
-  return true;
-};
-
-const runStage = async (
-  args: readonly string[],
-  load: typeof loadAidlcIntent,
-  update: typeof updateAidlcIntent,
-  appendAudit: typeof appendAidlcAuditEvent,
-  write: (message: string) => void,
-  executeGate?: AidlcGateExecutor,
-): Promise<boolean> => {
-  const [command, intentPath, evidence] = args;
-  if (isAutomaticBuildAndTest(args)) {
-    const [, buildIntentPath] = args;
-    const intent = await load(nodeFileSystem, buildIntentPath);
-    if (intent.stage !== 'build-and-test') return false;
-    await runBuildAndTest(
-      buildIntentPath,
-      intent,
-      update,
-      appendAudit,
-      write,
-      executeGate,
-    );
-    return true;
-  }
-  if (
-    (command !== 'complete' && command !== 'skip') ||
-    !intentPath ||
-    !evidence ||
-    args.length !== 3
-  )
-    return false;
-  const intent = await load(nodeFileSystem, intentPath);
-  assertManualStageCommandAllowed(command, intent);
-  const next =
-    command === 'complete'
-      ? completeAidlcStage(intent, evidence)
-      : skipAidlcStage(intent, evidence);
-  await update(nodeFileSystem, intentPath, next);
-  await appendAudit(nodeFileSystem, intentPath, {
-    at: new Date().toISOString(),
-    detail: evidence,
-    stage: intent.stage,
-    type: command === 'complete' ? 'stage-completed' : 'stage-skipped',
-  });
-  write(JSON.stringify(nextActionFor(intentPath, next), null, 2));
   return true;
 };
 
@@ -491,51 +839,145 @@ const runSupersede = async (
   return true;
 };
 
-const transitionForRecord = (
-  intent: AidlcIntent,
-  entry: AidlcRecordInput,
-): AidlcIntent => {
-  if (entry.stage !== intent.stage) {
-    throw new Error(
-      `AIDLC record outcomes must be consecutive; expected ${intent.stage}, received ${entry.stage}.`,
+const runTerminalStage = async (
+  args: readonly string[],
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  write: (message: string) => void,
+  retire: typeof retireAidlcIntent,
+  executeGate?: AidlcGateExecutor,
+): Promise<boolean> => {
+  const completeCloseout = completeCloseoutCommandFor(args);
+  if (completeCloseout) {
+    const intentPath = args[1];
+    if (!intentPath) return false;
+    await runBuildAndTestWithCloseout(
+      intentPath,
+      completeCloseout,
+      load,
+      update,
+      appendAudit,
+      write,
+      retire,
+      executeGate,
     );
+    return true;
   }
-  return entry.outcome === 'complete'
-    ? completeAidlcStage(intent, entry.evidence)
-    : skipAidlcStage(intent, entry.evidence);
+  if (!isAutomaticBuildAndTest(args)) return false;
+  return runAutomaticBuildAndTest(
+    args[1],
+    load,
+    update,
+    appendAudit,
+    write,
+    executeGate,
+  );
 };
 
-export const usage = (): string =>
-  [
-    'Usage: bun ~/.agents/scripts/aidlc.ts <command> ...',
-    '',
-    'Commands:',
-    '  start <agents-root> <absolute-project-root> <intent-summary> [--ui]',
-    '    Required bootstrap. Resolves the explicit CBM index, creates/resumes the intent, records 0.1-0.3, and returns the final-gate command/path/source plus the 1.1 packet.',
-    '  complete <intent-path> <evidence> | complete <intent-path> (Build and Test only)',
-    '    Records one active non-gated stage. At Build and Test, omit evidence: it runs the one configured final gate and returns its receipt plus the next action.',
-    '  skip <intent-path> <reason>',
-    '    Factually skips the active non-gated stage and returns the next actionable packet.',
-    '  record <intent-path> \'[{"stage":"<active-stage>","outcome":"<complete-or-skip>","evidence":"<factual evidence>"}]\' [--final-gate]',
-    '    Batches consecutive outcomes from the active stage and returns one next action. outcome is required on every entry.',
-    '    Use --final-gate only when the batch ends immediately before Build and Test; it executes the configured gate instead of accepting model-written 3.6 evidence.',
-    '  approve <intent-path> "<handoff evidence>"',
-    '    After explicit user approval at active 1.7, records the handoff and approval atomically, then returns the next required action. Legacy awaiting-approval intents use approve <intent-path>.',
-    '  replan <intent-path> <evidence> | supersede <intent-path> <replacement-id>',
-    '    Lifecycle corrections only; use when the user changes the approved direction.',
-    '  closeout <intent-path> --captured <private-kb-root> <concept-path> [<concept-path>]',
-    '    Records validated durable knowledge after the final gate. The knowledge-base skill owns capture and validation.',
-    '  closeout <intent-path> --no-durable-lesson "<knowledge-base assessment>"',
-    '    Records the factual KB assessment when no durable lesson should be captured.',
-    '  retire <intent-path>',
-    '    Removes a completed temporary intent only after an explicit knowledge-base closeout.',
-    '  queue <agents-root> <cbm-index>',
-    '    Diagnostics only. Use only to reconcile existing temporary intents; start omits unrelated intent records.',
-    '  prepare <agents-root> <cbm-index> <absolute-project-root> <intent-summary> [--ui]',
-    '    Legacy compatibility only. Never use it for a new run; start resolves the index safely.',
-    '',
-    'Do not run which codebase-memory-mcp or command --help probes. start and lifecycle commands provide the needed state.',
-  ].join('\n');
+const runStage = async (
+  args: readonly string[],
+  load: typeof loadAidlcIntent,
+  update: typeof updateAidlcIntent,
+  appendAudit: typeof appendAidlcAuditEvent,
+  write: (message: string) => void,
+  retire: typeof retireAidlcIntent,
+  executeGate?: AidlcGateExecutor,
+): Promise<boolean> => {
+  const [command, intentPath, evidence] = args;
+  if (
+    await runTerminalStage(
+      args,
+      load,
+      update,
+      appendAudit,
+      write,
+      retire,
+      executeGate,
+    )
+  )
+    return true;
+  if (
+    (command !== 'complete' && command !== 'skip') ||
+    !intentPath ||
+    !evidence ||
+    args.length !== 3
+  )
+    return false;
+  const intent = await load(nodeFileSystem, intentPath);
+  assertManualStageCommandAllowed(command, intent);
+  const next =
+    command === 'complete'
+      ? completeAidlcStage(intent, evidence)
+      : skipAidlcStage(intent, evidence);
+  await update(nodeFileSystem, intentPath, next);
+  await appendAudit(nodeFileSystem, intentPath, {
+    at: new Date().toISOString(),
+    detail: evidence,
+    stage: intent.stage,
+    type: command === 'complete' ? 'stage-completed' : 'stage-skipped',
+  });
+  write(JSON.stringify(nextActionFor(intentPath, next), null, 2));
+  return true;
+};
+
+const startOptionsFor = (
+  args: readonly string[],
+): AidlcStartOptions | undefined => {
+  if (args[0] !== 'start' || !args[1]) {
+    return undefined;
+  }
+  const options = args.slice(2);
+  if (options.length === 0) return { uiRequired: false };
+  if (options.length === 1 && options[0] === '--ui') {
+    return { uiRequired: true };
+  }
+  if (options.length === 2 && options[0] === '--initial-record' && options[1]) {
+    return { initialRecord: options[1], uiRequired: false };
+  }
+  if (
+    options.length === 3 &&
+    options[0] === '--ui' &&
+    options[1] === '--initial-record' &&
+    options[2]
+  ) {
+    return { initialRecord: options[2], uiRequired: true };
+  }
+  return undefined;
+};
+
+const isStart = (args: readonly string[]): boolean =>
+  startOptionsFor(args) !== undefined;
+
+const runStart = async (
+  args: readonly string[],
+  save: typeof saveAidlcIntent,
+  write: (message: string) => void,
+  load: typeof loadAidlcIntent,
+  resolve: (projectRoot: string) => Promise<string>,
+  workspaceRoot: string,
+  agentsRoot: string,
+): Promise<boolean> => {
+  if (!isStart(args)) return false;
+  const [, summary] = args;
+  const options = startOptionsFor(args);
+  if (!options) return false;
+  const cbmIndex = await resolve(workspaceRoot);
+  await runBootstrap(
+    agentsRoot,
+    cbmIndex,
+    workspaceRoot,
+    summary,
+    options.uiRequired,
+    save,
+    write,
+    load,
+    options.initialRecord,
+  );
+  return true;
+};
+
+export const usage = (): string => renderAidlcCommandContract();
 
 const runHelp = (
   args: readonly string[],
@@ -553,166 +995,6 @@ const runHelp = (
   return true;
 };
 
-const runPrepare = async (
-  args: readonly string[],
-  save: typeof saveAidlcIntent,
-  write: (message: string) => void,
-  load: typeof loadAidlcIntent,
-  verify: (index: string) => Promise<void>,
-): Promise<void> => {
-  if (!isPrepare(args)) throw new Error(usage());
-  const [, agentsRoot, cbmIndex, projectRoot, summary, uiFlag] = args;
-  await verify(cbmIndex);
-  let intent: AidlcIntent = createAidlcIntent(cbmIndex, summary, {
-    projectRoot,
-    uiRequired: uiFlag === '--ui',
-  });
-  const path = intentPathFor(agentsRoot, cbmIndex, intent.id);
-  let existing: AidlcIntent | undefined;
-  try {
-    existing = await load(nodeFileSystem, path);
-  } catch (error) {
-    if (
-      !(error instanceof Error && 'code' in error && error.code === 'ENOENT')
-    ) {
-      throw error;
-    }
-  }
-  assertNoIntentCollision(existing, summary);
-  const resolvedGate = resolveAidlcGate(projectRoot);
-  intent = completeAidlcStage(
-    intent,
-    'Workspace scaffolded: validated temporary intent path and CBM project index.',
-  );
-  intent = completeAidlcStage(
-    intent,
-    `Workspace detected: project root ${projectRoot}; final gate ${resolvedGate.command} (${resolvedGate.source} at ${resolvedGate.configPath}).`,
-  );
-  intent = completeAidlcStage(
-    intent,
-    'State initialized: selected four-phase route and deterministic UI applicability recorded.',
-  );
-  await save(nodeFileSystem, path, intent);
-  write(
-    JSON.stringify(
-      {
-        acceptanceChecklist: acceptanceChecklistFor(summary, uiFlag === '--ui'),
-        cbmIndex,
-        finalGate: resolvedGate,
-        intentPath: path,
-        stagePacket: stagePacketFor(agentsRoot, intent),
-      },
-      null,
-    ),
-  );
-};
-
-const runStart = async (
-  args: readonly string[],
-  save: typeof saveAidlcIntent,
-  write: (message: string) => void,
-  load: typeof loadAidlcIntent,
-  resolve: (projectRoot: string) => Promise<string>,
-): Promise<boolean> => {
-  if (!isStart(args)) return false;
-  const [, agentsRoot, projectRoot, summary, uiFlag] = args;
-  const cbmIndex = await resolve(projectRoot);
-  await runPrepare(
-    [
-      'prepare',
-      agentsRoot,
-      cbmIndex,
-      projectRoot,
-      summary,
-      ...(uiFlag ? [uiFlag] : []),
-    ],
-    save,
-    write,
-    load,
-    async () => undefined,
-  );
-  return true;
-};
-
-const validateRecordTransitions = (
-  intent: AidlcIntent,
-  transitions: readonly AidlcRecordInput[],
-): AidlcIntent => {
-  if (
-    transitions.some(
-      (entry) =>
-        entry.stage === 'approval-handoff' || entry.stage === 'build-and-test',
-    )
-  ) {
-    throw new Error(
-      'AIDLC record cannot complete Approval Handoff or Build and Test; use their dedicated atomic command.',
-    );
-  }
-  let updated = intent;
-  for (const [index, entry] of transitions.entries()) {
-    updated = transitionForRecord(updated, entry);
-    assertRecordCanContinue(updated, transitions.length - index - 1);
-  }
-  return updated;
-};
-
-const runRecord = async (
-  args: readonly string[],
-  load: typeof loadAidlcIntent,
-  update: typeof updateAidlcIntent,
-  appendAudit: typeof appendAidlcAuditEvent,
-  write: (message: string) => void,
-  executeGate?: AidlcGateExecutor,
-): Promise<boolean> => {
-  const [command, intentPath, input, finalGateFlag] = args;
-  if (
-    command !== 'record' ||
-    !intentPath ||
-    !input ||
-    !(
-      args.length === 3 ||
-      (args.length === 4 && finalGateFlag === '--final-gate')
-    )
-  )
-    return false;
-  const intent = await load(nodeFileSystem, intentPath);
-  const transitions = parseRecordInputs(input);
-  const projected = validateRecordTransitions(intent, transitions);
-  if (
-    finalGateFlag === '--final-gate' &&
-    projected.stage !== 'build-and-test'
-  ) {
-    throw new Error(
-      'record --final-gate must end immediately before Build and Test.',
-    );
-  }
-  let persisted = intent;
-  for (const entry of transitions) {
-    const next = transitionForRecord(persisted, entry);
-    await update(nodeFileSystem, intentPath, next);
-    await appendAudit(nodeFileSystem, intentPath, {
-      at: new Date().toISOString(),
-      detail: entry.evidence,
-      stage: persisted.stage,
-      type: entry.outcome === 'complete' ? 'stage-completed' : 'stage-skipped',
-    });
-    persisted = next;
-  }
-  if (finalGateFlag === '--final-gate') {
-    await runBuildAndTest(
-      intentPath,
-      persisted,
-      update,
-      appendAudit,
-      write,
-      executeGate,
-    );
-    return true;
-  }
-  write(JSON.stringify(nextActionFor(intentPath, persisted), null, 2));
-  return true;
-};
-
 const runHandledCommand = async (
   args: readonly string[],
   save: typeof saveAidlcIntent,
@@ -723,18 +1005,43 @@ const runHandledCommand = async (
   retire: typeof retireAidlcIntent,
   resolve: (projectRoot: string) => Promise<string>,
   executeGate?: AidlcGateExecutor,
+  workspaceRoot = process.cwd(),
+  closeoutDependencies?: AidlcCloseoutDependencies,
+  agentsRoot = agentsRootForScript(),
 ): Promise<boolean> => {
+  const resolvedCloseoutDependencies =
+    closeoutDependencies ?? defaultCloseoutDependencies();
   if (runHelp(args, write)) return true;
-  if (await runStart(args, save, write, load, resolve)) return true;
-  if (await runRetire(args, retire, write)) return true;
-  if (await runCloseout(args, load, update, appendAudit, write)) return true;
-  if (await runQueue(args, write)) return true;
+  if (
+    await runStart(args, save, write, load, resolve, workspaceRoot, agentsRoot)
+  )
+    return true;
+  if (
+    await runKnowledgeCloseout(
+      args,
+      load,
+      update,
+      appendAudit,
+      retire,
+      write,
+      resolvedCloseoutDependencies,
+    )
+  )
+    return true;
+  if (await runRecover(args, load, update, appendAudit, retire, write))
+    return true;
+  if (await runQueue(args, agentsRoot, write)) return true;
   if (await runSupersede(args, load, update, appendAudit, write)) return true;
   if (await runReplan(args, load, appendAudit, write)) return true;
-  if (await runApprove(args, load, update, appendAudit, write)) return true;
-  if (await runRecord(args, load, update, appendAudit, write, executeGate))
+  if (
+    await runAidlcApprove(args, load, update, appendAudit, nextActionFor, write)
+  )
     return true;
-  return runStage(args, load, update, appendAudit, write, executeGate);
+  if (
+    await runRecord(args, load, update, appendAudit, write, retire, executeGate)
+  )
+    return true;
+  return runStage(args, load, update, appendAudit, write, retire, executeGate);
 };
 
 export const run = async (
@@ -745,9 +1052,12 @@ export const run = async (
   update: typeof updateAidlcIntent = updateAidlcIntent,
   appendAudit: typeof appendAidlcAuditEvent = appendAidlcAuditEvent,
   retire: typeof retireAidlcIntent = retireAidlcIntent,
-  verify?: (index: string) => Promise<void>,
+  _verify?: (index: string) => Promise<void>,
   resolve?: (projectRoot: string) => Promise<string>,
   executeGate?: AidlcGateExecutor,
+  workspaceRoot = process.cwd(),
+  closeoutDependencies?: AidlcCloseoutDependencies,
+  agentsRoot = agentsRootForScript(),
 ): Promise<void> => {
   const resolveProject =
     resolve ??
@@ -766,24 +1076,15 @@ export const run = async (
       retire,
       resolveProject,
       executeGate,
+      workspaceRoot,
+      closeoutDependencies,
+      agentsRoot,
     )
   )
     return;
   rejectAdvance(args[0]);
-  if (!isPrepare(args)) throw new Error(usage());
-  if (!verify)
-    throw new Error('AIDLC prepare requires CBM project validation.');
-  await runPrepare(args, save, write, load, verify);
+  throw new Error(usage());
 };
-
-export async function verifyCbmIndex(
-  index: string,
-  execute: CommandExecutor = bunExecutor,
-): Promise<void> {
-  const result = await execute(cbmCommands.listProjects());
-  if (result.code !== 0) throw new Error('CBM project list is unavailable.');
-  assertKnownCbmProject(index, `${result.stdout}\n${result.stderr}`);
-}
 
 export const runWhenMain = runCliWhenMain;
 
@@ -796,7 +1097,7 @@ export const runMain = (args: readonly string[]): Promise<void> =>
     undefined,
     undefined,
     undefined,
-    verifyCbmIndex,
+    undefined,
     resolveCbmIndexForStart,
   );
 

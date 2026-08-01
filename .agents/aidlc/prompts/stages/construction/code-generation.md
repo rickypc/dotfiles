@@ -3,75 +3,26 @@ stage: code-generation
 number: "3.5"
 phase: construction
 condition: "only after approved plan"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "utils/aidlc/stages.ts"
 ---
 
-# 3.5 code generation
+# 3.5 Code Generation
 
-## Universal runtime contract
+Implement the approved acceptance contract using the smallest compatible change.
 
-This is the retained upstream stage method adapted to the universal runtime.
-The route, applicability, roles, sensors, and current state come only from the
-stage packet emitted by `~/.agents/scripts/aidlc.ts`; this document cannot add
-prerequisite stages or a separate lifecycle. Work in the selected project and
-record evidence, decisions, and project-document links in the central temporary
-intent at `~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`.
+1. Re-read the current requirements, preservation constraints, design decisions,
+   units, and acceptance-to-proof mapping. Use `codebase-memory` for affected
+   code facts and reuse verified project extension points.
+2. Change only selected project assets. Follow the universal Code changes policy:
+   minimum scope, reuse first, remove only artifacts made dead by this change,
+   and ask before cleaning unrelated pre-existing dead code.
+3. Add focused tests and smoke checks for each changed behavior. A green final
+   gate cannot prove an acceptance item that has no mapped evidence.
+4. Record changed files, acceptance mapping, tests/smokes, decisions, and known
+   limitations. Then use the action from `utils/aidlc/command-contract.ts` to
+   record this stage, or batch it with the final gate when it is the last
+   established pre-gate outcome.
 
-Use the role cards as review perspectives in the current assistant. Do not
-expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `codebase-memory`; for persistent knowledge, invoke
-`knowledge-base`. At completion, run the packet's sensors. When Code
-Generation is the last recorded stage before Build and Test, use
-`aidlc.ts record <intent-path> '[{"stage":"code-generation","outcome":"complete","evidence":"<factual implementation evidence>"}]' --final-gate`
-to persist 3.5 then execute exactly the one configured final gate. Otherwise
-use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval.
-
-Implement only the scope approved at 1.7 and the design decisions captured by
-the selected Inception and Construction stages. This is not a second approval
-gate: if the approved plan is materially insufficient, re-plan with evidence
-instead of silently expanding the work.
-
-## Preparation
-
-1. Re-read the current intent's requirements, acceptance criteria, application
-   design, unit dependencies, relevant functional design, and applicable NFR
-   design. Absence of a conditional artifact is not permission to invent it.
-2. For brownfield work, use `codebase-memory` to verify the affected symbols,
-   call paths, tests, conventions, and extension points before editing.
-3. Record an ordered implementation checklist in the intent's **Plan** section.
-   Each item must map to a requirement or acceptance criterion and state its
-   test obligation. Include schema or migration work, contracts, configuration,
-   documentation, and UI accessibility only when they are actually in scope.
-4. Re-read the executable acceptance matrix from 2.7. Implement each mapped
-   test or smoke boundary with its owning unit. For a confirmed Bun TypeScript
-   project, invoke `bun-test-generator` for focused test work; otherwise use
-   the project's existing test tooling. Do not claim a checklist item is proved
-   merely because the final gate is green.
-
-## Implementation rules
-
-- Apply the canonical **Code changes** policy in `~/.agents/AGENTS.md`. It
-  governs minimum-scope implementation, reuse of existing code, removal of
-  dead artifacts created by this change, and the user decision required before
-  cleaning unrelated pre-existing dead code.
-- Modify the selected project in place; do not create duplicate replacement
-  classes or write application code under the global AIDLC directory.
-- Preserve established repository conventions unless the approved architecture
-  deliberately changes them.
-- Add or update focused tests as part of each behavior change. Build and Test
-  verifies the final result; it is not where missing implementation tests are
-  deferred.
-- Keep commits, branches, and assistant-specific execution choices outside this
-  universal contract; a project adapter may supply those details.
-- Stop and re-plan when the implementation contradicts approved requirements,
-  architecture, or evidence. Do not use a code change to settle an unresolved
-  product decision.
-
-## Completion evidence
-
-Record modified files, requirement-to-change traceability, tests added or
-changed, decisions made during implementation, and known limitations in the
-intent's **Execution evidence** section. Run the packet's intent-evidence
-sensor before recording completion. The next stage is Build and Test, which
-can be executed atomically with this completion through `record ... --final-gate`.
+Do not modify global runtime assets, hand-edit lifecycle frontmatter, add a
+second approval gate, or use implementation to settle an unresolved product
+decision. Re-plan with evidence when the approved design is insufficient.

@@ -18,7 +18,8 @@ Retrieve project, organization, team, policy, or prior-decision knowledge only
 when it materially informs the work. Capture a lesson only with observed
 symptom, cause, durable fix, and evidence. Use `codebase-memory` only to speed
 discovery when its KB-root index is ready. After a concept update, invoke
-`md-compress`, then validate OKF structure and protected content.
+`md-compress` through its `begin` and returned `finalize` actions, then validate
+OKF structure and protected content. Its temporary backup is outside the KB tree.
 
 Use the KB at the point it can change a decision: before research when relevant
 knowledge exists, after validation for durable results, or immediately for an

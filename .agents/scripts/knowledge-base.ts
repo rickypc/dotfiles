@@ -1,5 +1,5 @@
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
-import { nodeFileSystem } from '../utils/filesystem.js';
+import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import {
   captureConcept,
   conceptIndexPath,
@@ -66,7 +66,7 @@ const runConceptIndex = (
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/knowledge-base.ts <capture|concept-index|render-index|search|validate> <arguments>';
+  'Usage: bun ~/.agents/scripts/knowledge-base.ts <capture|concept-index|render-index|search|validate> <arguments>; validate requires one absolute concept-file path.';
 
 export const run = async (
   args: readonly string[],
@@ -79,7 +79,7 @@ export const run = async (
   if (runConceptIndex(args, write)) return;
   const [command, value, ...rest] = args;
   if (command === 'validate' && value && args.length === 2) {
-    parseOkfConcept(value);
+    parseOkfConcept(await readText(nodeFileSystem, value));
     write('okf: passed');
     return;
   }

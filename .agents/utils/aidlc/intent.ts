@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import matter from 'gray-matter';
 import type { FileSystem } from '../filesystem.js';
 import { readText, removeFile, writeText } from '../filesystem.js';
@@ -36,6 +37,7 @@ export interface AidlcIntent {
   readonly cbmIndex: string;
   readonly id: string;
   readonly kbCloseout?: AidlcKnowledgeCloseout;
+  readonly kbCompressionSession?: AidlcKnowledgeCompressionSession;
   readonly kbContext: AidlcKnowledgeContext;
   readonly lifecycle: AidlcLifecycle;
   readonly projectRoot?: string;
@@ -51,6 +53,14 @@ export interface AidlcKnowledgeCloseout {
   readonly disposition: 'captured' | 'no-durable-lesson';
   readonly evidence: string;
   readonly references: readonly string[];
+}
+
+export interface AidlcKnowledgeCompressionSession {
+  readonly backupPath: string;
+  readonly kbRoot: string;
+  readonly lockPath: string;
+  readonly reference: string;
+  readonly sourcePath: string;
 }
 
 export interface AidlcKnowledgeContext {
@@ -70,6 +80,14 @@ export interface CreateAidlcIntentOptions {
   readonly projectRoot?: string;
   readonly uiRequired?: boolean;
 }
+
+const intentFileNameMaxLength = 160;
+const intentFileExtension = '.md';
+const intentHashLength = 12;
+const intentTruncationSeparator = '-';
+const intentIdMaxLength = intentFileNameMaxLength - intentFileExtension.length;
+const intentPrefixMaxLength =
+  intentIdMaxLength - intentHashLength - intentTruncationSeparator.length;
 
 export const acceptanceChecklistFor = (
   summary: string,
@@ -131,8 +149,17 @@ export const intentIdFor = (summary: string): string => {
     .replaceAll(/^-|-$/gu, '');
   if (!value)
     throw new Error('Intent summary must contain letters or numbers.');
-  return value;
+  if (value.length <= intentIdMaxLength) return value;
+  const hash = createHash('sha256')
+    .update(value)
+    .digest('hex')
+    .slice(0, intentHashLength);
+  const prefix = value.slice(0, intentPrefixMaxLength).replace(/-$/u, '');
+  return `${prefix}${intentTruncationSeparator}${hash}`;
 };
+
+const isCanonicalIntentId = (value: string): boolean =>
+  /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(value);
 
 export const assertAidlcIntentPath = (path: string): void => {
   const segments = path.split('/');
@@ -159,7 +186,7 @@ export const assertAidlcIntentPath = (path: string): void => {
   }
   assertAidlcAgentsRoot(agentsRoot);
   assertCbmIndexName(cbmIndex);
-  if (intentIdFor(fileName.slice(0, -3)) !== fileName.slice(0, -3)) {
+  if (!isCanonicalIntentId(fileName.slice(0, -3))) {
     throw new Error(
       'AIDLC lifecycle commands can access only canonical temporary intent files.',
     );
@@ -208,6 +235,9 @@ const aidlcFrontmatterData = (
   cbm_index: intent.cbmIndex,
   id: intent.id,
   ...(intent.kbCloseout ? { kb_closeout: intent.kbCloseout } : {}),
+  ...(intent.kbCompressionSession
+    ? { kb_compression_session: intent.kbCompressionSession }
+    : {}),
   kb_context: intent.kbContext,
   lifecycle: intent.lifecycle,
   ...(intent.projectRoot ? { project_root: intent.projectRoot } : {}),
@@ -308,6 +338,11 @@ export const intentPathFor = (
   cbmIndex: string,
   intentId: string,
 ): string => {
+  if (intentId !== intentIdFor(intentId)) {
+    throw new Error(
+      'AIDLC intent id must use the deterministic portable filename budget.',
+    );
+  }
   const path = `${agentsRoot.replace(/\/$/u, '')}/aidlc/${cbmIndex}/intents/${intentId}.md`;
   assertAidlcIntentPath(path);
   return path;
@@ -358,6 +393,37 @@ const parseKnowledgeCloseout = (
     evidence: closeout.evidence,
     references: closeout.references,
   };
+};
+
+const parseKnowledgeCompressionSession = (
+  data: Record<string, unknown>,
+): AidlcKnowledgeCompressionSession | undefined => {
+  const value = data.kb_compression_session;
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('AIDLC knowledge compression session is invalid.');
+  }
+  const session = value as Record<string, unknown>;
+  const values = [
+    session.backupPath,
+    session.kbRoot,
+    session.lockPath,
+    session.reference,
+    session.sourcePath,
+  ];
+  if (
+    values.some((value) => typeof value !== 'string' || !value.trim()) ||
+    !String(session.kbRoot).startsWith('/') ||
+    !String(session.sourcePath).startsWith('/') ||
+    !String(session.backupPath).startsWith('/') ||
+    !String(session.lockPath).startsWith('/') ||
+    !isKbConceptPath(String(session.reference)) ||
+    String(session.sourcePath) !==
+      `${String(session.kbRoot).replace(/\/$/u, '')}/${String(session.reference)}`
+  ) {
+    throw new Error('AIDLC knowledge compression session is invalid.');
+  }
+  return session as unknown as AidlcKnowledgeCompressionSession;
 };
 
 const parseKnowledgeContext = (
@@ -593,6 +659,9 @@ const validateParsedIntent = (intent: AidlcIntent): void => {
   if (currentRecord(intent).status === 'pending') {
     throw new Error('AIDLC current stage is pending.');
   }
+  if (intent.kbCloseout && intent.kbCompressionSession) {
+    throw new Error('AIDLC knowledge closeout is invalid.');
+  }
 };
 
 const validateRoute = (
@@ -643,6 +712,7 @@ export const parseAidlcIntent = (content: string): AidlcIntent => {
     cbmIndex: stringField(parsed.data, 'cbm_index'),
     id: stringField(parsed.data, 'id'),
     kbCloseout: parseKnowledgeCloseout(parsed.data),
+    kbCompressionSession: parseKnowledgeCompressionSession(parsed.data),
     kbContext: parseKnowledgeContext(parsed.data),
     lifecycle: (optionalStringField(parsed.data, 'lifecycle') ??
       'active') as AidlcLifecycle,
@@ -692,7 +762,7 @@ export const retireAidlcIntent = async (
   }
   if (!intent.kbCloseout) {
     throw new Error(
-      'Knowledge-base closeout is required before retirement; use closeout <intent-path> after the final gate.',
+      'Knowledge-base closeout is required before retirement; use complete <intent-path> --closeout ... at the final gate, or recover <intent-path> ... after a bare gate passes.',
     );
   }
   await removeFile(fileSystem, path);

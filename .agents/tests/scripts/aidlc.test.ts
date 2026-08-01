@@ -9,7 +9,6 @@ import {
   runMain,
   runWhenMain,
   usage,
-  verifyCbmIndex,
 } from '../../scripts/aidlc.js';
 import type { AidlcGateExecutor } from '../../utils/aidlc/gate.js';
 import {
@@ -20,22 +19,29 @@ import {
 } from '../../utils/aidlc/intent.js';
 import { renderOkfConcept } from '../../utils/knowledge-base.js';
 
-test('prepares one temporary AIDLC intent', async () => {
+test('starts one temporary AIDLC intent from the selected working directory', async () => {
   const saved: unknown[][] = [];
   const save: typeof saveAidlcIntent = async (fileSystem, path, intent) => {
     saved.push([fileSystem, path, intent]);
   };
   const write = mock();
-  const verify = mock(async () => undefined);
   await run(
-    ['prepare', '/agents', 'repo', '/project', 'Build KB'],
+    ['start', 'Build KB'],
     save,
     write,
     undefined,
     undefined,
     undefined,
     undefined,
-    verify,
+    undefined,
+    mock(async (projectRoot: string) => {
+      expect(projectRoot).toBe('/project');
+      return 'repo';
+    }),
+    undefined,
+    '/project',
+    undefined,
+    '/agents',
   );
   expect(saved[0]?.[1]).toBe('/agents/aidlc/repo/intents/build-kb.md');
   expect(saved[0]?.[2]).toMatchObject({
@@ -47,7 +53,6 @@ test('prepares one temporary AIDLC intent', async () => {
       '"intentPath":"/agents/aidlc/repo/intents/build-kb.md"',
     ),
   );
-  expect(verify).toHaveBeenCalledWith('repo');
 });
 
 test('starts in one call by resolving the CBM index from the project root', async () => {
@@ -57,7 +62,7 @@ test('starts in one call by resolving the CBM index from the project root', asyn
   };
   const write = mock();
   await run(
-    ['start', '/agents', '/project', 'Build KB'],
+    ['start', 'Build KB'],
     save,
     write,
     undefined,
@@ -69,6 +74,10 @@ test('starts in one call by resolving the CBM index from the project root', asyn
       expect(projectRoot).toBe('/project');
       return 'resolved-repo';
     }),
+    undefined,
+    '/project',
+    undefined,
+    '/agents',
   );
   expect(saved[0]?.[1]).toBe('/agents/aidlc/resolved-repo/intents/build-kb.md');
   expect(write).toHaveBeenCalledWith(
@@ -83,25 +92,30 @@ test('starts in one call by resolving the CBM index from the project root', asyn
 });
 
 test('rejects a start command when no CBM resolver is configured', async () => {
-  await expect(
-    run(['start', '/agents', '/project', 'Build KB']),
-  ).rejects.toThrow('requires CBM project resolution');
+  await expect(run(['start', 'Build KB'])).rejects.toThrow(
+    'requires CBM project resolution',
+  );
 });
 
-test('marks only the UI stage as applicable from prepare metadata', async () => {
+test('marks only the UI stage as applicable from start metadata', async () => {
   const saved: unknown[][] = [];
   const save: typeof saveAidlcIntent = async (fileSystem, path, intent) => {
     saved.push([fileSystem, path, intent]);
   };
   await run(
-    ['prepare', '/agents', 'repo', '/project', 'Build UI', '--ui'],
+    ['start', 'Build UI', '--ui'],
     save,
     mock(),
     undefined,
     undefined,
     undefined,
     undefined,
-    mock(async () => undefined),
+    undefined,
+    mock(async () => 'repo'),
+    undefined,
+    '/project',
+    undefined,
+    '/agents',
   );
   expect(saved[0]?.[2]).toMatchObject({ uiRequired: true });
   expect(saved[0]?.[2]).toMatchObject({ stage: 'intent-capture' });
@@ -111,14 +125,19 @@ test('refuses to overwrite an active intent with the same deterministic id', asy
   const existing = createAidlcIntent('repo', 'Build KB');
   await expect(
     run(
-      ['prepare', '/agents', 'repo', '/project', 'Build KB'],
+      ['start', 'Build KB'],
       mock(async () => undefined),
       mock(),
       mock(async () => existing),
       undefined,
       undefined,
       undefined,
-      mock(async () => undefined),
+      undefined,
+      mock(async () => 'repo'),
+      undefined,
+      '/project',
+      undefined,
+      '/agents',
     ),
   ).rejects.toThrow('ID collision');
 });
@@ -126,7 +145,7 @@ test('refuses to overwrite an active intent with the same deterministic id', asy
 test('surfaces a malformed existing intent instead of treating it as absent', async () => {
   await expect(
     run(
-      ['prepare', '/agents', 'repo', '/project', 'Build KB'],
+      ['start', 'Build KB'],
       mock(async () => undefined),
       mock(),
       mock(async () => {
@@ -135,7 +154,12 @@ test('surfaces a malformed existing intent instead of treating it as absent', as
       undefined,
       undefined,
       undefined,
-      mock(async () => undefined),
+      undefined,
+      mock(async () => 'repo'),
+      undefined,
+      '/project',
+      undefined,
+      '/agents',
     ),
   ).rejects.toThrow('frontmatter is invalid');
 });
@@ -152,11 +176,7 @@ test('rejects invalid commands and only runs the main boundary when requested', 
     ),
   ).rejects.toThrow(usage());
   const runner = mock(async () => undefined);
-  runWhenMain(
-    true,
-    ['prepare', '/agents', 'repo', '/project', 'Build KB'],
-    runner,
-  );
+  runWhenMain(true, ['start', 'Build KB'], runner);
   runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
 });
@@ -165,28 +185,11 @@ test('returns the command contract without a failing help probe', async () => {
   const write = mock();
   await run(['complete', '--help'], undefined, write);
   expect(write).toHaveBeenCalledWith(expect.stringContaining('Commands:'));
-  expect(usage()).toContain('start <agents-root>');
+  expect(usage()).toContain('start <intent-summary>');
 });
 
-test('main runner keeps CBM validation at the prepare boundary', async () => {
-  await runMain(['queue', '/agents-that-do-not-exist', 'repo']);
-});
-
-test('requires a listed CBM project before a temporary intent is created', async () => {
-  await expect(
-    verifyCbmIndex('missing', async () => ({
-      code: 0,
-      stderr: '',
-      stdout: '{"projects":[{"name":"known"}]}',
-    })),
-  ).rejects.toThrow('not a listed project');
-  await expect(
-    verifyCbmIndex('known', async () => ({
-      code: 1,
-      stderr: 'offline',
-      stdout: '',
-    })),
-  ).rejects.toThrow('project list is unavailable');
+test('main runner keeps CBM resolution inside start rather than queue', async () => {
+  await runMain(['queue', 'repo']);
 });
 
 test('resolves the startup CBM index through an injected project-list boundary', async () => {
@@ -323,7 +326,7 @@ test('records consecutive explicit stage outcomes in one response without crossi
   );
 });
 
-test('returns the active approval-handoff packet before plan evidence is recorded', async () => {
+test('returns an explicit user-approval action at Approval Handoff', async () => {
   let atScope = createAidlcIntent('repo', 'Approval packet');
   while (atScope.stage !== 'scope-definition') {
     atScope = completeAidlcStage(atScope, 'evidence');
@@ -348,9 +351,6 @@ test('returns the active approval-handoff packet before plan evidence is recorde
     mock(async () => undefined),
   );
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('"stage": "approval-handoff"'),
-  );
-  expect(write).not.toHaveBeenCalledWith(
     expect.stringContaining('await-user-approval'),
   );
 });
@@ -575,20 +575,23 @@ test('returns approval and path-repair actions without a separate next call', as
   ).rejects.toThrow('must be under an absolute');
 });
 
-test('retires a terminal intent only through the explicit command', async () => {
+test('rejects removed closeout and retire commands instead of exposing a multi-call route', async () => {
   const retire = mock(async () => undefined);
-  const write = mock();
-  await run(
-    ['retire', '/intent.md'],
-    undefined,
-    write,
-    undefined,
-    undefined,
-    undefined,
-    retire as typeof retireAidlcIntent,
-  );
-  expect(retire).toHaveBeenCalledWith(expect.anything(), '/intent.md');
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"done"'));
+  await expect(
+    run(
+      ['retire', '/intent.md'],
+      undefined,
+      mock(),
+      undefined,
+      undefined,
+      undefined,
+      retire as typeof retireAidlcIntent,
+    ),
+  ).rejects.toThrow('Usage:');
+  await expect(
+    run(['closeout', '/intent.md'], undefined, mock()),
+  ).rejects.toThrow('Usage:');
+  expect(retire).not.toHaveBeenCalled();
 });
 
 test('reports the queue and records replan and supersession lifecycle events', async () => {
@@ -597,7 +600,7 @@ test('reports the queue and records replan and supersession lifecycle events', a
   const update = mock(async () => undefined);
   const appendAudit = mock(async () => undefined);
   const write = mock();
-  await run(['queue', '/agents-that-do-not-exist', 'repo'], undefined, write);
+  await run(['queue', 'repo'], undefined, write);
   await run(
     [
       'replan',
@@ -673,7 +676,7 @@ test('records Code Generation and executes the final gate in one command', async
   expect(update).toHaveBeenCalledTimes(2);
   expect(appendAudit).toHaveBeenCalledTimes(2);
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('knowledge-base-closeout-and-retire'),
+    expect.stringContaining('knowledge-base-closeout-and-recover'),
   );
 });
 
@@ -709,11 +712,11 @@ test('runs the final gate within Build and Test and returns knowledge closeout',
   expect(executeGate).toHaveBeenCalledTimes(1);
   expect(write).toHaveBeenCalledTimes(1);
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('knowledge-base-closeout-and-retire'),
+    expect.stringContaining('knowledge-base-closeout-and-recover'),
   );
 });
 
-test('persists an explicit no-capture knowledge closeout before retirement', async () => {
+test('recovers a late no-capture KB disposition and retires in one command', async () => {
   const initial = createAidlcIntent('repo', 'Closeout');
   const intent = {
     ...initial,
@@ -725,10 +728,11 @@ test('persists an explicit no-capture knowledge closeout before retirement', asy
   };
   const update = mock(async () => undefined);
   const appendAudit = mock(async () => undefined);
+  const retire = mock(async () => undefined) as typeof retireAidlcIntent;
   const write = mock();
   await run(
     [
-      'closeout',
+      'recover',
       '/agents/aidlc/repo/intents/closeout.md',
       '--no-durable-lesson',
       'Knowledge-base found no durable lesson beyond this temporary task.',
@@ -738,6 +742,7 @@ test('persists an explicit no-capture knowledge closeout before retirement', asy
     mock(async () => intent),
     update,
     appendAudit,
+    retire,
   );
   expect(update).toHaveBeenCalledWith(
     expect.anything(),
@@ -751,7 +756,11 @@ test('persists an explicit no-capture knowledge closeout before retirement', asy
     '/agents/aidlc/repo/intents/closeout.md',
     expect.objectContaining({ type: 'knowledge-closeout' }),
   );
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"retire"'));
+  expect(retire).toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/closeout.md',
+  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"retired"'));
 });
 
 test('validates captured knowledge closeout inputs before persisting them', async () => {
@@ -789,9 +798,10 @@ test('validates captured knowledge closeout inputs before persisting them', asyn
       stage: 'build-and-test' as const,
     };
     const update = mock(async () => undefined);
+    const retire = mock(async () => undefined) as typeof retireAidlcIntent;
     await run(
       [
-        'closeout',
+        'recover',
         '/agents/aidlc/repo/intents/captured-closeout.md',
         '--captured',
         kbRoot,
@@ -802,6 +812,7 @@ test('validates captured knowledge closeout inputs before persisting them', asyn
       mock(async () => intent),
       update,
       mock(async () => undefined),
+      retire,
     );
     expect(update).toHaveBeenCalledWith(
       expect.anything(),
@@ -813,7 +824,7 @@ test('validates captured knowledge closeout inputs before persisting them', asyn
     await expect(
       run(
         [
-          'closeout',
+          'recover',
           '/agents/aidlc/repo/intents/captured-closeout.md',
           '--captured',
         ],
@@ -827,7 +838,7 @@ test('validates captured knowledge closeout inputs before persisting them', asyn
     await expect(
       run(
         [
-          'closeout',
+          'recover',
           '/agents/aidlc/repo/intents/captured-closeout.md',
           '--no-durable-lesson',
         ],
@@ -841,7 +852,7 @@ test('validates captured knowledge closeout inputs before persisting them', asyn
     await expect(
       run(
         [
-          'closeout',
+          'recover',
           '/agents/aidlc/repo/intents/captured-closeout.md',
           '--unknown',
         ],

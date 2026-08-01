@@ -7,11 +7,12 @@
     "tree-sitter-typescript": "latest",
     "typescript": "latest"
   },
+  "license": "Apache-2.0",
   "name": "agent-infrastructure",
   "private": true,
   "scripts": {
     "test": "bun run test:lint; lint_status=$?; bun run test:unit; unit_status=$?; bun run test:type; type_status=$?; test $lint_status -eq 0 && test $unit_status -eq 0 && test $type_status -eq 0",
-    "test:lint": "biome check .; biome_status=$?; rg --files -0 -g '*.{ts,tsx,mts,cts}' | xargs -0 bun scripts/declaration-order.ts --summary; declaration_order_status=$?; test $biome_status -eq 0 && test $declaration_order_status -eq 0",
+    "test:lint": "bun scripts/lint.ts",
     "test:type": "tsc",
     "test:unit": "bun test ."
   },

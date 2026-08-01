@@ -40,7 +40,8 @@ remain unchanged.
 
 ## Handoff
 
-Summarize the requirements-to-design traceability expected from Application
-Design and the validation evidence expected from Construction. Run the
+Create an acceptance-to-proof map before Construction: each criterion names a
+test, smoke check, or directly observable result. Mark any proof not yet
+executable and carry it into Application Design and Delivery Planning. Run the
 intent-evidence sensor, record completion, and continue. Do not create a new
 approval gate; the approved 1.7 scope remains the authorization boundary.

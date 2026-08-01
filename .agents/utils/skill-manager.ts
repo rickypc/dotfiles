@@ -10,10 +10,35 @@ import {
 import {
   type ActionPacket,
   createActionPacket,
+  fingerprint,
 } from './evidence-gated-workflow-controller/packet.js';
 import type { EvidenceReceipt } from './evidence-gated-workflow-controller/receipt.js';
-import { createReceipt } from './evidence-gated-workflow-controller/receipt.js';
+import {
+  createReceipt,
+  failedCheckNames,
+  receiptPasses,
+} from './evidence-gated-workflow-controller/receipt.js';
 import type { WorkflowState } from './evidence-gated-workflow-controller/state.js';
+
+export interface SkillManagerBatchEvaluation {
+  readonly phase: 'baseline' | 'candidate';
+  readonly results: readonly SkillManagerBatchResult[];
+}
+
+export interface SkillManagerBatchResult {
+  readonly candidate: EvidenceReceipt;
+  readonly challenge?: EvidenceReceipt;
+  readonly matrixPath: string;
+  readonly repair?: ActionPacket;
+  readonly targetSkillPath: string;
+}
+
+export interface SkillManagerBatchTarget {
+  readonly matrix: readonly MatrixCase[];
+  readonly matrixPath: string;
+  readonly sourceText: string;
+  readonly targetSkillPath: string;
+}
 
 export interface SkillManagerPacketInput {
   readonly failedAssertionIds: readonly string[];
@@ -78,6 +103,12 @@ export const evaluateSkillMatrix = (
   });
 };
 
+const failedAssertionIdsFor = (receipt: EvidenceReceipt): string[] => [
+  ...new Set(
+    failedCheckNames(receipt).map((name) => name.split(':', 1)[0] ?? name),
+  ),
+];
+
 export const parseMatrixJsonl = (content: string): MatrixCase[] => {
   const lines = content.split('\n').filter((line) => line.trim());
   const cases = lines.map((line, index) => {
@@ -89,4 +120,73 @@ export const parseMatrixJsonl = (content: string): MatrixCase[] => {
   });
   validateMatrix(cases);
   return cases;
+};
+
+const receiptFor = (
+  target: SkillManagerBatchTarget,
+  phase: 'baseline_recorded' | 'candidate_checked' | 'challenge_checked',
+): EvidenceReceipt =>
+  evaluateSkillMatrix(
+    target.matrix,
+    { delegatedChecks: {}, ownedFiles: new Set(), text: target.sourceText },
+    fingerprint(target.sourceText),
+    phase,
+  );
+
+const repairFor = (
+  intentId: string,
+  target: SkillManagerBatchTarget,
+  receipt: EvidenceReceipt,
+): ActionPacket | undefined => {
+  const failedAssertionIds = failedAssertionIdsFor(receipt);
+  return failedAssertionIds.length === 0
+    ? undefined
+    : createSkillManagerPacket({
+        failedAssertionIds,
+        intentId,
+        state: 'candidate_requested',
+        targetSkillPath: target.targetSkillPath,
+      });
+};
+
+export const evaluateSkillManagerBatch = (
+  intentId: string,
+  phase: 'baseline' | 'candidate',
+  targets: readonly SkillManagerBatchTarget[],
+): SkillManagerBatchEvaluation => {
+  if (targets.length === 0) {
+    throw new Error('At least one skill matrix and target pair is required.');
+  }
+  const candidates = targets.map((target) => ({
+    candidate: receiptFor(
+      target,
+      phase === 'baseline' ? 'baseline_recorded' : 'candidate_checked',
+    ),
+    target,
+  }));
+  const allCandidatesPass = candidates.every(({ candidate }) =>
+    receiptPasses(candidate),
+  );
+  return {
+    phase,
+    results: candidates.map(({ candidate, target }) => {
+      const challenge =
+        phase === 'candidate' &&
+        allCandidatesPass &&
+        target.matrix.some(({ visibility }) => visibility === 'challenge')
+          ? receiptFor(target, 'challenge_checked')
+          : undefined;
+      const repair =
+        phase === 'candidate'
+          ? repairFor(intentId, target, challenge ?? candidate)
+          : undefined;
+      return {
+        candidate,
+        ...(challenge ? { challenge } : {}),
+        ...(repair ? { repair } : {}),
+        matrixPath: target.matrixPath,
+        targetSkillPath: target.targetSkillPath,
+      };
+    }),
+  };
 };

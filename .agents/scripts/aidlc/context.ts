@@ -1,5 +1,10 @@
 import { runAidlcCliWhenMain } from '../../utils/aidlc/cli.js';
-import { resolveAidlcKnowledgeContext } from '../../utils/aidlc/context.js';
+import {
+  assertAidlcKnowledgeContextResolvable,
+  knowledgeBindingFor,
+  knowledgeBindingsFor,
+  resolveAidlcKnowledgeContextForIntent,
+} from '../../utils/aidlc/context.js';
 import {
   appendAidlcAuditEvent,
   loadAidlcIntent,
@@ -21,11 +26,11 @@ const agentsRootForIntent = (intentPath: string): string => {
   return intentPath.slice(0, markerIndex);
 };
 
-export const bindingFor = (value: string): string | undefined =>
-  value === '-' ? undefined : value;
-
 export const usage = (): string =>
   'Usage: bun ~/.agents/scripts/aidlc/context.ts resolve <intent-path> <kb-root> <organization-ref|-> <team-ref|-> <project-ref|->';
+
+/** @deprecated Use knowledgeBindingFor from the shared context utility. */
+export const bindingFor = knowledgeBindingFor;
 
 export const run = async (
   args: readonly string[],
@@ -33,7 +38,7 @@ export const run = async (
   write: (value: string) => void = console.log,
   load: typeof loadAidlcIntent = loadAidlcIntent,
   update: typeof updateAidlcIntent = updateAidlcIntent,
-  resolve: typeof resolveAidlcKnowledgeContext = resolveAidlcKnowledgeContext,
+  resolve: typeof resolveAidlcKnowledgeContextForIntent = resolveAidlcKnowledgeContextForIntent,
   appendAudit: typeof appendAidlcAuditEvent = appendAidlcAuditEvent,
 ): Promise<void> => {
   const [command, intentPath, kbRoot, organization, team, project] = args;
@@ -49,21 +54,13 @@ export const run = async (
     throw new Error(usage());
   }
   const intent = await load(nodeFileSystem, intentPath);
-  if (intent.stage !== 'reverse-engineering') {
-    throw new Error(
-      'AIDLC knowledge context can be resolved only at reverse-engineering.',
-    );
-  }
+  assertAidlcKnowledgeContextResolvable(intent);
   const kbContext = await resolve(
     nodeFileSystem,
+    intent,
     kbRoot,
-    {
-      organization: bindingFor(organization),
-      project: bindingFor(project),
-      team: bindingFor(team),
-    },
+    knowledgeBindingsFor(organization, team, project),
     now(),
-    intent.cbmIndex,
   );
   const updated = withAidlcKnowledgeContext(intent, kbContext);
   await update(nodeFileSystem, intentPath, updated);

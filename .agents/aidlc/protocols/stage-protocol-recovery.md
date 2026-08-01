@@ -3,7 +3,7 @@
 ## Resume safely
 
 Resume from the central intent, not an inferred directory tree. Load its
-gray-matter through `~/.agents/scripts/aidlc.ts`, inspect the stage ledger and
+gray-matter through the lifecycle runtime, inspect the stage ledger and
 audit events, confirm the selected project root and CBM index, then request the
 packet for the active stage. Read the evidence sections relevant to that stage
 before doing new work. A completed or skipped record is evidence of what

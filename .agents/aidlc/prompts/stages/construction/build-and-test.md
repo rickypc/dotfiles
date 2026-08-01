@@ -3,66 +3,27 @@ stage: build-and-test
 number: "3.6"
 phase: construction
 condition: "always; one final gate"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "utils/aidlc/stages.ts"
 ---
 
-# 3.6 build and test
+# 3.6 Build and Test
 
-## Universal runtime contract
+This stage runs exactly one configured final project command. The command and
+closeout forms are defined only by `utils/aidlc/command-contract.ts`.
 
-This is the retained upstream stage method adapted to the universal runtime.
-The route, applicability, roles, sensors, and current state come only from the
-stage packet emitted by `~/.agents/scripts/aidlc.ts`; this document cannot add
-prerequisite stages or a separate lifecycle. Work in the selected project and
-record evidence, decisions, and project-document links in the central temporary
-intent at `~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`.
+1. Confirm Code Generation recorded changed files and mapped every acceptance
+   item to a test, smoke check, or observable result. Run those focused checks
+   before this stage and record their outputs.
+2. Use the lifecycle final-gate action. It resolves the project configuration
+   or `bun run test` default, executes it once, and emits the only valid 3.6
+   receipt. Do not call a standalone gate helper or supply model-written gate
+   evidence.
+3. On failure, repair the reported problem and rerun the same lifecycle action.
+   No cosmetic, lint, type, coverage, or test failure is waived or replaced by
+   a narrower command.
+4. If KB disposition is already known, use the atomic closeout action. If it is
+   unknown after a bare pass, ask `knowledge-base` and execute the one returned
+   recovery action. Both paths preserve an explicit disposition before retirement.
 
-Use the role cards as review perspectives in the current assistant. Do not
-expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `codebase-memory`; for persistent knowledge, invoke
-`knowledge-base`. At completion, run the packet's sensors
-and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval. At 3.6, invoke
-`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
-configured final gate and returns the result.
-
-This is the mandatory construction closeout. It runs exactly one command: the
-project's configured final gate. The command is defined once by the project in
-`aidlc.config.json` as `finalGate`; when absent it is `bun run test`. Do
-not add a cosmetic, build, lint, type, coverage, or test sub-gate here. The
-single configured command is the final gate, and its non-zero exit is failure.
-
-## Procedure
-
-1. Confirm that Code Generation recorded the implementation scope, changed
-   files, the executable acceptance matrix, and relevant tests. Run each mapped
-   smoke check before the final gate and record its observed result. Use the quality and security role perspectives
-   from the stage packet to review that evidence; do not create a separate
-   testing strategy or instruction-file tree.
-2. When 3.5 has already been persisted, invoke the lifecycle completion
-   command with no evidence:
-
-   `bun ~/.agents/scripts/aidlc.ts complete <intent-path>`
-
-   It resolves and executes the configured command once, persists the canonical
-   receipt on success, and returns the next action. If 3.5 is still active,
-   use `record <intent-path> '[{"stage":"code-generation","outcome":"complete","evidence":"<factual implementation evidence>"}]' --final-gate`
-   instead; do not run a separate gate helper or supply model-written
-   final-gate evidence.
-3. If it returns a failed gate, treat every failure as a real failure. Use its output
-   and `codebase-memory` where needed to locate the cause, repair the
-   selected project, and rerun the same one gate. Do not replace it with a
-   narrower command, waive a cosmetic failure, or proceed on partial success.
-4. When it returns a passing gate, run the packet's validation-evidence sensor.
-   After 3.6, invoke
-   `knowledge-base` for durable capture only when there is a validated,
-   reusable lesson; otherwise record that no capture is warranted and retire
-   the temporary intent.
-
-## Evidence required
-
-The automatic final record names the absolute project root, the resolved single
-command, its configuration path/source, its exit code, defects repaired during
-reruns, and the final pass. No number of preliminary commands can substitute
-for this receipt, and a green final gate does not excuse an unmapped acceptance
-checklist item.
+A passing final gate does not close an acceptance item without its own mapped
+proof.

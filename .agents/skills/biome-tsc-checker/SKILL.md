@@ -53,13 +53,13 @@ the JSON fields as the only authority for declaration ordering.
 6. If `status: "failed"` has a null `actionPacket`, stop and report a checker
    defect. Do not invent a reorder.
 
-For the global `~/.agents` package, `bun run test:lint` runs Biome and the
+For the global `<agents-root>` package, `bun run test:lint` runs Biome and
 declaration-order inspection for every TypeScript source independently. It
-always reports both gate results, then fails when either fails. A noncanonical
-or blocked TypeScript file fails that gate. Its healthy output is one
-checked-file summary; when it fails, it emits only failed or blocked paths and
-their action packets. Selected JavaScript paths remain covered by the checker
-command above.
+always reports every gate result, then fails when any fails. A noncanonical or
+blocked TypeScript file fails that gate. Its healthy output is one checked-file
+summary per inspection; failures retain only actionable paths and
+declaration-order action packets. Selected JavaScript paths remain covered by
+the checker command above.
 
 The AIDLC baseline records the inspection JSON. The candidate rerun is the
 candidate receipt; a final unchanged rerun is the challenge receipt. Record
@@ -72,7 +72,7 @@ type checking through its own configuration, but this reusable checker does not
 infer or modify that configuration.
 
 ```bash
-bun ~/.agents/scripts/biome-tsc-checker.ts <path> [<path>...]
+bun <agents-root>/scripts/biome-tsc-checker.ts <path> [<path>...]
 ```
 
 To inspect the packet without running lint or type checking:

@@ -1,9 +1,22 @@
 import type { FileSystem } from '../filesystem.js';
 import { readText } from '../filesystem.js';
 import { isKbConceptPath, parseOkfConcept } from '../knowledge-base.js';
-import type { AidlcKnowledgeContext } from './intent.js';
+import type { AidlcIntent, AidlcKnowledgeContext } from './intent.js';
 
 const contextOrder = ['organization', 'team', 'project'] as const;
+
+export const assertAidlcKnowledgeContextResolvable = (
+  intent: AidlcIntent,
+): void => {
+  if (intent.stage !== 'reverse-engineering') {
+    throw new Error(
+      'AIDLC knowledge context can be resolved only at reverse-engineering.',
+    );
+  }
+  if (intent.kbContext.resolvedAt) {
+    throw new Error('AIDLC knowledge context has already been resolved.');
+  }
+};
 
 const conflictKeyFor = (
   rule: string,
@@ -18,6 +31,19 @@ const definedBindings = (
   Object.fromEntries(
     Object.entries(bindings).filter(([, value]) => value !== undefined),
   );
+
+export const knowledgeBindingFor = (value: string): string | undefined =>
+  value === '-' ? undefined : value;
+
+export const knowledgeBindingsFor = (
+  organization: string,
+  team: string,
+  project: string,
+): AidlcKnowledgeContext['bindings'] => ({
+  organization: knowledgeBindingFor(organization),
+  project: knowledgeBindingFor(project),
+  team: knowledgeBindingFor(team),
+});
 
 const optionalRead = async (
   fileSystem: FileSystem,
@@ -126,4 +152,21 @@ export const resolveAidlcKnowledgeContext = async (
     resolved.set(subject, mode);
   }
   return { bindings: definedBindings(bindings), resolvedAt, rules, sources };
+};
+
+export const resolveAidlcKnowledgeContextForIntent = async (
+  fileSystem: FileSystem,
+  intent: AidlcIntent,
+  kbRoot: string,
+  bindings: AidlcKnowledgeContext['bindings'],
+  now: string,
+): Promise<AidlcKnowledgeContext> => {
+  assertAidlcKnowledgeContextResolvable(intent);
+  return resolveAidlcKnowledgeContext(
+    fileSystem,
+    kbRoot,
+    bindings,
+    now,
+    intent.cbmIndex,
+  );
 };

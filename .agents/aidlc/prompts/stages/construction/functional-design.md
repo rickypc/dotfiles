@@ -22,9 +22,8 @@ expect assistant-native orchestration or lifecycle storage. For repository
 facts, invoke `codebase-memory`; for persistent knowledge, invoke
 `knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval. At 3.6, invoke
-`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
-configured final gate and returns the result.
+reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
+follow its returned stage packet and the stage protocol when it becomes active.
 
 MANDATORY: Follow stage-protocol.md for the universal question contract and completion evidence.
 
@@ -93,8 +92,7 @@ Generate the following in the relevant central intent section:
 
 ### Step 6: Completion Handoff
 
-Record completion through `bun ~/.agents/scripts/aidlc.ts complete <intent-path> "<evidence>"`.
-`bun ~/.agents/scripts/aidlc.ts complete <intent-path> "<evidence>"`.
+Record completion through `bun <agents-root>/scripts/aidlc.ts complete <intent-path> "<factual-evidence>"`.
 The Use the universal lifecycle script to record the stage outcome.
 
 ### Step 7: Completion

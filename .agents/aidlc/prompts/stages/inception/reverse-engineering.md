@@ -22,9 +22,8 @@ expect assistant-native orchestration or lifecycle storage. For repository
 facts, invoke `codebase-memory`; for persistent knowledge, invoke
 `knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval. At 3.6, invoke
-`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
-configured final gate and returns the result.
+reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
+follow its returned stage packet and the stage protocol when it becomes active.
 
 Perform this stage only for an existing codebase. For greenfield work, record a
 skip stating that no existing implementation exists, then continue to

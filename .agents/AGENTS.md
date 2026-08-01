@@ -26,14 +26,14 @@ skill already supplies the command contract.
 
 | Skill | Required input or command arguments | Use when |
 | --- | --- | --- |
-| `aidlc` | `start ~/.agents <absolute-project-root> "<summary>" [--ui]` | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. |
+| `aidlc` | From `<project-root>`, `bun <agents-root>/scripts/aidlc.ts start "<intent-summary>" [--ui]`; later commands use only the returned canonical `<intent-path>` action | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` from its executing script and never accepts either root as an argument. |
 | `codebase-memory` | `discover "<approved-root>" "<cbm-index>" "<query>"` | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
 | `knowledge-base` | `search "<private-kb-root>" "<kb-cbm-index>" "<query>"` | A private-KB decision, policy, prior lesson, capture, or OKF validation is needed. |
 | `biome-tsc-checker` | `<path> [<path>...]` | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
 | `bun-test-generator` | One SUT plus `<all>`, a method list, or a method range | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
 | `content-writer` | Objective, audience, format, constraints, and citation style | Research-backed content must be drafted, refreshed, or validated. |
-| `md-compress` | One durable Markdown path | Durable Markdown needs lossless compression with a verified backup. |
-| `skill-manager` | One selected skill and its requested change | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
+| `md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>` | Durable Markdown needs lossless compression with a verified temporary backup. |
+| `skill-manager` | For two or more independent skills: `batch <intent-id> <baseline|candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> [...]`; use `packet` or `evaluate` only for one selected or targeted repair path | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
 
 `knowledge-base` alone owns the private-KB root. `codebase-memory` alone owns
 CBM command selection and fallback search. The arguments above are the public
@@ -55,3 +55,7 @@ use.
 - Do not remove pre-existing dead code that this change did not create or
   replace on assumption. Report the exact evidence and ask the user whether to
   include that separate cleanup.
+- For every JavaScript or TypeScript test addition or modification, invoke
+  `bun-test-generator` first. Use its behavior matrix, mock or inject every
+  external boundary, run `validate-boundaries`, then use `biome-tsc-checker`
+  for selected paths. The one AIDLC final gate remains the only final decision.

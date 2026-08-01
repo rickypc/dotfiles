@@ -36,7 +36,9 @@ with their reason and impact.
 The universal runtime does not impose a preliminary test or lint command on a
 polyglot project. Project teams may use normal development feedback while
 implementing, but it does not become an AIDLC gate. Build and Test runs exactly
-one configured final command through `scripts/aidlc.ts complete <intent-path>`
-with no evidence; its receipt is the only final validation authority. A
+one configured final command through `scripts/aidlc.ts complete <intent-path>`:
+use atomic `--closeout` arguments when a capture or no-capture disposition is
+already explicit, otherwise no evidence argument. Its receipt is the only
+final validation authority. A
 non-zero result is failure, including a cosmetic failure, and must be repaired
 and re-run with the same command.

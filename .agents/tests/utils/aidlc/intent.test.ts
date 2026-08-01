@@ -36,6 +36,20 @@ test.each([
   expect(intentIdFor(input)).toBe(expected),
 );
 
+test('caps long intent filenames with a deterministic hash suffix', () => {
+  const summary = `${'reusable-workflow-'.repeat(20)}plan`;
+  const id = intentIdFor(summary);
+  expect(id.length).toBeLessThanOrEqual(157);
+  expect(id).toMatch(/-[a-f0-9]{12}$/u);
+  expect(intentIdFor(summary)).toBe(id);
+  const fileName = intentPathFor('/agents', 'repo', id).split('/').at(-1);
+  expect(fileName).toHaveLength(id.length + 3);
+  expect(fileName?.length).toBeLessThanOrEqual(160);
+  expect(() => intentPathFor('/agents', 'repo', 'a'.repeat(200))).toThrow(
+    'portable filename budget',
+  );
+});
+
 test('rejects empty summaries and reports deterministic paths', () => {
   expect(() => intentIdFor('---')).toThrow('summary');
   expect(() => createAidlcIntent('/Users/rhuang', 'Bad index')).toThrow(
@@ -55,6 +69,9 @@ test('rejects empty summaries and reports deterministic paths', () => {
 test('allows lifecycle I/O only for canonical temporary intent paths', () => {
   expect(() =>
     assertAidlcIntentPath('/agents/aidlc/repo/intents/build-kb.md'),
+  ).not.toThrow();
+  expect(() =>
+    assertAidlcIntentPath(`/agents/aidlc/repo/intents/${'a'.repeat(200)}.md`),
   ).not.toThrow();
   for (const path of [
     '/agents/aidlc/conductor.md',
@@ -112,6 +129,82 @@ test('rejects protected AIDLC assets before lifecycle I/O', async () => {
   expect(readFile).not.toHaveBeenCalled();
   expect(writeFile).not.toHaveBeenCalled();
   expect(rm).not.toHaveBeenCalled();
+});
+
+test('parses a persisted compression session and rejects malformed session metadata', () => {
+  const intent = {
+    ...createAidlcIntent('repo', 'Compression session'),
+    kbCompressionSession: {
+      backupPath: '/tmp/aidlc-md-compress/hash/concept.md.original',
+      kbRoot: '/private-kb',
+      lockPath: '/tmp/aidlc-md-compress/hash/concept.md.original.lock',
+      reference: 'Users-rhuang/project/concept.md',
+      sourcePath: '/private-kb/Users-rhuang/project/concept.md',
+    },
+  };
+  expect(
+    parseAidlcIntent(renderAidlcIntent(intent)).kbCompressionSession,
+  ).toEqual(intent.kbCompressionSession);
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession: {
+          ...intent.kbCompressionSession,
+          reference: 'not-a-kb-concept.md',
+        },
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession: {
+          ...intent.kbCompressionSession,
+          sourcePath: '/another-kb/Users-rhuang/project/concept.md',
+        },
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCompressionSession:
+          [] as unknown as typeof intent.kbCompressionSession,
+      }),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent(intent).replace(
+        /kb_compression_session:[\s\S]*?\nkb_context:/u,
+        'kb_compression_session: null\nkb_context:',
+      ),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent(intent).replace(
+        /kb_compression_session:[\s\S]*?\nkb_context:/u,
+        'kb_compression_session: invalid\nkb_context:',
+      ),
+    ),
+  ).toThrow('knowledge compression session is invalid');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent({
+        ...intent,
+        kbCloseout: {
+          completedAt: '2026-08-01T00:00:00.000Z',
+          disposition: 'no-durable-lesson',
+          evidence: 'No durable knowledge was captured.',
+          references: [],
+        },
+      }),
+    ),
+  ).toThrow('knowledge closeout is invalid');
 });
 
 test('creates a local route and holds at the plan gate', () => {

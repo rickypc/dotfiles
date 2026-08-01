@@ -1,6 +1,6 @@
 # Universal stage-definition contract
 
-The executable route is `~/.agents/utils/aidlc/stages.ts`. It is the only
+The executable route is `utils/aidlc/stages.ts`. It is the only
 authority for phase, number, order, condition, roles, sensors, and approval.
 Markdown stage files explain how to perform work; they cannot declare a new
 stage, create a dependency on an omitted stage, or alter execution state.
@@ -23,8 +23,8 @@ Each selected stage prompt has small gray-matter metadata: `stage`, `number`,
 `phase`, `condition`, and `route_authority`. It is descriptive and must agree
 with the typed route. There are deliberately no metadata fields for native
 agents, sub-agent modes, generated state graphs, per-stage artifact roots,
-hooks, or tool locations. Universal executables are scripts under
-`~/.agents/scripts/`; reusable implementation code is under `~/.agents/utils/`.
+hooks, or tool locations. Universal executables are under `<agents-root>/scripts/`;
+reusable implementation code is under `<agents-root>/utils/`.
 
 ## Stage outcomes
 
@@ -35,6 +35,6 @@ persisted through the lifecycle script. A skip advances the route; it does not
 create a blocker, an omitted artifact, or a hidden prerequisite.
 
 The central intent is the only temporary workflow record:
-`~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`. Its CBM index must be a
+`<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`. Its CBM index must be a
 project name returned by `codebase-memory`, never a filesystem path or a slug.
 Lifecycle frontmatter uses `gray-matter` exclusively and is never hand-edited.

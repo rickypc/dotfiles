@@ -1,10 +1,12 @@
 import { expect, mock, test } from 'bun:test';
 
 import {
+  assertAidlcKnowledgeContextResolvable,
   renderAidlcKnowledgeSnapshot,
   resolveAidlcKnowledgeContext,
   validateKnowledgeBindings,
 } from '../../../utils/aidlc/context.js';
+import { createAidlcIntent } from '../../../utils/aidlc/intent.js';
 import { renderOkfConcept } from '../../../utils/knowledge-base.js';
 
 const concept = (body: string): string =>
@@ -159,4 +161,21 @@ test('rejects invalid roots, bindings, malformed KB, and conflicting rules', asy
       'now',
     ),
   ).rejects.toThrow('denied');
+});
+
+test('requires context resolution exactly once at Reverse Engineering', () => {
+  const initial = createAidlcIntent('repo', 'Resolved context');
+  const resolved = {
+    ...initial,
+    kbContext: {
+      bindings: {},
+      resolvedAt: '2026-08-01T00:00:00.000Z',
+      rules: [],
+      sources: [],
+    },
+    stage: 'reverse-engineering' as const,
+  };
+  expect(() => assertAidlcKnowledgeContextResolvable(resolved)).toThrow(
+    'already been resolved',
+  );
 });

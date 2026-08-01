@@ -1,4 +1,7 @@
 import { expect, mock, test } from 'bun:test';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { run, runWhenMain, usage } from '../../scripts/knowledge-base.js';
 
@@ -13,16 +16,23 @@ const concept = [
   'Body',
 ].join('\n');
 
-test('renders KB index paths, validates OKF, and renders parent indexes', async () => {
+test('renders KB index paths, validates an OKF file, and renders parent indexes', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'knowledge-base-test-'));
+  const conceptPath = join(directory, 'concept.md');
   const write = mock();
-  await run(['concept-index', 'shared/team/decision.md'], write);
-  await run(['validate', concept], write);
-  await run(['render-index', 'Team', 'decision.md'], write);
-  expect(write.mock.calls).toEqual([
-    ['shared/team/index.md'],
-    ['okf: passed'],
-    [expect.stringContaining('[decision](decision.md)')],
-  ]);
+  try {
+    await writeFile(conceptPath, concept);
+    await run(['concept-index', 'shared/team/decision.md'], write);
+    await run(['validate', conceptPath], write);
+    await run(['render-index', 'Team', 'decision.md'], write);
+    expect(write.mock.calls).toEqual([
+      ['shared/team/index.md'],
+      ['okf: passed'],
+      [expect.stringContaining('[decision](decision.md)')],
+    ]);
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
 });
 
 test('captures through an injected KB writer', async () => {
