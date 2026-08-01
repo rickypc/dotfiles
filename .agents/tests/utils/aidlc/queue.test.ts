@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import {
   createAidlcIntent,
   renderAidlcIntent,
+  withAidlcKnowledgeCloseout,
 } from '../../../utils/aidlc/intent.js';
 import { inventoryAidlcIntents } from '../../../utils/aidlc/queue.js';
 
@@ -20,19 +21,42 @@ const fileSystemFor = (files: Map<string, string>, entries: string[]) => ({
 test('inventories valid intents, malformed records, and stable categories', async () => {
   const root = '/agents/aidlc/repo/intents';
   const active = createAidlcIntent('repo', 'Active');
+  const complete = createAidlcIntent('repo', 'Completed', { uiRequired: true });
+  const completedRoute = {
+    ...complete,
+    route: complete.route.map((record) => ({
+      ...record,
+      status: 'completed' as const,
+    })),
+  };
+  const closed = withAidlcKnowledgeCloseout(completedRoute, {
+    completedAt: '2026-08-01T00:00:00.000Z',
+    disposition: 'no-durable-lesson',
+    evidence: 'No durable lesson was identified.',
+    references: [],
+  });
   const files = new Map([
     [`${root}/active.md`, renderAidlcIntent(active)],
     [`${root}/broken.md`, 'not an intent'],
+    [`${root}/completed.md`, renderAidlcIntent(completedRoute)],
+    [`${root}/closed.md`, renderAidlcIntent(closed)],
   ]);
   const report = await inventoryAidlcIntents(
-    fileSystemFor(files, ['broken.md', 'active.md']),
+    fileSystemFor(files, [
+      'broken.md',
+      'active.md',
+      'completed.md',
+      'closed.md',
+    ]),
     '/agents',
     'repo',
   );
-  expect(report.leftoverCount).toBe(2);
+  expect(report.leftoverCount).toBe(3);
   expect(report.items.map((item) => item.category)).toEqual([
     'active',
     'invalid',
+    'needs-knowledge-closeout',
+    'retirable',
   ]);
   expect(report.items[0]?.summary).toBe('Active');
   expect(report.items[1]?.error).toContain('frontmatter');

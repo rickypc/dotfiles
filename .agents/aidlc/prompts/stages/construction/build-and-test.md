@@ -35,16 +35,20 @@ single configured command is the final gate, and its non-zero exit is failure.
 ## Procedure
 
 1. Confirm that Code Generation recorded the implementation scope, changed
-   files, and relevant tests. Use the quality and security role perspectives
+   files, the executable acceptance matrix, and relevant tests. Run each mapped
+   smoke check before the final gate and record its observed result. Use the quality and security role perspectives
    from the stage packet to review that evidence; do not create a separate
    testing strategy or instruction-file tree.
-2. Invoke the lifecycle completion command with no evidence:
+2. When 3.5 has already been persisted, invoke the lifecycle completion
+   command with no evidence:
 
    `bun ~/.agents/scripts/aidlc.ts complete <intent-path>`
 
    It resolves and executes the configured command once, persists the canonical
-   receipt on success, and returns the next action. Do not run a separate gate
-   helper or supply model-written final-gate evidence.
+   receipt on success, and returns the next action. If 3.5 is still active,
+   use `record <intent-path> '[{"stage":"code-generation","outcome":"complete","evidence":"<factual implementation evidence>"}]' --final-gate`
+   instead; do not run a separate gate helper or supply model-written
+   final-gate evidence.
 3. If it returns a failed gate, treat every failure as a real failure. Use its output
    and `codebase-memory` where needed to locate the cause, repair the
    selected project, and rerun the same one gate. Do not replace it with a
@@ -58,5 +62,7 @@ single configured command is the final gate, and its non-zero exit is failure.
 ## Evidence required
 
 The automatic final record names the absolute project root, the resolved single
-command, its exit code, defects repaired during reruns, and the final pass. No
-number of preliminary commands can substitute for this receipt.
+command, its configuration path/source, its exit code, defects repaired during
+reruns, and the final pass. No number of preliminary commands can substitute
+for this receipt, and a green final gate does not excuse an unmapped acceptance
+checklist item.

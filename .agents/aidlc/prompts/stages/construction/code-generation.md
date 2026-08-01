@@ -20,11 +20,12 @@ intent at `~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`.
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository
 facts, invoke `codebase-memory`; for persistent knowledge, invoke
-`knowledge-base`. At completion, run the packet's sensors
-and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
-reason. Only 1.7 waits for approval. At 3.6, invoke
-`aidlc.ts complete <intent-path>` with no evidence; it runs exactly the one
-configured final gate and returns the result.
+`knowledge-base`. At completion, run the packet's sensors. When Code
+Generation is the last recorded stage before Build and Test, use
+`aidlc.ts record <intent-path> '[{"stage":"code-generation","outcome":"complete","evidence":"<factual implementation evidence>"}]' --final-gate`
+to persist 3.5 then execute exactly the one configured final gate. Otherwise
+use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
+reason. Only 1.7 waits for approval.
 
 Implement only the scope approved at 1.7 and the design decisions captured by
 the selected Inception and Construction stages. This is not a second approval
@@ -42,6 +43,11 @@ instead of silently expanding the work.
    Each item must map to a requirement or acceptance criterion and state its
    test obligation. Include schema or migration work, contracts, configuration,
    documentation, and UI accessibility only when they are actually in scope.
+4. Re-read the executable acceptance matrix from 2.7. Implement each mapped
+   test or smoke boundary with its owning unit. For a confirmed Bun TypeScript
+   project, invoke `bun-test-generator` for focused test work; otherwise use
+   the project's existing test tooling. Do not claim a checklist item is proved
+   merely because the final gate is green.
 
 ## Implementation rules
 
@@ -68,4 +74,4 @@ Record modified files, requirement-to-change traceability, tests added or
 changed, decisions made during implementation, and known limitations in the
 intent's **Execution evidence** section. Run the packet's intent-evidence
 sensor before recording completion. The next stage is Build and Test, which
-runs the one configured project final gate.
+can be executed atomically with this completion through `record ... --final-gate`.

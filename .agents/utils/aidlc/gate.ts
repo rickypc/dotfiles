@@ -18,7 +18,13 @@ export interface AidlcGateResult {
   readonly receipt: string;
 }
 
-const configPathFor = (projectRoot: string): string =>
+export interface AidlcResolvedGate {
+  readonly command: string;
+  readonly configPath: string;
+  readonly source: 'default' | 'project-config';
+}
+
+export const aidlcGateConfigPathFor = (projectRoot: string): string =>
   join(projectRoot, 'aidlc.config.json');
 
 export const finalGateFor = (config: AidlcGateConfig): string => {
@@ -64,16 +70,22 @@ export const parseAidlcGateConfig = (content: string): AidlcGateConfig => {
   return parsed as AidlcGateConfig;
 };
 
-export const resolveFinalGate = (projectRoot: string): string => {
+export const resolveAidlcGate = (projectRoot: string): AidlcResolvedGate => {
   if (!projectRoot.startsWith('/')) {
     throw new Error('AIDLC gate requires an absolute project root.');
   }
-  const configPath = configPathFor(projectRoot);
-  return finalGateFor(
-    existsSync(configPath)
-      ? parseAidlcGateConfig(readFileSync(configPath, 'utf8'))
-      : {},
-  );
+  const configPath = aidlcGateConfigPathFor(projectRoot);
+  const configured = existsSync(configPath);
+  return {
+    command: finalGateFor(
+      configured ? parseAidlcGateConfig(readFileSync(configPath, 'utf8')) : {},
+    ),
+    configPath,
+    source: configured ? 'project-config' : 'default',
+  };
 };
+
+export const resolveFinalGate = (projectRoot: string): string =>
+  resolveAidlcGate(projectRoot).command;
 
 export const defaultFinalGate = 'bun run test';

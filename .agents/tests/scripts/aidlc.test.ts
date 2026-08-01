@@ -1,4 +1,7 @@
 import { expect, mock, test } from 'bun:test';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import {
   resolveCbmIndexForStart,
@@ -15,6 +18,7 @@ import {
   type retireAidlcIntent,
   type saveAidlcIntent,
 } from '../../utils/aidlc/intent.js';
+import { renderOkfConcept } from '../../utils/knowledge-base.js';
 
 test('prepares one temporary AIDLC intent', async () => {
   const saved: unknown[][] = [];
@@ -72,6 +76,9 @@ test('starts in one call by resolving the CBM index from the project root', asyn
   );
   expect(write).toHaveBeenCalledWith(
     expect.stringContaining('"acceptanceChecklist"'),
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"configPath":"/project/aidlc.config.json"'),
   );
 });
 
@@ -194,7 +201,7 @@ test('resolves the startup CBM index through an injected project-list boundary',
   ).resolves.toBe('project');
 });
 
-test('records stage evidence, skips with a reason, and approves only a gate', async () => {
+test('records stage evidence, skips with a reason, and approves atomically', async () => {
   const intent = createAidlcIntent('repo', 'X');
   const save = mock(async () => undefined);
   const update = mock(async () => undefined);
@@ -235,16 +242,43 @@ test('records stage evidence, skips with a reason, and approves only a gate', as
       mock(async () => undefined),
     ),
   ).rejects.toThrow('awaiting approval');
-  let awaitingApproval = createAidlcIntent('repo', 'Approved');
-  while (awaitingApproval.stage !== 'approval-handoff') {
-    awaitingApproval = completeAidlcStage(awaitingApproval, 'evidence');
+  await expect(
+    run(
+      [
+        'approve',
+        '/agents/aidlc/repo/intents/x.md',
+        'fabricated approval evidence',
+      ],
+      save,
+      write,
+      mock(async () => intent),
+      update,
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('accepted only while Approval Handoff is active');
+  let activeApproval = createAidlcIntent('repo', 'Approved');
+  while (activeApproval.stage !== 'approval-handoff') {
+    activeApproval = completeAidlcStage(activeApproval, 'evidence');
   }
-  awaitingApproval = completeAidlcStage(awaitingApproval, 'plan ready');
+  await expect(
+    run(
+      ['approve', '/agents/aidlc/repo/intents/x.md'],
+      save,
+      write,
+      mock(async () => activeApproval),
+      update,
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('Approval Handoff is active');
   await run(
-    ['approve', '/agents/aidlc/repo/intents/x.md'],
+    [
+      'approve',
+      '/agents/aidlc/repo/intents/x.md',
+      'Plan is ready and the user explicitly approved it.',
+    ],
     save,
     write,
-    mock(async () => awaitingApproval),
+    mock(async () => activeApproval),
     update,
     mock(async () => undefined),
   );
@@ -419,17 +453,107 @@ test('rejects malformed, nonconsecutive, and boundary-crossing record batches', 
       mock(async () => undefined),
       mock(async () => undefined),
     ),
-  ).rejects.toThrow('cannot cross');
+  ).rejects.toThrow('dedicated atomic command');
+  await expect(
+    run(
+      [
+        'record',
+        '/agents/aidlc/repo/intents/boundary.md',
+        JSON.stringify([
+          {
+            evidence: 'scope complete',
+            outcome: 'complete',
+            stage: 'scope-definition',
+          },
+          {
+            evidence: 'must not cross the approval boundary',
+            outcome: 'complete',
+            stage: 'reverse-engineering',
+          },
+        ]),
+      ],
+      undefined,
+      mock(),
+      mock(async () => atScope),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('cannot cross an approval');
 });
 
-test('returns approval and path-repair actions instead of a separate next call', async () => {
+test('refuses a final-gate batch that does not end before Build and Test', async () => {
+  const intent = createAidlcIntent('repo', 'Invalid final-gate batch');
+  const update = mock(async () => undefined);
+  await expect(
+    run(
+      [
+        'record',
+        '/agents/aidlc/repo/intents/batch.md',
+        JSON.stringify([
+          {
+            evidence: 'workspace is ready',
+            outcome: 'complete',
+            stage: 'workspace-scaffold',
+          },
+        ]),
+        '--final-gate',
+      ],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      update,
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('must end immediately before Build and Test');
+  expect(update).not.toHaveBeenCalled();
+});
+
+test('returns an awaiting-approval action for a legacy persisted handoff', async () => {
+  let legacy = createAidlcIntent('repo', 'Legacy approval');
+  while (legacy.stage !== 'approval-handoff') {
+    legacy = completeAidlcStage(legacy, 'evidence');
+  }
+  legacy = completeAidlcStage(legacy, 'legacy handoff evidence');
+  const write = mock();
+  await run(
+    [
+      'replan',
+      '/agents/aidlc/repo/intents/legacy-approval.md',
+      'User is reviewing the unchanged plan.',
+    ],
+    undefined,
+    write,
+    mock(async () => legacy),
+    mock(async () => undefined),
+    mock(async () => undefined),
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('await-user-approval'),
+  );
+});
+
+test('returns approval and path-repair actions without a separate next call', async () => {
   let atApproval = createAidlcIntent('repo', 'Approval');
   while (atApproval.stage !== 'approval-handoff') {
     atApproval = completeAidlcStage(atApproval, 'evidence');
   }
   const write = mock();
+  await expect(
+    run(
+      ['complete', '/agents/aidlc/repo/intents/approval.md', 'plan ready'],
+      undefined,
+      write,
+      mock(async () => atApproval),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('completed atomically by approve');
   await run(
-    ['complete', '/agents/aidlc/repo/intents/approval.md', 'plan ready'],
+    [
+      'approve',
+      '/agents/aidlc/repo/intents/approval.md',
+      'Plan ready; user explicitly approved.',
+    ],
     undefined,
     write,
     mock(async () => atApproval),
@@ -437,7 +561,7 @@ test('returns approval and path-repair actions instead of a separate next call',
     mock(async () => undefined),
   );
   expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('await-user-approval'),
+    expect.stringContaining('resolve-knowledge-context'),
   );
   await expect(
     run(
@@ -455,7 +579,7 @@ test('retires a terminal intent only through the explicit command', async () => 
   const retire = mock(async () => undefined);
   const write = mock();
   await run(
-    ['retire', '/intent.md', '/kb', 'repo/agent/lesson.md'],
+    ['retire', '/intent.md'],
     undefined,
     write,
     undefined,
@@ -463,9 +587,7 @@ test('retires a terminal intent only through the explicit command', async () => 
     undefined,
     retire as typeof retireAidlcIntent,
   );
-  expect(retire).toHaveBeenCalledWith(expect.anything(), '/intent.md', '/kb', [
-    'repo/agent/lesson.md',
-  ]);
+  expect(retire).toHaveBeenCalledWith(expect.anything(), '/intent.md');
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"done"'));
 });
 
@@ -503,6 +625,58 @@ test('reports the queue and records replan and supersession lifecycle events', a
   );
 });
 
+test('records Code Generation and executes the final gate in one command', async () => {
+  const initial = createAidlcIntent('repo', 'Atomic terminal', {
+    projectRoot: '/a-project-without-a-config',
+  });
+  const intent = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status:
+        record.slug === 'code-generation'
+          ? ('active' as const)
+          : record.slug === 'build-and-test'
+            ? ('pending' as const)
+            : ('completed' as const),
+    })),
+    stage: 'code-generation' as const,
+  };
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  const write = mock();
+  const executeGate = mock(() => ({ status: 0 }));
+  await run(
+    [
+      'record',
+      '/agents/aidlc/repo/intents/atomic-terminal.md',
+      JSON.stringify([
+        {
+          evidence: 'Implementation and focused tests are complete.',
+          outcome: 'complete',
+          stage: 'code-generation',
+        },
+      ]),
+      '--final-gate',
+    ],
+    undefined,
+    write,
+    mock(async () => intent),
+    update,
+    appendAudit,
+    undefined,
+    undefined,
+    undefined,
+    executeGate as unknown as AidlcGateExecutor,
+  );
+  expect(executeGate).toHaveBeenCalledTimes(1);
+  expect(update).toHaveBeenCalledTimes(2);
+  expect(appendAudit).toHaveBeenCalledTimes(2);
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('knowledge-base-closeout-and-retire'),
+  );
+});
+
 test('runs the final gate within Build and Test and returns knowledge closeout', async () => {
   const initial = createAidlcIntent('repo', 'Terminal', {
     projectRoot: '/a-project-without-a-config',
@@ -537,6 +711,150 @@ test('runs the final gate within Build and Test and returns knowledge closeout',
   expect(write).toHaveBeenCalledWith(
     expect.stringContaining('knowledge-base-closeout-and-retire'),
   );
+});
+
+test('persists an explicit no-capture knowledge closeout before retirement', async () => {
+  const initial = createAidlcIntent('repo', 'Closeout');
+  const intent = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status: 'completed' as const,
+    })),
+    stage: 'build-and-test' as const,
+  };
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  const write = mock();
+  await run(
+    [
+      'closeout',
+      '/agents/aidlc/repo/intents/closeout.md',
+      '--no-durable-lesson',
+      'Knowledge-base found no durable lesson beyond this temporary task.',
+    ],
+    undefined,
+    write,
+    mock(async () => intent),
+    update,
+    appendAudit,
+  );
+  expect(update).toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/closeout.md',
+    expect.objectContaining({
+      kbCloseout: expect.objectContaining({ disposition: 'no-durable-lesson' }),
+    }),
+  );
+  expect(appendAudit).toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/closeout.md',
+    expect.objectContaining({ type: 'knowledge-closeout' }),
+  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"retire"'));
+});
+
+test('validates captured knowledge closeout inputs before persisting them', async () => {
+  const kbRoot = mkdtempSync(join(tmpdir(), 'aidlc-closeout-'));
+  try {
+    mkdirSync(join(kbRoot, 'repo', 'agent'), { recursive: true });
+    writeFileSync(
+      join(kbRoot, 'repo', 'agent', 'lesson.md'),
+      renderOkfConcept(
+        {
+          description: 'Reusable validation practice.',
+          tags: ['aidlc'],
+          title: 'AIDLC closeout',
+          type: 'lesson',
+        },
+        'Validate a durable closeout before retirement.',
+      ),
+    );
+    writeFileSync(join(kbRoot, 'index.md'), '[repo](repo/index.md)\n');
+    writeFileSync(
+      join(kbRoot, 'repo', 'index.md'),
+      '[agent](agent/index.md)\n',
+    );
+    writeFileSync(
+      join(kbRoot, 'repo', 'agent', 'index.md'),
+      '[lesson](lesson.md)\n',
+    );
+    const initial = createAidlcIntent('repo', 'Captured closeout');
+    const intent = {
+      ...initial,
+      route: initial.route.map((record) => ({
+        ...record,
+        status: 'completed' as const,
+      })),
+      stage: 'build-and-test' as const,
+    };
+    const update = mock(async () => undefined);
+    await run(
+      [
+        'closeout',
+        '/agents/aidlc/repo/intents/captured-closeout.md',
+        '--captured',
+        kbRoot,
+        'repo/agent/lesson.md',
+      ],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      update,
+      mock(async () => undefined),
+    );
+    expect(update).toHaveBeenCalledWith(
+      expect.anything(),
+      '/agents/aidlc/repo/intents/captured-closeout.md',
+      expect.objectContaining({
+        kbCloseout: expect.objectContaining({ disposition: 'captured' }),
+      }),
+    );
+    await expect(
+      run(
+        [
+          'closeout',
+          '/agents/aidlc/repo/intents/captured-closeout.md',
+          '--captured',
+        ],
+        undefined,
+        mock(),
+        mock(async () => intent),
+        update,
+        mock(async () => undefined),
+      ),
+    ).rejects.toThrow('Captured knowledge closeout requires');
+    await expect(
+      run(
+        [
+          'closeout',
+          '/agents/aidlc/repo/intents/captured-closeout.md',
+          '--no-durable-lesson',
+        ],
+        undefined,
+        mock(),
+        mock(async () => intent),
+        update,
+        mock(async () => undefined),
+      ),
+    ).rejects.toThrow('No-capture knowledge closeout requires');
+    await expect(
+      run(
+        [
+          'closeout',
+          '/agents/aidlc/repo/intents/captured-closeout.md',
+          '--unknown',
+        ],
+        undefined,
+        mock(),
+        mock(async () => intent),
+        update,
+        mock(async () => undefined),
+      ),
+    ).rejects.toThrow('must use --captured or --no-durable-lesson');
+  } finally {
+    rmSync(kbRoot, { force: true, recursive: true });
+  }
 });
 
 test('reports and preserves Build and Test state when its automatic gate fails', async () => {
@@ -614,6 +932,26 @@ test('rejects model-written Build and Test evidence', async () => {
       mock(async () => undefined),
     ),
   ).rejects.toThrow('runs its configured final gate automatically');
+  await expect(
+    run(
+      [
+        'record',
+        '/agents/aidlc/repo/intents/manual-terminal-evidence.md',
+        JSON.stringify([
+          {
+            evidence: 'final gate: bun run test passed (exit 0)',
+            outcome: 'complete',
+            stage: 'build-and-test',
+          },
+        ]),
+      ],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      mock(async () => undefined),
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('dedicated atomic command');
 });
 
 test('requires a project root before Build and Test can run its gate', async () => {

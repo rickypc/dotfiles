@@ -63,4 +63,6 @@ must be technically unable to bypass the policy.
   returns its receipt, and advances only on exit zero. Failure is failure
   regardless of whether it is cosmetic.
 - After 3.6, there is no Closure stage. `knowledge-base` handles persistent
-  capture, validation, and any required compression; then retire the intent.
+  capture, validation, and any required compression. Persist either a captured
+  or factual no-capture result with `aidlc.ts closeout <intent-path> ...`; only
+  then can `aidlc.ts retire <intent-path>` remove the temporary intent.

@@ -86,5 +86,6 @@ evidence. The project may define one `finalGate` in `aidlc.config.json`;
 otherwise the command is `bun run test`. A non-zero result is failure,
 including a cosmetic failure: repair and rerun the same lifecycle command.
 Once it passes, ask `knowledge-base` whether a validated durable lesson should
-be captured, then retire the temporary intent.
+be captured. Persist either the validated capture or a factual no-capture
+assessment with `aidlc.ts closeout`; only then retire the temporary intent.
 There is no Operation phase and no separate Closure phase.

@@ -8,12 +8,12 @@ route_authority: "~/.agents/utils/aidlc/stages.ts"
 
 # 0.2 Workspace Detection
 
-This stage is automatic inside `aidlc.ts prepare`. It binds the intent to the
+This stage is automatic inside `aidlc.ts start`. It binds the intent to the
 absolute selected project root and resolves one final-gate command. The project
 may declare exactly one string property in `<project-root>/aidlc.config.json`:
 
 ```json
-{ "finalGate": "go test ./..." }
+{ "finalGate": "<project-final-gate-command>" }
 ```
 
 When no valid project configuration is present, the resolved command is
@@ -28,5 +28,4 @@ repositories unless their own evidence says otherwise; separately indexed
 projects remain independent even when one path is excluded from another index.
 
 The stage evidence identifies the absolute project root and resolved one final
-gate. No user question or approval applies. `prepare` continues directly to
-0.3.
+gate. No user question or approval applies. `start` continues directly to 0.3.

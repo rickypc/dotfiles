@@ -8,7 +8,7 @@ route_authority: "~/.agents/utils/aidlc/stages.ts"
 
 # 0.3 State Initialization
 
-This stage is automatic inside `aidlc.ts prepare`. It creates the selected
+This stage is automatic inside `aidlc.ts start`. It creates the selected
 four-phase route from `utils/aidlc/stages.ts`, records UI applicability from
 the explicit `--ui` flag, and completes 0.1–0.3 in the intent ledger in one
 response. The returned packet is therefore immediately for 1.1 Intent Capture.
@@ -26,4 +26,4 @@ lifecycle script. A malformed intent must produce the actionable AIDLC
 frontmatter error; it must not cause opaque YAML exceptions or a guessed route.
 
 The evidence states that the selected route and UI flag were recorded. No user
-question or approval applies; `prepare` returns the 1.1 packet.
+question or approval applies; `start` returns the 1.1 packet.

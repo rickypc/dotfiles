@@ -32,8 +32,10 @@ stage later without factual evidence.
 
 Present exactly these choices:
 
-- **Approve** — persist approval through `aidlc.ts approve <intent-path>` and
-  enter the selected Inception route.
+- **Approve** — after the user explicitly approves, persist the handoff and
+  approval together through
+  `aidlc.ts approve <intent-path> "<handoff evidence; user explicitly approved>"`
+  and enter the selected Inception route. Do not call `complete` first.
 - **Re-plan** — record the requested correction through `aidlc.ts replan`,
   return to the smallest stage that owns the change, and issue a revised
   handoff.

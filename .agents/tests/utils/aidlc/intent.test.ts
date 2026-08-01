@@ -22,6 +22,8 @@ import {
   skipAidlcStage,
   supersedeAidlcIntent,
   updateAidlcIntent,
+  validateAidlcKnowledgeCloseoutReferences,
+  withAidlcKnowledgeCloseout,
   withAidlcKnowledgeContext,
   workspacePathFor,
 } from '../../../utils/aidlc/intent.js';
@@ -337,7 +339,7 @@ test('completes the four-phase route before knowledge-base closeout', () => {
   expect(advanceAidlcIntent(intent)).toEqual(intent);
 });
 
-test('retires only a completed intent after verified KB capture', async () => {
+test('requires an explicit knowledge closeout before retirement', async () => {
   let complete = createAidlcIntent('repo', 'Close the route');
   while (aidlcIntentStatusFor(complete) !== 'completed') {
     if (complete.stage === 'reverse-engineering') {
@@ -363,6 +365,45 @@ test('retires only a completed intent after verified KB capture', async () => {
   }
   const files = new Map([
     ['/agents/aidlc/repo/intents/complete.md', renderAidlcIntent(complete)],
+  ]);
+  const rm = mock(async (path: string) => {
+    files.delete(path);
+  });
+  const fileSystem = {
+    mkdir: mock(async () => undefined),
+    readFile: mock(async (path: string) => files.get(path) ?? ''),
+    rm,
+    writeFile: mock(async () => undefined),
+  };
+  await expect(
+    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/complete.md'),
+  ).rejects.toThrow('Knowledge-base closeout is required');
+  await expect(
+    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/missing.md'),
+  ).rejects.toThrow('frontmatter');
+  const active = createAidlcIntent('repo', 'Active');
+  files.set('/agents/aidlc/repo/intents/active.md', renderAidlcIntent(active));
+  await expect(
+    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/active.md'),
+  ).rejects.toThrow('completed AIDLC intent');
+  const closed = withAidlcKnowledgeCloseout(complete, {
+    completedAt: '2026-08-01T00:00:00.000Z',
+    disposition: 'no-durable-lesson',
+    evidence: 'Knowledge-base found no reusable lesson beyond this intent.',
+    references: [],
+  });
+  files.set(
+    '/agents/aidlc/repo/intents/complete.md',
+    renderAidlcIntent(closed),
+  );
+  await retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/complete.md');
+  expect(rm).toHaveBeenCalledWith('/agents/aidlc/repo/intents/complete.md', {
+    force: true,
+  });
+});
+
+test('validates captured knowledge references before recording closeout', async () => {
+  const files = new Map([
     [
       '/kb/repo/agent/lesson.md',
       renderOkfConcept(
@@ -379,48 +420,67 @@ test('retires only a completed intent after verified KB capture', async () => {
     ['/kb/repo/index.md', '[agent/index](agent/index.md)\n'],
     ['/kb/index.md', '[repo/index](repo/index.md)\n'],
   ]);
-  const rm = mock(async (path: string) => {
-    files.delete(path);
-  });
   const fileSystem = {
     mkdir: mock(async () => undefined),
     readFile: mock(async (path: string) => files.get(path) ?? ''),
-    rm,
+    rm: mock(async () => undefined),
     writeFile: mock(async () => undefined),
   };
-  await retireAidlcIntent(
-    fileSystem,
-    '/agents/aidlc/repo/intents/complete.md',
-    '/kb',
-    ['repo/agent/lesson.md'],
-  );
-  expect(rm).toHaveBeenCalledWith('/agents/aidlc/repo/intents/complete.md', {
-    force: true,
-  });
+  await validateAidlcKnowledgeCloseoutReferences(fileSystem, '/kb', [
+    'repo/agent/lesson.md',
+  ]);
   await expect(
-    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/missing.md'),
-  ).rejects.toThrow('frontmatter');
-  const active = createAidlcIntent('repo', 'Active');
-  files.set('/agents/aidlc/repo/intents/active.md', renderAidlcIntent(active));
-  await expect(
-    retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/active.md'),
-  ).rejects.toThrow('completed AIDLC intent');
-  files.set(
-    '/agents/aidlc/repo/intents/complete.md',
-    renderAidlcIntent(complete),
-  );
-  await expect(
-    retireAidlcIntent(
-      fileSystem,
-      '/agents/aidlc/repo/intents/complete.md',
-      undefined,
-      ['not-a-kb-concept'],
-    ),
+    validateAidlcKnowledgeCloseoutReferences(fileSystem, '/kb', [
+      'not-a-kb-concept',
+    ]),
   ).rejects.toThrow('verified KB concept references');
-  await retireAidlcIntent(fileSystem, '/agents/aidlc/repo/intents/complete.md');
-  expect(rm).toHaveBeenCalledWith('/agents/aidlc/repo/intents/complete.md', {
-    force: true,
+});
+
+test('validates persisted knowledge closeout metadata and lifecycle boundaries', () => {
+  const initial = createAidlcIntent('repo', 'Persisted closeout', {
+    uiRequired: true,
   });
+  const completed = {
+    ...initial,
+    route: initial.route.map((record) => ({
+      ...record,
+      status: 'completed' as const,
+    })),
+  };
+  const closeout = {
+    completedAt: '2026-08-01T00:00:00.000Z',
+    disposition: 'captured' as const,
+    evidence: 'Knowledge-base captured the reusable guardrail.',
+    references: ['repo/agent/lesson.md'],
+  };
+  const closed = withAidlcKnowledgeCloseout(completed, closeout);
+  expect(parseAidlcIntent(renderAidlcIntent(closed))).toEqual(closed);
+  expect(() => withAidlcKnowledgeCloseout(initial, closeout)).toThrow(
+    'requires a completed',
+  );
+  expect(() => withAidlcKnowledgeCloseout(closed, closeout)).toThrow(
+    'already recorded',
+  );
+  expect(() =>
+    withAidlcKnowledgeCloseout(completed, { ...closeout, evidence: '' }),
+  ).toThrow('requires timestamp and evidence');
+  expect(() =>
+    withAidlcKnowledgeCloseout(completed, { ...closeout, references: [] }),
+  ).toThrow('knowledge closeout is invalid');
+  const invalidShape = renderAidlcIntent(closed).replace(
+    /kb_closeout:[\s\S]*?kb_context:/u,
+    'kb_closeout: invalid\nkb_context:',
+  );
+  expect(() => parseAidlcIntent(invalidShape)).toThrow(
+    'knowledge closeout is invalid',
+  );
+  const invalidReference = renderAidlcIntent(closed).replace(
+    'repo/agent/lesson.md',
+    'invalid-reference',
+  );
+  expect(() => parseAidlcIntent(invalidReference)).toThrow(
+    'knowledge closeout is invalid',
+  );
 });
 
 test('preserves the intent body while updating the route frontmatter', async () => {

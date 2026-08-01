@@ -68,15 +68,17 @@ already being executed is already resolved through `PATH`.
 
 | Command | Arguments | Use | Returns |
 | --- | --- | --- | --- |
-| `start` | `~/.agents <absolute-project-root> "<summary>" [--ui]` | Required once for a new/resumed intent | CBM index resolved from an explicit indexed-root mapping, 0.1–0.3 evidence, final gate, queue snapshot, intent path, and 1.1 packet |
+| `start` | `~/.agents <absolute-project-root> "<summary>" [--ui]` | Required once for a new/resumed intent | CBM index, 0.1–0.3 evidence, exact final-gate command, its `aidlc.config.json` path/source, intent path, acceptance checklist, and 1.1 packet |
 | `complete` | `<intent-path> "<evidence>"`; at 3.6, `<intent-path>` only | Active non-gated stage is satisfied; at 3.6 it executes the gate | Persisted state and next action; 3.6 returns the canonical receipt plus closeout/repair action |
 | `skip` | `<intent-path> "<factual reason>"` | Active non-gated stage is inapplicable | Persisted state and the next actionable packet |
-| `record` | `<intent-path> '[{"stage":"<active-stage>","outcome":"complete\|skip","evidence":"<factual evidence>"}, ...]'` | Several consecutive non-gated outcomes are ready | One persisted batch and the next actionable packet; `outcome` is required for every entry and it cannot cross approval or KB-context boundaries |
-| `approve` | `<intent-path>` | User explicitly approves at 1.7 | Persisted approval and the next required action |
+| `record` | `<intent-path> '[{"stage":"<active-stage>","outcome":"<complete-or-skip>","evidence":"<factual evidence>"}]' [--final-gate]` | Several consecutive non-gated outcomes are ready; optionally finish with 3.6 | One persisted batch and the next actionable packet; `--final-gate` executes the configured gate and cannot accept model-written 3.6 evidence |
+| `approve` | `<intent-path> "<handoff evidence>"` | The user explicitly approves an active 1.7 handoff | Atomically persists the handoff and approval, then returns the next required action |
 | `queue` | `~/.agents <cbm-index>` | Diagnostics only | Current intent inventory; `start` already includes it |
 | `replan` | `<intent-path> "<evidence>"` | User changes an approved direction without replacing the intent | Lifecycle result and current next action |
 | `supersede` | `<intent-path> <replacement-intent-id>` | User replaces an active direction | Supersession result and exact replacement-start action |
-| `retire` | `<intent-path> [<private-kb-root> <concept-path>...]` | After 3.6 and KB closeout | Removes the temporary intent |
+| `closeout` | `<intent-path> --captured <private-kb-root> <concept-path>` | After 3.6 when `knowledge-base` captured durable knowledge | Revalidates the captured concept and KB indexes, persists closeout, and returns `retire` |
+| `closeout` | `<intent-path> --no-durable-lesson "<knowledge-base assessment>"` | After 3.6 when `knowledge-base` determines no durable lesson belongs in the KB | Persists the factual no-capture assessment and returns `retire` |
+| `retire` | `<intent-path>` | Only after a persisted KB closeout | Removes the temporary intent |
 
 One helper command is intentionally not a lifecycle command. Its syntax is
 fixed here; never call it with `--help`.
@@ -85,7 +87,7 @@ fixed here; never call it with `--help`.
 | --- | --- | --- | --- |
 | `context.ts resolve` | `<intent-path> <private-kb-root> <organization-ref\|-> <team-ref\|-> <project-ref\|->` | Only at 2.1, after `knowledge-base` returns validated concept references | Persists context and the 2.1 packet; `-` means no binding at that layer |
 
-Start exactly once; it owns CBM project selection and queue inspection:
+Start exactly once; it owns CBM project selection and final-gate resolution:
 
 ```text
 bun ~/.agents/scripts/aidlc.ts start ~/.agents <absolute-project-root> "<summary>" [--ui]
@@ -97,7 +99,11 @@ separately indexed nested roots remain separate. If no mapping exists, it
 returns an actionable indexing error instead of creating an intent under a
 guessed name. Add `--ui` only when a user-facing UI is in scope. If the
 deterministic id is already active, resume it or explicitly supersede it;
-`start` never overwrites active work.
+`start` never overwrites active work. Its `finalGate` result names the exact
+command, absolute configuration path, and whether that command came from
+project configuration or the `bun run test` default. It intentionally omits
+unrelated queued intents; use `queue` only for explicit lifecycle
+reconciliation.
 
 At 2.1, resolve private KB context through `knowledge-base` before reading
    the packet. Run the returned context command only after the skill provides
@@ -107,8 +113,8 @@ record a factual reason and use the returned next packet. Prefer `record` when
 the model has concise evidence for consecutive stages; it must batch every
 already-known direct successor rather than call `complete` once per stage merely
 to receive another packet. Use `complete` only when one active stage genuinely
-depends on a result not yet available to the model, such as a final-gate receipt
-or the approval-handoff plan.
+depends on a result not yet available to the model. Approval and the final gate
+each have a dedicated atomic command.
 
 ## `record` JSON contract
 
@@ -132,18 +138,23 @@ bun ~/.agents/scripts/aidlc.ts record <intent-path> '[
 ]'
 ```
 
-Do not include `approval-handoff` in a batch: present the plan and wait for
-explicit user approval. Do not batch past 2.1 until `knowledge-base` has
+Do not include `approval-handoff` or `build-and-test` in a batch. To record
+Code Generation and execute 3.6 in one call, end a record batch at
+`code-generation` and append `--final-gate`; the script executes the one
+configured gate itself. Do not batch past 2.1 until `knowledge-base` has
 resolved its context. The emitted response is the only next-step source;
 never retry a command with altered arguments merely to discover its syntax.
 
 At 1.7, present Approve / Re-plan / Decline and stop. Construction begins
-   only after the explicit approval is persisted. The returned packet means the
-   approval handoff is still active: prepare and present the plan, then call
-   `complete <intent-path> "<plan evidence>"`. That result returns
-   `await-user-approval`; only after an explicit user "approve" call
-   `approve <intent-path>`. Do not ask for approval from an active packet and
-   then call `approve` directly.
+   only after the explicit approval is persisted. When the user explicitly
+   approves the active handoff, call exactly once:
+
+   ```text
+   bun ~/.agents/scripts/aidlc.ts approve <intent-path> "<concise handoff evidence; user explicitly approved>"
+   ```
+
+   This atomically completes 1.7 and records approval. Do not call `complete`
+   first, then `approve`; do not call `approve` before the user responds.
 At 2.5, run one UI-definition pass only when user-facing UI is in scope.
    Use requirements, existing UI, supplied screenshots, and observable UI
    criteria. A non-UI intent has this stage deterministically marked skipped
@@ -151,9 +162,10 @@ At 2.5, run one UI-definition pass only when user-facing UI is in scope.
    rough mockups or 2.4 user stories.
 At 3.6, run exactly one configured final project command:
 
+   In `<project-root>/aidlc.config.json`:
+
    ```json
-   // <project-root>/aidlc.config.json
-   { "finalGate": "go test ./..." }
+   { "finalGate": "<project-final-gate-command>" }
    ```
 
    The configuration has one optional string property and one command only.
@@ -170,11 +182,23 @@ At 3.6, run exactly one configured final project command:
    non-zero result fails the gate and
    must be repaired and rerun: failure is failure. Do not substitute cosmetic, lint,
    coverage, or type commands for this final gate.
-After 3.6 passes, ask `knowledge-base` to capture any durable lesson,
-   validate the KB result, then retire the temporary intent. If no durable
-   lesson exists, record that factual outcome and retire without creating a
-   placeholder concept.
+After 3.6 passes, ask `knowledge-base` to capture and validate any durable
+   lesson. Then use exactly one closeout command before retirement:
 
-Use `complete`, `skip`, `approve`, `replan`, `supersede`, and `retire` through
+   ```text
+   bun ~/.agents/scripts/aidlc.ts closeout <intent-path> --captured <private-kb-root> <concept-path>
+   ```
+
+   If `knowledge-base` determines that no durable lesson exists, do not create
+   a placeholder concept. Record its factual assessment instead:
+
+   ```text
+   bun ~/.agents/scripts/aidlc.ts closeout <intent-path> --no-durable-lesson "<knowledge-base assessment>"
+   ```
+
+   `retire <intent-path>` rejects any intent without one of these persisted
+   closeouts.
+
+Use `complete`, `skip`, `approve`, `replan`, `supersede`, `closeout`, and `retire` through
 `scripts/aidlc.ts`. Never hand-edit lifecycle frontmatter or create another
 intent/log directory.

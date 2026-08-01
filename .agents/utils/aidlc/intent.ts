@@ -26,6 +26,7 @@ export type AidlcAuditEventType =
   | 'final-gate-failed'
   | 'intent-replanned'
   | 'intent-superseded'
+  | 'knowledge-closeout'
   | 'context-resolved'
   | 'stage-completed'
   | 'stage-skipped';
@@ -34,6 +35,7 @@ export interface AidlcIntent {
   readonly approval: 'pending' | 'approved' | 'declined';
   readonly cbmIndex: string;
   readonly id: string;
+  readonly kbCloseout?: AidlcKnowledgeCloseout;
   readonly kbContext: AidlcKnowledgeContext;
   readonly lifecycle: AidlcLifecycle;
   readonly projectRoot?: string;
@@ -42,6 +44,13 @@ export interface AidlcIntent {
   readonly summary: string;
   readonly supersededBy?: string;
   readonly uiRequired: boolean;
+}
+
+export interface AidlcKnowledgeCloseout {
+  readonly completedAt: string;
+  readonly disposition: 'captured' | 'no-durable-lesson';
+  readonly evidence: string;
+  readonly references: readonly string[];
 }
 
 export interface AidlcKnowledgeContext {
@@ -198,8 +207,8 @@ const aidlcFrontmatterData = (
   approval: intent.approval,
   cbm_index: intent.cbmIndex,
   id: intent.id,
+  ...(intent.kbCloseout ? { kb_closeout: intent.kbCloseout } : {}),
   kb_context: intent.kbContext,
-  kb_references: [],
   lifecycle: intent.lifecycle,
   ...(intent.projectRoot ? { project_root: intent.projectRoot } : {}),
   ...(intent.supersededBy ? { superseded_by: intent.supersededBy } : {}),
@@ -314,6 +323,41 @@ const optionalBooleanField = (
     throw new Error('AIDLC intent frontmatter is invalid.');
   }
   return value;
+};
+
+const parseKnowledgeCloseout = (
+  data: Record<string, unknown>,
+): AidlcKnowledgeCloseout | undefined => {
+  const value = data.kb_closeout;
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('AIDLC knowledge closeout is invalid.');
+  }
+  const closeout = value as Record<string, unknown>;
+  if (
+    typeof closeout.completedAt !== 'string' ||
+    !closeout.completedAt.trim() ||
+    (closeout.disposition !== 'captured' &&
+      closeout.disposition !== 'no-durable-lesson') ||
+    typeof closeout.evidence !== 'string' ||
+    !closeout.evidence.trim() ||
+    !Array.isArray(closeout.references) ||
+    closeout.references.some(
+      (reference) =>
+        typeof reference !== 'string' || !isKbConceptPath(reference),
+    ) ||
+    (closeout.disposition === 'captured' && closeout.references.length === 0) ||
+    (closeout.disposition === 'no-durable-lesson' &&
+      closeout.references.length > 0)
+  ) {
+    throw new Error('AIDLC knowledge closeout is invalid.');
+  }
+  return {
+    completedAt: closeout.completedAt,
+    disposition: closeout.disposition,
+    evidence: closeout.evidence,
+    references: closeout.references,
+  };
 };
 
 const parseKnowledgeContext = (
@@ -502,6 +546,40 @@ export const skipAidlcStage = (
   );
 };
 
+export const validateAidlcKnowledgeCloseoutReferences = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+  kbReferences: readonly string[],
+): Promise<void> => {
+  if (
+    !kbRoot.startsWith('/') ||
+    kbReferences.length === 0 ||
+    kbReferences.some((reference) => !isKbConceptPath(reference))
+  ) {
+    throw new Error(
+      'Captured knowledge closeout requires the authoritative private KB root and verified KB concept references.',
+    );
+  }
+  const root = kbRoot.replace(/\/$/u, '');
+  const indexPaths = [
+    `${root}/index.md`,
+    ...new Set(
+      kbReferences.flatMap((reference) => [
+        `${root}/${conceptIndexPath(reference)}`,
+        `${root}/${scopeIndexPath(reference)}`,
+      ]),
+    ),
+  ];
+  await Promise.all([
+    Promise.all(
+      kbReferences.map(async (reference) =>
+        parseOkfConcept(await readText(fileSystem, `${root}/${reference}`)),
+      ),
+    ),
+    Promise.all(indexPaths.map((indexPath) => readText(fileSystem, indexPath))),
+  ]);
+};
+
 const validateParsedIntent = (intent: AidlcIntent): void => {
   if (!['active', 'superseded'].includes(intent.lifecycle)) {
     throw new Error('AIDLC intent lifecycle is invalid.');
@@ -564,6 +642,7 @@ export const parseAidlcIntent = (content: string): AidlcIntent => {
     approval: parseApproval(parsed.data),
     cbmIndex: stringField(parsed.data, 'cbm_index'),
     id: stringField(parsed.data, 'id'),
+    kbCloseout: parseKnowledgeCloseout(parsed.data),
     kbContext: parseKnowledgeContext(parsed.data),
     lifecycle: (optionalStringField(parsed.data, 'lifecycle') ??
       'active') as AidlcLifecycle,
@@ -605,44 +684,16 @@ export const loadAidlcIntent = async (
 export const retireAidlcIntent = async (
   fileSystem: FileSystem,
   path: string,
-  kbRoot?: string,
-  kbReferences: readonly string[] = [],
 ): Promise<void> => {
   assertAidlcIntentPath(path);
   const intent = await loadAidlcIntent(fileSystem, path);
   if (aidlcIntentStatusFor(intent) !== 'completed') {
     throw new Error('Only a completed AIDLC intent can be retired.');
   }
-  if (kbReferences.length > 0) {
-    if (
-      !kbRoot?.startsWith('/') ||
-      kbReferences.length === 0 ||
-      kbReferences.some((reference) => !isKbConceptPath(reference))
-    ) {
-      throw new Error(
-        'Completed knowledge distillation requires a KB root and verified KB concept references before retirement.',
-      );
-    }
-    const root = kbRoot.replace(/\/$/u, '');
-    const indexPaths = [
-      `${root}/index.md`,
-      ...new Set(
-        kbReferences.flatMap((reference) => [
-          `${root}/${conceptIndexPath(reference)}`,
-          `${root}/${scopeIndexPath(reference)}`,
-        ]),
-      ),
-    ];
-    await Promise.all([
-      Promise.all(
-        kbReferences.map(async (reference) =>
-          parseOkfConcept(await readText(fileSystem, `${root}/${reference}`)),
-        ),
-      ),
-      Promise.all(
-        indexPaths.map((indexPath) => readText(fileSystem, indexPath)),
-      ),
-    ]);
+  if (!intent.kbCloseout) {
+    throw new Error(
+      'Knowledge-base closeout is required before retirement; use closeout <intent-path> after the final gate.',
+    );
   }
   await removeFile(fileSystem, path);
 };
@@ -670,6 +721,34 @@ export const updateAidlcIntent = async (
     path,
     matter.stringify(body, aidlcFrontmatterData(intent)),
   );
+};
+
+export const withAidlcKnowledgeCloseout = (
+  intent: AidlcIntent,
+  closeout: AidlcKnowledgeCloseout,
+): AidlcIntent => {
+  if (aidlcIntentStatusFor(intent) !== 'completed') {
+    throw new Error(
+      'Knowledge-base closeout requires a completed AIDLC intent.',
+    );
+  }
+  if (intent.kbCloseout) {
+    throw new Error('AIDLC knowledge-base closeout is already recorded.');
+  }
+  if (!closeout.completedAt.trim() || !closeout.evidence.trim()) {
+    throw new Error(
+      'AIDLC knowledge closeout requires timestamp and evidence.',
+    );
+  }
+  if (
+    (closeout.disposition === 'captured' && closeout.references.length === 0) ||
+    (closeout.disposition === 'no-durable-lesson' &&
+      closeout.references.length > 0) ||
+    closeout.references.some((reference) => !isKbConceptPath(reference))
+  ) {
+    throw new Error('AIDLC knowledge closeout is invalid.');
+  }
+  return { ...intent, kbCloseout: closeout };
 };
 
 export const withAidlcKnowledgeContext = (

@@ -8,8 +8,8 @@ route_authority: "~/.agents/utils/aidlc/stages.ts"
 
 # 0.1 Workspace Scaffold
 
-This stage is automatic inside `aidlc.ts prepare`; it exists as an auditable
-contract, not as a request to create an upstream workspace tree. `prepare`
+This stage is automatic inside `aidlc.ts start`; it exists as an auditable
+contract, not as a request to create an upstream workspace tree. `start`
 validates the named CBM project, derives the deterministic central intent path,
 checks collision and frontmatter validity, and creates one gray-matter intent.
 
@@ -23,4 +23,4 @@ assistant-native state. Committed methodology already lives under
 The evidence recorded for this stage must state that the CBM project was
 validated, the temporary intent path was created without overwriting an active
 intent, and the route will be initialized by the universal typed definition.
-No user question or approval applies. `prepare` continues directly to 0.2.
+No user question or approval applies. `start` continues directly to 0.2.

@@ -30,8 +30,24 @@ explicitly and explain any unit with no direct requirement mapping. For UI,
 data, API, or packaging work, name only the applicable construction design
 obligations rather than imposing a one-size-fits-all template.
 
+## Executable acceptance matrix
+
+Turn every acceptance-checklist item into an executable verification before
+Construction. In the intent's **Plan** section, record one row per checklist
+item with its owning unit, test file and test name when automated, or its exact
+smoke command and observable expected result when an automated test is not the
+right boundary. The final-gate row must name the exact command returned by
+`aidlc.ts start`; it is the one mandatory final command, not an extra sub-gate.
+
+For a confirmed Bun TypeScript project, use `bun-test-generator` to create or
+upgrade the focused tests. For any other stack, use that project's established
+test mechanism; do not force Bun tooling or invent a framework. A checklist
+item without an executable test or smoke verification is an incomplete unit
+plan, not a reason to skip it.
+
 ## Exit
 
-Record the unit table, dependency map, and requirements-to-unit traceability in
-the central intent's **Plan** section. Run intent-evidence validation and
-continue to Delivery Planning without an additional approval gate.
+Record the unit table, dependency map, requirements-to-unit traceability, and
+executable acceptance matrix in the central intent's **Plan** section. Run
+intent-evidence validation and continue to Delivery Planning without an
+additional approval gate.

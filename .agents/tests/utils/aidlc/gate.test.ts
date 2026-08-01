@@ -4,10 +4,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  aidlcGateConfigPathFor,
   defaultFinalGate,
   finalGateFor,
   finalGateReceipt,
   parseAidlcGateConfig,
+  resolveAidlcGate,
   resolveFinalGate,
 } from '../../../utils/aidlc/gate.js';
 
@@ -36,8 +38,21 @@ test('resolves one configured gate from an absolute project root', () => {
       '{"finalGate":"go test ./..."}',
     );
     expect(resolveFinalGate(projectRoot)).toBe('go test ./...');
+    expect(resolveAidlcGate(projectRoot)).toEqual({
+      command: 'go test ./...',
+      configPath: join(projectRoot, 'aidlc.config.json'),
+      source: 'project-config',
+    });
     expect(resolveFinalGate('/a-project-without-a-config')).toBe(
       'bun run test',
+    );
+    expect(resolveAidlcGate('/a-project-without-a-config')).toEqual({
+      command: 'bun run test',
+      configPath: '/a-project-without-a-config/aidlc.config.json',
+      source: 'default',
+    });
+    expect(aidlcGateConfigPathFor(projectRoot)).toBe(
+      join(projectRoot, 'aidlc.config.json'),
     );
     expect(() => resolveFinalGate('relative')).toThrow('absolute project root');
   } finally {

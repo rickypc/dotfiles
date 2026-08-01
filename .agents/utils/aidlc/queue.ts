@@ -10,6 +10,7 @@ export type AidlcQueueCategory =
   | 'active'
   | 'awaiting-approval'
   | 'invalid'
+  | 'needs-knowledge-closeout'
   | 'retirable'
   | 'superseded';
 
@@ -31,13 +32,16 @@ const categoryOrder: readonly AidlcQueueCategory[] = [
   'active',
   'awaiting-approval',
   'invalid',
+  'needs-knowledge-closeout',
   'superseded',
   'retirable',
 ];
 
 const categoryFor = (intent: AidlcIntent): AidlcQueueCategory => {
   if (intent.lifecycle === 'superseded') return 'superseded';
-  if (aidlcIntentStatusFor(intent) === 'completed') return 'retirable';
+  if (aidlcIntentStatusFor(intent) === 'completed') {
+    return intent.kbCloseout ? 'retirable' : 'needs-knowledge-closeout';
+  }
   if (intent.stage === 'approval-handoff') return 'awaiting-approval';
   return 'active';
 };
