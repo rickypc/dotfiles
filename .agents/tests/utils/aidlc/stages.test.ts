@@ -69,7 +69,17 @@ test('maps every active stage to universal role, sensor, and prompt assets', () 
   expect(sensorPromptPathFor('/agents', 'validation-evidence')).toBe(
     '/agents/aidlc/prompts/sensors/validation-evidence.md',
   );
-  expect(knowledgePathsForStage('/agents', 'application-design')).toContain(
+  expect(knowledgePathsForStage('/agents', 'workspace-scaffold')).toEqual([]);
+  expect(knowledgePathsForStage('/agents', 'intent-capture')).toEqual([
+    '/agents/aidlc/knowledge/shared/ai-dlc-principles.md',
+    '/agents/aidlc/knowledge/shared/rules-reading.md',
+    '/agents/aidlc/knowledge/roles/product/market-research-methods.md',
+    '/agents/aidlc/knowledge/roles/product/product-guide.md',
+    '/agents/aidlc/knowledge/roles/product/requirements-elicitation.md',
+  ]);
+  expect(knowledgePathsForStage('/agents', 'application-design')).toEqual([
+    '/agents/aidlc/knowledge/shared/brownfield.md',
     '/agents/aidlc/knowledge/roles/architect/adr-template.md',
-  );
+    '/agents/aidlc/knowledge/roles/architect/architecture-patterns.md',
+  ]);
 });

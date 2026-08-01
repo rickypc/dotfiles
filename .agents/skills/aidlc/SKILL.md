@@ -43,9 +43,9 @@ never a stage bypass.
    project root; never supply either root, a guessed CBM index, or a workspace
    path. It resolves the index, records Initialization, and returns the
    checklist, exact final gate, intent path, and first packet.
-2. Work only from the returned packet. Use the packet's current stage, named
-   role perspectives, and needed knowledge assets; do not reload unrelated
-   material or invent unselected stages.
+2. Work only from the returned packet. Its knowledge paths are the typed,
+   stage-curated required reading set; do not expand them to every file owned by
+   an assigned role, reload unrelated material, or invent unselected stages.
 3. At 1.7, the returned action is `await-user-approval`. Present one
    evidence-backed handoff and end the response. Do not call `approve` until a
    later user message explicitly approves this intent. Never treat task

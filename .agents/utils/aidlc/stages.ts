@@ -267,56 +267,101 @@ export const rolePromptPathFor = (
 export const rolesForStage = (slug: AidlcStageSlug): readonly AidlcRole[] =>
   rolesByStage[slug];
 
-const knowledgeFilesByRole: Readonly<Record<AidlcRole, readonly string[]>> = {
-  architect: [
-    'adr-template.md',
-    'architecture-guide.md',
-    'architecture-patterns.md',
-    'ddd-patterns.md',
-    'nfr-design-guide.md',
-    'nfr-design-patterns.md',
+// Knowledge is selected by the active stage, not expanded from every assigned
+// role. This keeps the packet's declared reading set small and deterministic
+// while retaining the complete knowledge library for its owning stage.
+const knowledgeFilesByStage: Readonly<
+  Record<AidlcStageSlug, readonly string[]>
+> = {
+  'application-design': [
+    'shared/brownfield.md',
+    'roles/architect/adr-template.md',
+    'roles/architect/architecture-patterns.md',
   ],
-  delivery: [
-    'mob-programming-guide.md',
-    'team-topologies.md',
-    'workflow-planning-guide.md',
+  'approval-handoff': [
+    'shared/verification.md',
+    'roles/delivery/workflow-planning-guide.md',
   ],
-  design: [
-    'accessibility-wcag.md',
-    'component-spec-template.md',
-    'interaction-design-patterns.md',
-    'ux-guide.md',
-    'wireframing-guide.md',
+  'build-and-test': [
+    'shared/verification.md',
+    'roles/quality/testing-guide.md',
+    'roles/quality/nfr-validation-methods.md',
   ],
-  developer: [
-    'api-design-guide.md',
-    'code-analysis-guide.md',
-    'code-generation-guide.md',
-    'code-generation-patterns.md',
-    'data-modelling-patterns.md',
-    're-artifacts.md',
+  'code-generation': [
+    'roles/developer/code-generation-guide.md',
+    'roles/developer/code-generation-patterns.md',
+    'roles/developer/re-artifacts.md',
   ],
-  product: [
-    'functional-design-guide.md',
-    'market-research-methods.md',
-    'prioritization-frameworks.md',
-    'product-guide.md',
-    'requirements-elicitation.md',
-    'requirements-guide.md',
-    'user-story-patterns.md',
+  'delivery-planning': [
+    'shared/verification.md',
+    'roles/delivery/team-topologies.md',
+    'roles/delivery/workflow-planning-guide.md',
   ],
-  quality: [
-    'nfr-reliability-guide.md',
-    'nfr-validation-methods.md',
-    'test-strategy-patterns.md',
-    'testing-guide.md',
+  feasibility: [
+    'shared/brownfield.md',
+    'shared/rules-reading.md',
+    'roles/architect/architecture-guide.md',
+    'roles/architect/architecture-patterns.md',
+    'roles/security/security-guide.md',
   ],
-  security: [
-    'devsecops-pipeline-patterns.md',
-    'nfr-requirements-guide.md',
-    'security-guide.md',
-    'threat-modelling-stride.md',
+  'functional-design': [
+    'roles/architect/ddd-patterns.md',
+    'roles/developer/api-design-guide.md',
+    'roles/developer/data-modelling-patterns.md',
+    'roles/product/functional-design-guide.md',
   ],
+  'intent-capture': [
+    'shared/ai-dlc-principles.md',
+    'shared/rules-reading.md',
+    'roles/product/market-research-methods.md',
+    'roles/product/product-guide.md',
+    'roles/product/requirements-elicitation.md',
+  ],
+  'nfr-design': [
+    'roles/architect/nfr-design-guide.md',
+    'roles/architect/nfr-design-patterns.md',
+    'roles/quality/nfr-reliability-guide.md',
+    'roles/security/devsecops-pipeline-patterns.md',
+  ],
+  'nfr-requirements': [
+    'shared/verification.md',
+    'roles/quality/test-strategy-patterns.md',
+    'roles/security/nfr-requirements-guide.md',
+    'roles/security/threat-modelling-stride.md',
+  ],
+  'refined-mockups': [
+    'roles/design/accessibility-wcag.md',
+    'roles/design/component-spec-template.md',
+    'roles/design/interaction-design-patterns.md',
+    'roles/design/ux-guide.md',
+    'roles/design/wireframing-guide.md',
+  ],
+  'requirements-analysis': [
+    'shared/verification.md',
+    'roles/product/requirements-guide.md',
+    'roles/product/user-story-patterns.md',
+  ],
+  'reverse-engineering': [
+    'shared/brownfield.md',
+    'shared/rules-reading.md',
+    'roles/architect/architecture-guide.md',
+    'roles/developer/code-analysis-guide.md',
+  ],
+  'scope-definition': [
+    'shared/ai-dlc-principles.md',
+    'shared/verification.md',
+    'roles/delivery/mob-programming-guide.md',
+    'roles/product/prioritization-frameworks.md',
+    'roles/product/requirements-guide.md',
+  ],
+  'state-init': [],
+  'units-generation': [
+    'shared/verification.md',
+    'roles/architect/architecture-guide.md',
+    'roles/delivery/workflow-planning-guide.md',
+  ],
+  'workspace-detection': [],
+  'workspace-scaffold': [],
 };
 
 export const knowledgePathsForStage = (
@@ -324,18 +369,9 @@ export const knowledgePathsForStage = (
   slug: AidlcStageSlug,
 ): readonly string[] => {
   const root = agentsRoot.replace(/\/$/u, '');
-  const shared = [
-    'ai-dlc-principles.md',
-    'brownfield.md',
-    'rules-reading.md',
-    'verification.md',
-  ].map((file) => `${root}/aidlc/knowledge/shared/${file}`);
-  const rolePaths = rolesForStage(slug).flatMap((role) =>
-    knowledgeFilesByRole[role].map(
-      (file) => `${root}/aidlc/knowledge/roles/${role}/${file}`,
-    ),
+  return knowledgeFilesByStage[slug].map(
+    (file) => `${root}/aidlc/knowledge/${file}`,
   );
-  return [...shared, ...rolePaths];
 };
 
 export const sensorPromptPathFor = (

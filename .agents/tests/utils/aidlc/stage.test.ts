@@ -12,7 +12,7 @@ import {
   validateAidlcStageAssets,
 } from '../../../utils/aidlc/stage.js';
 
-test('builds one packet containing stage, roles, knowledge, and sensors', () => {
+test('builds one packet with only the current stage assets', () => {
   const packet = stagePacketFor('/agents', createAidlcIntent('repo', 'X'));
   expect(packet.stage).toBe('workspace-scaffold');
   expect(packet.rolePaths).toEqual(['/agents/aidlc/roles/delivery.md']);
@@ -20,9 +20,7 @@ test('builds one packet containing stage, roles, knowledge, and sensors', () => 
     '/agents/aidlc/prompts/sensors/intent-evidence.md',
   ]);
   expect(packet.commonPaths).toHaveLength(6);
-  expect(packet.knowledgePaths).toContain(
-    '/agents/aidlc/knowledge/roles/delivery/workflow-planning-guide.md',
-  );
+  expect(packet.knowledgePaths).toEqual([]);
   expect(renderAidlcStagePacket(packet)).toContain('workspace-scaffold');
 });
 
