@@ -3,7 +3,7 @@ stage: application-design
 number: "2.6"
 phase: inception
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 2.6 Application Design

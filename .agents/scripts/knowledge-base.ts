@@ -140,7 +140,7 @@ const runReconcile = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/knowledge-base.ts <capture|concept-index|reconcile|related|render-index|search|validate> <arguments>; reconcile requires an absolute request path and validate requires one absolute concept-file path.';
+  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|reconcile|related|render-index|search|validate> <arguments>; reconcile requires an absolute request path and validate requires one absolute concept-file path.';
 
 export const run = async (
   args: readonly string[],

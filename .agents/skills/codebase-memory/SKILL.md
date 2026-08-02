@@ -33,7 +33,7 @@ derived command table.
 | --- | --- | --- | --- | --- |
 | 1 | One code, symbol, call-path, architecture, or literal-text question is needed. | `bun <agents-root>/scripts/codebase-memory.ts discover "<approved-root>" "<cbm-index>" "<query>"` | One ordered CBM-first fallback receipt. | Read its attempts; never rerun one listed attempt. |
 | 2 | Several independent CBM reads are needed for one research decision. | `bun <agents-root>/scripts/codebase-memory.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"` | One resolved CBM index, one readiness result, and one ordered entry per requested read. | Use the receipt; do not run its individual CBM commands separately. |
-| 3 | The runtime explicitly needs one primitive operation that is not represented by discovery or inspection. | Use the exact flag command from the primitive catalog below. | One primitive CLI response. | Do not add a shell wrapper, JSON payload, help probe, or guessed retry. |
+| 3 | The runtime explicitly needs one primitive operation that is not represented by discovery or inspection. | Use an exact `CBM_LOG_LEVEL=error codebase-memory-mcp cli` flag command; see the CBM CLI documentation for the documented flags. | One primitive CLI response. | Do not add a shell wrapper, JSON payload, help probe, or guessed retry. |
 
 The inspection request is JSONL only as script-local input. Every nonblank line
 is one validated operation; CBM receives documented flags only:
@@ -58,19 +58,5 @@ Read that receipt before choosing any further search; never repeat a listed
 attempt.
 
 ```bash
-bun ~/.agents/scripts/codebase-memory.ts discover "<approved-root>" "<cbm-index>" "<query>"
-```
-
-```bash
-CBM_LOG_LEVEL=error codebase-memory-mcp cli list_projects
-CBM_LOG_LEVEL=error codebase-memory-mcp cli index_status --project "<cbm-index>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli index_repository --repo-path "<indexed-root>" --name "<cbm-index>" --mode full
-CBM_LOG_LEVEL=error codebase-memory-mcp cli get_graph_schema --project "<cbm-index>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli search_graph --project "<cbm-index>" --name-pattern '.*<symbol-or-keyword>.*' --label "<label>" --limit 20
-CBM_LOG_LEVEL=error codebase-memory-mcp cli search_code --project "<cbm-index>" --pattern "<literal>" --mode compact --limit "<limit>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli get_code_snippet --project "<cbm-index>" --qualified-name "<qualified-name>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli trace_path --project "<cbm-index>" --function-name "<qualified-name>" --direction "<inbound-or-outbound>" --depth "<positive-integer>" --mode calls
-CBM_LOG_LEVEL=error codebase-memory-mcp cli detect_changes --project "<cbm-index>" --scope "<path-or-scope>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli get_architecture --project "<cbm-index>" --path "<directory-prefix>"
-CBM_LOG_LEVEL=error codebase-memory-mcp cli query_graph --project "<cbm-index>" --query '<cypher-query>' --max-rows 100
+bun <agents-root>/scripts/codebase-memory.ts discover "<approved-root>" "<cbm-index>" "<query>"
 ```

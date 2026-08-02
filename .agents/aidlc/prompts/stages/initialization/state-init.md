@@ -3,7 +3,7 @@ stage: state-init
 number: "0.3"
 phase: initialization
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 0.3 State Initialization

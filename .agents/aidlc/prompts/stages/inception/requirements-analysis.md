@@ -3,7 +3,7 @@ stage: requirements-analysis
 number: "2.3"
 phase: inception
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 2.3 Requirements Analysis

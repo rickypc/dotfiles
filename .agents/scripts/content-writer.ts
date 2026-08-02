@@ -9,7 +9,7 @@ import {
 } from '../utils/content.js';
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/content-writer.ts <outline|validate-draft|validate-source> <json>';
+  'Usage: bun <agents-root>/scripts/content-writer.ts <outline|validate-draft|validate-source> <json>';
 
 export const run = (
   args: readonly string[],

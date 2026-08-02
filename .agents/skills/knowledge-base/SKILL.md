@@ -5,8 +5,9 @@ description: Retrieve, capture, validate, and distill persistent OKF knowledge.
 
 # Knowledge Base
 
-Persistent KB data is outside `~/.agents` at
-`~/Library/Application Support/agent-knowledge-base`. Store only validated,
+Persistent KB data is outside `<agents-root>` at
+`~/Library/Application Support/agent-knowledge-base` (macOS) or
+`${XDG_DATA_HOME:-~/.local/share}/agent-knowledge-base` (Linux). Store only validated,
 durable knowledge. Never store raw chat, secrets, speculation, or a log.
 
 Concept paths must match
@@ -93,7 +94,7 @@ CBM and `rg` attempt as `found`, `not-found`, `error`, or `skipped`. Read that
 receipt and do not rerun any listed command.
 
 ```bash
-bun ~/.agents/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
+bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
 ```
 
 For AIDLC practices, use only validated concept records in this resolver order:
@@ -104,6 +105,6 @@ shared/team/<concept>.md
 <cbm-index>/project/<concept>.md
 ```
 
-Use `~/.agents/aidlc/prompts/templates/practice-record.md` as the public
+Use `<agents-root>/aidlc/prompts/templates/practice-record.md` as the public
 structure reference. The resolver rejects a matching `ALWAYS` / `NEVER` rule
 conflict; do not create placeholder organization, team, or project records.

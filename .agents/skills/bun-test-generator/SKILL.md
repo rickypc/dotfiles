@@ -47,5 +47,5 @@ SUT, the generated test remains TypeScript and uses explicit types without
 `any` or suppression comments.
 
 ```bash
-bun ~/.agents/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-and-testSource>'
+bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-and-testSource>'
 ```

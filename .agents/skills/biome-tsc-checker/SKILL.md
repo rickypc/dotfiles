@@ -6,9 +6,9 @@ description: Run Biome and strict TypeScript checks for explicitly selected Java
 # Biome TypeScript Checker
 
 Use for selected JavaScript or TypeScript files. Resolve each file to its nearest
-`package.json`. Run the shared Biome configuration at `~/.agents/biome.jsonc`.
+`package.json`. Run the shared Biome configuration at `<agents-root>/biome.jsonc`.
 For a selected TypeScript file (`.ts`, `.tsx`, `.mts`, or `.cts`), use the
-compiler installed in `~/.agents` with `--noEmit`. For a selected JavaScript
+compiler installed in `<agents-root>` with `--noEmit`. For a selected JavaScript
 file (`.js`, `.jsx`, `.mjs`, or `.cjs`), run Biome only and report TypeScript
 as `not-applicable`. Do not require, suggest, or perform JavaScript-to-
 TypeScript conversion as part of static checking.

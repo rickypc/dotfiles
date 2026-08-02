@@ -3,7 +3,7 @@ stage: units-generation
 number: "2.7"
 phase: inception
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 2.7 Units Generation

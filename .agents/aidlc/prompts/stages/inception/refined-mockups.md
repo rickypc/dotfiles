@@ -3,7 +3,7 @@ stage: refined-mockups
 number: "2.5"
 phase: inception
 condition: "only for user-facing UI"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 2.5 Refined Mockups

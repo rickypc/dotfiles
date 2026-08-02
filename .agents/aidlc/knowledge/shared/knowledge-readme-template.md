@@ -1,7 +1,7 @@
 # Universal methodology index template
 
 Use this template only when documenting committed, reusable methodology under
-`~/.agents/aidlc/knowledge`. It is not a project memory directory and must not
+`<agents-root>/aidlc/knowledge`. It is not a project memory directory and must not
 contain customer data, active intent evidence, private-KB content, or secrets.
 
 ## Directory structure

@@ -1195,8 +1195,9 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-export const runMain = (args: readonly string[]): Promise<void> =>
-  run(
+export const runMain = (args: readonly string[]): Promise<void> => {
+  const agentsRoot = agentsRootForScript();
+  return run(
     args,
     undefined,
     undefined,
@@ -1206,6 +1207,11 @@ export const runMain = (args: readonly string[]): Promise<void> =>
     undefined,
     undefined,
     resolveCbmIndexForStart,
+    undefined,
+    parentDirectory(agentsRoot),
+    undefined,
+    agentsRoot,
   );
+};
 
 runAidlcCliWhenMain(import.meta.main, Bun.argv.slice(2), runMain);

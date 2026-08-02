@@ -27,7 +27,7 @@ const agentsRootForIntent = (intentPath: string): string => {
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/aidlc/context.ts resolve <intent-path> <kb-root> <organization-ref|-> <team-ref|-> <project-ref|->';
+  'Usage: bun <agents-root>/scripts/aidlc/context.ts resolve <intent-path> <kb-root> <organization-ref|-> <team-ref|-> <project-ref|->';
 
 /** @deprecated Use knowledgeBindingFor from the shared context utility. */
 export const bindingFor = knowledgeBindingFor;

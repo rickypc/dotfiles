@@ -3,7 +3,7 @@ stage: feasibility
 number: "1.3"
 phase: ideation
 condition: "when material uncertainty remains"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 1.3 feasibility
@@ -12,10 +12,10 @@ route_authority: "~/.agents/utils/aidlc/stages.ts"
 
 This is the retained upstream stage method adapted to the universal runtime.
 The route, applicability, roles, sensors, and current state come only from the
-stage packet emitted by `~/.agents/scripts/aidlc.ts`; this document cannot add
+stage packet emitted by `<agents-root>/scripts/aidlc.ts`; this document cannot add
 prerequisite stages or a separate lifecycle. Work in the selected project and
 record evidence, decisions, and project-document links in the central temporary
-intent at `~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`.
+intent at `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`.
 
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository

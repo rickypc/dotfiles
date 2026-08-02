@@ -3,7 +3,7 @@ stage: workspace-detection
 number: "0.2"
 phase: initialization
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 0.2 Workspace Detection

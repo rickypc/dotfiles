@@ -28,7 +28,7 @@ const runPathCommand = (
 };
 
 export const usage = (): string =>
-  'Usage: bun ~/.agents/scripts/bun-test-generator.ts <canonical-path|convert-jest|template|test-path|validate-boundaries|validate-source> <arguments>';
+  'Usage: bun <agents-root>/scripts/bun-test-generator.ts <canonical-path|convert-jest|template|test-path|validate-boundaries|validate-source> <arguments>';
 
 const validateBoundaries = (input: string): void => {
   const parsed = JSON.parse(input) as {

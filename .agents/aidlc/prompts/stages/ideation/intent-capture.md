@@ -3,7 +3,7 @@ stage: intent-capture
 number: "1.1"
 phase: ideation
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 1.1 Intent Capture

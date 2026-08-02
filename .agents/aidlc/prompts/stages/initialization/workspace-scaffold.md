@@ -3,7 +3,7 @@ stage: workspace-scaffold
 number: "0.1"
 phase: initialization
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 0.1 Workspace Scaffold
@@ -14,10 +14,10 @@ validates the named CBM project, derives the deterministic central intent path,
 checks collision and frontmatter validity, and creates one gray-matter intent.
 
 The only transient record is
-`~/.agents/aidlc/<cbm-index>/intents/<intent-id>.md`. Do not create project
+`<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`. Do not create project
 folders, stage artifact directories, local knowledge stores, hooks, tools, or
 assistant-native state. Committed methodology already lives under
-`~/.agents/aidlc/knowledge`; persistent private knowledge remains owned by
+`<agents-root>/aidlc/knowledge`; persistent private knowledge remains owned by
 `knowledge-base`.
 
 The evidence recorded for this stage must state that the CBM project was

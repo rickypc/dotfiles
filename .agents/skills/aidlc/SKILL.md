@@ -76,11 +76,11 @@ never a stage bypass.
 
 ## Cross-skill ownership
 
-| Context | Owner | Preconditions | Assistant action | Result | Prohibited action |
-| --- | --- | --- | --- | --- | --- |
-| Direct durable-Markdown work | `md-compress` | No AIDLC session; one eligible Markdown source. | Call direct `begin`, edit only its returned source, then call its returned `finalize`. | Token validation and cleanup. | Do not capture KB knowledge or infer an AIDLC session. |
-| Standalone KB capture | `knowledge-base`, then `md-compress` | Durable capture is requested outside AIDLC. | Capture the validated concept, then use the direct `md-compress` route. | Captured concept and separate direct guard receipt. | Do not claim that AIDLC began compression. |
-| AIDLC durable closeout | AIDLC closeout boundary | Passed final gate, no persisted closeout/session, and one fixed single-capture or reconciliation request JSON file. | Call `capture-and-begin`; edit only its returned source path or paths; call only returned `finalize-and-recover`. | Every captured concept guarded and validated; persisted closeout; retired intent. | Do not call direct `md-compress begin`, `related`, `reconcile`, invoke `recover`, or create a second session. |
+| Context | Owner | Action |
+| --- | --- | --- |
+| Direct durable-Markdown work | `md-compress` | See `skills/md-compress/SKILL.md` direct transaction contract. |
+| Standalone KB capture | `knowledge-base`, then `md-compress` | See `skills/knowledge-base/SKILL.md`; guard each captured concept with the direct `md-compress` route. |
+| AIDLC durable closeout | AIDLC closeout boundary | Use `capture-and-begin` and its returned `finalize-and-recover`; see `aidlc/conductor.md` and `skills/md-compress/SKILL.md`. |
 
 An AIDLC compression-session packet is explicit data: owner, source path,
 backup path, lock path, and one exact next action. Its absence means no AIDLC

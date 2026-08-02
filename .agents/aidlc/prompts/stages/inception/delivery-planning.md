@@ -3,7 +3,7 @@ stage: delivery-planning
 number: "2.8"
 phase: inception
 condition: "always"
-route_authority: "~/.agents/utils/aidlc/stages.ts"
+route_authority: "<agents-root>/utils/aidlc/stages.ts"
 ---
 
 # 2.8 Delivery Planning
