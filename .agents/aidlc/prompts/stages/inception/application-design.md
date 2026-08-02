@@ -27,6 +27,9 @@ Path basis: the shortened `languages/...` names below resolve from
 3. Compare viable architectural alternatives where a decision has meaningful
    trade-offs. Record context, decision, consequences, rejected alternatives,
    and reversibility in an ADR-style entry in the central intent.
+   For user-facing alternatives, use the centralized [design comparison and
+   selection protocol](../../../knowledge/roles/design/interaction-design-patterns.md)
+   for the frozen matrix and evidence threshold.
 4. Specify the smallest architecture that satisfies the approved scope. Do not
    design infrastructure, deployment, or an integration merely because it is a
    common pattern.

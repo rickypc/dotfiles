@@ -144,3 +144,52 @@ Small, single-purpose animations or feedback moments that make the interface fee
 - Use fluid grids and relative units (%, rem) not fixed pixels
 - Test at breakpoint boundaries AND mid-points (avoid layout breaking at 900px between 768 and 1024)
 - Touch targets: minimum 44x44px on mobile (Apple HIG), 48x48px (Material Design)
+
+## Design comparison and selection
+
+Use this protocol from Refined Mockups and Application Design whenever more
+than one materially different user-facing design could satisfy the approved
+intent. A single design is sufficient only when alternatives would not change
+the requested behavior materially or the user explicitly selects one.
+
+1. Define at least two materially different options. State the decision they
+   address and what is held constant: scope, data, target viewport, journey,
+   and validation conditions.
+2. Before review, define the frozen weighted scoring matrix. Use the default
+   matrix below unless the intent records a justified replacement. Use weights
+   summing to 100% and define a 1-to-5 scale using the same rubric for every
+   option.
+3. Each criterion score requires evidence. Keep qualitative review,
+   implementation analysis, and executable browser/task evidence distinct. A
+   screenshot or model preference is not browser/task evidence.
+4. For browser UI, render every option at the same target viewport and run the
+   same journey smoke checks. Record the viewport, journey steps, observed
+   result, and artifact or command receipt for each option.
+5. Calculate each weighted score as
+   `sum((criterion score / 5) * weight)` and report the result as a percentage
+   and a 1-to-5 equivalent. Select an option only when it reaches the
+   selection threshold of 80% (4.0/5) and leads the next option by the lead
+   margin of at least 5 percentage points (0.25/5). Otherwise preserve the
+   trade-offs and ask the user for a decision or collect targeted evidence.
+6. Record the selected option, rejected alternatives, frozen matrix, scores,
+   evidence, trade-offs, and user approval in the AIDLC intent so the decision
+   remains traceable through requirements, design, implementation, and the
+   final gate.
+
+### Default comparison matrix
+
+| Criterion | Weight | 1 | 3 | 5 |
+|---|---:|---|---|---|
+| Primary task completion and correctness | 25% | fails core journey | works with friction | clear and reliable |
+| Discoverability and task focus | 20% | hidden or distracting | understandable | immediately obvious |
+| Error, success, and recovery behavior | 15% | silent or unsafe | visible but basic | actionable and durable |
+| Layout balance and scanability at target viewport | 15% | cramped or flat | usable | balanced and readable |
+| Accessibility and responsive behavior | 10% | blocked or fragile | basic support | keyboard, contrast, and responsive states are strong |
+| Implementation and maintenance fit | 10% | conflicts with constraints | workable | simple and well-bounded |
+| Future extensibility without clutter | 5% | blocks likely change | tolerates change | extends cleanly |
+| **Total** | **100%** |  |  |  |
+
+The matrix is a default, not a license to score unsupported qualities. If a
+criterion is not applicable, replace it before the matrix is frozen and state
+why. Do not change weights or criteria after seeing scores without recording a
+re-plan.

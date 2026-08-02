@@ -40,6 +40,12 @@ Use a visual mockup when it reduces ambiguity; otherwise a structured textual
 specification is sufficient. Link any project-owned design file from the
 central intent. Do not create a global mockup artifact tree.
 
+When multiple UI directions are viable, follow the centralized [design
+comparison and selection protocol](../../../knowledge/roles/design/interaction-design-patterns.md).
+Freeze the matrix before scoring, compare at the same target viewport, run the
+same journey smoke checks, and record the selected and rejected options in the
+intent.
+
 For each UI acceptance item, name the later browser proof. Use
 `playwright-test-generator` to turn applicable accepted browser flows into
 retained project tests; do not use MCP, browser extensions, or disposable

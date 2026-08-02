@@ -141,6 +141,10 @@ boundaries. Use recovery actions only when the runtime returns them.
 - Security scopes controls and evidence to the intent; it does not add a
   parallel universal scanner or gate.
 
+Design-stage comparison is owned by
+[`interaction-design-patterns.md`](../../aidlc/knowledge/roles/design/interaction-design-patterns.md);
+its scoring expression is `sum((criterion score / 5) * weight)`.
+
 ## Failure and resume
 
 For a repeated request, use the canonical `queue` action to find the matching
