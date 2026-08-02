@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { run, runWhenMain, usage } from '../../scripts/knowledge-base.js';
+import type { searchKnowledgeBase } from '../../utils/knowledge-base.js';
 
 const concept = [
   '---',
@@ -59,21 +60,27 @@ test('captures through an injected KB writer', async () => {
   expect(write).toHaveBeenCalledWith(expect.stringContaining('conceptPath'));
 });
 
-test('searches a KB through an injected search boundary', async () => {
+test('uses validated file search for a two-argument KB search', async () => {
   const write = mock();
-  await run(
-    ['search', '/kb', 'fixture'],
-    write,
-    undefined,
-    mock(async () => [
-      {
-        description: 'd',
-        path: 'shared/practice/fixture.md',
-        title: 'Fixture',
-        type: 'practice',
-      },
-    ]),
+  const search = mock(
+    async () => [] as Awaited<ReturnType<typeof searchKnowledgeBase>>,
   );
+  await run(['search', '/kb', 'query'], write, undefined, search);
+  expect(search).toHaveBeenCalledWith(expect.anything(), '/kb', 'query');
+});
+
+test('searches a KB through an injected search boundary without touching CBM', async () => {
+  const write = mock();
+  const search = mock(async () => [
+    {
+      description: 'd',
+      path: 'shared/practice/fixture.md',
+      title: 'Fixture',
+      type: 'practice',
+    },
+  ]);
+  await run(['search', '/kb', 'fixture'], write, undefined, search);
+  expect(search).toHaveBeenCalledWith(expect.anything(), '/kb', 'fixture');
   expect(write).toHaveBeenCalledWith(
     expect.stringContaining('shared/practice/fixture.md'),
   );

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  projectRootForRuntime,
   resolveCbmIndexForStart,
   run,
   runMain,
@@ -195,15 +196,32 @@ test('main runner keeps CBM resolution inside start rather than queue', async ()
 });
 
 test('resolves the startup CBM index through an injected project-list boundary', async () => {
+  const projectList = JSON.stringify({
+    projects: [{ name: 'project', repository_path: '/project' }],
+  });
   await expect(
-    resolveCbmIndexForStart('/project', async () => ({
-      code: 0,
-      stderr: '',
-      stdout: JSON.stringify({
-        projects: [{ name: 'project', repository_path: '/project' }],
-      }),
-    })),
+    resolveCbmIndexForStart('/project', async (cmd) =>
+      cmd.args.includes('index_status')
+        ? { code: 0, stderr: '', stdout: 'status: ready' }
+        : { code: 0, stderr: '', stdout: projectList },
+    ),
   ).resolves.toBe('project');
+});
+
+test('uses the home project for global runtime maintenance and the parent for a copied runtime', () => {
+  expect(
+    projectRootForRuntime(
+      '/Users/rhuang/.agents',
+      '/Users/rhuang/.agents',
+      '/Users/rhuang',
+    ),
+  ).toBe('/Users/rhuang');
+  expect(
+    projectRootForRuntime('/Users/rhuang/.agents', '/repo', '/Users/rhuang'),
+  ).toBe('/repo');
+  expect(
+    projectRootForRuntime('/repo/.agents', '/repo/.agents', '/Users/rhuang'),
+  ).toBe('/repo');
 });
 
 test('records stage evidence, skips with a reason, and approves atomically', async () => {

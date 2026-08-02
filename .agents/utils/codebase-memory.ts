@@ -71,6 +71,8 @@ export interface CbmSearchFallbackRequest {
   readonly root: CbmRoot;
 }
 
+type CbmSearchStrategy = 'cbm-search-code' | 'cbm-search-graph';
+
 type InspectionOperationReader = (
   record: Record<string, unknown>,
 ) => CbmInspectionOperation;
@@ -270,15 +272,18 @@ export const assertAllowedCbmRoot = (
 
 const cbmAttempt = (
   request: CbmSearchFallbackRequest,
+  strategy: CbmSearchStrategy,
   status: SearchAttempt['status'],
   detail: string,
 ): SearchAttempt => ({
   command: commandText(
-    cbmCommands.searchGraph(request.root.index, request.query, 20),
+    strategy === 'cbm-search-code'
+      ? cbmCommands.searchCode(request.root.index, request.query, 20)
+      : cbmCommands.searchGraph(request.root.index, request.query, 20),
   ),
   detail,
   status,
-  strategy: 'cbm-search-graph',
+  strategy,
 });
 
 export const cbmInspectionCommand = (
@@ -521,6 +526,19 @@ export const cbmProjectForRoot = (
 const outputFor = (stdout: string, stderr: string): string =>
   [stdout, stderr].filter(Boolean).join('\n');
 
+const assertExistingReadyCbmIndex = async (
+  executor: CommandExecutor,
+  request: CbmSearchFallbackRequest,
+): Promise<void> => {
+  const status = await executor(cbmCommands.indexStatus(request.root.index));
+  const output = outputFor(status.stdout, status.stderr);
+  if (status.code !== 0 || !indexIsReady(output)) {
+    throw new Error(
+      `CBM index is not ready; ask the user to create or refresh it: ${output}`,
+    );
+  }
+};
+
 export const readWithReadyIndex = async (
   executor: CommandExecutor,
   request: CbmReadRequest,
@@ -569,6 +587,53 @@ export const resolveCbmProjectForRoot = async (
   return cbmProjectForRoot(projectRoot, projects.stdout);
 };
 
+const runCbmSearch = async (
+  executor: CommandExecutor,
+  request: CbmSearchFallbackRequest,
+  strategy: CbmSearchStrategy,
+): Promise<{
+  readonly attempt: SearchAttempt;
+  readonly matched: boolean;
+  readonly output: string;
+}> => {
+  const command =
+    strategy === 'cbm-search-code'
+      ? cbmCommands.searchCode(request.root.index, request.query, 20)
+      : cbmCommands.searchGraph(request.root.index, request.query, 20);
+  try {
+    const result = await executor(command);
+    const output = outputFor(result.stdout, result.stderr);
+    const matched =
+      result.code === 0 &&
+      cbmOutputHasMatches(
+        output,
+        strategy === 'cbm-search-code' ? undefined : request.query,
+      );
+    return {
+      attempt: cbmAttempt(
+        request,
+        strategy,
+        matched ? 'found' : result.code === 0 ? 'not-found' : 'error',
+        output || `Exit code ${result.code}.`,
+      ),
+      matched,
+      output,
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return {
+      attempt: cbmAttempt(request, strategy, 'error', detail),
+      matched: false,
+      output: '',
+    };
+  }
+};
+
+const skippedCbmCodeAttempt = (
+  request: CbmSearchFallbackRequest,
+  detail: string,
+): SearchAttempt => cbmAttempt(request, 'cbm-search-code', 'skipped', detail);
+
 export const searchWithCbmFallback = async (
   executor: CommandExecutor,
   request: CbmSearchFallbackRequest,
@@ -576,15 +641,16 @@ export const searchWithCbmFallback = async (
   assertAllowedCbmRoot(request.root.root, request.allowedRoots);
   if (!request.query.trim()) throw new Error('Search query is required.');
   try {
-    const cbm = await readWithReadyIndex(executor, {
-      allowedRoots: request.allowedRoots,
-      read: (project) => cbmCommands.searchGraph(project, request.query, 20),
-      root: request.root,
-    });
-    if (cbmOutputHasMatches(cbm.output, request.query)) {
+    await assertExistingReadyCbmIndex(executor, request);
+    const graph = await runCbmSearch(executor, request, 'cbm-search-graph');
+    if (graph.matched) {
       return {
         attempts: [
-          cbmAttempt(request, 'found', cbm.output),
+          graph.attempt,
+          skippedCbmCodeAttempt(
+            request,
+            'Skipped because CBM graph search found a match.',
+          ),
           ...skippedRgAttempts(
             request.root.root,
             request.query,
@@ -592,7 +658,24 @@ export const searchWithCbmFallback = async (
           ),
         ],
         found: true,
-        output: cbm.output,
+        output: graph.output,
+        source: 'cbm',
+      };
+    }
+    const code = await runCbmSearch(executor, request, 'cbm-search-code');
+    if (code.matched) {
+      return {
+        attempts: [
+          graph.attempt,
+          code.attempt,
+          ...skippedRgAttempts(
+            request.root.root,
+            request.query,
+            'Skipped because CBM code search found a match.',
+          ),
+        ],
+        found: true,
+        output: code.output,
         source: 'cbm',
       };
     }
@@ -602,14 +685,7 @@ export const searchWithCbmFallback = async (
       request.query,
     );
     return {
-      attempts: [
-        cbmAttempt(
-          request,
-          'not-found',
-          cbm.output || 'No CBM result containing the requested query.',
-        ),
-        ...fallback.attempts,
-      ],
+      attempts: [graph.attempt, code.attempt, ...fallback.attempts],
       found: fallback.found,
       output: fallback.output,
       source: fallback.found ? 'rg' : 'none',
@@ -624,8 +700,13 @@ export const searchWithCbmFallback = async (
       attempts: [
         cbmAttempt(
           request,
+          'cbm-search-graph',
           'error',
           error instanceof Error ? error.message : String(error),
+        ),
+        skippedCbmCodeAttempt(
+          request,
+          'Skipped because CBM index readiness failed.',
         ),
         ...fallback.attempts,
       ],

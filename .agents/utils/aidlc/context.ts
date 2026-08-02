@@ -89,7 +89,7 @@ export const validateKnowledgeBindings = (
 ): void => {
   const expectedPrefixes = {
     organization: 'shared/organization/',
-    project: cbmIndex ? `${cbmIndex}/project/` : undefined,
+    project: cbmIndex ? `${cbmIndex}/` : undefined,
     team: 'shared/team/',
   } as const;
   for (const [layer, path] of Object.entries(bindings)) {
@@ -98,8 +98,7 @@ export const validateKnowledgeBindings = (
     if (
       path !== undefined &&
       (!isKbConceptPath(path) ||
-        (expectedPrefix !== undefined && !path.startsWith(expectedPrefix)) ||
-        (layer === 'project' && !/^[^/]+\/project\//u.test(path)))
+        (expectedPrefix !== undefined && !path.startsWith(expectedPrefix)))
     ) {
       throw new Error(`Invalid AIDLC knowledge binding: ${path}`);
     }

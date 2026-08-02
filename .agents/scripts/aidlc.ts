@@ -1,6 +1,6 @@
 // biome-ignore lint/style/noExcessiveLinesPerFile: AIDLC public CLI dispatch remains intentionally centralized.
 import { createHash } from 'node:crypto';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -399,6 +399,18 @@ const nextActionFor = (intentPath: string, intent: AidlcIntent): object => {
     intent,
     stagePacket: stagePacketFor(agentsRootForIntent(intentPath), intent),
   };
+};
+
+export const projectRootForRuntime = (
+  agentsRoot: string,
+  cwd: string,
+  homeDirectory = homedir(),
+): string => {
+  const globalAgentsRoot = join(homeDirectory, '.agents');
+  if (agentsRoot !== globalAgentsRoot) return parentDirectory(agentsRoot);
+  return cwd === globalAgentsRoot || cwd.startsWith(`${globalAgentsRoot}/`)
+    ? homeDirectory
+    : cwd;
 };
 
 const recordOptionsFor = (
@@ -1197,6 +1209,7 @@ export const runWhenMain = runCliWhenMain;
 
 export const runMain = (args: readonly string[]): Promise<void> => {
   const agentsRoot = agentsRootForScript();
+  const projectRoot = projectRootForRuntime(agentsRoot, process.cwd());
   return run(
     args,
     undefined,
@@ -1208,7 +1221,7 @@ export const runMain = (args: readonly string[]): Promise<void> => {
     undefined,
     resolveCbmIndexForStart,
     undefined,
-    parentDirectory(agentsRoot),
+    projectRoot,
     undefined,
     agentsRoot,
   );

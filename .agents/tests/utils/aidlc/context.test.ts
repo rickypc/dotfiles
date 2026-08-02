@@ -124,6 +124,12 @@ test('rejects invalid roots, bindings, malformed KB, and conflicting rules', asy
   expect(() =>
     validateKnowledgeBindings({ project: 'other/project/practice.md' }, 'repo'),
   ).toThrow('Invalid AIDLC knowledge binding');
+  expect(() =>
+    validateKnowledgeBindings(
+      { project: 'repo/browser-testing/project-local-playwright.md' },
+      'repo',
+    ),
+  ).not.toThrow();
   await expect(
     resolveAidlcKnowledgeContext(filesystem, 'relative', {}, 'now'),
   ).rejects.toThrow('absolute');

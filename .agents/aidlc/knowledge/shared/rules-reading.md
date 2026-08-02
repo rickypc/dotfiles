@@ -5,9 +5,9 @@
 1. The user's current request and explicit approval.
 2. Project-local instructions and a project-local AIDLC skill, when present.
 3. The selected project's observed conventions and configured final gate.
-4. Validated concepts resolved by knowledge-base in this order:
-   `shared/organization`, `shared/team`, then
-   `<cbm-index>/project`.
+4. Validated concepts selected by knowledge-base. Organization and team
+   practices retain their precedence; a project practice may live in any
+   `<cbm-index>/<subject>/<concept>.md` subject.
 5. This committed universal methodology.
 
 No AGENTS file, intent, or global reference directory may select or override
@@ -16,10 +16,10 @@ the private KB root. knowledge-base alone does that.
 ## Read protocol
 
 - Read the user and applicable project instructions before planning.
-- Before committing Approval Handoff, ask knowledge-base to resolve only
+- Before committing Approval Handoff, ask knowledge-base to select only
   concepts that materially affect the change, then use the canonical AIDLC
   command-catalog row for approval with validated context. The shared context
-  utility validates allowed concept prefixes and parses their OKF frontmatter.
+  utility validates allowed concept scopes and parses their OKF frontmatter.
   The separate context script is recovery-only for older already-approved
   intents.
 - Use codebase-memory for code facts. It has its own staged fallback; do not

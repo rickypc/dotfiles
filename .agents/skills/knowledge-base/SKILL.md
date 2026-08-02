@@ -93,16 +93,22 @@ then resolves results through validated OKF concepts. Its receipt states every
 CBM and `rg` attempt as `found`, `not-found`, `error`, or `skipped`. Read that
 receipt and do not rerun any listed command.
 
+CBM is read-only for KB search. Never create, rebuild, or replace a CBM index
+as part of retrieval, including after KB refiling. If the configured index is
+missing, stale, or not ready, use the staged `rg` fallback and ask the user to
+create or refresh the named CBM index; do not invent another index.
+
 ```bash
 bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
 ```
 
-For AIDLC practices, use only validated concept records in this resolver order:
+For AIDLC practices, use only validated concept records. Organization and team
+records retain their precedence; project records may live under any subject:
 
 ```text
 shared/organization/<concept>.md
 shared/team/<concept>.md
-<cbm-index>/project/<concept>.md
+<cbm-index>/<subject>/<concept>.md
 ```
 
 Use `<agents-root>/aidlc/prompts/templates/practice-record.md` as the public
