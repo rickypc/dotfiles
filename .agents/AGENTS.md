@@ -1,18 +1,20 @@
 # Universal assistant runtime
 
-This directory is the machine-wide assistant runtime for projects that do not
-ship their own `.agents/skills/aidlc`. A project-local skill always takes
-precedence over this global one.
+This portable runtime may be installed at `<project-root>/.agents` for one
+project or at `~/.agents` as a machine-wide fallback. It has the same runtime
+behavior and relative asset layout in either location. A project-local skill
+always takes precedence over the home-directory fallback.
 
 Resolve `<agents-root>` by walking up from the current project directory,
 looking for `.agents/`. Use the first one found; if none is found, fall back to
 `~/.agents`. `<project-root>` is always the parent of `<agents-root>`.
 
-- Use `skills/aidlc/SKILL.md` for lifecycle work; do not copy or fork its
-  runtime into a project.
-- Use `skills/codebase-memory/SKILL.md` for code discovery and
-  `skills/knowledge-base/SKILL.md` for external private knowledge. Do not
-  bypass either with independent CBM, MCP, CLI, or grep calls.
+- Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
+  selected runtime's assets together and use its own scripts and utilities.
+- Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and
+  `<agents-root>/skills/knowledge-base/SKILL.md` for external private
+  knowledge. Do not bypass either with independent CBM, MCP, CLI, or grep
+  calls.
 - Universal executable scripts live in `scripts/`; reusable TypeScript lives in
   `utils/`. Do not add a global `tools/` directory or platform-specific hooks.
 - Temporary workflow intents are centralized at
@@ -22,6 +24,7 @@ looking for `.agents/`. Use the first one found; if none is found, fall back to
   temporary-intent namespace. Do not edit, create, delete, or move runtime
   assets. The user must explicitly request an exact runtime asset change; the
   canonical boundary is in `aidlc/protocols/runtime.md`.
+
 ## Skill catalog
 
 Resolve a project-local skill before this global catalog. Invoke a skill when
@@ -45,6 +48,11 @@ skill already supplies the command contract.
 CBM command selection and fallback search. The arguments above are selection
 inputs, not executable grammar. Read the selected skill’s canonical command
 catalog before running a command.
+
+Private KB data is independent of the selected `<agents-root>`. The
+`knowledge-base` skill resolves one configured central private-KB root; neither
+a project-local runtime nor the home-directory runtime may select or override
+it.
 
 ## Code changes
 
