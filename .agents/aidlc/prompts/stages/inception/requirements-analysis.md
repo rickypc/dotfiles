@@ -13,6 +13,11 @@ start with the Reverse Engineering evidence and the cited codebase-memory
 findings; for greenfield work, start with the approved intent. Do not require
 an omitted user-story stage, a mockup, or a local artifact tree.
 
+Path basis: the shortened `languages/...` and
+`language-profile-selection.md` names below resolve from
+`<agents-root>/aidlc/knowledge`; the explicit `aidlc/...` path resolves from
+`<agents-root>`.
+
 ## Analysis method
 
 1. Extract each requested capability, affected actor, trigger, observable
@@ -28,6 +33,12 @@ an omitted user-story stage, a mockup, or a local artifact tree.
 5. Record the requirements in the central intent's **Decisions** and **Plan**
    sections. A useful requirement has an identifier, priority where material,
    acceptance criteria, affected boundary, and traceable evidence source.
+6. Use the **Requirements record** in
+   `aidlc/knowledge/shared/software-engineering-work-packets.md` for every
+   material requirement. Read `languages/common.md` and only the applicable
+   section in `languages/profiles.md` when repository evidence establishes a
+   relevant language or web surface. The retired
+   `language-profile-selection.md` must not be recreated or used.
 
 ## Acceptance criteria
 

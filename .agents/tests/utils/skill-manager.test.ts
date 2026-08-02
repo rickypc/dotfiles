@@ -4,7 +4,10 @@ import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
   evaluateSkillMatrix,
+  ignoredByAgentsGitignore,
+  localMarkdownLinkTargets,
   parseMatrixJsonl,
+  reviewSkillProse,
 } from '../../utils/skill-manager.js';
 
 test('creates a matrix-definition packet from the draft state', () => {
@@ -190,4 +193,124 @@ test('requires at least one batch target', () => {
   expect(() => evaluateSkillManagerBatch('intent', 'baseline', [])).toThrow(
     'At least one skill matrix and target pair',
   );
+});
+
+test('parses prose-only local links and honors the AIDLC ignore boundary', async () => {
+  const files: Record<string, string> = {
+    '/tmp/.agents/.gitignore': [
+      '/aidlc/*/',
+      '!/aidlc/knowledge/',
+      '!/aidlc/*.md',
+    ].join('\n'),
+    '/tmp/.agents/aidlc/knowledge/README.md': '# Knowledge',
+    '/tmp/.agents/aidlc/runtime/private.md': '# Runtime',
+    '/tmp/.agents/skills/demo/agents/openai.yaml': 'display_name: Demo',
+    '/tmp/.agents/skills/demo/guide.md': '# Guide',
+    '/tmp/.agents/skills/demo/SKILL.md': [
+      '[Guide](./guide.md)',
+      '[Out of scope](../../outside.md)',
+      '```md\n[Example](./missing.md)\n```',
+    ].join('\n'),
+  };
+  const directories: Record<string, readonly string[]> = {
+    '/tmp/.agents/aidlc': ['knowledge', 'runtime'],
+    '/tmp/.agents/aidlc/knowledge': ['README.md'],
+    '/tmp/.agents/aidlc/runtime': ['private.md'],
+    '/tmp/.agents/skills/demo': ['SKILL.md', 'agents', 'guide.md'],
+    '/tmp/.agents/skills/demo/agents': ['openai.yaml'],
+  };
+  const fileSystem = {
+    readdir: async (path: string) =>
+      (directories[path] ?? []).map((name) => ({
+        isDirectory: () => directories[`${path}/${name}`] !== undefined,
+        name,
+      })),
+    readFile: async (path: string): Promise<string> => {
+      const content = files[path];
+      if (content === undefined) throw new Error(`Missing ${path}`);
+      return content;
+    },
+  };
+  const receipt = await reviewSkillProse(fileSystem, [
+    '/tmp/.agents/skills/demo',
+    '/tmp/.agents/aidlc',
+  ]);
+  const skillSource = files['/tmp/.agents/skills/demo/SKILL.md'] ?? '';
+  const gitignore = files['/tmp/.agents/.gitignore'] ?? '';
+  expect(localMarkdownLinkTargets(skillSource)).toEqual([
+    './guide.md',
+    '../../outside.md',
+  ]);
+  expect(
+    ignoredByAgentsGitignore(
+      '/tmp/.agents',
+      '/tmp/.agents/aidlc/runtime/private.md',
+      gitignore,
+    ),
+  ).toBe(true);
+  expect(receipt.prosePaths).not.toContain(
+    '/tmp/.agents/aidlc/runtime/private.md',
+  );
+  expect(receipt.checkedLocalLinkTargets).toBe(2);
+  expect(receipt.findings).toEqual([
+    {
+      kind: 'out-of-scope-local-link',
+      sourcePath: '/tmp/.agents/skills/demo/SKILL.md',
+      targetPath: '/tmp/.agents/outside.md',
+    },
+  ]);
+});
+
+test('reports missing reference links and rejects invalid prose-review roots', async () => {
+  const files: Record<string, string> = {
+    '/tmp/.agents/.gitignore': '',
+    '/tmp/.agents/skills/demo/SKILL.md': [
+      '[Missing](./missing.md)',
+      '[External](https://example.com)',
+      '[Reference][missing-reference]',
+      '[missing-reference]: ./missing-reference.md',
+    ].join('\n'),
+    '/tmp/project/README.md': '# Project',
+  };
+  const directories: Record<string, readonly string[]> = {
+    '/tmp/.agents/skills/demo': ['SKILL.md'],
+    '/tmp/project': ['README.md'],
+  };
+  const fileSystem = {
+    readdir: async (path: string) =>
+      (directories[path] ?? []).map((name) => ({
+        isDirectory: () => directories[`${path}/${name}`] !== undefined,
+        name,
+      })),
+    readFile: async (path: string): Promise<string> => {
+      const content = files[path];
+      if (content === undefined) throw new Error(`Missing ${path}`);
+      return content;
+    },
+  };
+  const receipt = await reviewSkillProse(fileSystem, [
+    '/tmp/.agents/skills/demo',
+    '/tmp/project',
+  ]);
+  expect(receipt.checkedLocalLinkTargets).toBe(2);
+  expect(receipt.findings).toEqual([
+    {
+      kind: 'missing-local-link',
+      sourcePath: '/tmp/.agents/skills/demo/SKILL.md',
+      targetPath: '/tmp/.agents/skills/demo/missing-reference.md',
+    },
+    {
+      kind: 'missing-local-link',
+      sourcePath: '/tmp/.agents/skills/demo/SKILL.md',
+      targetPath: '/tmp/.agents/skills/demo/missing.md',
+    },
+  ]);
+  await expect(reviewSkillProse(fileSystem, [])).rejects.toThrow(
+    'at least one absolute root',
+  );
+  await expect(
+    reviewSkillProse({ readFile: fileSystem.readFile }, [
+      '/tmp/.agents/skills/demo',
+    ]),
+  ).rejects.toThrow('directory listing support');
 });

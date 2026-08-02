@@ -35,6 +35,26 @@ never a stage bypass.
   runtime owns its gray-matter frontmatter. All other runtime assets are
   read-only unless the user explicitly requests a named runtime change.
 
+## Caller-owned router
+
+This is the AIDLC caller router. `utils/aidlc/command-contract.ts` remains the
+sole owner of lifecycle command grammar; use its returned action rather than
+recreating an executable catalog here.
+
+Path basis: an `aidlc/...` or `skills/...` reference resolves from
+`<agents-root>`. A bare `languages/...` or
+`software-engineering-work-packets.md` reference resolves from
+`<agents-root>/aidlc/knowledge`.
+
+| Command or information | Arguments | When to use | Additional information |
+| --- | --- | --- | --- |
+| Start lifecycle | `<intent-summary> [--ui] [--initial-record <stage-outcomes-json-array>]` | A selected project needs one AIDLC route and no matching active intent is being resumed. | Use the canonical command-contract row that matches UI and established-evidence state. |
+| Returned stage packet | `—` | Immediately after every lifecycle action. | Read only its declared assets and execute only its returned next action. |
+| Active intent construction plan | `—` | At Delivery Planning, Code Generation, and Build and Test. | The central temporary intent owns the ordered work, evidence, deviation, and re-plan record. |
+| Language guidance | `[observed-language-or-web-profile]` | Repository evidence establishes an applicable implementation language or web surface. | Read `languages/common.md` and only the applicable section in `languages/profiles.md`; do not infer a stack or route through a separate selector. |
+| Knowledge context | `—` | The returned AIDLC action requires it or validated context can change a decision. | `knowledge-base` selects the private-KB root and material concepts; no local router overrides it. |
+| Lifecycle recovery | `<returned-arguments>` | The runtime returns an approval, re-plan, closeout, or recovery action. | The command contract remains canonical; do not create a parallel recovery route. |
+
 ## Operating route
 
 1. From the selected `<project-root>`, use the normal `start` row in the
@@ -46,6 +66,13 @@ never a stage bypass.
 2. Work only from the returned packet. Its knowledge paths are the typed,
    stage-curated required reading set; do not expand them to every file owned by
    an assigned role, reload unrelated material, or invent unselected stages.
+   When the packet includes `software-engineering-work-packets.md`, use its
+   active-stage record to plan the iteration: requirement/source/proof,
+   boundary/action/rationale, review finding or clean result, and validation
+   mapping must be recorded before claiming the corresponding stage complete.
+   When the packet includes language profiles, read `languages/common.md` and
+   only the observed section in `languages/profiles.md`; they are home-owned
+   guidance, not a reason to infer a stack or add a global command.
 3. At 1.7, the returned action is `await-user-approval`. Present one
    evidence-backed handoff and end the response. Do not call `approve` until a
    later user message explicitly approves this intent. Never treat task
@@ -53,6 +80,9 @@ never a stage bypass.
    approval evidence. After that user message, use the returned approval action
    once. The combined approval action can resolve already-validated KB bindings
    and persist already-known consecutive evidence.
+   This is the sole approval boundary. Use `--ui` only when the request has a
+   user-facing UI requirement; otherwise the packet deterministically skips
+   the UI-only stage. Do not add mockup ceremony outside that conditional stage.
 4. Complete or factually skip each applicable stage. Batch consecutive
    non-gated outcomes in one record only when every item is already established.
    Execute only the returned action; never use `--help`, altered retries,
@@ -112,6 +142,11 @@ boundaries. Use recovery actions only when the runtime returns them.
   parallel universal scanner or gate.
 
 ## Failure and resume
+
+For a repeated request, use the canonical `queue` action to find the matching
+intent and resume it when scope remains valid; use `supersede` only when a
+replacement intent is genuinely required. The invariant `prepare never overwrites`
+an active matching intent.
 
 Malformed intent frontmatter is a repairable lifecycle error. Report the
 actionable gray-matter message, repair only the canonical intent through the

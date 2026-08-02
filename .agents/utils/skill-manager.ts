@@ -1,3 +1,4 @@
+import { dirname, extname, join, relative, resolve } from 'node:path';
 import type {
   MatrixCase,
   MatrixEvidence,
@@ -19,6 +20,7 @@ import {
   receiptPasses,
 } from './evidence-gated-workflow-controller/receipt.js';
 import type { WorkflowState } from './evidence-gated-workflow-controller/state.js';
+import type { FileSystem } from './filesystem.js';
 
 export interface SkillManagerBatchEvaluation {
   readonly phase: 'baseline' | 'candidate';
@@ -47,6 +49,20 @@ export interface SkillManagerPacketInput {
   readonly targetSkillPath: string;
 }
 
+export interface SkillProseReviewFinding {
+  readonly kind: 'missing-local-link' | 'out-of-scope-local-link';
+  readonly sourcePath: string;
+  readonly targetPath: string;
+}
+
+export interface SkillProseReviewReceipt {
+  readonly checkedLocalLinkTargets: number;
+  readonly findings: readonly SkillProseReviewFinding[];
+  readonly ignoredPaths: readonly string[];
+  readonly prosePaths: readonly string[];
+  readonly reviewedRoots: readonly string[];
+}
+
 const actionTitleFor = (state: WorkflowState): string => {
   if (state === 'draft') {
     return 'Define and validate the skill quality matrix';
@@ -55,6 +71,13 @@ const actionTitleFor = (state: WorkflowState): string => {
     return 'Repair every compatible failed assertion in one candidate batch';
   }
   throw new Error(`No Skill Manager action packet is available for ${state}.`);
+};
+
+const agentsRootFor = (path: string): string | undefined => {
+  const marker = '/.agents/';
+  const index = path.indexOf(marker);
+  if (index >= 0) return path.slice(0, index + '/.agents'.length);
+  return path.endsWith('/.agents') ? path : undefined;
 };
 
 export const createSkillManagerPacket = (
@@ -109,6 +132,33 @@ const failedAssertionIdsFor = (receipt: EvidenceReceipt): string[] => [
   ),
 ];
 
+const isExternalTarget = (target: string): boolean =>
+  /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(target);
+
+const proseExtensions = new Set(['.md', '.txt', '.yaml', '.yml']);
+
+const isProsePath = (path: string): boolean =>
+  proseExtensions.has(extname(path));
+
+const isWithin = (path: string, root: string): boolean =>
+  path === root || path.startsWith(`${root}/`);
+
+export const localMarkdownLinkTargets = (source: string): readonly string[] => {
+  const prose = source.replace(/```[\s\S]*?```/g, '');
+  const targets: string[] = [];
+  for (const match of prose.matchAll(
+    /!?\[[^\]]*\]\((?:<([^>]+)>|([^\s)]+))(?:\s+[^)]*)?\)/g,
+  )) {
+    targets.push(match[1] ?? match[2] ?? '');
+  }
+  for (const match of prose.matchAll(
+    /^\s*\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm,
+  )) {
+    targets.push(match[1] ?? match[2] ?? '');
+  }
+  return targets.filter(Boolean);
+};
+
 export const parseMatrixJsonl = (content: string): MatrixCase[] => {
   const lines = content.split('\n').filter((line) => line.trim());
   const cases = lines.map((line, index) => {
@@ -120,6 +170,155 @@ export const parseMatrixJsonl = (content: string): MatrixCase[] => {
   });
   validateMatrix(cases);
   return cases;
+};
+
+const patternMatches = (pattern: string, candidate: string): boolean => {
+  const directoryPattern = pattern.endsWith('/');
+  const core = directoryPattern ? pattern.slice(0, -1) : pattern;
+  const escaped = core
+    .replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
+    .replaceAll('**', '<<<double-star>>>')
+    .replaceAll('*', '[^/]*')
+    .replaceAll('<<<double-star>>>', '.*');
+  return new RegExp(`^${escaped}${directoryPattern ? '(?:/.*)?' : '$'}`).test(
+    candidate,
+  );
+};
+
+export const ignoredByAgentsGitignore = (
+  agentsRoot: string,
+  path: string,
+  gitignore: string,
+): boolean => {
+  const candidate = relative(agentsRoot, path).replaceAll('\\', '/');
+  let ignored = false;
+  for (const rawLine of gitignore.split('\n')) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const negated = line.startsWith('!');
+    const pattern = (negated ? line.slice(1) : line).replace(/^\//, '');
+    if (pattern && patternMatches(pattern, candidate)) ignored = !negated;
+  }
+  return ignored;
+};
+
+const readOptional = async (
+  fileSystem: Pick<FileSystem, 'readFile'>,
+  path: string,
+): Promise<string | undefined> => {
+  try {
+    return await fileSystem.readFile(path, 'utf8');
+  } catch {
+    return undefined;
+  }
+};
+
+const proseReview = {
+  collect: async (
+    fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+    readdir: NonNullable<FileSystem['readdir']>,
+    path: string,
+    gitignores: ReadonlyMap<string, string>,
+    ignoredPaths: Set<string>,
+    prosePaths: Set<string>,
+  ): Promise<void> => {
+    const agentsRoot = agentsRootFor(path);
+    const gitignore = agentsRoot ? gitignores.get(agentsRoot) : undefined;
+    if (
+      agentsRoot &&
+      gitignore &&
+      ignoredByAgentsGitignore(agentsRoot, path, gitignore)
+    ) {
+      ignoredPaths.add(path);
+      return;
+    }
+    if (isProsePath(path)) {
+      if ((await readOptional(fileSystem, path)) !== undefined)
+        prosePaths.add(path);
+      return;
+    }
+    if (extname(path)) return;
+    const entries = await readdir(path, { withFileTypes: true });
+    await Promise.all(
+      entries.map(async (entry) => {
+        const child = join(path, entry.name);
+        if (entry.isDirectory() || isProsePath(child)) {
+          await proseReview.collect(
+            fileSystem,
+            readdir,
+            child,
+            gitignores,
+            ignoredPaths,
+            prosePaths,
+          );
+        }
+      }),
+    );
+  },
+  findingFor: async (
+    fileSystem: Pick<FileSystem, 'readFile'>,
+    sourcePath: string,
+    target: string,
+    reviewedRoots: readonly string[],
+  ): Promise<{
+    readonly checked: boolean;
+    readonly finding?: SkillProseReviewFinding;
+  }> => {
+    const targetWithoutAnchor = target.split('#', 1)[0] ?? '';
+    if (!targetWithoutAnchor || isExternalTarget(targetWithoutAnchor)) {
+      return { checked: false };
+    }
+    const targetPath = resolve(dirname(sourcePath), targetWithoutAnchor);
+    if (!reviewedRoots.some((root) => isWithin(targetPath, root))) {
+      return {
+        checked: true,
+        finding: { kind: 'out-of-scope-local-link', sourcePath, targetPath },
+      };
+    }
+    const missing = (await readOptional(fileSystem, targetPath)) === undefined;
+    return {
+      checked: true,
+      ...(missing
+        ? { finding: { kind: 'missing-local-link', sourcePath, targetPath } }
+        : {}),
+    };
+  },
+  findings: async (
+    fileSystem: Pick<FileSystem, 'readFile'>,
+    prosePaths: ReadonlySet<string>,
+    reviewedRoots: readonly string[],
+  ): Promise<{
+    readonly checkedLocalLinkTargets: number;
+    readonly findings: readonly SkillProseReviewFinding[];
+  }> => {
+    const results = await Promise.all(
+      [...prosePaths]
+        .filter((sourcePath) => extname(sourcePath) === '.md')
+        .map((sourcePath) =>
+          proseReview.sourceFindings(fileSystem, sourcePath, reviewedRoots),
+        ),
+    );
+    const linkResults = results.flat();
+    return {
+      checkedLocalLinkTargets: linkResults.filter(({ checked }) => checked)
+        .length,
+      findings: linkResults.flatMap(({ finding }) =>
+        finding ? [finding] : [],
+      ),
+    };
+  },
+  sourceFindings: async (
+    fileSystem: Pick<FileSystem, 'readFile'>,
+    sourcePath: string,
+    reviewedRoots: readonly string[],
+  ) => {
+    const source = await fileSystem.readFile(sourcePath, 'utf8');
+    return Promise.all(
+      localMarkdownLinkTargets(source).map((target) =>
+        proseReview.findingFor(fileSystem, sourcePath, target, reviewedRoots),
+      ),
+    );
+  },
 };
 
 const receiptFor = (
@@ -188,5 +387,58 @@ export const evaluateSkillManagerBatch = (
         targetSkillPath: target.targetSkillPath,
       };
     }),
+  };
+};
+
+export const reviewSkillProse = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  roots: readonly string[],
+): Promise<SkillProseReviewReceipt> => {
+  if (roots.length === 0 || roots.some((root) => !root.startsWith('/'))) {
+    throw new Error('Skill prose review requires at least one absolute root.');
+  }
+  const readdir = fileSystem.readdir;
+  if (!readdir) {
+    throw new Error('Skill prose review requires directory listing support.');
+  }
+  const reviewedRoots = [...new Set(roots.map((root) => resolve(root)))].sort();
+  const gitignores = new Map<string, string>();
+  for (const agentsRoot of new Set(reviewedRoots.map(agentsRootFor))) {
+    if (!agentsRoot) continue;
+    const content = await readOptional(
+      fileSystem,
+      join(agentsRoot, '.gitignore'),
+    );
+    if (content !== undefined) gitignores.set(agentsRoot, content);
+  }
+  const ignoredPaths = new Set<string>();
+  const prosePaths = new Set<string>();
+  await Promise.all(
+    reviewedRoots.map((root) =>
+      proseReview.collect(
+        fileSystem,
+        readdir,
+        root,
+        gitignores,
+        ignoredPaths,
+        prosePaths,
+      ),
+    ),
+  );
+  const linkReceipt = await proseReview.findings(
+    fileSystem,
+    prosePaths,
+    reviewedRoots,
+  );
+  return {
+    ...linkReceipt,
+    findings: [...linkReceipt.findings].sort((left, right) =>
+      `${left.sourcePath}:${left.targetPath}`.localeCompare(
+        `${right.sourcePath}:${right.targetPath}`,
+      ),
+    ),
+    ignoredPaths: [...ignoredPaths].sort(),
+    prosePaths: [...prosePaths].sort(),
+    reviewedRoots,
   };
 };

@@ -13,12 +13,23 @@ be built and verified without guessing ownership. Architecture defines the
 boundaries; this stage defines the dependency topology. It does not choose
 business priority or delivery order—that belongs to 2.8.
 
+Path basis: the shortened `languages/...` and
+`language-profile-selection.md` names below resolve from
+`<agents-root>/aidlc/knowledge`; the explicit `aidlc/...` path resolves from
+`<agents-root>`.
+
 ## Decomposition method
 
 For each unit, record its purpose, requirement coverage, owned boundaries,
 interfaces, data or state ownership, implementation constraints, acceptance
 criteria, and applicable design obligations. Use units that are independently
 meaningful; avoid splitting merely to simulate parallel assistants.
+
+Use the **Units record** in
+`aidlc/knowledge/shared/software-engineering-work-packets.md` and select any
+applicable section from `languages/profiles.md`, with `languages/common.md`,
+only from verified project evidence. The retired
+`language-profile-selection.md` must not be recreated or used.
 
 Create an explicit directed dependency map. Every unit must appear once, its
 dependencies must be declared, no unit can depend on itself, and the graph must

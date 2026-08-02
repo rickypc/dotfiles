@@ -274,8 +274,11 @@ const knowledgeFilesByStage: Readonly<
   Record<AidlcStageSlug, readonly string[]>
 > = {
   'application-design': [
+    'languages/common.md',
+    'languages/profiles.md',
     'shared/brownfield.md',
     'shared/command-catalog.md',
+    'shared/software-engineering-work-packets.md',
     'roles/architect/adr-template.md',
     'roles/architect/architecture-patterns.md',
   ],
@@ -285,16 +288,21 @@ const knowledgeFilesByStage: Readonly<
   ],
   'build-and-test': [
     'shared/verification.md',
+    'shared/software-engineering-work-packets.md',
     'roles/quality/testing-guide.md',
     'roles/quality/nfr-validation-methods.md',
   ],
   'code-generation': [
+    'languages/common.md',
+    'languages/profiles.md',
+    'shared/software-engineering-work-packets.md',
     'roles/developer/code-generation-guide.md',
     'roles/developer/code-generation-patterns.md',
     'roles/developer/re-artifacts.md',
   ],
   'delivery-planning': [
     'shared/command-catalog.md',
+    'shared/software-engineering-work-packets.md',
     'shared/verification.md',
     'roles/delivery/team-topologies.md',
     'roles/delivery/workflow-planning-guide.md',
@@ -339,13 +347,17 @@ const knowledgeFilesByStage: Readonly<
     'roles/design/wireframing-guide.md',
   ],
   'requirements-analysis': [
+    'languages/common.md',
+    'languages/profiles.md',
     'shared/verification.md',
+    'shared/software-engineering-work-packets.md',
     'roles/product/requirements-guide.md',
     'roles/product/user-story-patterns.md',
   ],
   'reverse-engineering': [
     'shared/brownfield.md',
     'shared/rules-reading.md',
+    'shared/software-engineering-work-packets.md',
     'roles/architect/architecture-guide.md',
     'roles/developer/code-analysis-guide.md',
   ],
@@ -358,8 +370,11 @@ const knowledgeFilesByStage: Readonly<
   ],
   'state-init': [],
   'units-generation': [
+    'languages/common.md',
+    'languages/profiles.md',
     'shared/command-catalog.md',
     'shared/verification.md',
+    'shared/software-engineering-work-packets.md',
     'roles/architect/architecture-guide.md',
     'roles/delivery/workflow-planning-guide.md',
   ],

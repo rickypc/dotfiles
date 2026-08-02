@@ -59,9 +59,9 @@ the JSON fields as the only authority for declaration ordering.
 
 For the global `<agents-root>` package, `bun run test:lint` runs Biome and
 declaration-order inspection for every TypeScript source independently. It
-always reports every gate result, then fails when any fails. A noncanonical or
+always reports both gate results and fails when either fails. A noncanonical or
 blocked TypeScript file fails that gate. Its healthy output is one checked-file
-summary per inspection; failures retain only actionable paths and
+summary per inspection; failures retain only failed or blocked paths and
 declaration-order action packets. Selected JavaScript paths remain covered by
 the checker command above.
 

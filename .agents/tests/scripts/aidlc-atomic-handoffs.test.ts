@@ -131,6 +131,81 @@ test('approves and resolves already-known empty KB bindings in one command', asy
   );
 });
 
+test('resolves context after approval without recording a second approval', async () => {
+  const initial = atApprovalHandoff();
+  const approved = {
+    ...initial,
+    approval: 'approved' as const,
+    route: initial.route.map((record) => ({
+      ...record,
+      status:
+        record.slug === 'approval-handoff'
+          ? ('completed' as const)
+          : record.slug === 'reverse-engineering'
+            ? ('active' as const)
+            : record.status,
+    })),
+    stage: 'reverse-engineering' as const,
+  };
+  const update = mock(async () => undefined);
+  const appendAudit = mock(async () => undefined);
+  const write = mock();
+  await run(
+    [
+      'approve',
+      '/agents/aidlc/repo/intents/context-followup.md',
+      '--context',
+      '/private-kb',
+      '-',
+      '-',
+      '-',
+    ],
+    undefined,
+    write,
+    mock(async () => approved),
+    update,
+    appendAudit,
+  );
+  expect(update).toHaveBeenCalledTimes(1);
+  expect(appendAudit).toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/context-followup.md',
+    expect.objectContaining({ type: 'context-resolved' }),
+  );
+  expect(appendAudit).not.toHaveBeenCalledWith(
+    expect.anything(),
+    '/agents/aidlc/repo/intents/context-followup.md',
+    expect.objectContaining({ type: 'approval-granted' }),
+  );
+  expect(write).not.toHaveBeenCalledWith(
+    expect.stringContaining('resolve-knowledge-context'),
+  );
+});
+
+test('rejects malformed post-approval context without changing lifecycle state', async () => {
+  const update = mock(async () => undefined);
+  await expect(
+    run(
+      [
+        'approve',
+        '/agents/aidlc/repo/intents/malformed-context-followup.md',
+        'not-context',
+        '/private-kb',
+        '-',
+        '-',
+        '-',
+        '-',
+      ],
+      undefined,
+      mock(),
+      mock(async () => atApprovalHandoff()),
+      update,
+      mock(async () => undefined),
+    ),
+  ).rejects.toThrow('AIDLC command catalog');
+  expect(update).not.toHaveBeenCalled();
+});
+
 test('validates combined approval context before changing lifecycle state', async () => {
   const update = mock(async () => undefined);
   await expect(

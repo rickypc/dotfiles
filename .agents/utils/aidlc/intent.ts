@@ -294,6 +294,23 @@ const auditLineFor = (event: AidlcAuditEvent): string => {
   return `- ${event.at} | ${event.type} | ${event.stage} | ${event.detail.replaceAll(/\s+/gu, ' ').trim()}`;
 };
 
+const constructionPlanTemplate = (): string =>
+  [
+    '## Construction plan',
+    '',
+    'Delivery Planning must populate this before Construction. Code Generation executes its ordered rows and records actual evidence; Build and Test reconciles every row before the configured final gate.',
+    '',
+    '| Step | Status | Requirements and units | What | Where | Why | Depends on | Focused proof | Review and re-plan trigger | Actual evidence |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| `<ordered-step>` | `pending` | `<approved requirement IDs and units>` | `<change or verification outcome>` | `<path, symbol, boundary, or narrow discovery boundary>` | `<dependency, risk, value, or compatibility rationale>` | `<completed step or none>` | `<named proof and expected result>` | `<review criterion; factual re-plan condition>` | `Pending.` |',
+    '',
+    '### Validation reconciliation',
+    '',
+    '| Requirement or claim | Construction-plan step | Focused evidence | Final-gate relation | Result or limitation |',
+    '| --- | --- | --- | --- | --- |',
+    '| `<requirement or claim>` | `<step>` | `<named proof>` | `<covered by or separate from configured final gate>` | `<pass, fail, blocked, or limitation>` |',
+  ].join('\n');
+
 export const createAidlcIntent = (
   cbmIndex: string,
   summary: string,
@@ -540,6 +557,8 @@ export const renderAidlcIntent = (intent: AidlcIntent): string =>
       '## Decisions',
       '',
       '## Plan',
+      '',
+      constructionPlanTemplate(),
       '',
       '## Execution evidence',
       '',

@@ -21,6 +21,7 @@ test('builds one packet with only the current stage assets', () => {
   ]);
   expect(packet.commonPaths).toHaveLength(6);
   expect(packet.knowledgePaths).toEqual([]);
+  expect(packet.templatePaths).toEqual([]);
   expect(renderAidlcStagePacket(packet)).toContain('workspace-scaffold');
 });
 
@@ -31,6 +32,7 @@ test('keeps AIDLC prompt assets in one non-nested namespace', () => {
   for (const path of [
     'stages/initialization/workspace-scaffold.md',
     'sensors/intent-evidence.md',
+    'templates/construction-plan.md',
     'templates/practice-record.md',
   ]) {
     expect(existsSync(`${promptRoot}/${path}`)).toBeTrue();
@@ -47,6 +49,7 @@ test('rejects empty or missing stage assets', async () => {
       ...packet.rolePaths,
       ...packet.knowledgePaths,
       ...packet.sensorPaths,
+      ...packet.templatePaths,
     ].map((path) => [path, 'content']),
   );
   const fileSystem = {
@@ -60,6 +63,29 @@ test('rejects empty or missing stage assets', async () => {
   await expect(validateAidlcStageAssets(fileSystem, packet)).rejects.toThrow(
     'asset is empty',
   );
+});
+
+test('supplies the construction-plan template to Delivery Planning', () => {
+  const intent = createAidlcIntent('repo', 'Plan construction');
+  const index = intent.route.findIndex(
+    (record) => record.slug === 'delivery-planning',
+  );
+  const delivery = {
+    ...intent,
+    route: intent.route.map((record, itemIndex): typeof record => ({
+      ...record,
+      status:
+        itemIndex < index
+          ? 'completed'
+          : itemIndex === index
+            ? 'active'
+            : 'pending',
+    })),
+    stage: 'delivery-planning' as const,
+  };
+  expect(stagePacketFor('/agents', delivery).templatePaths).toEqual([
+    '/agents/aidlc/prompts/templates/construction-plan.md',
+  ]);
 });
 
 test('requires resolved context before reverse engineering', () => {

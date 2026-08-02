@@ -7,7 +7,7 @@ description: Generate and retain project-local Playwright browser regression tes
 
 Use only for user-facing web acceptance criteria. The intent acceptance
 checklist is the coverage boundary; describe each criterion in plain observable
-condition, action, and outcome language. Do not use Gherkin.
+condition, action, and outcome language rather than scenario keyword syntax.
 
 ## Prerequisites
 

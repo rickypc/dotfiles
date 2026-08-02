@@ -41,7 +41,10 @@ Requirements Analysis. Do not invent a code map from the requested feature.
    system purpose, relevant components and owning boundaries, current request
    path or data flow, public contracts, dependencies, persistence, quality
    constraints, existing test coverage, and technical risks.
-4. For a multi-repository request, repeat the same evidence collection for each
+4. Use the **Research record** in
+   `aidlc/knowledge/shared/software-engineering-work-packets.md` so every
+   conclusion identifies its evidence and inference is not reported as fact.
+5. For a multi-repository request, repeat the same evidence collection for each
    independently indexed project. Repositories under a common home directory
    are not one project merely because their paths share a prefix. A separately
    indexed excluded directory is valid context in its own right.

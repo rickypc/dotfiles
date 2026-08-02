@@ -12,6 +12,10 @@ Design the approach before implementation units are generated. Use product,
 architect, and design perspectives returned by the packet. Add platform or
 compliance analysis only when it is material to the approved requirements.
 
+Path basis: the shortened `languages/...` names below resolve from
+`<agents-root>/aidlc/knowledge`; the explicit `aidlc/...` path resolves from
+`<agents-root>`.
+
 ## Design method
 
 1. Read requirements, Reverse Engineering evidence when brownfield, and the UI
@@ -26,6 +30,10 @@ compliance analysis only when it is material to the approved requirements.
 4. Specify the smallest architecture that satisfies the approved scope. Do not
    design infrastructure, deployment, or an integration merely because it is a
    common pattern.
+5. Use the **Application-design record** in
+   `aidlc/knowledge/shared/software-engineering-work-packets.md`; apply an
+   observed section from `languages/profiles.md`, with `languages/common.md`,
+   when it changes a boundary or proof obligation.
 
 ## Outputs
 

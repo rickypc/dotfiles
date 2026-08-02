@@ -21,6 +21,7 @@ export interface AidlcStagePacket {
   readonly sensorPaths: readonly string[];
   readonly stage: string;
   readonly stagePromptPath: string;
+  readonly templatePaths: readonly string[];
 }
 
 const commonPromptPathsFor = (agentsRoot: string): readonly string[] => [
@@ -34,6 +35,14 @@ const commonPromptPathsFor = (agentsRoot: string): readonly string[] => [
 
 export const renderAidlcStagePacket = (packet: AidlcStagePacket): string =>
   JSON.stringify(packet, null, 2);
+
+const templatePathsFor = (
+  agentsRoot: string,
+  stage: string,
+): readonly string[] =>
+  stage === 'delivery-planning'
+    ? [`${agentsRoot}/aidlc/prompts/templates/construction-plan.md`]
+    : [];
 
 export const stagePacketFor = (
   agentsRoot: string,
@@ -65,6 +74,7 @@ export const stagePacketFor = (
     ),
     stage: intent.stage,
     stagePromptPath: stagePromptPathFor(agentsRoot, intent.stage),
+    templatePaths: templatePathsFor(agentsRoot, intent.stage),
   };
 };
 
@@ -78,6 +88,7 @@ export const validateAidlcStageAssets = async (
     ...packet.rolePaths,
     ...packet.knowledgePaths,
     ...packet.sensorPaths,
+    ...packet.templatePaths,
   ];
   await Promise.all(
     paths.map(async (path) => {

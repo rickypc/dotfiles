@@ -290,6 +290,11 @@ test('creates a local route and holds at the plan gate', () => {
   ).toMatchObject({ status: 'skipped' });
   expect(renderAidlcIntent(intent)).toContain('## Adopted AI-DLC stages');
   expect(renderAidlcIntent(intent)).toContain('## Acceptance checklist');
+  expect(renderAidlcIntent(intent)).toContain('## Construction plan');
+  expect(renderAidlcIntent(intent)).toContain(
+    '| Step | Status | Requirements and units | What | Where | Why |',
+  );
+  expect(renderAidlcIntent(intent)).toContain('### Validation reconciliation');
   expect(acceptanceChecklistFor('Build KB', false)).toEqual([
     'Deliver the requested outcome: Build KB',
     'Pass the configured final acceptance gate.',

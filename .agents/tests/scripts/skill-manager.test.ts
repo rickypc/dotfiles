@@ -92,3 +92,28 @@ test('batches independent matrix and skill-file pairs into one receipt', async (
     usage(),
   );
 });
+
+test('reviews absolute static roots through the Skill Manager integrity receipt', async () => {
+  const write = mock();
+  const fileSystem = {
+    readdir: mock(async (path: string) => {
+      if (path === '/tmp/.agents/skills/demo') {
+        return [{ isDirectory: () => false, name: 'SKILL.md' }];
+      }
+      throw new Error(`Missing ${path}`);
+    }),
+    readFile: mock(async (path: string) => {
+      if (path === '/tmp/.agents/.gitignore') return '';
+      if (path === '/tmp/.agents/skills/demo/SKILL.md') return '# Demo';
+      throw new Error(`Missing ${path}`);
+    }),
+  };
+  await run(
+    ['review', '/tmp/.agents/skills/demo'],
+    undefined,
+    write,
+    fileSystem,
+  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"prosePaths"'));
+  await expect(run(['review', 'relative-root'])).rejects.toThrow(usage());
+});

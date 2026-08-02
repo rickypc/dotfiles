@@ -4,16 +4,21 @@ import {
   renderActionPacket,
 } from '../utils/evidence-gated-workflow-controller/packet.js';
 import type { WorkflowState } from '../utils/evidence-gated-workflow-controller/state.js';
-import { nodeFileSystem, readText } from '../utils/filesystem.js';
+import {
+  type FileSystem,
+  nodeFileSystem,
+  readText,
+} from '../utils/filesystem.js';
 import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
   evaluateSkillMatrix,
   parseMatrixJsonl,
+  reviewSkillProse,
 } from '../utils/skill-manager.js';
 
 export const usage = (): string =>
-  'Use the skill-manager command catalog. packet requires <intent-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path>; evaluate requires <baseline-or-candidate-or-challenge> <absolute-matrix-jsonl-path> <absolute-skill-file-path>; batch requires <intent-id> <baseline-or-candidate> plus at least two absolute matrix-and-skill pairs.';
+  'Use the skill-manager command catalog. packet requires <intent-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path>; evaluate requires <baseline-or-candidate-or-challenge> <absolute-matrix-jsonl-path> <absolute-skill-file-path>; batch requires <intent-id> <baseline-or-candidate> plus at least two absolute matrix-and-skill pairs; review requires one or more absolute skill or static-asset roots.';
 
 const defaultRead = readText.bind(undefined, nodeFileSystem);
 
@@ -61,12 +66,57 @@ const phaseFor = (
   throw new Error(usage());
 };
 
+const runPacket = (
+  args: readonly string[],
+  write: (message: string) => void,
+): void => {
+  const [, intentId, state, targetSkillPath, failedAssertionIds] = args;
+  if (
+    args[0] !== 'packet' ||
+    !intentId ||
+    !state ||
+    !targetSkillPath ||
+    args.length < 4 ||
+    args.length > 5
+  ) {
+    throw new Error(usage());
+  }
+  write(
+    renderActionPacket(
+      createSkillManagerPacket({
+        failedAssertionIds:
+          failedAssertionIds?.split(',').filter(Boolean) ?? [],
+        intentId,
+        state: state as WorkflowState,
+        targetSkillPath,
+      }),
+    ),
+  );
+};
+
+const runReview = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+): Promise<void> => {
+  const roots = args.slice(1);
+  if (roots.length === 0 || roots.some((root) => !root.startsWith('/'))) {
+    throw new Error(usage());
+  }
+  write(JSON.stringify(await reviewSkillProse(fileSystem, roots), null, 2));
+};
+
 export const run = async (
   args: readonly string[],
   read: (path: string) => Promise<string | Buffer> = defaultRead,
   write: (message: string) => void = console.log,
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'> = nodeFileSystem,
 ): Promise<void> => {
   const [command, first, second, third, fourth] = args;
+  if (command === 'review') {
+    await runReview(args, write, fileSystem);
+    return;
+  }
   if (command === 'batch') {
     const pairs = batchPairsFor(args);
     const sources = await Promise.all(
@@ -115,23 +165,7 @@ export const run = async (
     write(JSON.stringify(receipt, null, 2));
     return;
   }
-  if (
-    command !== 'packet' ||
-    !first ||
-    !second ||
-    !third ||
-    args.length < 4 ||
-    args.length > 5
-  ) {
-    throw new Error(usage());
-  }
-  const packet = createSkillManagerPacket({
-    failedAssertionIds: fourth?.split(',').filter(Boolean) ?? [],
-    intentId: first,
-    state: second as WorkflowState,
-    targetSkillPath: third,
-  });
-  write(renderActionPacket(packet));
+  runPacket(args, write);
 };
 
 export const runWhenMain = runCliWhenMain;

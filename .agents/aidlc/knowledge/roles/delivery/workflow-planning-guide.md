@@ -1,6 +1,13 @@
 # Workflow Planning Guide
 
-Domain-specific guidance for the Workflow Planning stage. Use this alongside `product-guide.md` when leading execution plan creation.
+Domain-specific guidance for the Workflow Planning stage. Use this alongside
+`product-guide.md` when leading execution plan creation.
+
+Path basis: `product-guide.md` resolves to
+`<agents-root>/aidlc/knowledge/roles/product/product-guide.md` and
+`stage-protocol.md` resolves to `<agents-root>/aidlc/protocols/stage-protocol.md`.
+`risk-and-sequencing-rationale.md` is the project-owned rationale artifact
+recorded in the active intent, not a static AIDLC source.
 
 ## Stage Configuration Heuristics
 

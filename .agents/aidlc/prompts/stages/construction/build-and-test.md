@@ -11,8 +11,11 @@ route_authority: "utils/aidlc/stages.ts"
 This stage runs exactly one configured final project command. The command and
 closeout forms are defined only by `utils/aidlc/command-contract.ts`.
 
-1. Confirm Code Generation recorded changed files and mapped every acceptance
-   item to a test, smoke check, or observable result. For applicable UI/web
+1. Reconcile the central intent's **Construction plan** before the final gate:
+   every row is complete, has actual evidence, maps to a requirement and proof,
+   and records any deviation or re-plan. Confirm Code Generation recorded
+   changed files and mapped every acceptance item to a test, smoke check, or
+   observable result. For applicable UI/web
    criteria, confirm the mapped retained project Playwright test and that the
    configured final gate executes it. A missing project-local runner or gate
    coverage leaves the criterion open; it does not authorize an implicit
@@ -28,6 +31,11 @@ closeout forms are defined only by `utils/aidlc/command-contract.ts`.
 4. If KB disposition is already known, use the atomic closeout action. If it is
    unknown after a bare pass, ask `knowledge-base` and execute the one returned
    recovery action. Both paths preserve an explicit disposition before retirement.
+
+Use the **Validation record** in
+`aidlc/knowledge/shared/software-engineering-work-packets.md` to show which
+acceptance proof came from focused evidence and which comes from the final-gate
+receipt. Do not let a green gate imply an unmapped behavior was proven.
 
 A passing final gate does not close an acceptance item without its own mapped
 proof.
