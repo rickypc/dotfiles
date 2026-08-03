@@ -29,6 +29,17 @@ Perform this stage only for an existing codebase. For greenfield work, record a
 skip stating that no existing implementation exists, then continue to
 Requirements Analysis. Do not invent a code map from the requested feature.
 
+## Scope before scanning
+
+Honor a named module, subsystem, or pain point as the initial scope. When the
+request names no direction, use available project evidence to identify the
+recently active or repeatedly changed areas before widening the search. Read
+the applicable domain glossary and ADRs before proposing architectural change.
+Record where investigation felt costly: concepts split across many modules,
+interfaces nearly as complex as their implementations, extracted helpers that
+hide call-site behavior, weak test surfaces, and dependencies leaking across a
+seam. These are research signals, not findings by themselves.
+
 ## Research procedure
 
 1. Use `codebase-memory` for the project selected in the intent. Ask it for
@@ -44,6 +55,9 @@ Requirements Analysis. Do not invent a code map from the requested feature.
 4. Use the **Research record** in
    `aidlc/knowledge/shared/software-engineering-work-packets.md` so every
    conclusion identifies its evidence and inference is not reported as fact.
+   For any proposed deepening or refactor, apply a deletion test: would
+   removing the suspected indirection concentrate complexity in a more useful
+   module, or merely move it? Only the former is an architectural candidate.
 5. For a multi-repository request, repeat the same evidence collection for each
    independently indexed project. Repositories under a common home directory
    are not one project merely because their paths share a prefix. A separately

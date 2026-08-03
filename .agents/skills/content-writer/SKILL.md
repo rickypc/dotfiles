@@ -12,6 +12,17 @@ publisher, date, URL, source class, and claim supported. Reject unsupported
 claims. Preserve all quotations exactly; for non-English quotes retain the
 original and ask before adding translation or transliteration when needed.
 
+Before drafting, write a compact document contract: reader, job, format,
+defining takeaway, required sections, evidence standard, and non-goals. Build
+the outline from that contract before writing prose. Keep the research ledger
+separate from the reader-facing narrative so citations and uncertainty remain
+traceable without turning the document into a process dump.
+
+For documentation and guide pages, orient the reader with the page's job,
+defining constraint, trigger for using it, and place among nearby documents.
+Use only the sections the subject earns; remove template furniture that does
+not help the intended reader.
+
 Use a claim matrix and completion gate: structure, audience fit, source-to-claim
 coverage, accurate citations, quotation preservation, and no fabricated facts.
 Refresh mode inventories the existing source first; without one, write new.

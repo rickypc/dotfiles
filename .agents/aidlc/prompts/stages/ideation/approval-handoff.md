@@ -10,6 +10,10 @@ route_authority: "utils/aidlc/stages.ts"
 
 This is the sole human plan-approval gate. Compile existing Ideation evidence;
 do not add research, design artifacts, staffing assumptions, or a second scope.
+The handoff is not complete when the central intent contains only headings.
+Before presenting it, ensure Research, Decisions, Plan, and Validation evidence
+are populated with factual content or an explicit, justified `N/A`; unresolved
+material questions must be visible as blockers or re-plan triggers.
 
 ## Required handoff
 
@@ -22,8 +26,11 @@ Record one concise decision package:
 - the already-resolved single final project gate.
 
 State the intended implementation sequence so Construction does not reinterpret
-product scope. This forecast never permits a later stage to be omitted without
-factual evidence.
+product scope. The Plan must name ordered increments, owner boundaries,
+dependencies, rationale, focused proof, risks, and the fact that would trigger
+re-planning. Validation must map each acceptance item to proof and identify the
+configured final gate. This forecast never permits a later stage to be omitted
+without factual evidence.
 
 ## Decision
 

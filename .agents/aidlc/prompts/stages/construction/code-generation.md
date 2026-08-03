@@ -16,6 +16,10 @@ Implement the approved acceptance contract using the smallest compatible change.
    mark it `in_progress` before work and `complete` only with actual evidence.
    Use `codebase-memory` for affected code facts and reuse verified project
    extension points.
+   Keep the behavior local to the owning interface. Do not extract a pure
+   helper only to make a test convenient when the real risk is in the caller,
+   and do not add an adapter unless the plan identifies a real seam and its
+   consumer-facing proof.
 2. Change only the selected row's project assets. Follow the universal Code changes policy:
    minimum scope, reuse first, remove only artifacts made dead by this change,
    and ask before cleaning unrelated pre-existing dead code.

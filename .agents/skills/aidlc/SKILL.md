@@ -16,6 +16,16 @@ acceptance checklist; make that checklist the work contract. Evidence is concise
 and factual: command receipts, observed behavior, links, and decisions. Do not
 replace the requested result with phase narration.
 
+The central intent is a self-contained decision specification, not a blank
+journal. Before the approval handoff, populate its Research, Decisions, Plan,
+and Validation evidence with factual content or an explicit, evidence-backed
+`N/A`. Research states the question, sources, observed facts, inferences, and
+uncertainty. Decisions state the chosen approach, consequences, rejected
+alternatives, and unresolved blockers. Plan states ordered construction steps,
+owners, dependencies, focused proof, risks, and re-plan triggers. Validation
+maps every acceptance item to proof and distinguishes focused checks from the
+single final gate. A heading with no content is not a completed handoff.
+
 Greenfield and brownfield work use the same route. Greenfield does not create
 extra ceremony; brownfield research is added only where existing behavior can
 change an acceptance item. Batching established evidence reduces calls; it is

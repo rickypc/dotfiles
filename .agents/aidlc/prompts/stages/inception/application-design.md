@@ -33,18 +33,25 @@ Path basis: the shortened `languages/...` names below resolve from
 4. Specify the smallest architecture that satisfies the approved scope. Do not
    design infrastructure, deployment, or an integration merely because it is a
    common pattern.
-5. Use the **Application-design record** in
+5. For a proposed architectural deepening, record a candidate card before
+   settling interfaces: files or modules, the friction, the change, expected
+   locality and testability benefit, and recommendation strength. Apply the
+   deletion test from Reverse Engineering; do not add an abstraction that only
+   relocates complexity. Define interfaces after the candidate and its
+   contracts are selected, not as speculative alternatives.
+6. Use the **Application-design record** in
    `aidlc/knowledge/shared/software-engineering-work-packets.md`; apply an
    observed section from `languages/profiles.md`, with `languages/common.md`,
    when it changes a boundary or proof obligation.
 
 ## Outputs
 
-Record a coherent design in the intent's **Plan** section: component map,
-interface and data contracts, dependency direction, architecture decisions,
-UI integration where applicable, and requirements-to-design traceability. Link
-project-owned diagrams or design documents if they are useful. Every output
-must be evidence-backed and usable by Units Generation and Construction.
+Record a coherent design in the intent's **Plan** section: candidate card when
+applicable, component map, interface and data contracts, dependency direction,
+architecture decisions, UI integration where applicable, and
+requirements-to-design traceability. Link project-owned diagrams or design
+documents if they are useful. Every output must be evidence-backed and usable
+by Units Generation and Construction.
 
 ## Exit
 
