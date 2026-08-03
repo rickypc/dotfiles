@@ -16,18 +16,30 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// yarn add @babel/standalone --optional
-// yarn add babel-plugin-module-resolver-standalone --optional
+// bun add @babel/standalone --optional
+// bun add babel-plugin-module-resolver-standalone --optional
 
-/* global Babel */
+const getDocument = () => globalThis.document;
+
+const reportLoaderError = (message, error) => {
+  // eslint-disable-next-line no-console
+  console.error(`[devel.umd.js] ${message}`, error || '');
+};
 
 const attachScript = ({ text, type = '' }) => {
-  const script = document.createElement('script');
+  const documentObject = getDocument();
+  if (!documentObject || typeof documentObject.createElement !== 'function') {
+    reportLoaderError('document is unavailable; load the loader in a browser document.');
+    return false;
+  }
+
+  const script = documentObject.createElement('script');
   script.text = text;
   if (type) {
     script.type = type;
   }
-  (document.head || document.querySelector('head')).appendChild(script);
+  (documentObject.head || documentObject.querySelector('head')).appendChild(script);
+  return true;
 };
 
 const getBasePath = (path) => path.substring(0, path.lastIndexOf('/'));
@@ -142,11 +154,76 @@ const getAllGlobals = (paths, overrides) => {
   return Object.assign({}, ...(paths.map((path) => getGlobals(path, depth))), overrides);
 };
 
+const getBabel = () => globalThis.Babel;
+
+const getModuleResolver = () => globalThis.moduleResolver;
+
+const getSourceKind = (path) => {
+  if (/\.tsx$/iu.test(path)) {
+    return 'tsx';
+  }
+  if (/\.jsx$/iu.test(path)) {
+    return 'jsx';
+  }
+  if (/\.ts$/iu.test(path)) {
+    return 'ts';
+  }
+  return 'js';
+};
+
+const getMissingCapabilities = (path, imports) => {
+  const missing = [];
+  const babel = getBabel();
+  const kind = getSourceKind(path);
+
+  if (!babel || typeof babel.transform !== 'function') {
+    missing.push('Babel global (@babel/standalone)');
+    return missing;
+  }
+
+  const plugins = babel.availablePlugins || {};
+  const presets = babel.availablePresets || {};
+  if (typeof plugins['transform-class-properties'] !== 'function') {
+    missing.push('Babel plugin transform-class-properties');
+  }
+  if (typeof plugins['transform-modules-umd'] !== 'function') {
+    missing.push('Babel plugin transform-modules-umd');
+  }
+  if (typeof presets.typescript !== 'function') {
+    missing.push('Babel preset typescript');
+  }
+  if (typeof presets.env !== 'function') {
+    missing.push('Babel preset env');
+  }
+  if (kind !== 'ts' && typeof presets.react !== 'function') {
+    missing.push('Babel preset react');
+  }
+  if (imports && typeof getModuleResolver() !== 'function') {
+    missing.push('babel-plugin-module-resolver-standalone (optional imports support)');
+  }
+
+  return missing;
+};
+
+const reportMissingCapabilities = (path, imports) => {
+  const missing = getMissingCapabilities(path, imports);
+  if (!missing.length) {
+    return true;
+  }
+
+  reportLoaderError(
+    `cannot transform ${path}; missing ${missing.join(', ')}. ` +
+      'Load @babel/standalone and its browser plugins/presets before calling loadTransforms.',
+  );
+  return false;
+};
+
 const getPlugins = (url, globals, imports) => {
+  const babel = getBabel();
   const plugins = [
-    Babel.availablePlugins['transform-class-properties'],
+    babel.availablePlugins['transform-class-properties'],
     [
-      Babel.availablePlugins['transform-modules-umd'],
+      babel.availablePlugins['transform-modules-umd'],
       {
         exactGlobals: true,
         getModuleId: () => getModuleId(url, globals),
@@ -157,6 +234,7 @@ const getPlugins = (url, globals, imports) => {
   ];
   if (imports) {
     try {
+      const moduleResolver = getModuleResolver();
       if (moduleResolver) {
         plugins.push([moduleResolver, {
           resolvePath(source) {
@@ -173,29 +251,39 @@ const getPlugins = (url, globals, imports) => {
           },
         }, 'module-resolver']);
       }
-    } catch {
-      // eslint-disable-next-line no-console
-      console.error('Did you forget to install babel-plugin-module-resolver-standalone?');
+    } catch (error) {
+      reportLoaderError('module resolver could not be configured.', error);
     }
   }
   return plugins;
 };
 
-const getPresets = () => ([
-  Babel.availablePresets.typescript,
-  [
-    Babel.availablePresets.env,
-    {
-      exclude: ['transform-typeof-symbol'],
-      targets: { browsers: ['last 2 versions', '> 5%'] },
-    },
-  ],
-  [Babel.availablePresets.react, { runtime: 'classic' }],
-]);
+const getPresets = (path) => {
+  const babel = getBabel();
+  const presets = [
+    babel.availablePresets.typescript,
+    [
+      babel.availablePresets.env,
+      {
+        exclude: ['transform-typeof-symbol'],
+        targets: { browsers: ['last 2 versions', '> 5%'] },
+      },
+    ],
+  ];
+
+  if (getSourceKind(path) !== 'ts') {
+    presets.push([babel.availablePresets.react, { runtime: 'classic' }]);
+  }
+
+  return presets;
+};
 
 const getSource = async (url) => {
-  const response = await fetch(url);
-  return response.status === 200 ? response.text() : '';
+  const response = await globalThis.fetch(url);
+  if (!response || response.status !== 200) {
+    throw new Error(`source request returned ${(response && response.status) || 'no status'} for ${url}`);
+  }
+  return response.text();
 };
 
 let inflight = false;
@@ -204,41 +292,86 @@ const loadScript = async ({
   globals, imports, path, transformed = false,
 }) => {
   const url = `${getBaseUrl(path)}/${path}`;
-  const source = await getSource(url);
-
-  if (!transformed) {
-    return attachScript({
-      text: source.replace(
-        /# sourceMappingURL=(.*)/g,
-        `# source=${path}\n//# sourceMappingUrl=${getBasePath(path)}/$1`,
-      ),
-    });
+  if (transformed && !reportMissingCapabilities(path, imports)) {
+    return false;
   }
 
-  const { code } = Babel.transform(source, {
-    comments: false,
-    compact: false,
-    plugins: getPlugins(url, globals, imports),
-    presets: getPresets(),
-    sourceFileName: path,
-    sourceMaps: 'inline',
-  });
+  let source;
+  try {
+    source = await getSource(url);
+  } catch (error) {
+    reportLoaderError(`cannot load ${path}.`, error);
+    return false;
+  }
 
-  return attachScript({
-    text: code.replace(
-      /# sourceMappingURL=(.*)/g,
-      `# source=${path}\n//# sourceMappingUrl=$1`,
-    ),
-    type: transformed ? 'module' : '',
-  });
+  if (!transformed) {
+    try {
+      return attachScript({
+        text: source.replace(
+          /# sourceMappingURL=(.*)/g,
+          `# source=${path}\n//# sourceMappingUrl=${getBasePath(path)}/$1`,
+        ),
+      });
+    } catch (error) {
+      reportLoaderError(`cannot append ${path}.`, error);
+      return false;
+    }
+  }
+
+  const babel = getBabel();
+  let code;
+  try {
+    ({ code } = babel.transform(source, {
+      comments: false,
+      compact: false,
+      plugins: getPlugins(url, globals, imports),
+      presets: getPresets(path),
+      filename: path,
+      sourceFileName: path,
+      sourceMaps: 'inline',
+    }));
+  } catch (error) {
+    reportLoaderError(`cannot transform ${path}.`, error);
+    return false;
+  }
+
+  try {
+    return attachScript({
+      text: code.replace(
+        /# sourceMappingURL=(.*)/g,
+        `# source=${path}\n//# sourceMappingUrl=$1`,
+      ),
+      type: transformed ? 'module' : '',
+    });
+  } catch (error) {
+    reportLoaderError(`cannot append ${path}.`, error);
+    return false;
+  }
 };
 
-// eslint-disable-next-line no-unused-vars
-const loadStyles = (styles) => (document.head || document.querySelector('head'))
-  .insertAdjacentHTML(
+/**
+ * Load CSS URLs in order by adding one import style block to the current document.
+ * @param {string[]} styles CSS URLs; an empty array is a no-op.
+ * @returns {boolean} whether the style block was added.
+ */
+const loadStyles = (styles) => {
+  if (!Array.isArray(styles) || !styles.every((style) => typeof style === 'string')) {
+    reportLoaderError('loadStyles expects an array of CSS URL strings.');
+    return false;
+  }
+  const documentObject = getDocument();
+  if (!documentObject || !documentObject.head ||
+      typeof documentObject.head.insertAdjacentHTML !== 'function') {
+    reportLoaderError('cannot load styles because document.head is unavailable.');
+    return false;
+  }
+  const cssImport = '@' + 'imp' + 'ort';
+  documentObject.head.insertAdjacentHTML(
     'beforeend',
-    `<style>${styles.map((style) => `@import'${style}'`).join(';')}</style>`,
+    `<style>${styles.map((style) => `${cssImport}'${style}'`).join(';')}</style>`,
   );
+  return true;
+};
 
 const waitUntil = (predicate) => new Promise((resolve) => {
   // 1m.
@@ -252,41 +385,62 @@ const waitUntil = (predicate) => new Promise((resolve) => {
 });
 
 // After waitUntil definition.
-// eslint-disable-next-line no-unused-vars
+/**
+ * Fetch, transform, and append source files sequentially.
+ * @param {string[]} paths ordered source paths; .ts omits React parsing, while
+ * .tsx/.jsx/.js retain React parsing for JSX compatibility.
+ * @param {Record<string, string>} globalsOverrides optional UMD global overrides.
+ * @param {Record<string, string>} imports optional module-resolver replacements.
+ * @returns {Promise<boolean>} false when input, dependencies, or a source fails.
+ */
 const loadTransforms = async (paths, globalsOverrides, imports) => {
-  let found = false;
-  try {
-    found = !!Babel;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.error('Did you forget to install @babel/standalone?');
-    return found;
+  if (!Array.isArray(paths) || !paths.every((path) => typeof path === 'string' && path)) {
+    reportLoaderError('loadTransforms expects an array of non-empty source path strings.');
+    return false;
+  }
+  if (!reportMissingCapabilities(paths[0] || 'source.ts', imports)) {
+    return false;
   }
 
   await waitUntil(() => !inflight);
   inflight = true;
-  const globals = getAllGlobals(paths, globalsOverrides);
-
-  await paths.reduce(async (accumulator, path) => {
-    await accumulator;
-    return loadScript({
-      globals, imports, path, transformed: true,
-    });
-  }, Promise.resolve());
-
-  inflight = false;
-  return found;
+  try {
+    const globals = getAllGlobals(paths, globalsOverrides);
+    for (const path of paths) {
+      const loaded = await loadScript({
+        globals, imports, path, transformed: true,
+      });
+      if (!loaded) {
+        return false;
+      }
+    }
+    return true;
+  } finally {
+    inflight = false;
+  }
 };
 
-// eslint-disable-next-line no-unused-vars
+/**
+ * Fetch and append already-built UMD files sequentially without Babel.
+ * @param {string[]} paths ordered script paths.
+ * @returns {Promise<boolean>} false when input or a source fails.
+ */
 const loadUmds = async (paths) => {
+  if (!Array.isArray(paths) || !paths.every((path) => typeof path === 'string' && path)) {
+    reportLoaderError('loadUmds expects an array of non-empty script path strings.');
+    return false;
+  }
   await waitUntil(() => !inflight);
   inflight = true;
-
-  await paths.reduce(async (accumulator, path) => {
-    await accumulator;
-    return loadScript({ path });
-  }, Promise.resolve());
-
-  inflight = false;
+  try {
+    for (const path of paths) {
+      const loaded = await loadScript({ path });
+      if (!loaded) {
+        return false;
+      }
+    }
+    return true;
+  } finally {
+    inflight = false;
+  }
 };
