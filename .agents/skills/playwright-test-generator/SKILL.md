@@ -21,6 +21,45 @@ condition, action, and outcome language rather than scenario keyword syntax.
 3. Do not install or modify a global dependency. Do not use MCP or browser
    extensions. Do not fetch packages implicitly.
 
+## Browser selection and reporting
+
+Use the browser projects declared by the selected project rather than assuming
+one browser is universally preferred. When Chromium is unavailable or
+undesirable for a project environment, prefer Firefox for the default browser
+run. Keep Chromium and WebKit available as explicit project-specific opt-in
+browsers when the project config defines them. Report the selected browser as a
+project or environment preference, not as a product failure. Run the retained
+acceptance test with the selected project browser and report the result
+separately from other configured browsers.
+
+If the project exposes a default-browser command, use that command for the
+normal gate. Use the configured browser-specific command or `--project`
+selection when a user requests another browser; do not remove other configured
+projects merely because the current environment prefers Firefox.
+
+### Environment launch handoff
+
+If Playwright cannot launch a browser because of an organization restriction,
+sandbox permission, missing executable, or browser process abort, identify this
+as a machine or environment launch failure rather than an application failure.
+In that handoff, ask the user to run the project-declared browser command and
+wait for the user to paste the result. Request the complete output, including
+the failing assertion or browser-launch error. If a browser-specific run is
+needed, use the configured `--project` command. Do not remove browser projects,
+weaken the test, or claim browser acceptance from static or HTTP checks.
+For this handoff, use the selected project's declared browser-specific command
+or project option; then ask the user to paste the complete result including the
+failing assertion or browser-launch error. In the same handoff, preserve other
+configured browsers and not imply Chromium is universally unavailable.
+
+If the browser launches and a pasted result reports a wrong title, route, or
+content, treat the pasted browser result as valid execution evidence. distinguish
+route, server, or application-loading failures from browser-launch failures and
+diagnose the observed page result without labeling the browser environment
+unavailable. This handoff is specific to the machine or project environment
+that cannot launch its browser; it does not change the project's cross-machine
+browser configuration.
+
 ## Project command table
 
 Read the selected project's manifest and Playwright configuration before using
