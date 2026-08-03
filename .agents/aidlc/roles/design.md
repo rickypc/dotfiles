@@ -7,6 +7,11 @@ This role is inactive for non-UI work.
 
 - Describe the primary user flow, visible states, input/error/result behavior,
   responsive constraints, and accessibility obligations.
+- Before proposing a layout or visual alternative, complete the [UI intent
+  completeness matrix](../knowledge/roles/design/interaction-design-patterns.md#ui-intent-completeness-before-design-comparison).
+  If a material answer is missing, ask focused questions first; do not infer
+  hierarchy, density, viewport behavior, or preserved interactions from a
+  screenshot alone.
 - When multiple user-facing designs are viable, use the centralized [design
   comparison and selection protocol](../knowledge/roles/design/interaction-design-patterns.md)
   from the relevant design stage; do not create a second scoring method.

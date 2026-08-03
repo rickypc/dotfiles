@@ -40,6 +40,13 @@ Use a visual mockup when it reduces ambiguity; otherwise a structured textual
 specification is sufficient. Link any project-owned design file from the
 central intent. Do not create a global mockup artifact tree.
 
+Before proposing alternatives, complete the [UI intent completeness
+matrix](../../../knowledge/roles/design/interaction-design-patterns.md#ui-intent-completeness-before-design-comparison).
+Ask focused questions for any material missing answer, especially primary task,
+information hierarchy, density, target viewport, persistent context,
+interaction ownership, state behavior, accessibility, and preserve/change
+constraints. Record the answers in the intent before comparing options.
+
 When multiple UI directions are viable, follow the centralized [design
 comparison and selection protocol](../../../knowledge/roles/design/interaction-design-patterns.md).
 Freeze the matrix before scoring, compare at the same target viewport, run the

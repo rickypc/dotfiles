@@ -78,17 +78,25 @@ the normal flow to diagnostic work.
 ## Acceptance-to-test workflow
 
 1. Every accepted UI or web acceptance criterion must be listed with its condition,
-   action, observable outcome, target viewport when material, and existing
-   covering test if one exists.
+   action, observable outcome, target viewport when material, negative and
+   recovery paths, and existing covering test if one exists. For any criterion
+   with user input, exercise empty, malformed, null-like, and wrong-format
+   control input where meaningful; for networked or navigational criteria,
+   include gateway failure and unavailable navigation. Do not treat a browser
+   click, an HTTP 200, or a page load alone as acceptance evidence. Reject
+   happy-path-only and HTTP status alone evidence.
 2. Exercise the real flow with the project-local runner. Use the observation
    only to discover semantic locators, states, and expected outcomes.
 3. Generate or update one retained project regression test for every criterion
    not already covered by an exact retained test. Keep the generated test in the
    project's established Playwright location; never discard it as an
    exploratory artifact.
-4. Prefer semantic locators and user-visible assertions. Isolate browser
-   contexts and project-controlled test data. Preserve existing test helpers
-   and conventions.
+4. Prefer semantic locators and user-visible assertions, including a visible
+   error or recovery assertion for every negative path. Isolate browser
+   contexts and project-controlled test data. Intercept or otherwise control
+   write boundaries and assert that no write request occurs for invalid input;
+   assert successful write feedback and call count when a controlled success
+   path is covered. Preserve existing test helpers and conventions.
 5. Run the focused project command, retain the test and its mapping, and ensure
    the single configured final gate executes that test. If it does not, leave
    the acceptance criterion open; do not create a second gate.

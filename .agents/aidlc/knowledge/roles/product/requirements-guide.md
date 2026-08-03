@@ -40,6 +40,18 @@ Use these in order of preference for AI-DLC:
 4. **Constraint identification** -- Ask "What must NOT happen?" and "What are the limits?"
 5. **Edge case probing** -- For each requirement, ask "What happens when [unusual condition]?"
 
+### UI requirement elicitation
+
+For a user-facing screen or journey, route layout discovery through the
+[UI intent completeness matrix](../design/interaction-design-patterns.md#ui-intent-completeness-before-design-comparison)
+before asking for or evaluating visual alternatives. Capture the primary job,
+information hierarchy, content density, viewport and responsive behavior,
+persistent context, interaction ownership, state coverage, accessibility,
+visual language, preserve/change boundaries, and comparison evidence. If a
+material answer is absent, ask focused questions before design work; do not
+turn a screenshot or an implementation preference into an unstated
+requirement.
+
 ## Acceptance Criteria Pattern
 
 Use plain observable condition, action, and outcome language:

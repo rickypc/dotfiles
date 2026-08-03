@@ -52,6 +52,23 @@ Every router uses this exact structure and ordered rows:
   link target, and that every static consumer reaches the router through its
   caller rather than an unrelated global file.
 
+## Cross-surface adapters
+
+When a runtime has a role-based adapter at `<runtime-home>/AGENTS.md`, include
+that file as an additional static root when reviewing the global skill's
+instructions. The adapter should state that it extends
+`<universal-policy-root>/AGENTS.md` and does not replace the parent policy.
+Review the adapter for runtime-specific constraints, stale duplicated rules,
+and conflicts with the canonical runtime owner; do not treat it as a second
+skill or as the runtime's parent policy.
+
+Use role placeholders such as `<coding-assistant>`, `<runtime-home>`, and
+`<universal-policy-root>` in reusable guidance. Never hardcode a concrete
+assistant, vendor, product, or installation path when describing this pattern.
+When materializing a concrete adapter, replace those placeholders with the
+actual runtime identity and path in that adapter only. Keep the reusable skill,
+rubric, and other templates placeholder-based.
+
 ## Review scope, prose, and link integrity
 
 Skill Manager owns the complete review surface for a selected skill: its

@@ -1,11 +1,18 @@
 ---
 name: knowledge-base
-description: Retrieve, capture, validate, and distill persistent OKF knowledge.
+description: Retrieve, capture, validate, and distill durable knowledge stored in the Open Knowledge Format (OKF).
 ---
 
 # Knowledge Base
 
-Persistent KB data is outside `<agents-root>` at
+This skill manages durable knowledge through a retrieve, capture, validate, and
+distill lifecycle. OKF means Open Knowledge Format: the Markdown/frontmatter
+representation and indexing convention used for persisted concepts. The
+knowledge itself may concern projects, organizations, teams, policies, or prior
+decisions; OKF is the format, not the topic. This skill manages knowledge in
+that format; it is not a reference about the OKF specification.
+
+Durable KB records are outside `<agents-root>` at
 `~/Library/Application Support/agent-knowledge-base` (macOS) or
 `${XDG_DATA_HOME:-~/.local/share}/agent-knowledge-base` (Linux). Store only validated,
 durable knowledge. Never store raw chat, secrets, speculation, or a log.

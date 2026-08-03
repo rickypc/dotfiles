@@ -5,6 +5,29 @@ project or at `~/.agents` as a machine-wide fallback. It has the same runtime
 behavior and relative asset layout in either location. A project-local skill
 always takes precedence over the home-directory fallback.
 
+## Instruction and configuration inheritance
+
+`~/.agents/AGENTS.md` is the parent policy for projects using this runtime.
+A project `AGENTS.md` is additive: it may narrow scope or strengthen a
+requirement, but it must not say that it replaces, supersedes, or omits the
+parent policy. Read the parent policy first, then apply project-specific rules;
+when wording conflicts, retain the stricter rule unless the user explicitly
+directs an exception. Every project `AGENTS.md` must state that it extends this
+parent policy near its top.
+
+Tool configuration follows the same direction. A project Biome configuration
+must extend the shared `<agents-root>/biome.jsonc` and may only add stricter
+rules or narrower file scope. Bun's `bunfig.toml` has no native `extends`
+mechanism, so a project must use the shared `<agents-root>/bunfig.toml`
+directly (a symlink is preferred) or pass it explicitly with Bun's `--config`
+option; duplicating it is permitted only when the project proves it is an
+exact synchronized strengthening. Never remove shared coverage or lint/type
+gates to make a project green.
+
+Do not create `aidlc.config.json` merely to repeat the default final gate. The
+AIDLC default is `bun run test`; add that file only when the project needs a
+different, explicitly justified final gate.
+
 Resolve `<agents-root>` by walking up from the current project directory,
 looking for `.agents/`. Use the first one found; if none is found, fall back to
 `~/.agents`. `<project-root>` is always the parent of `<agents-root>`.
@@ -12,9 +35,9 @@ looking for `.agents/`. Use the first one found; if none is found, fall back to
 - Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
   selected runtime's assets together and use its own scripts and utilities.
 - Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and
-  `<agents-root>/skills/knowledge-base/SKILL.md` for external private
-  knowledge. Do not bypass either with independent CBM, MCP, CLI, or grep
-  calls.
+  `<agents-root>/skills/knowledge-base/SKILL.md` for private knowledge stored
+  outside the runtime at the configured private-KB root. Do not bypass either
+  with independent discovery, MCP, or search calls.
 - Universal executable scripts live in `scripts/`; reusable TypeScript lives in
   `utils/`. Do not add a global `tools/` directory or platform-specific hooks.
 - Temporary workflow intents are centralized at
@@ -35,7 +58,7 @@ skill already supplies the command contract.
 | --- | --- | --- |
 | `aidlc` | `<intent-summary>` `[--ui]` `[--initial-record '<stage-outcomes-json>']`; use the priority-ordered catalog rendered by `utils/aidlc/command-contract.ts`. | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` and `<project-root>` from its executing script. |
 | `codebase-memory` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
-| `knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
+| `knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
 | `biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
 | `bun-test-generator` | `<sut-path>` `<all \| method-list \| method-range>`. | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
 | `frontend-design` | `<ui-brief>` `<affected-screens>` `<design-system>` `<acceptance-criteria>`. | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
@@ -48,6 +71,11 @@ skill already supplies the command contract.
 CBM command selection and fallback search. The arguments above are selection
 inputs, not executable grammar. Read the selected skill’s canonical command
 catalog before running a command.
+
+In this runtime, `OKF` means Open Knowledge Format: the Markdown/frontmatter
+record format and indexing convention used by the private KB. It describes how
+knowledge is represented, not what the knowledge is about; the knowledge-base
+skill owns that lifecycle and distinction.
 
 Private KB data is independent of the selected `<agents-root>`. The
 `knowledge-base` skill resolves one configured central private-KB root; neither

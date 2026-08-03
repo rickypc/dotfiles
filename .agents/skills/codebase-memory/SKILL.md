@@ -1,14 +1,16 @@
 ---
 name: codebase-memory
-description: Discover approved repository, home, or private-KB code graphs through the CBM CLI.
+description: Discover approved repository, home, or private-KB code graphs through the shared codebase-memory wrapper.
 ---
 
 # Codebase Memory
 
-Use only `CBM_LOG_LEVEL=error codebase-memory-mcp cli` commands with flags.
-The environment variable keeps successful output machine-readable JSON while
-preserving error-level diagnostics. Never use MCP, inline JSON arguments,
-destructive project operations, or an unapproved root.
+Use only the shared `<agents-root>/scripts/codebase-memory.ts` wrapper commands
+with validated flags and request files. Never invoke the underlying engine
+directly. Never use MCP, inline JSON arguments, destructive project operations,
+or an unapproved root.
+The wrapper returns machine-readable JSON receipts; read those receipts before
+choosing any next step.
 
 This skill is the sole owner for CBM command syntax. List projects, resolve the
 intended index by its returned `name`, inspect status, index only when no
@@ -33,10 +35,9 @@ derived command table.
 | --- | --- | --- | --- | --- |
 | 1 | One code, symbol, call-path, architecture, or literal-text question is needed. | `bun <agents-root>/scripts/codebase-memory.ts discover "<approved-root>" "<cbm-index>" "<query>"` | One ordered CBM-first fallback receipt. | Read its attempts; never rerun one listed attempt. |
 | 2 | Several independent CBM reads are needed for one research decision. | `bun <agents-root>/scripts/codebase-memory.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"` | One resolved CBM index, one readiness result, and one ordered entry per requested read. | Use the receipt; do not run its individual CBM commands separately. |
-| 3 | The runtime explicitly needs one primitive operation that is not represented by discovery or inspection. | Use an exact `CBM_LOG_LEVEL=error codebase-memory-mcp cli` flag command; see the CBM CLI documentation for the documented flags. | One primitive CLI response. | Do not add a shell wrapper, JSON payload, help probe, or guessed retry. |
 
-The inspection request is JSONL only as script-local input. Every nonblank line
-is one validated operation; CBM receives documented flags only:
+The inspection request is JSONL only as wrapper-local input. Every nonblank line
+is one validated operation; the wrapper sends only documented backend flags:
 
 ```jsonl
 {"operation":"architecture","path":"<directory-prefix>"}

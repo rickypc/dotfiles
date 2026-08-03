@@ -5,9 +5,21 @@ description: Generate or convert quality-focused TypeScript Bun tests for one se
 
 # Bun Test Generator
 
-Use for a selected SUT and `<all>`, method list, or method range. Resolve the
-nearest `package.json` project root and use exactly
-`<project-root>/tests/<sut-relative-path-without-extension>.test.ts`.
+Use for a selected SUT and `<all>`, method list, or method range. For a
+project-owned SUT, resolve the nearest `package.json` project root and use
+exactly `<project-root>/tests/<sut-relative-path-without-extension>.test.ts`.
+
+For an explicitly declared globally owned or shared SUT that lives outside the
+nearest package root, the declared owner and declared shared test root are
+authoritative. The declared test root is the owner's canonical test location
+(for example,
+`<owner-root>/tests/runtime/<sut-name>.test.ts`) and keep the real SUT at its
+canonical source path. Do not copy or symlink the SUT into a project or test
+tree merely to satisfy the project-relative convention. Record the ownership
+exception in the behavior matrix and keep project-specific acceptance tests
+separate from the shared contract suite.
+
+The phrase `do not copy or symlink` is an ownership rule, not a suggestion.
 
 For accepted user-facing browser flows, use `playwright-test-generator` instead
 of this unit-test skill. It retains project-local browser regression tests;
@@ -18,25 +30,53 @@ canonical path. Jest conversion is an exception only when an existing selected
 Jest test is found; it is not a prerequisite and it never creates a parallel
 Jest test. Create a behavior matrix before tests. Each row states selected behavior,
 condition/boundary, observable outcome, external mock, and assertion. Exhaust
-all relevant branches through meaningful input partitions; prefer `test.each`
-when cases share setup and assertion shape. An external boundary is every SUT
-module import (including a relative helper), filesystem, network call, clock,
-random source, environment read, process call, timer, console method, global,
-constructor, injected instance, or other side effect that is not the selected
-SUT. Mock every one with `mock()`; use `mock.module()` for every imported
-module and register it before dynamically importing the SUT. The selected SUT
-itself is the only import that must remain real. Record the exact mock and its
-observable assertion in every behavior-matrix row. Reject filler,
-existence-only, tautological, mock-only, integration, and live-boundary tests.
+all relevant branches through meaningful input partitions; for runtime
+boundaries, include undefined, null, wrong primitive types, wrong object
+shapes, empty values and valid boundaries when those values are meaningful to
+the contract. Every negative-path case must assert the returned error or
+normalized result and the absence of unintended side effects; a call that is
+merely expected to fail is not coverage. Prefer `test.each` when cases share
+setup and assertion shape. An external boundary is every SUT module import
+(including a relative helper), filesystem, network call, clock, random source,
+environment read, process call, timer, console method, global, constructor,
+injected instance, or other side effect that is not the selected SUT. Mock
+every one with mock(); use mock.module() for every imported module and
+register it before dynamically importing the SUT. The selected SUT itself is
+the only import that must remain real. Record the exact mock and its observable
+assertion in every behavior-matrix row, including assertions on call count and
+arguments. Reject filler, existence-only, tautological, mock-only, integration,
+and live-boundary tests.
+
+For a globally owned browser-runtime SUT, the test harness may evaluate the
+canonical JavaScript source in an isolated context, but the source under test
+must remain real. Mock its browser document, fetch/network, timer/clock,
+console, global capabilities, script injection, and filesystem/source-loading
+boundary. A shared test must not silently test a copied surrogate or use a
+live browser/network boundary. The matrix must include meaningful valid,
+empty, undefined, null, wrong-primitive, wrong-shape, missing-dependency,
+failure-recovery, and retry partitions whenever the public contract makes them
+relevant; every negative case asserts both the returned error/normalized result
+and the absence of unintended side effects.
+
+Mock every external boundary explicitly; an isolated harness is not permission
+to leave a boundary live. The test must mock every external boundary before it
+asserts the selected SUT behavior.
+
+A complete behavior matrix has typed assertions, a failure mode, a repair
+boundary, and an independent verifier for every case. The verifier must be
+separate from the assertion text—for example, a validator, focused test
+command, or observable contract check that can independently reject a weak or
+filler case.
 
 Convert selected Jest tests to typed Bun tests at the canonical path. Inventory
 their behavior first, preserve or improve SUT line/function coverage, remove the
 legacy Jest test only after Bun validation, then delegate lint/type checking to
 `biome-tsc-checker`.
 
-Use this exact order: resolve project root; locate canonical and selected legacy
-tests; inventory observable contracts and every external boundary from the SUT
-source; freeze the behavior matrix; generate or convert the TypeScript Bun test;
+Use this exact order: resolve the project root or declared shared-test owner;
+locate canonical and selected legacy tests; inventory observable contracts and
+every external boundary from the SUT source; freeze the behavior matrix;
+generate or convert the TypeScript Bun test;
 run `validate-boundaries` with the exact SUT and test source; run
 `biome-tsc-checker` for the test; run the selected Bun coverage command; then
 remove a legacy Jest test only after every gate passes. If boundary validation
