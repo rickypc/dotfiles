@@ -5,9 +5,13 @@ description: Discover approved repository, home, or private-KB code graphs throu
 
 # Codebase Memory
 
+Invoke this skill only as `/codebase-memory`. Callers must not invoke
+implementation details or fallback search directly. The command details below
+are internal implementation owned by this skill.
+
 Use only the shared `<agents-root>/scripts/codebase-memory.ts` wrapper commands
 with validated flags and request files. Never invoke the underlying engine
-directly. Never use MCP, inline JSON arguments, destructive project operations,
+directly. Never use inline JSON arguments, destructive project operations,
 or an unapproved root.
 The wrapper returns machine-readable JSON receipts; read those receipts before
 choosing any next step.

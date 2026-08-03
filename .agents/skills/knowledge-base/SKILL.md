@@ -29,9 +29,9 @@ external dependency as a raw payload.
 
 Retrieve project, organization, team, policy, or prior-decision knowledge only
 when it materially informs the work. Capture a lesson only with observed
-symptom, cause, durable fix, and evidence. Use `codebase-memory` only to speed
+symptom, cause, durable fix, and evidence. Use `/codebase-memory` only to speed
 discovery when its KB-root index is ready. After a concept update, invoke
-`md-compress` through its `begin` and returned `finalize` actions, then validate
+`/md-compress` through its `begin` and returned `finalize` actions, then validate
 OKF structure and protected content. Its temporary backup is outside the KB tree.
 
 Use the KB at the point it can change a decision: before research when relevant
@@ -91,7 +91,7 @@ evidence for each confirmed addition so a future refresh can repeat the check.
 <private-kb-root>/(<cbm-index>|shared)/<subject>/<concept>.md
 ```
 
-Use `codebase-memory` only for read discovery of the KB root. It does not
+Use `/codebase-memory` only for read discovery of the KB root. It does not
 replace the KB indexes or authorize writing.
 
 For one KB keyword search, invoke the combined search command. It performs

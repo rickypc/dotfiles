@@ -29,7 +29,7 @@ closeout forms are defined only by `utils/aidlc/command-contract.ts`.
    No cosmetic, lint, type, coverage, or test failure is waived or replaced by
    a narrower command.
 4. If KB disposition is already known, use the atomic closeout action. If it is
-   unknown after a bare pass, ask `knowledge-base` and execute the one returned
+   unknown after a bare pass, ask `/knowledge-base` and execute the one returned
    recovery action. Both paths preserve an explicit disposition before retirement.
 
 Use the **Validation record** in

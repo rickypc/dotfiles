@@ -10,8 +10,8 @@ define current commands, route state, or policy; those have typed owners.
   3.5–3.6. Operation and a standalone Closure phase are excluded.
 - Dynamic state is only `<agents-root>/aidlc/<cbm-index>/intents/<id>.md`.
   `aidlc/knowledge/` is committed methodology, never private KB content.
-- Intents use `gray-matter`; `knowledge-base` owns durable private knowledge;
-  `codebase-memory` owns code discovery; `utils/aidlc/stages.ts` owns route.
+- Intents use `gray-matter`; `/knowledge-base` owns durable private knowledge;
+  `/codebase-memory` owns code discovery; `utils/aidlc/stages.ts` owns route.
 - Universal scripts and utilities replace upstream custom tools. Adapters expose
   one common packet to Claude Code, Codex, Kiro IDE, OpenCode, and VS Code.
 
@@ -47,7 +47,7 @@ dependency, approval boundary, or lifecycle transition.
 | --- | --- | --- |
 | Architect, developer, design, product, delivery, quality, devsecops guides | Adopt or adapt | `aidlc/knowledge/roles/<role>/` |
 | Shared principles, brownfield, rules, verification | Adapt | `aidlc/knowledge/shared/` |
-| Private memory, active-space state, worktree templates | Replace or omit | Temporary intent plus external knowledge-base |
+| Private memory, active-space state, worktree templates | Replace or omit | Temporary intent plus external /knowledge-base |
 | Intent/context/approval/validation sensors | Adapt | Prompt contracts plus typed sensor utility |
 | Claim-source, linter, type-check, and upstream-coverage sensors | Omit | They were duplicate non-executable surfaces. |
 

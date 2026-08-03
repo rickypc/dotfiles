@@ -14,8 +14,8 @@ listed.
 
 Claims are user-provided, observed, inferred, or unknown. Preserve a material
 contradiction and ask one focused question only when its answer changes scope,
-behavior, architecture, safety, or the final gate. `codebase-memory` owns code
-facts, `knowledge-base` owns durable private context, and the temporary intent
+behavior, architecture, safety, or the final gate. `/codebase-memory` owns code
+facts, `/knowledge-base` owns durable private context, and the temporary intent
 owns previous lifecycle evidence. Runtime protection and command grammar are
 defined by `protocols/runtime.md` and `utils/aidlc/command-contract.ts`.
 

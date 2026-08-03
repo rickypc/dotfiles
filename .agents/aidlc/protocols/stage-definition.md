@@ -15,7 +15,7 @@ stage, create a dependency on an omitted stage, or alter execution state.
 | Construction | 3.1 Functional Design; 3.2 NFR Requirements; 3.3 NFR Design; 3.5 Code Generation; 3.6 Build and Test |
 
 Operation is excluded. Successful 3.6 hands reusable lessons to
-`knowledge-base` and retires the central intent; it is not a fifth phase.
+`/knowledge-base` and retires the central intent; it is not a fifth phase.
 
 ## Prompt-file metadata
 
@@ -36,5 +36,5 @@ create a blocker, an omitted artifact, or a hidden prerequisite.
 
 The central intent is the only temporary workflow record:
 `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`. Its CBM index must be a
-project name returned by `codebase-memory`, never a filesystem path or a slug.
+project name returned by `/codebase-memory`, never a filesystem path or a slug.
 Lifecycle frontmatter uses `gray-matter` exclusively and is never hand-edited.

@@ -38,7 +38,7 @@ never a stage bypass.
 - `utils/aidlc/command-contract.ts` is the sole public command grammar.
   `scripts/aidlc.ts` renders it unchanged. Do not maintain, infer, or probe a
   second command table.
-- `codebase-memory` alone owns repository discovery. `knowledge-base` alone
+- `/codebase-memory` alone owns repository discovery. `/knowledge-base` alone
   owns private-KB root selection, retrieval, capture, and validation.
 - The only ordinary write location is
   `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`. The lifecycle
@@ -62,7 +62,7 @@ Path basis: an `aidlc/...` or `skills/...` reference resolves from
 | Returned stage packet | `—` | Immediately after every lifecycle action. | Read only its declared assets and execute only its returned next action. |
 | Active intent construction plan | `—` | At Delivery Planning, Code Generation, and Build and Test. | The central temporary intent owns the ordered work, evidence, deviation, and re-plan record. |
 | Language guidance | `[observed-language-or-web-profile]` | Repository evidence establishes an applicable implementation language or web surface. | Read `languages/common.md` and only the applicable section in `languages/profiles.md`; do not infer a stack or route through a separate selector. |
-| Knowledge context | `—` | The returned AIDLC action requires it or validated context can change a decision. | `knowledge-base` selects the private-KB root and material concepts; no local router overrides it. |
+| Knowledge context | `—` | The returned AIDLC action requires it or validated context can change a decision. | `/knowledge-base` selects the private-KB root and material concepts; no local router overrides it. |
 | Lifecycle recovery | `<returned-arguments>` | The runtime returns an approval, re-plan, closeout, or recovery action. | The command contract remains canonical; do not create a parallel recovery route. |
 
 ## Operating route
@@ -108,7 +108,7 @@ Path basis: an `aidlc/...` or `skills/...` reference resolves from
    gate, use the atomic closeout action; it gates, records disposition, and
    retires only after success. If a durable concept must be newly captured and
    compressed, a bare successful gate returns the recovery action. Have
-   `knowledge-base` determine the disposition, create the fixed request JSON,
+   `/knowledge-base` determine the disposition, create the fixed request JSON,
    then call `capture-and-begin` once. Edit only its returned source path or
    paths and
    call its one returned `finalize-and-recover` action. This validates, records
@@ -118,8 +118,8 @@ Path basis: an `aidlc/...` or `skills/...` reference resolves from
 
 | Context | Owner | Action |
 | --- | --- | --- |
-| Direct durable-Markdown work | `md-compress` | See `skills/md-compress/SKILL.md` direct transaction contract. |
-| Standalone KB capture | `knowledge-base`, then `md-compress` | See `skills/knowledge-base/SKILL.md`; guard each captured concept with the direct `md-compress` route. |
+| Direct durable-Markdown work | `/md-compress` | See `skills/md-compress/SKILL.md` direct transaction contract. |
+| Standalone KB capture | `/knowledge-base`, then `/md-compress` | See `skills/knowledge-base/SKILL.md`; guard each captured concept with the direct `/md-compress` route. |
 | AIDLC durable closeout | AIDLC closeout boundary | Use `capture-and-begin` and its returned `finalize-and-recover`; see `aidlc/conductor.md` and `skills/md-compress/SKILL.md`. |
 
 An AIDLC compression-session packet is explicit data: owner, source path,

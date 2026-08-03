@@ -37,7 +37,7 @@ looking for `.agents/`. Use the first one found; if none is found, fall back to
 - Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and
   `<agents-root>/skills/knowledge-base/SKILL.md` for private knowledge stored
   outside the runtime at the configured private-KB root. Do not bypass either
-  with independent discovery, MCP, or search calls.
+  with independent discovery calls.
 - Universal executable scripts live in `scripts/`; reusable TypeScript lives in
   `utils/`. Do not add a global `tools/` directory or platform-specific hooks.
 - Temporary workflow intents are centralized at
@@ -56,18 +56,18 @@ skill already supplies the command contract.
 
 | Skill | Required input | Use when |
 | --- | --- | --- |
-| `aidlc` | `<intent-summary>` `[--ui]` `[--initial-record '<stage-outcomes-json>']`; use the priority-ordered catalog rendered by `utils/aidlc/command-contract.ts`. | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` and `<project-root>` from its executing script. |
-| `codebase-memory` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
-| `knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
-| `biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
-| `bun-test-generator` | `<sut-path>` `<all \| method-list \| method-range>`. | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
-| `frontend-design` | `<ui-brief>` `<affected-screens>` `<design-system>` `<acceptance-criteria>`. | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
-| `playwright-test-generator` | `<criteria>` `<project-root>` `<playwright-runner>`. | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
-| `content-writer` | `<objective>` `<audience>` `<format>` `<constraints>` `<citation-style>`. | Research-backed content must be drafted, refreshed, or validated. |
-| `md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>`. | Durable Markdown needs lossless compression with a verified temporary backup. |
-| `skill-manager` | `<intent-id>` `<evaluation-phase>` `<matrix-jsonl-path>` `<skill-file-path>`; requires an active AIDLC intent as a prerequisite; read its command catalog first. | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
+| `/aidlc` | `<intent-summary>` `[--ui]` `[--initial-record '<stage-outcomes-json>']`; use the priority-ordered catalog rendered by `utils/aidlc/command-contract.ts`. | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` and `<project-root>` from its executing script. |
+| `/codebase-memory` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
+| `/knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
+| `/biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
+| `/bun-test-generator` | `<sut-path>` `<all \| method-list \| method-range>`. | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
+| `/frontend-design` | `<ui-brief>` `<affected-screens>` `<design-system>` `<acceptance-criteria>`. | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
+| `/playwright-test-generator` | `<criteria>` `<project-root>` `<playwright-runner>`. | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
+| `/content-writer` | `<objective>` `<audience>` `<format>` `<constraints>` `<citation-style>`. | Research-backed content must be drafted, refreshed, or validated. |
+| `/md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>`. | Durable Markdown needs lossless compression with a verified temporary backup. |
+| `/skill-manager` | `<intent-id>` `<evaluation-phase>` `<matrix-jsonl-path>` `<skill-file-path>`; requires an active AIDLC intent as a prerequisite; read its command catalog first. | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
 
-`knowledge-base` alone owns the private-KB root. `codebase-memory` alone owns
+`/knowledge-base` alone owns the private-KB root. `/codebase-memory` alone owns
 CBM command selection and fallback search. The arguments above are selection
 inputs, not executable grammar. Read the selected skill’s canonical command
 catalog before running a command.
@@ -78,7 +78,7 @@ knowledge is represented, not what the knowledge is about; the knowledge-base
 skill owns that lifecycle and distinction.
 
 Private KB data is independent of the selected `<agents-root>`. The
-`knowledge-base` skill resolves one configured central private-KB root; neither
+`/knowledge-base` skill resolves one configured central private-KB root; neither
 a project-local runtime nor the home-directory runtime may select or override
 it.
 
@@ -99,9 +99,9 @@ use.
   replace on assumption. Report the exact evidence and ask the user whether to
   include that separate cleanup.
 - For every JavaScript or TypeScript test addition or modification, invoke
-  `bun-test-generator` first. Use its behavior matrix, mock or inject every
-  external boundary, run `validate-boundaries`, then use `biome-tsc-checker`
+  `/bun-test-generator` first. Use its behavior matrix, mock or inject every
+  external boundary, run `validate-boundaries`, then use `/biome-tsc-checker`
   for selected paths. The one AIDLC final gate remains the only final decision.
-- For retained browser acceptance coverage, invoke `playwright-test-generator`
+- For retained browser acceptance coverage, invoke `/playwright-test-generator`
   instead. It uses the selected project's local Playwright runner and does not
   replace unit coverage or modify global dependencies.

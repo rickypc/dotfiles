@@ -23,7 +23,7 @@ runtime does not infer a language, framework, repository relationship, or
 additional validation command from path layout.
 
 For any later brownfield research, project facts are established through the
-`codebase-memory` skill. Projects sharing a home-directory prefix are separate
+`/codebase-memory` skill. Projects sharing a home-directory prefix are separate
 repositories unless their own evidence says otherwise; separately indexed
 projects remain independent even when one path is excluded from another index.
 

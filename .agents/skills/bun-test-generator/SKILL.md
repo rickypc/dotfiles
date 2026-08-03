@@ -21,7 +21,7 @@ separate from the shared contract suite.
 
 The phrase `do not copy or symlink` is an ownership rule, not a suggestion.
 
-For accepted user-facing browser flows, use `playwright-test-generator` instead
+For accepted user-facing browser flows, use `/playwright-test-generator` instead
 of this unit-test skill. It retains project-local browser regression tests;
 this skill remains responsible for selected JavaScript or TypeScript SUT units.
 
@@ -71,14 +71,14 @@ filler case.
 Convert selected Jest tests to typed Bun tests at the canonical path. Inventory
 their behavior first, preserve or improve SUT line/function coverage, remove the
 legacy Jest test only after Bun validation, then delegate lint/type checking to
-`biome-tsc-checker`.
+`/biome-tsc-checker`.
 
 Use this exact order: resolve the project root or declared shared-test owner;
 locate canonical and selected legacy tests; inventory observable contracts and
 every external boundary from the SUT source; freeze the behavior matrix;
 generate or convert the TypeScript Bun test;
 run `validate-boundaries` with the exact SUT and test source; run
-`biome-tsc-checker` for the test; run the selected Bun coverage command; then
+`/biome-tsc-checker` for the test; run the selected Bun coverage command; then
 remove a legacy Jest test only after every gate passes. If boundary validation
 reports a missing module or global mock, add that mock and its behavior
 assertion before rerunning; do not bypass it. Never alter a SUT, project

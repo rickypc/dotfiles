@@ -38,7 +38,7 @@ Present Approve, Re-plan, or Decline, then end the response. The assistant must
 wait for a later user message that explicitly approves this intent; it must not
 call `approve` based on task authorization, an earlier approval, or its own
 restatement of the plan. Before asking for approval, obtain any validated
-context bindings from `knowledge-base`. After explicit approval, use the one
+context bindings from `/knowledge-base`. After explicit approval, use the one
 returned action from `utils/aidlc/command-contract.ts`; it atomically
 persists the handoff, approval, and any already-validated context or
 consecutive evidence. Do not complete this stage separately, repeat approval,

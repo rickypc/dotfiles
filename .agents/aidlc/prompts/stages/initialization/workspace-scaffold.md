@@ -18,7 +18,7 @@ The only transient record is
 folders, stage artifact directories, local knowledge stores, hooks, tools, or
 assistant-native state. Committed methodology already lives under
 `<agents-root>/aidlc/knowledge`; persistent private knowledge remains owned by
-`knowledge-base`.
+`/knowledge-base`.
 
 The evidence recorded for this stage must state that the CBM project was
 validated, the temporary intent path was created without overwriting an active

@@ -32,5 +32,5 @@ destination.
 Before retiring the intent, confirm that implementation evidence traces to the
 approved plan and the final validation receipt shows the one configured gate
 exited zero. Do not substitute a count of preliminary commands or a subjective
-quality assessment for that receipt. Then let `knowledge-base` validate any
+quality assessment for that receipt. Then let `/knowledge-base` validate any
 durable capture decision.

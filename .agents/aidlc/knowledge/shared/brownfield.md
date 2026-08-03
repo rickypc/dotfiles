@@ -6,7 +6,7 @@ force a second workflow, a universal baseline command, or a separate gate.
 
 ## Establish the current state
 
-At Reverse Engineering, use `codebase-memory` to identify the relevant indexed
+At Reverse Engineering, use `/codebase-memory` to identify the relevant indexed
 project, symbols, call paths, data boundaries, consumers, existing tests, and
 project conventions. Record only the facts needed for this intent: affected
 behavior, dependencies, compatibility obligations, and the evidence that

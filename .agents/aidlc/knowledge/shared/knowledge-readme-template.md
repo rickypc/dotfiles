@@ -26,5 +26,5 @@ does not make it universally mandatory.
 Keep one focused topic per file. State the decision it supports, evidence it
 expects, alternatives or risks it helps evaluate, and when it does not apply.
 Use pattern examples rather than a machine-specific path or assistant command.
-For private or project-specific facts, invoke `knowledge-base`; never add them
+For private or project-specific facts, invoke `/knowledge-base`; never add them
 to this committed methodology tree.

@@ -94,7 +94,7 @@ and excludes machine-local indexed runtime directories and coverage. Do not use
 ignored state as review evidence or edit it unless the user explicitly names it.
 
 Review every in-scope durable Markdown file for clarity, non-redundancy,
-authority, and link integrity. Run the direct `md-compress` begin/finalize
+authority, and link integrity. Run the direct `/md-compress` begin/finalize
 transaction for each one—even when no wording change is necessary—to preserve
 lossless-token evidence. A successful transaction proves preservation, not that
 the prose review can be skipped.
@@ -106,7 +106,7 @@ the prose review can be skipped.
    pairs concurrently in one response. For one skill or a targeted failed
    repair, use Priority 1 or Priority 4; those commands are not dead code.
 4. Before prose-editing any durable Markdown in the frozen review set, invoke
-   the direct `md-compress` transaction and follow its returned finalize action.
+   the direct `/md-compress` transaction and follow its returned finalize action.
    Run that transaction for all in-scope durable Markdown, including unchanged
    files. Temporary JSONL matrices and generated receipts are exempt.
 5. Complete every compatible action group in one minimal candidate batch. Do

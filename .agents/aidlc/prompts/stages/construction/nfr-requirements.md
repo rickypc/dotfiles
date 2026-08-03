@@ -19,8 +19,8 @@ intent at `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`.
 
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `codebase-memory`; for persistent knowledge, invoke
-`knowledge-base`. At completion, run the packet's sensors
+facts, invoke `/codebase-memory`; for persistent knowledge, invoke
+`/knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
 reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
 follow its returned stage packet and the stage protocol when it becomes active.
@@ -119,7 +119,7 @@ project-owned documents or implementation files. The packet's named sensor
 contracts—not an upstream sensor manifest—define the validation required here.
 Repair a failed sensor or re-plan with the failure evidence before completion.
 
-Use `knowledge-base` only after 3.6 to capture a genuinely reusable lesson;
+Use `/knowledge-base` only after 3.6 to capture a genuinely reusable lesson;
 do not create a local memory tree, a placeholder KB record, or a new runtime
 asset. This stage is complete only when its evidence is sufficient for the next
 selected stage or a factual skip has been recorded.

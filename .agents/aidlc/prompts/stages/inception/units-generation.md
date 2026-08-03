@@ -50,7 +50,7 @@ smoke command and observable expected result when an automated test is not the
 right boundary. The final-gate row must name the exact command returned by
 `aidlc.ts start`; it is the one mandatory final command, not an extra sub-gate.
 
-For a confirmed Bun TypeScript project, use `bun-test-generator` to create or
+For a confirmed Bun TypeScript project, use `/bun-test-generator` to create or
 upgrade the focused tests. For any other stack, use that project's established
 test mechanism; do not force Bun tooling or invent a framework. A checklist
 item without an executable test or smoke verification is an incomplete unit

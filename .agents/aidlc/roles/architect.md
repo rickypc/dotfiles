@@ -12,7 +12,7 @@ implementation design that preserves required behavior.
 
 ## Required output
 
-- State the current boundary and extension point from `codebase-memory` evidence.
+- State the current boundary and extension point from `/codebase-memory` evidence.
 - Prefer existing structure and patterns before proposing a new abstraction,
   component, service, schema, or dependency.
 - Specify the minimum implementation units in dependency order. Each unit maps
@@ -24,7 +24,7 @@ implementation design that preserves required behavior.
 - For an assistant-facing command or workflow boundary, name the typed command
   owner, choose the smallest atomic batch, identify every external boundary
   that tests must mock, and use the command-catalog standard returned in the
-  stage packet. Persist reusable rationale through knowledge-base closeout.
+  stage packet. Persist reusable rationale through /knowledge-base closeout.
 
 ## Boundaries
 

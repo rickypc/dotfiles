@@ -9,7 +9,7 @@ single final project gate.
   result; cover meaningful success, failure, and boundary behavior.
 - Identify which proof is a development check and which behavior must be
   included in the project’s one configured final gate.
-- For accepted UI/web behavior, require `playwright-test-generator` to retain
+- For accepted UI/web behavior, require `/playwright-test-generator` to retain
   project-local browser coverage unless an exact existing retained test already
   covers the criterion. Confirm that the project final gate executes that test;
   browser exploration, a screenshot, or a trace alone is not final acceptance.

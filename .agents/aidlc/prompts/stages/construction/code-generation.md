@@ -14,7 +14,7 @@ Implement the approved acceptance contract using the smallest compatible change.
    units, acceptance-to-proof mapping, and the central intent's **Construction
    plan**. Select the next `pending` row only when its dependencies are complete;
    mark it `in_progress` before work and `complete` only with actual evidence.
-   Use `codebase-memory` for affected code facts and reuse verified project
+   Use `/codebase-memory` for affected code facts and reuse verified project
    extension points.
    Keep the behavior local to the owning interface. Do not extract a pure
    helper only to make a test convenient when the real risk is in the caller,
@@ -26,7 +26,7 @@ Implement the approved acceptance contract using the smallest compatible change.
 3. Add focused tests and smoke checks for each changed behavior. A green final
    gate cannot prove an acceptance item that has no mapped evidence.
    For each applicable accepted UI/web criterion, invoke
-   `playwright-test-generator` before authoring a project-local Playwright test.
+   `/playwright-test-generator` before authoring a project-local Playwright test.
    It retains generated browser coverage, uses semantic locators and project
    conventions, and does not install dependencies or create a second gate.
 4. Update the selected construction-plan row with changed files/boundaries,

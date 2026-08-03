@@ -6,7 +6,7 @@ task into ceremony:
 `clear intent → research and architecture evidence → approved plan → controlled implementation → one verified final gate → reusable knowledge`
 
 1. **Evidence before inference.** User input, project instructions,
-   codebase-memory facts, and knowledge-base context are distinct sources.
+   /codebase-memory facts, and /knowledge-base context are distinct sources.
 2. **One central temporary record.** The gray-matter intent records route,
    decisions, evidence, approval, and outcome; it is not a project artifact or
    a private-KB replacement.
@@ -18,7 +18,7 @@ task into ceremony:
    units, and delivery order prevent implementation from guessing intent.
 6. **One final gate.** 3.6 runs exactly the project-owned `finalGate`, or
    `bun run test` when absent. Any non-zero result is failure.
-7. **Durable knowledge is earned.** After a passing gate, `knowledge-base`
+7. **Durable knowledge is earned.** After a passing gate, `/knowledge-base`
    captures only validated reusable lessons; otherwise the temporary intent is
    retired without a placeholder.
 

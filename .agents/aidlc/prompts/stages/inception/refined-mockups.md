@@ -18,7 +18,7 @@ requirements.
 
 Use approved requirements and acceptance criteria, existing UI, supplied
 screenshots, current component conventions, and the design role knowledge
-paths in the packet. For brownfield UI, use codebase-memory to verify the
+paths in the packet. For brownfield UI, use /codebase-memory to verify the
 existing component boundaries and behavior before proposing replacement UI.
 Use `frontend-design` when the request creates, redesigns, or visually refreshes
 the UI; it is not required for behavior-only UI changes.
@@ -54,7 +54,7 @@ same journey smoke checks, and record the selected and rejected options in the
 intent.
 
 For each UI acceptance item, name the later browser proof. Use
-`playwright-test-generator` to turn applicable accepted browser flows into
+`/playwright-test-generator` to turn applicable accepted browser flows into
 retained project tests; do not use MCP, browser extensions, or disposable
 exploratory test files.
 
