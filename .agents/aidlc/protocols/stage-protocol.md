@@ -16,10 +16,27 @@ evidence needed for that stage.
    grammar, atomic boundaries, gray-matter handling, collision detection, and
    audit events are owned by `utils/aidlc/command-contract.ts`.
 
-Ask a question only when available evidence cannot resolve a decision that
-changes behavior, scope, security, architecture, a durable fact, or the final
-gate. Batch related questions for one stage. At 1.7 end with Approve, Re-plan,
-or Decline; outside that gate, record the conclusion and continue.
+Clarification contract:
+
+1. Resolve available evidence before asking: project instructions, the selected
+   `/codebase-memory` project, `/knowledge-base` context, and the central
+   intent are the first sources. Do not ask the user for a fact that those
+   sources establish.
+2. Label the gap as either an unknown fact or a user decision. An unknown fact
+   needs research or an explicit limitation; a user decision needs the user's
+   choice when it changes behavior, scope, security, architecture, a durable
+   fact, or the final gate.
+3. Ask one material question at a time. Explain why it matters, give a
+   recommended answer grounded in the current evidence, and state the smallest
+   consequence of each answer when that helps the user decide.
+4. Wait before acting on an unresolved material decision. Do not silently
+   choose a preference, turn uncertainty into a requirement, or implement a
+   guessed boundary. If evidence resolves the issue, proceed and record the
+   evidence instead of asking.
+
+Batch only non-blocking questions or questions the current packet explicitly
+allows together. At 1.7 end with Approve, Re-plan, or Decline; outside that
+gate, record the conclusion and continue.
 
 Sensors validate the stated property of the current stage and never add hidden
 work. A conditional skip is a factual outcome, not a conversational pause.

@@ -13,11 +13,14 @@ security risk. Do not manufacture a viewpoint merely because a perspective is
 listed.
 
 Claims are user-provided, observed, inferred, or unknown. Preserve a material
-contradiction and ask one focused question only when its answer changes scope,
-behavior, architecture, safety, or the final gate. `/codebase-memory` owns code
-facts, `/knowledge-base` owns durable private context, and the temporary intent
-owns previous lifecycle evidence. Runtime protection and command grammar are
-defined by `protocols/runtime.md` and `utils/aidlc/command-contract.ts`.
+contradiction and follow the clarification contract in
+`protocols/stage-protocol.md`: resolve available evidence first, distinguish an
+unknown fact from a user decision, and ask one material question at a time with
+a recommended answer before waiting on an unresolved decision. `/codebase-memory`
+owns code facts, `/knowledge-base` owns durable private context, and the
+temporary intent owns previous lifecycle evidence. Runtime protection and
+command grammar are defined by `protocols/runtime.md` and
+`utils/aidlc/command-contract.ts`.
 
 For each stage, read only the packet assets needed for the acceptance item,
 perform the current work, run named sensors, then record concise evidence or a

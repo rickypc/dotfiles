@@ -12,6 +12,32 @@ owns only the skill-specific matrix and candidate work.
 Apply `aidlc/knowledge/shared/command-catalog.md`. Matrix JSONL artifacts are
 temporary inputs and must use the operating system temporary directory.
 
+## Skill quality contract
+
+Make the skill predictable for both model and user invocation. Its description
+must state the job and distinct trigger conditions; the workflow must name one
+owner for each command or information path and must not duplicate a router
+owned elsewhere.
+
+Keep information in this order: inline steps for the normal path, one local
+reference for branch-only detail, and external sources only for discovery or
+authority that cannot be co-located. Split guidance only when invocation or
+sequence is genuinely independent. Co-locate the rule, caveat, and checkable
+completion condition with the step that needs them.
+
+Before baseline evaluation, freeze a non-filler matrix. Each case needs typed
+assertions, a failure mode, a repair boundary, and an independent verifier.
+Evaluate baseline, candidate, and challenge behavior when the selected packet
+requires it. Do not remove or weaken a failed assertion, and never treat a
+green score or measurement receipt as closure proof. A clean review must name
+the reviewed scope and checks.
+
+Prune duplicate, stale, no-op, sediment, and speculative guidance. Review for
+premature completion, duplication, sprawl, and negation-only instructions:
+state the positive target and the hard guardrail together. If a proposed split
+does not improve invocation or completion predictability, keep one owner and
+remove the split.
+
 ## Command catalog
 
 | Priority | When | Command | Result | Next |

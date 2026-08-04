@@ -3,6 +3,15 @@
 ## Purpose
 Reusable solutions to common UI interaction problems. Applying established patterns reduces user learning curve and development effort.
 
+## Ownership and Handoff
+
+This document is the framework-neutral interaction reference. Use
+`/frontend-design` to turn these patterns into an approved visual and
+interaction definition, and use `/react` to implement that definition for
+React or React Native. Use `/content-writer` when meaningful UI copy needs
+research, drafting, or validation. Keep framework implementation details out of
+this reference so its patterns remain reusable across UI technologies.
+
 ## Navigation Patterns
 
 ### Top Navigation Bar

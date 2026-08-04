@@ -62,6 +62,7 @@ skill already supplies the command contract.
 | `/biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
 | `/bun-test-generator` | `<sut-path>` `<all \| method-list \| method-range>`. | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
 | `/frontend-design` | `<ui-brief>` `<affected-screens>` `<design-system>` `<acceptance-criteria>`. | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
+| `/react` | `<react-or-react-native-scope>` `<approved-design>` `<acceptance-criteria>`. | React or React Native implementation is in scope. Apply the shared implementation contract after design and finalized UI content are available. |
 | `/playwright-test-generator` | `<criteria>` `<project-root>` `<playwright-runner>`. | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
 | `/content-writer` | `<objective>` `<audience>` `<format>` `<constraints>` `<citation-style>`. | Research-backed content must be drafted, refreshed, or validated. |
 | `/md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>`. | Durable Markdown needs lossless compression with a verified temporary backup. |

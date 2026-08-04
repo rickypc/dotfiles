@@ -24,22 +24,26 @@ Path basis: the shortened `languages/...` names below resolve from
 2. Define components or modules, responsibilities, public interfaces, data
    ownership, communication paths, dependencies, error handling, and material
    NFR consequences.
-3. Compare viable architectural alternatives where a decision has meaningful
+3. Establish domain language and test the design against concrete scenarios,
+   including material edge cases. Cross-check the proposed terms, boundaries,
+   and invariants against verified code and documents; record contradictions as
+   design gaps rather than resolving them by preference.
+4. Compare viable architectural alternatives where a decision has meaningful
    trade-offs. Record context, decision, consequences, rejected alternatives,
    and reversibility in an ADR-style entry in the central intent.
    For user-facing alternatives, use the centralized [design comparison and
    selection protocol](../../../knowledge/roles/design/interaction-design-patterns.md)
    for the frozen matrix and evidence threshold.
-4. Specify the smallest architecture that satisfies the approved scope. Do not
+5. Specify the smallest architecture that satisfies the approved scope. Do not
    design infrastructure, deployment, or an integration merely because it is a
    common pattern.
-5. For a proposed architectural deepening, record a candidate card before
+6. For a proposed architectural deepening, record a candidate card before
    settling interfaces: files or modules, the friction, the change, expected
    locality and testability benefit, and recommendation strength. Apply the
    deletion test from Reverse Engineering; do not add an abstraction that only
    relocates complexity. Define interfaces after the candidate and its
    contracts are selected, not as speculative alternatives.
-6. Use the **Application-design record** in
+7. Use the **Application-design record** in
    `aidlc/knowledge/shared/software-engineering-work-packets.md`; apply an
    observed section from `languages/profiles.md`, with `languages/common.md`,
    when it changes a boundary or proof obligation.

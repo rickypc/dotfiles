@@ -42,6 +42,26 @@ Common patterns and their AI-DLC application:
 - **Strategy**: Runtime algorithm selection -- use when behavior varies by configuration/tenant
 - **Adapter/Port**: External integration isolation -- always use for third-party dependencies
 
+## Domain Language and Decision Records
+
+For a domain-bearing design, establish a small shared vocabulary before naming
+components or interfaces. Use the same term in requirements, architecture
+notes, code, and conversation only when it has the same meaning; if a term
+changes meaning at a boundary, name the boundary and define the local meaning.
+
+Challenge the model with concrete scenarios, including empty, invalid,
+repeated, concurrent, delayed, and dependency-failure cases when they can
+change ownership or invariants. Cross-check those scenarios against the
+existing code and documents: record a contradiction instead of silently
+choosing the more convenient source. Keep the glossary or domain notes at the
+project's existing documentation owner; do not require a universal filename or
+directory.
+
+Record only material, non-obvious decisions in the project's accepted
+decision-record format. Each record should state context, decision,
+consequences, alternatives, and reversibility. Routine implementation choices
+belong in the owning code or skill, not in a ceremonial decision record.
+
 ## ADR Format
 
 ```

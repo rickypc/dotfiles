@@ -21,6 +21,35 @@ single final project gate.
 - Before 3.6, ensure smoke checks are recorded; at 3.6 accept only the
   lifecycle-generated final-gate receipt.
 
+## Objective pre-gate review
+
+Before the single final gate, produce a reproducible review record with two
+separate axes:
+
+- **Standards:** project rules plus clearly labeled smell heuristics; project
+  lint, type, test, and security rules override generic heuristics.
+- **Spec:** every approved requirement, preservation constraint, changed
+  surface, error path, security or compatibility risk, test/proof obligation,
+  and limitation.
+
+Use a matrix containing the axis, source or criterion, exact location, failure
+scenario or named clean scope, severity and rationale, required correction or
+question, and verification. Review the frozen scope and matrix without
+removing or weakening criteria after seeing results. Do not self-approve, omit
+an axis, hide uncertainty, or treat a green measurement as closure. Unresolved
+High/Critical findings or an unmapped acceptance item block the final gate;
+correct and review again.
+
+## Finalizer
+
+After the lifecycle-generated final-gate receipt, invoke `/knowledge-base` for
+the durable-lesson disposition. Use its returned atomic closeout for a known
+no-lesson result, or its `capture-and-begin` and exact `finalize-and-recover`
+sequence when a concept must be retained. This is the existing closeout
+boundary, not a new Closure phase or second gate. Qualitative review never
+replaces the configured gate, and the gate receipt never substitutes for proof
+of an unmapped criterion.
+
 ## Boundaries
 
 Do not add a universal test command, parallel quality gate, MCP integration,

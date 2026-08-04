@@ -76,6 +76,8 @@ a fixed toolchain, a hook, or a numeric coverage target.
 
 ## React Native
 
+- For implementation guidance, invoke `/react`; keep this profile limited to
+  mobile-specific planning and proof obligations.
 - Treat navigation, permissions, app lifecycle, network loss, local state,
   device resources, and platform divergence as product behavior when touched.
   Keep state ownership narrow and document iOS/Android differences explicitly.
@@ -88,6 +90,8 @@ a fixed toolchain, a hook, or a numeric coverage target.
 
 ## React
 
+- For implementation guidance, invoke `/react`; keep this profile limited to
+  web-specific planning and proof obligations.
 - Keep state with the narrowest owner and derive rather than duplicate it. Use
   composition before global state; preserve the project’s server/client,
   routing, data-fetching, cache, suspense, and error-boundary conventions.
