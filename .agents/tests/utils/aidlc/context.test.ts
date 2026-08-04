@@ -75,7 +75,9 @@ test('reads independent KB layers together while preserving rule precedence', as
   const filesystem = {
     mkdir: mock(),
     readFile: mock(async (path: string) => {
-      if (path.endsWith('organization/rules.md')) return organization;
+      if (path.endsWith('organization/rules.md')) {
+        return organization;
+      }
       teamReadStarted = true;
       return concept('- ALWAYS preserve scope');
     }),

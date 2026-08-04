@@ -26,6 +26,19 @@ test.each([
   );
 });
 
+test('renders query through the dedicated graph-query branch', () => {
+  expect(commandFor(['query', 'repo', 'MATCH', '2']).args).toEqual([
+    'cli',
+    'query_graph',
+    '--project',
+    'repo',
+    '--query',
+    'MATCH',
+    '--max-rows',
+    '2',
+  ]);
+});
+
 test('runs discovery through the shared CBM fallback boundary', async () => {
   const write = mock();
   const search = mock(async () => ({

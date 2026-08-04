@@ -47,7 +47,9 @@ test('starts independent Biome, TypeScript, and declaration-order work together'
   let typeCheckStarted = false;
   let sourceReadStarted = false;
   const executor = mock(async ({ command }: { command: string }) => {
-    if (command.endsWith('/biome')) return biome;
+    if (command.endsWith('/biome')) {
+      return biome;
+    }
     typeCheckStarted = true;
     return { code: 0, stderr: '', stdout: 'typed' };
   });

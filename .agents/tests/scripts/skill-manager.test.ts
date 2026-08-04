@@ -103,8 +103,12 @@ test('reviews absolute static roots through the Skill Manager integrity receipt'
       throw new Error(`Missing ${path}`);
     }),
     readFile: mock(async (path: string) => {
-      if (path === '/tmp/.agents/.gitignore') return '';
-      if (path === '/tmp/.agents/skills/demo/SKILL.md') return '# Demo';
+      if (path === '/tmp/.agents/.gitignore') {
+        return '';
+      }
+      if (path === '/tmp/.agents/skills/demo/SKILL.md') {
+        return '# Demo';
+      }
       throw new Error(`Missing ${path}`);
     }),
   };

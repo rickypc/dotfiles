@@ -73,6 +73,20 @@ test('resolves a project only from an explicit indexed-root mapping', () => {
   expect(cbmProjectForRoot('/Users/rhuang/tmp-sum-app', withExact)).toBe('tmp');
 });
 
+test('ignores malformed and incomplete project-list entries', () => {
+  for (const output of [
+    '{"projects":{}}',
+    '{"projects":[null, 1, {"name":""}, {"name":"repo"}]}',
+  ]) {
+    expect(() => cbmProjectForRoot('/repo', output)).toThrow(
+      'explicit indexed root',
+    );
+  }
+  expect(() => cbmProjectForRoot('/repo', '{')).toThrow(
+    'explicit indexed root',
+  );
+});
+
 test('resolves the index in-process from the single project-list command', async () => {
   const execute = mock(async () => ({
     code: 0,
@@ -173,8 +187,9 @@ test('parses fixed local JSONL inspection requests and renders only CBM flags', 
   expect(operations).toHaveLength(5);
   const searchGraph = operations.at(1);
   expect(searchGraph).toBeDefined();
-  if (!searchGraph)
+  if (!searchGraph) {
     throw new Error('Expected search-graph inspection operation.');
+  }
   expect(cbmInspectionCommand('repo', searchGraph).args).toEqual([
     'cli',
     'search_graph',
@@ -346,18 +361,22 @@ test('does not create a CBM index during search fallback', async () => {
   const execute = mock(async (command: { args: readonly string[] }) => {
     commands.push([...command.args]);
     const operation = command.args[1];
-    if (operation === 'index_status')
+    if (operation === 'index_status') {
       return { code: 0, stderr: '', stdout: 'not ready' };
-    if (operation === 'search_graph')
+    }
+    if (operation === 'search_graph') {
       return { code: 0, stderr: '', stdout: '' };
-    if (command.args.includes('--line-number'))
+    }
+    if (command.args.includes('--line-number')) {
       return {
         code: 0,
         stderr: '',
         stdout: '/kb/browser-testing.md:1:browser testing',
       };
-    if (command.args.includes('--files'))
+    }
+    if (command.args.includes('--files')) {
       return { code: 0, stderr: '', stdout: '/kb/browser-testing.md' };
+    }
     return { code: 1, stderr: '', stdout: '' };
   });
 
@@ -371,6 +390,18 @@ test('does not create a CBM index during search fallback', async () => {
   expect(
     commands.some((args) => args.includes('index_repository')),
   ).toBeFalse();
+});
+
+test('rejects an empty CBM fallback query before invoking the executor', async () => {
+  const execute = mock(async () => ({ code: 0, stderr: '', stdout: '' }));
+  await expect(
+    searchWithCbmFallback(execute, {
+      allowedRoots: ['/repo'],
+      query: '  ',
+      root: { index: 'repo', root: '/repo' },
+    }),
+  ).rejects.toThrow('Search query is required');
+  expect(execute).not.toHaveBeenCalled();
 });
 
 test.each([

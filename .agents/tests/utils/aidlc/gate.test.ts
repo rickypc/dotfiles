@@ -19,6 +19,7 @@ test('uses one configured project gate or the universal default', () => {
   expect(parseAidlcGateConfig('{"finalGate":"go test ./..."}')).toEqual({
     finalGate: 'go test ./...',
   });
+  expect(parseAidlcGateConfig('   ')).toEqual({});
   expect(() => parseAidlcGateConfig('{')).toThrow('valid JSON');
   expect(() => parseAidlcGateConfig('{"finalGate":[]}')).toThrow('string');
 });

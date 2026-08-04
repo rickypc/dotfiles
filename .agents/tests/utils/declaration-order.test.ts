@@ -312,6 +312,28 @@ test('ignores comments and escaped strings while detecting local shadowing', () 
   ]);
 });
 
+test('detects nested function declarations that shadow sortable names', () => {
+  const report = inspectDeclarationOrder(
+    '/repo/nested.ts',
+    [
+      'function alpha() { function beta() { return 1; } return beta(); }',
+      'function beta() { return 2; }',
+    ].join('\n'),
+  );
+  expect(report.blockers).toEqual([
+    'Runtime declaration alpha shadows sortable names: beta.',
+  ]);
+});
+
+test('ignores declarations without a sortable name', () => {
+  expect(
+    inspectDeclarationOrder(
+      '/repo/default.ts',
+      'export default function () {}\nfunction alpha() {}',
+    ).groups,
+  ).toEqual([]);
+});
+
 test('uses the shared evidence controller for baseline, candidate, and challenge', () => {
   const baselineReport = inspectDeclarationOrder(
     '/repo/order.ts',

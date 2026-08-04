@@ -59,8 +59,9 @@ export const runAidlcSensors = (
   stage: AidlcStageSlug = intent.stage,
 ): CheckResult[] => {
   const current = intent.route.find((record) => record.slug === stage);
-  if (!current)
+  if (!current) {
     throw new Error('AIDLC current stage is missing from its route.');
+  }
   return sensorsForStage(stage).map((sensor) =>
     resultForSensor(sensor, intent, current),
   );

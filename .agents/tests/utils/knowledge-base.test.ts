@@ -225,8 +225,9 @@ test('preserves optional OKF metadata and reconciles linked concepts', async () 
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = files.get(path);
-      if (value === undefined)
+      if (value === undefined) {
         throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      }
       return value;
     },
     rm: async () => undefined,
@@ -304,8 +305,9 @@ test('rejects unsafe reconciliation plans', async () => {
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = files.get(path);
-      if (value === undefined)
+      if (value === undefined) {
         throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      }
       return value;
     },
     rm: async () => undefined,
@@ -325,6 +327,13 @@ test('rejects unsafe reconciliation plans', async () => {
     },
     relativePath: 'shared/testing/strategy.md',
   };
+  await expect(
+    reconcileConcepts(fileSystem, 'relative', {
+      canonicalPath: update.relativePath,
+      links: [],
+      operations: [],
+    }),
+  ).rejects.toThrow('absolute');
   await expect(
     reconcileConcepts(fileSystem, '/kb', {
       canonicalPath: '../invalid.md',

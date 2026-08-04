@@ -84,8 +84,12 @@ const resultFor = (
   const text = normalized(evidence.text);
   const expected = normalized(assertion.expected);
   const name = `${matrixCase.id}:${assertion.kind}`;
-  if (assertion.kind === 'required-text' || assertion.kind === 'forbidden-text')
+  if (
+    assertion.kind === 'required-text' ||
+    assertion.kind === 'forbidden-text'
+  ) {
     return textResultFor(matrixCase, assertion, text, expected);
+  }
   if (assertion.kind === 'owned-file') {
     return ownedFileResultFor(matrixCase, assertion, evidence);
   }
@@ -128,8 +132,9 @@ const validateMatrixCase = (matrixCase: MatrixCase, ids: Set<string>): void => {
     isBlank(matrixCase.failureMode) ||
     isBlank(matrixCase.repairBoundary) ||
     matrixCase.assertions.length === 0
-  )
+  ) {
     throw new Error(`Matrix case is incomplete: ${matrixCase.id}`);
+  }
   for (const assertion of matrixCase.assertions) {
     if (!assertionKinds.has(assertion.kind) || isBlank(assertion.expected)) {
       throw new Error(`Matrix assertion is invalid: ${matrixCase.id}`);
@@ -138,8 +143,11 @@ const validateMatrixCase = (matrixCase: MatrixCase, ids: Set<string>): void => {
 };
 
 export const validateMatrix = (cases: readonly MatrixCase[]): void => {
-  if (cases.length === 0)
+  if (cases.length === 0) {
     throw new Error('At least one matrix case is required.');
+  }
   const ids = new Set<string>();
-  for (const matrixCase of cases) validateMatrixCase(matrixCase, ids);
+  for (const matrixCase of cases) {
+    validateMatrixCase(matrixCase, ids);
+  }
 };

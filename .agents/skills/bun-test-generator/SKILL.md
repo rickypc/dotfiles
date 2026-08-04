@@ -21,6 +21,29 @@ separate from the shared contract suite.
 
 The phrase `do not copy or symlink` is an ownership rule, not a suggestion.
 
+## CRITICAL external-boundary rule
+
+Every generated or converted Bun test MUST mock every external dependency
+before exercising the selected SUT. This is mandatory and cannot be waived:
+
+- The selected SUT is sacred: import and execute its real implementation.
+  Never pass the selected SUT module, its exported function/class/object, or
+  its implementation through `mock.module()`, `mock()`, `spyOn`, or replacement
+  injection. Mocking the SUT creates a fake test and is a hard failure.
+- Import `mock` from `bun:test` and register `mock.module()` for every SUT
+  module import other than the selected SUT itself.
+- Replace every filesystem, network, clock, random, environment, process,
+  timer, console, global, constructor, and injected side-effect boundary with
+  an explicit `mock()` and assert its calls and arguments.
+- A bare real dependency, live default console, live global, or unmocked
+  module is a hard validation failure, even when the test passes.
+- If the dependency cannot be mocked without guessing its contract, stop and
+  ask for the missing contract; never bypass validation or leave it live.
+
+This rule is CRITICAL, ALWAYS enforced, and applies to existing test repairs as
+well as newly generated tests. If a test mocks the selected SUT, stop and
+rewrite it to call the real SUT while mocking only its dependencies.
+
 For accepted user-facing browser flows, use `/playwright-test-generator` instead
 of this unit-test skill. It retains project-local browser regression tests;
 this skill remains responsible for selected JavaScript or TypeScript SUT units.
@@ -42,10 +65,11 @@ environment read, process call, timer, console method, global, constructor,
 injected instance, or other side effect that is not the selected SUT. Mock
 every one with mock(); use mock.module() for every imported module and
 register it before dynamically importing the SUT. The selected SUT itself is
-the only import that must remain real. Record the exact mock and its observable
-assertion in every behavior-matrix row, including assertions on call count and
-arguments. Reject filler, existence-only, tautological, mock-only, integration,
-and live-boundary tests.
+the only import that must remain real, and its behavior must be the thing under
+test. Record the exact dependency mock and its observable assertion in every
+behavior-matrix row, including assertions on call count and arguments. Reject
+filler, existence-only, tautological, mock-only, integration, and live-boundary
+tests.
 
 For a globally owned browser-runtime SUT, the test harness may evaluate the
 canonical JavaScript source in an isolated context, but the source under test
@@ -87,5 +111,9 @@ SUT, the generated test remains TypeScript and uses explicit types without
 `any` or suppression comments.
 
 ```bash
-bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-and-testSource>'
+bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-testSource-and-sutModuleSpecifier>'
 ```
+
+The boundary-validation JSON MUST include the exact module specifier used by
+the test to import the selected SUT. Validation fails if that specifier is
+passed to `mock.module()`; only the other module specifiers are mockable.

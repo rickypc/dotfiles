@@ -192,7 +192,15 @@ test('returns the command contract without a failing help probe', async () => {
 });
 
 test('main runner keeps CBM resolution inside start rather than queue', async () => {
-  await runMain(['queue', 'repo']);
+  const originalLog = console.log;
+  const log = mock();
+  console.log = log;
+  try {
+    await runMain(['queue', 'repo']);
+  } finally {
+    console.log = originalLog;
+  }
+  expect(log).toHaveBeenCalledWith(expect.stringContaining('leftoverCount'));
 });
 
 test('resolves the startup CBM index through an injected project-list boundary', async () => {

@@ -153,7 +153,9 @@ const assertManualStageCommandAllowed = (
   command: string,
   intent: AidlcIntent,
 ): void => {
-  if (command !== 'complete') return;
+  if (command !== 'complete') {
+    return;
+  }
   if (intent.stage === 'build-and-test') {
     throw new Error(
       'Build and Test runs its configured final gate automatically; use complete <intent-path> with no evidence.',
@@ -250,7 +252,9 @@ const closeoutFor = async (
 const completeCloseoutCommandFor = (
   args: readonly string[],
 ): AidlcCloseoutCommand | undefined => {
-  if (args[0] !== 'complete' || args[2] !== '--closeout') return undefined;
+  if (args[0] !== 'complete' || args[2] !== '--closeout') {
+    return undefined;
+  }
   return closeoutCommandFor(args[3], args.slice(4));
 };
 
@@ -288,7 +292,9 @@ const captureReconciliationAndBegin = async (
 ): Promise<AidlcCaptureBatch> => {
   const entries: AidlcKnowledgeCompressionEntry[] = [];
   for (const operation of request.operations) {
-    if (operation.disposition === 'new-primary') continue;
+    if (operation.disposition === 'new-primary') {
+      continue;
+    }
     const sourcePath = `${kbRoot.replace(/\/$/u, '')}/${operation.relativePath}`;
     entries.push(
       await guardEntry(dependencies, sourcePath, operation.relativePath),
@@ -300,7 +306,9 @@ const captureReconciliationAndBegin = async (
     request,
   );
   for (const operation of request.operations) {
-    if (operation.disposition !== 'new-primary') continue;
+    if (operation.disposition !== 'new-primary') {
+      continue;
+    }
     const sourcePath = `${kbRoot.replace(/\/$/u, '')}/${operation.relativePath}`;
     entries.push(
       await guardEntry(dependencies, sourcePath, operation.relativePath),
@@ -407,7 +415,9 @@ export const projectRootForRuntime = (
   homeDirectory = homedir(),
 ): string => {
   const globalAgentsRoot = join(homeDirectory, '.agents');
-  if (agentsRoot !== globalAgentsRoot) return parentDirectory(agentsRoot);
+  if (agentsRoot !== globalAgentsRoot) {
+    return parentDirectory(agentsRoot);
+  }
   return cwd === globalAgentsRoot || cwd.startsWith(`${globalAgentsRoot}/`)
     ? homeDirectory
     : cwd;
@@ -417,15 +427,21 @@ const recordOptionsFor = (
   args: readonly string[],
 ): AidlcRecordOptions | undefined => {
   const [command, intentPath, input, ...options] = args;
-  if (command !== 'record' || !intentPath || !input) return undefined;
+  if (command !== 'record' || !intentPath || !input) {
+    return undefined;
+  }
   if (options.length === 0) {
     return { finalGate: false, input, intentPath };
   }
-  if (options[0] !== '--final-gate') return undefined;
+  if (options[0] !== '--final-gate') {
+    return undefined;
+  }
   if (options.length === 1) {
     return { finalGate: true, input, intentPath };
   }
-  if (options[1] !== '--closeout') return undefined;
+  if (options[1] !== '--closeout') {
+    return undefined;
+  }
   return {
     closeout: closeoutCommandFor(options[2], options.slice(3)),
     finalGate: true,
@@ -487,7 +503,9 @@ const runBootstrap = async (
     intent,
     'State initialized: selected four-phase route and deterministic UI applicability recorded.',
   );
-  if (initialRecord) intent = applyInitialRecord(intent, initialRecord);
+  if (initialRecord) {
+    intent = applyInitialRecord(intent, initialRecord);
+  }
   await save(nodeFileSystem, path, intent);
   write(
     JSON.stringify(
@@ -601,7 +619,9 @@ const runAutomaticBuildAndTest = async (
   executeGate?: AidlcGateExecutor,
 ): Promise<boolean> => {
   const intent = await load(nodeFileSystem, intentPath);
-  if (intent.stage !== 'build-and-test') return false;
+  if (intent.stage !== 'build-and-test') {
+    return false;
+  }
   await runBuildAndTest(
     intentPath,
     intent,
@@ -659,8 +679,9 @@ const runCaptureAndBegin = async (
     !kbRoot ||
     !requestPath ||
     args.length !== 4
-  )
+  ) {
     return false;
+  }
   const intent = await load(nodeFileSystem, intentPath);
   if (aidlcIntentStatusFor(intent) !== 'completed' || intent.kbCloseout) {
     throw new Error(
@@ -709,8 +730,9 @@ const runFinalizeAndRecover = async (
   dependencies: AidlcCloseoutDependencies,
 ): Promise<boolean> => {
   const [command, intentPath] = args;
-  if (command !== 'finalize-and-recover' || !intentPath || args.length !== 2)
+  if (command !== 'finalize-and-recover' || !intentPath || args.length !== 2) {
     return false;
+  }
   const intent = await load(nodeFileSystem, intentPath);
   const session = intent.kbCompressionSession;
   if (!session) {
@@ -786,7 +808,9 @@ const runQueue = async (
   write: (message: string) => void,
 ): Promise<boolean> => {
   const [command, cbmIndex] = args;
-  if (command !== 'queue' || !cbmIndex || args.length !== 2) return false;
+  if (command !== 'queue' || !cbmIndex || args.length !== 2) {
+    return false;
+  }
   write(
     JSON.stringify(
       await inventoryAidlcIntents(nodeFileSystem, agentsRoot, cbmIndex),
@@ -805,7 +829,9 @@ const runRecord = async (
   executeGate?: AidlcGateExecutor,
 ): Promise<boolean> => {
   const options = recordOptionsFor(args);
-  if (!options) return false;
+  if (!options) {
+    return false;
+  }
   const { closeout: closeoutCommand, finalGate, input, intentPath } = options;
   const intent = await load(nodeFileSystem, intentPath);
   const transitions = parseAidlcRecordInputs(input);
@@ -856,8 +882,12 @@ const runRecover = async (
   write: (message: string) => void,
 ): Promise<boolean> => {
   const [command, intentPath, disposition, ...details] = args;
-  if (command !== 'recover') return false;
-  if (!intentPath || !disposition) return false;
+  if (command !== 'recover') {
+    return false;
+  }
+  if (!intentPath || !disposition) {
+    return false;
+  }
   const intent = await load(nodeFileSystem, intentPath);
   if (intent.kbCompressionSession) {
     throw new Error(
@@ -865,7 +895,9 @@ const runRecover = async (
     );
   }
   if (disposition === '--retire-only') {
-    if (details.length !== 0) return false;
+    if (details.length !== 0) {
+      return false;
+    }
     if (!intent.kbCloseout) {
       throw new Error(
         'recover --retire-only requires a persisted knowledge-base closeout.',
@@ -912,8 +944,9 @@ const runReplan = async (
   write: (message: string) => void,
 ): Promise<boolean> => {
   const [command, intentPath, evidence] = args;
-  if (command !== 'replan' || !intentPath || !evidence || args.length !== 3)
+  if (command !== 'replan' || !intentPath || !evidence || args.length !== 3) {
     return false;
+  }
   const intent = await load(nodeFileSystem, intentPath);
   await appendAudit(nodeFileSystem, intentPath, {
     at: new Date().toISOString(),
@@ -938,8 +971,9 @@ const runSupersede = async (
     !intentPath ||
     !replacementId ||
     args.length !== 3
-  )
+  ) {
     return false;
+  }
   const intent = await load(nodeFileSystem, intentPath);
   const next = supersedeAidlcIntent(intent, replacementId);
   await update(nodeFileSystem, intentPath, next);
@@ -970,7 +1004,9 @@ const runTerminalStage = async (
   const completeCloseout = completeCloseoutCommandFor(args);
   if (completeCloseout) {
     const intentPath = args[1];
-    if (!intentPath) return false;
+    if (!intentPath) {
+      return false;
+    }
     await runBuildAndTestWithCloseout(
       intentPath,
       completeCloseout,
@@ -983,7 +1019,9 @@ const runTerminalStage = async (
     );
     return true;
   }
-  if (!isAutomaticBuildAndTest(args)) return false;
+  if (!isAutomaticBuildAndTest(args)) {
+    return false;
+  }
   return runAutomaticBuildAndTest(
     args[1],
     load,
@@ -1014,15 +1052,17 @@ const runStage = async (
       retire,
       executeGate,
     )
-  )
+  ) {
     return true;
+  }
   if (
     (command !== 'complete' && command !== 'skip') ||
     !intentPath ||
     !evidence ||
     args.length !== 3
-  )
+  ) {
     return false;
+  }
   const intent = await load(nodeFileSystem, intentPath);
   assertManualStageCommandAllowed(command, intent);
   const next =
@@ -1047,7 +1087,9 @@ const startOptionsFor = (
     return undefined;
   }
   const options = args.slice(2);
-  if (options.length === 0) return { uiRequired: false };
+  if (options.length === 0) {
+    return { uiRequired: false };
+  }
   if (options.length === 1 && options[0] === '--ui') {
     return { uiRequired: true };
   }
@@ -1077,10 +1119,14 @@ const runStart = async (
   workspaceRoot: string,
   agentsRoot: string,
 ): Promise<boolean> => {
-  if (!isStart(args)) return false;
+  if (!isStart(args)) {
+    return false;
+  }
   const [, summary] = args;
   const options = startOptionsFor(args);
-  if (!options) return false;
+  if (!options) {
+    return false;
+  }
   const cbmIndex = await resolve(workspaceRoot);
   await runBootstrap(
     agentsRoot,
@@ -1130,11 +1176,14 @@ const runHandledCommand = async (
 ): Promise<boolean> => {
   const resolvedCloseoutDependencies =
     closeoutDependencies ?? defaultCloseoutDependencies();
-  if (runHelp(args, write)) return true;
+  if (runHelp(args, write)) {
+    return true;
+  }
   if (
     await runStart(args, save, write, load, resolve, workspaceRoot, agentsRoot)
-  )
+  ) {
     return true;
+  }
   if (
     await runKnowledgeCloseout(
       args,
@@ -1145,21 +1194,31 @@ const runHandledCommand = async (
       write,
       resolvedCloseoutDependencies,
     )
-  )
+  ) {
     return true;
-  if (await runRecover(args, load, update, appendAudit, retire, write))
+  }
+  if (await runRecover(args, load, update, appendAudit, retire, write)) {
     return true;
-  if (await runQueue(args, agentsRoot, write)) return true;
-  if (await runSupersede(args, load, update, appendAudit, write)) return true;
-  if (await runReplan(args, load, appendAudit, write)) return true;
+  }
+  if (await runQueue(args, agentsRoot, write)) {
+    return true;
+  }
+  if (await runSupersede(args, load, update, appendAudit, write)) {
+    return true;
+  }
+  if (await runReplan(args, load, appendAudit, write)) {
+    return true;
+  }
   if (
     await runAidlcApprove(args, load, update, appendAudit, nextActionFor, write)
-  )
+  ) {
     return true;
+  }
   if (
     await runRecord(args, load, update, appendAudit, write, retire, executeGate)
-  )
+  ) {
     return true;
+  }
   return runStage(args, load, update, appendAudit, write, retire, executeGate);
 };
 
@@ -1199,8 +1258,9 @@ export const run = async (
       closeoutDependencies,
       agentsRoot,
     )
-  )
+  ) {
     return;
+  }
   rejectAdvance(args[0]);
   throw new Error(usage());
 };

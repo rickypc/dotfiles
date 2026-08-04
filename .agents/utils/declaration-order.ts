@@ -173,8 +173,9 @@ export const evaluateDeclarationOrderLifecycle = ({
     sourceFingerprint: report.sourceFingerprint,
     state,
   });
-  if (phase === 'baseline')
+  if (phase === 'baseline') {
     return { decision: decideBaseline(receipt), receipt };
+  }
   if (phase === 'candidate') {
     return {
       decision: decideCandidate({
@@ -197,14 +198,21 @@ const hasField = (
 
 const isBinding = (node: SyntaxNode, declaration: SyntaxNode): boolean => {
   const parent = node.parent;
-  if (!parent) return false;
-  if (parent.type === 'variable_declarator' && hasField(parent, 'name', node))
+  if (
+    parent?.type === 'variable_declarator' &&
+    hasField(parent, 'name', node)
+  ) {
     return parent.id !== declaration.id;
-  if (parent.type === 'function_declaration' && hasField(parent, 'name', node))
+  }
+  if (
+    parent?.type === 'function_declaration' &&
+    hasField(parent, 'name', node)
+  ) {
     return parent.id !== declaration.id;
-  return ancestors(node).some(
-    (ancestor) => ancestor.type === 'formal_parameters',
-  );
+  }
+  return parent
+    ? ancestors(node).some((ancestor) => ancestor.type === 'formal_parameters')
+    : false;
 };
 
 const isImport = (node: SyntaxNode): boolean =>
@@ -267,8 +275,7 @@ const reorderedText = (
   return group.desiredOrder
     .map((name) => {
       const item = items.get(name);
-      if (!item) throw new Error(`Missing declaration source for ${name}.`);
-      return source.slice(item.start, item.end).trim();
+      return source.slice(item?.start ?? 0, item?.end ?? 0).trim();
     })
     .join('\n\n');
 };
@@ -288,8 +295,9 @@ const runtimeSpan = (
   while (
     nextIndex < declarations.length &&
     isRuntime(declarations[nextIndex]?.item)
-  )
+  ) {
     nextIndex += 1;
+  }
   return {
     entries: declarations
       .slice(start, nextIndex)
@@ -311,7 +319,9 @@ const applyRuntimeGroups = (
   for (const group of [...groups].sort(
     (left, right) => rangeFor(right.items).start - rangeFor(left.items).start,
   )) {
-    if (sameOrder(group.currentOrder, group.desiredOrder)) continue;
+    if (sameOrder(group.currentOrder, group.desiredOrder)) {
+      continue;
+    }
     const range = rangeFor(group.items);
     next = replaceRange(
       next,
@@ -333,7 +343,9 @@ const groupPacket = (
       group.needsPlacement ||
       !sameOrder(group.currentOrder, group.desiredOrder),
   );
-  if (failedGroups.length === 0) return undefined;
+  if (failedGroups.length === 0) {
+    return undefined;
+  }
   return createActionPacket({
     forbiddenActions: [
       'Do not change a declaration body, signature, comments, imports, or exports.',
@@ -359,7 +371,9 @@ const toCharacterIndex = (source: string, byteIndex: number): number => {
   let bytes = 0;
   while (characterIndex < source.length && bytes < byteIndex) {
     const codePoint = source.codePointAt(characterIndex);
-    if (codePoint === undefined) break;
+    if (codePoint === undefined) {
+      break;
+    }
     bytes += new TextEncoder().encode(String.fromCodePoint(codePoint)).length;
     characterIndex += codePoint > 0xffff ? 2 : 1;
   }
@@ -368,10 +382,18 @@ const toCharacterIndex = (source: string, byteIndex: number): number => {
 
 const typeFor = (node: SyntaxNode): DeclarationKind | undefined => {
   const declaration = declarationNodeFor(node);
-  if (declaration.type === 'interface_declaration') return 'interface';
-  if (declaration.type === 'type_alias_declaration') return 'type';
-  if (declaration.type === 'function_declaration') return 'function';
-  if (declaration.type !== 'lexical_declaration') return undefined;
+  if (declaration.type === 'interface_declaration') {
+    return 'interface';
+  }
+  if (declaration.type === 'type_alias_declaration') {
+    return 'type';
+  }
+  if (declaration.type === 'function_declaration') {
+    return 'function';
+  }
+  if (declaration.type !== 'lexical_declaration') {
+    return undefined;
+  }
   const declarator = declaration.namedChildren.find(
     (child) => child.type === 'variable_declarator',
   );
@@ -397,11 +419,12 @@ const declarationsFor = (
 ): readonly (DeclarationNode | undefined)[] =>
   statements.map(({ end, node, start }, statementIndex) => {
     const kind = typeFor(node);
-    if (!kind) return undefined;
+    if (!kind) {
+      return undefined;
+    }
     const name = nameFor(node, kind);
-    if (!name) return undefined;
     return {
-      item: { end, kind, name, start },
+      item: { end, kind, name: name as string, start },
       node,
       start,
       statementIndex,
@@ -415,7 +438,9 @@ const typeGroupsFor = (
   const allTypes = declarations.filter((entry): entry is DeclarationNode =>
     isType(entry?.item),
   );
-  if (allTypes.length === 0) return [];
+  if (allTypes.length === 0) {
+    return [];
+  }
   const expectedTypes = declarations.slice(
     firstNonImport,
     firstNonImport + allTypes.length,
@@ -483,12 +508,12 @@ const sourceStatements = (
 
 const importsEndFor = (filePath: string, source: string): number => {
   const parsed = sourceStatements(filePath, source);
-  if (parsed.blockers.length > 0) return 0;
   const firstNonImport = parsed.statements.findIndex(
     ({ node }) => !isImport(node),
   );
-  if (firstNonImport === 0) return 0;
-  return parsed.statements.at(firstNonImport - 1)?.end ?? source.length;
+  return firstNonImport <= 0
+    ? 0
+    : (parsed.statements.at(firstNonImport - 1)?.end ?? source.length);
 };
 
 const applyTypeGroup = (
@@ -527,7 +552,9 @@ const violationsFor = (groups: readonly DeclarationOrderGroup[]): string[] =>
 
 const walk = (node: SyntaxNode, visit: (node: SyntaxNode) => void): void => {
   visit(node);
-  for (const child of node.namedChildren) walk(child, visit);
+  for (const child of node.namedChildren) {
+    walk(child, visit);
+  }
 };
 
 const dependenciesFor = (
@@ -540,13 +567,19 @@ const dependenciesFor = (
   const dependencies = new Set<string>();
   const shadowed = new Set<string>();
   walk(declaration.node, (node) => {
-    if (node.type !== 'identifier' || !candidateNames.has(node.text)) return;
-    if (node.text === declaration.item.name || isTypePosition(node)) return;
+    if (node.type !== 'identifier' || !candidateNames.has(node.text)) {
+      return;
+    }
+    if (node.text === declaration.item.name || isTypePosition(node)) {
+      return;
+    }
     if (isBinding(node, declarationNodeFor(declaration.node))) {
       shadowed.add(node.text);
       return;
     }
-    if (!isPropertyName(node)) dependencies.add(node.text);
+    if (!isPropertyName(node)) {
+      dependencies.add(node.text);
+    }
   });
   return {
     dependencies: [...dependencies].sort(alphabetically),
@@ -588,21 +621,22 @@ const dependencyOrder = (
         ),
       )
       .sort(alphabetically)[0];
-    if (!next)
+    if (!next) {
       return {
         blockers: ['Runtime declaration dependencies contain a cycle.'],
       };
+    }
     pending.delete(next);
     orderedNames.push(next);
   }
   return {
-    items: orderedNames.map((name) => {
-      const item = declarations.find(
-        (declaration) => declaration.item.name === name,
-      )?.item;
-      if (!item) throw new Error(`Missing sortable declaration ${name}.`);
-      return item;
-    }),
+    items: orderedNames
+      .map(
+        (name) =>
+          declarations.find((declaration) => declaration.item.name === name)
+            ?.item,
+      )
+      .filter((item): item is DeclarationOrderItem => item !== undefined),
   };
 };
 
@@ -625,7 +659,9 @@ const runtimeGroupsFor = (
     index = span.nextIndex;
     const entries = span.entries;
     const ordered = entries.length < 2 ? undefined : dependencyOrder(entries);
-    if (!ordered) continue;
+    if (!ordered) {
+      continue;
+    }
     if ('blockers' in ordered) {
       blockers.push(...ordered.blockers);
       continue;

@@ -60,9 +60,15 @@ const batchPairsFor = (
 const phaseFor = (
   phase: string,
 ): 'baseline_recorded' | 'candidate_checked' | 'challenge_checked' => {
-  if (phase === 'baseline') return 'baseline_recorded';
-  if (phase === 'candidate') return 'candidate_checked';
-  if (phase === 'challenge') return 'challenge_checked';
+  if (phase === 'baseline') {
+    return 'baseline_recorded';
+  }
+  if (phase === 'candidate') {
+    return 'candidate_checked';
+  }
+  if (phase === 'challenge') {
+    return 'challenge_checked';
+  }
   throw new Error(usage());
 };
 

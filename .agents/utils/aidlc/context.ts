@@ -134,9 +134,13 @@ export const resolveAidlcKnowledgeContext = async (
   const rules: string[] = [];
   for (const layer of contextOrder) {
     const binding = bindings[layer];
-    if (!binding) continue;
+    if (!binding) {
+      continue;
+    }
     const content = contents.get(layer);
-    if (!content) continue;
+    if (!content) {
+      continue;
+    }
     parseOkfConcept(content);
     sources.push(binding);
     rules.push(...rulesFor(content));

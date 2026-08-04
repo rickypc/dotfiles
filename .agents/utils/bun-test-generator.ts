@@ -8,6 +8,11 @@ export interface BehaviorMatrixRow {
   readonly selectedBehavior: string;
 }
 
+interface BunTestExternalMock {
+  readonly exports: readonly string[];
+  readonly specifier: string;
+}
+
 export interface BunTestTemplate {
   readonly actualExpression: string;
   readonly cases: readonly {
@@ -15,6 +20,7 @@ export interface BunTestTemplate {
     readonly input: unknown;
     readonly label: string;
   }[];
+  readonly externalMocks: readonly BunTestExternalMock[];
   readonly importPath: string;
   readonly matcher: 'toBe' | 'toEqual';
 }
@@ -57,8 +63,9 @@ export const testPathFor = (projectRoot: string, sutPath: string): string => {
 export const validateBehaviorMatrix = (
   rows: readonly BehaviorMatrixRow[],
 ): void => {
-  if (rows.length === 0)
+  if (rows.length === 0) {
     throw new Error('At least one behavior matrix row is required.');
+  }
   for (const row of rows) {
     if (Object.values(row).some((value) => !value.trim())) {
       throw new Error('Behavior matrix rows must be complete.');
@@ -69,6 +76,8 @@ export const validateBehaviorMatrix = (
 const jestApi =
   /\b(?:jest\.|describe\.(?:only|skip)|it\.(?:only|skip))|from ['"]@jest\/globals['"]/u;
 const bunImport = /from ['"]bun:test['"]/u;
+const bunMockImport =
+  /import\s*\{[^}]*\bmock\b[^}]*\}\s*from\s*['"]bun:test['"]/u;
 const testEach = /test\.each\(/u;
 const moduleSpecifier =
   /(?:\bfrom\s*|\b(?:import|require)\s*\(\s*|\bimport\s*)['"]([^'"]+)['"]/gu;
@@ -114,6 +123,11 @@ export const jestTestPathsFor = (canonicalPath: string): readonly string[] => {
     `${stem}.spec.ts`,
   ];
 };
+
+const mockedModuleSpecifiersFor = (source: string): readonly string[] =>
+  [...source.matchAll(/\bmock\.module\(\s*['"]([^'"]+)['"]/gu)]
+    .map((match) => match[1])
+    .filter((specifier): specifier is string => Boolean(specifier));
 
 export const requireDataProvider = (
   rows: readonly BehaviorMatrixRow[],
@@ -179,45 +193,29 @@ export const convertJestToBun = (source: string): string => {
   return converted;
 };
 
-const validateBunTestTemplate = (template: BunTestTemplate): void => {
-  if (!template.importPath.trim() || template.cases.length === 0) {
-    throw new Error('Bun test template needs an import path and cases.');
-  }
-  if (
-    !/^sut(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+\(input\)$/u.test(
-      template.actualExpression,
-    )
-  ) {
-    throw new Error(
-      'Bun test actual expression must call the imported SUT with input.',
-    );
-  }
-  if (template.cases.some((item) => !item.label.trim())) {
-    throw new Error('Every Bun test case needs a label.');
-  }
-};
-
-export const renderBunTestTemplate = (template: BunTestTemplate): string => {
-  validateBunTestTemplate(template);
-  return [
-    "import { expect, test } from 'bun:test';",
-    '',
-    `import * as sut from '${template.importPath}';`,
-    '',
-    `const cases = ${JSON.stringify(template.cases)};`,
-    '',
-    "test.each(cases)('$label', ({ input, expected }) => {",
-    `  expect(${template.actualExpression}).${template.matcher}(expected);`,
-    '});',
-    '',
-  ].join('\n');
-};
-
 export const validateExternalDependencyMocks = (
   sutSource: string,
   testSource: string,
+  sutModuleSpecifier?: string,
 ): void => {
-  const missingModules = externalModuleSpecifiersFor(sutSource).filter(
+  if (sutModuleSpecifier !== undefined && !sutModuleSpecifier.trim()) {
+    throw new Error('The selected SUT module specifier must not be blank.');
+  }
+  if (
+    sutModuleSpecifier &&
+    mockedModuleSpecifiersFor(testSource).includes(sutModuleSpecifier)
+  ) {
+    throw new Error(
+      `The selected SUT ${sutModuleSpecifier} must remain real and must not be mocked.`,
+    );
+  }
+  const externalModules = externalModuleSpecifiersFor(sutSource);
+  if (externalModules.length > 0 && !bunMockImport.test(testSource)) {
+    throw new Error(
+      'External module boundaries require mock.module() and a mock import from bun:test.',
+    );
+  }
+  const missingModules = externalModules.filter(
     (specifier) =>
       !new RegExp(
         `\\bmock\\.module\\(\\s*['"]${escapeRegExp(specifier)}['"]`,
@@ -248,4 +246,80 @@ export const validateExternalDependencyMocks = (
   if (missing.length > 0) {
     throw new Error(`Missing ${missing.join('; ')}.`);
   }
+};
+
+const validateExternalMockDefinitions = (
+  externalMocks: readonly BunTestExternalMock[],
+  sutModuleSpecifier?: string,
+): void => {
+  const mockSpecifiers = new Set<string>();
+  for (const externalMock of externalMocks) {
+    if (!externalMock.specifier.trim()) {
+      throw new Error('Every external mock needs a module specifier.');
+    }
+    if (mockSpecifiers.has(externalMock.specifier)) {
+      throw new Error(
+        `External module ${externalMock.specifier} has duplicate mocks.`,
+      );
+    }
+    mockSpecifiers.add(externalMock.specifier);
+    if (externalMock.specifier === sutModuleSpecifier) {
+      throw new Error(
+        `The selected SUT ${sutModuleSpecifier} must remain real and must not be mocked.`,
+      );
+    }
+    if (
+      externalMock.exports.some(
+        (exportName) => !/^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(exportName),
+      )
+    ) {
+      throw new Error(
+        `External mock ${externalMock.specifier} has an invalid export name.`,
+      );
+    }
+  }
+};
+
+const validateBunTestTemplate = (template: BunTestTemplate): void => {
+  if (!template.importPath.trim() || template.cases.length === 0) {
+    throw new Error('Bun test template needs an import path and cases.');
+  }
+  if (
+    !/^sut(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+\(input\)$/u.test(
+      template.actualExpression,
+    )
+  ) {
+    throw new Error(
+      'Bun test actual expression must call the imported SUT with input.',
+    );
+  }
+  if (template.cases.some((item) => !item.label.trim())) {
+    throw new Error('Every Bun test case needs a label.');
+  }
+  validateExternalMockDefinitions(template.externalMocks, template.importPath);
+};
+
+export const renderBunTestTemplate = (template: BunTestTemplate): string => {
+  validateBunTestTemplate(template);
+  const mockModules = template.externalMocks.flatMap(
+    ({ exports: exportNames, specifier }) => [
+      `mock.module(${JSON.stringify(specifier)}, () => ({`,
+      ...exportNames.map((exportName) => `  ${exportName}: mock(),`),
+      '}));',
+      '',
+    ],
+  );
+  return [
+    "import { expect, mock, test } from 'bun:test';",
+    '',
+    ...mockModules,
+    `import * as sut from '${template.importPath}';`,
+    '',
+    `const cases = ${JSON.stringify(template.cases)};`,
+    '',
+    "test.each(cases)('$label', ({ input, expected }) => {",
+    `  expect(${template.actualExpression}).${template.matcher}(expected);`,
+    '});',
+    '',
+  ].join('\n');
 };

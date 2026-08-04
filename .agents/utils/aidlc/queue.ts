@@ -38,11 +38,15 @@ const categoryOrder: readonly AidlcQueueCategory[] = [
 ];
 
 const categoryFor = (intent: AidlcIntent): AidlcQueueCategory => {
-  if (intent.lifecycle === 'superseded') return 'superseded';
+  if (intent.lifecycle === 'superseded') {
+    return 'superseded';
+  }
   if (aidlcIntentStatusFor(intent) === 'completed') {
     return intent.kbCloseout ? 'retirable' : 'needs-knowledge-closeout';
   }
-  if (intent.stage === 'approval-handoff') return 'awaiting-approval';
+  if (intent.stage === 'approval-handoff') {
+    return 'awaiting-approval';
+  }
   return 'active';
 };
 
@@ -81,8 +85,9 @@ export const inventoryAidlcIntents = async (
   agentsRoot: string,
   cbmIndex: string,
 ): Promise<AidlcQueueReport> => {
-  if (!fileSystem.readdir)
+  if (!fileSystem.readdir) {
     throw new Error('AIDLC queue requires directory listing support.');
+  }
   const directory = intentsDirectory(agentsRoot, cbmIndex);
   let entries: readonly DirectoryEntry[];
   try {

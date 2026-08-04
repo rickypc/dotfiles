@@ -67,7 +67,9 @@ export async function run(
   dependencies?: MdCompressDependencies,
 ): Promise<void> {
   const sourcePath = sourcePathFor(args);
-  if (!sourcePath) throw new Error(usage());
+  if (!sourcePath) {
+    throw new Error(usage());
+  }
   const resolvedDependencies = dependencies ?? defaultDependencies();
   const backupRoot = temporaryBackupRootFor(resolvedDependencies.temporaryRoot);
   if (args[0] === 'begin') {

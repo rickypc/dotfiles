@@ -143,6 +143,18 @@ test('gates complete drafts against claims, sources, and quotations', () => {
   };
   expect(() => validateContentPackage(content)).not.toThrow();
   expect(() =>
+    validateContentPackage({
+      ...content,
+      refreshInventory: {
+        citations: true,
+        currentness: true,
+        purpose: true,
+        quotations: true,
+        structure: true,
+      },
+    }),
+  ).not.toThrow();
+  expect(() =>
     validateContentPackage({ ...content, draft: 'The supported statement.' }),
   ).toThrow('quotation');
   expect(() =>

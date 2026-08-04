@@ -28,8 +28,9 @@ const runCapture = async (
     !body ||
     !evidence ||
     args.length !== 6
-  )
+  ) {
     return false;
+  }
   let metadata: OkfMetadata;
   try {
     metadata = JSON.parse(metadataJson) as OkfMetadata;
@@ -61,8 +62,9 @@ const runConceptIndex = (
     !value ||
     args.length !== 2 ||
     !isKbConceptPath(value)
-  )
+  ) {
     return false;
+  }
   write(conceptIndexPath(value));
   return true;
 };
@@ -125,8 +127,9 @@ const runReconcile = async (
     !requestPath ||
     !requestPath.startsWith('/') ||
     args.length !== 3
-  )
+  ) {
     return false;
+  }
   let plan: ReconciliationPlan;
   try {
     plan = JSON.parse(
@@ -150,10 +153,18 @@ export const run = async (
   discover: typeof searchKnowledgeBaseWithFallback = searchKnowledgeBaseWithFallback,
   reconcile: typeof reconcileConcepts = reconcileConcepts,
 ): Promise<void> => {
-  if (await runCapture(args, capture, write)) return;
-  if (await runReconcile(args, reconcile, write)) return;
-  if (runConceptIndex(args, write)) return;
-  if (await runReadCommand(args, search, discover, write)) return;
+  if (await runCapture(args, capture, write)) {
+    return;
+  }
+  if (await runReconcile(args, reconcile, write)) {
+    return;
+  }
+  if (runConceptIndex(args, write)) {
+    return;
+  }
+  if (await runReadCommand(args, search, discover, write)) {
+    return;
+  }
   throw new Error(usage());
 };
 

@@ -33,18 +33,24 @@ export const usage = (): string =>
 const validateBoundaries = (input: string): void => {
   const parsed = JSON.parse(input) as {
     readonly sutSource?: unknown;
+    readonly sutModuleSpecifier?: unknown;
     readonly testSource?: unknown;
   };
   if (
     typeof parsed.sutSource !== 'string' ||
-    typeof parsed.testSource !== 'string'
+    typeof parsed.testSource !== 'string' ||
+    typeof parsed.sutModuleSpecifier !== 'string'
   ) {
     throw new Error(
-      'Boundary validation requires string sutSource and testSource.',
+      'Boundary validation requires string sutSource, testSource, and sutModuleSpecifier.',
     );
   }
   validateBunTestSource(parsed.testSource);
-  validateExternalDependencyMocks(parsed.sutSource, parsed.testSource);
+  validateExternalDependencyMocks(
+    parsed.sutSource,
+    parsed.testSource,
+    parsed.sutModuleSpecifier,
+  );
 };
 
 const runContentCommand = (
@@ -79,8 +85,12 @@ export const run = (
   write: (message: string) => void = console.log,
 ): void => {
   const [command, first, second, ...rest] = args;
-  if (runPathCommand(command, first, second, rest, args.length, write)) return;
-  if (runContentCommand(command, first, args.length, write)) return;
+  if (runPathCommand(command, first, second, rest, args.length, write)) {
+    return;
+  }
+  if (runContentCommand(command, first, args.length, write)) {
+    return;
+  }
   throw new Error(usage());
 };
 

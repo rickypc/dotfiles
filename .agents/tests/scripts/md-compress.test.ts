@@ -15,9 +15,13 @@ const dependencies = (source = 'Original `token`.') => {
   const fileSystem = {
     mkdir: mock(async () => undefined),
     readFile: mock(async (path: string) => {
-      if (path === '/docs/plan.md') return source;
+      if (path === '/docs/plan.md') {
+        return source;
+      }
       const value = writes.get(path);
-      if (value === undefined) throw new Error('missing');
+      if (value === undefined) {
+        throw new Error('missing');
+      }
       return value;
     }),
     rm: mock(async (path: string) => {

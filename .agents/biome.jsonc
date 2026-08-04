@@ -36,14 +36,23 @@
             "skipBlankLines": true,
             "skipIifes": true
           }
-        }
+        },
+        "noUselessSwitchCase": "error"
+      },
+      "nursery": {
+        "useExhaustiveSwitchCases": "error"
       },
       "preset": "recommended",
       "style": {
         "noExcessiveLinesPerFile": {
           "level": "error",
           "options": { "maxLines": 1000, "skipBlankLines": true }
-        }
+        },
+        "useBlockStatements": "error",
+        "useDefaultSwitchClause": "error"
+      },
+      "suspicious": {
+        "useDefaultSwitchClauseLast": "error"
       }
     }
   }

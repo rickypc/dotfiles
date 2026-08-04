@@ -293,8 +293,9 @@ export const cbmInspectionCommand = (
   if (operation.operation === 'architecture') {
     return cbmCommands.getArchitecture(project, operation.path);
   }
-  if (operation.operation === 'schema')
+  if (operation.operation === 'schema') {
     return cbmCommands.getGraphSchema(project);
+  }
   if (operation.operation === 'search-graph') {
     return cbmCommands.searchGraphByName(
       project,
@@ -325,7 +326,9 @@ export const cbmOutputHasMatches = (
     .split('\n')
     .map((line) => line.trim())
     .find((line) => line.startsWith('{') && line.endsWith('}'));
-  if (!json) return false;
+  if (!json) {
+    return false;
+  }
   try {
     const value = JSON.parse(json) as {
       readonly results?: unknown;
@@ -409,8 +412,9 @@ const inspectionOperationFor = (value: unknown): CbmInspectionOperation => {
   const record = operationRecord(value);
   const operation = nonEmptyString(record.operation, 'operation');
   const read = inspectionReaders[operation];
-  if (!read)
+  if (!read) {
     throw new Error(`Unsupported CBM inspection operation: ${operation}`);
+  }
   return read(record);
 };
 
@@ -464,11 +468,17 @@ export const indexIsReady = (output: string): boolean =>
 const listedProjectEntries = (output: string): readonly ListedCbmProject[] => {
   try {
     const parsed = JSON.parse(output) as { readonly projects?: unknown };
-    if (!Array.isArray(parsed.projects)) return [];
+    if (!Array.isArray(parsed.projects)) {
+      return [];
+    }
     return parsed.projects.flatMap((project) => {
-      if (!project || typeof project !== 'object') return [];
+      if (!project || typeof project !== 'object') {
+        return [];
+      }
       const record = project as Record<string, unknown>;
-      if (typeof record.name !== 'string' || !record.name.trim()) return [];
+      if (typeof record.name !== 'string' || !record.name.trim()) {
+        return [];
+      }
       return [
         {
           name: record.name,
@@ -639,7 +649,9 @@ export const searchWithCbmFallback = async (
   request: CbmSearchFallbackRequest,
 ): Promise<CbmSearchFallbackReceipt> => {
   assertAllowedCbmRoot(request.root.root, request.allowedRoots);
-  if (!request.query.trim()) throw new Error('Search query is required.');
+  if (!request.query.trim()) {
+    throw new Error('Search query is required.');
+  }
   try {
     await assertExistingReadyCbmIndex(executor, request);
     const graph = await runCbmSearch(executor, request, 'cbm-search-graph');

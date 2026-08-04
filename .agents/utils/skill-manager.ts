@@ -76,7 +76,9 @@ const actionTitleFor = (state: WorkflowState): string => {
 const agentsRootFor = (path: string): string | undefined => {
   const marker = '/.agents/';
   const index = path.indexOf(marker);
-  if (index >= 0) return path.slice(0, index + '/.agents'.length);
+  if (index >= 0) {
+    return path.slice(0, index + '/.agents'.length);
+  }
   return path.endsWith('/.agents') ? path : undefined;
 };
 
@@ -194,10 +196,14 @@ export const ignoredByAgentsGitignore = (
   let ignored = false;
   for (const rawLine of gitignore.split('\n')) {
     const line = rawLine.trim();
-    if (!line || line.startsWith('#')) continue;
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
     const negated = line.startsWith('!');
     const pattern = (negated ? line.slice(1) : line).replace(/^\//, '');
-    if (pattern && patternMatches(pattern, candidate)) ignored = !negated;
+    if (pattern && patternMatches(pattern, candidate)) {
+      ignored = !negated;
+    }
   }
   return ignored;
 };
@@ -233,11 +239,14 @@ const proseReview = {
       return;
     }
     if (isProsePath(path)) {
-      if ((await readOptional(fileSystem, path)) !== undefined)
+      if ((await readOptional(fileSystem, path)) !== undefined) {
         prosePaths.add(path);
+      }
       return;
     }
-    if (extname(path)) return;
+    if (extname(path)) {
+      return;
+    }
     const entries = await readdir(path, { withFileTypes: true });
     await Promise.all(
       entries.map(async (entry) => {
@@ -404,12 +413,16 @@ export const reviewSkillProse = async (
   const reviewedRoots = [...new Set(roots.map((root) => resolve(root)))].sort();
   const gitignores = new Map<string, string>();
   for (const agentsRoot of new Set(reviewedRoots.map(agentsRootFor))) {
-    if (!agentsRoot) continue;
+    if (!agentsRoot) {
+      continue;
+    }
     const content = await readOptional(
       fileSystem,
       join(agentsRoot, '.gitignore'),
     );
-    if (content !== undefined) gitignores.set(agentsRoot, content);
+    if (content !== undefined) {
+      gitignores.set(agentsRoot, content);
+    }
   }
   const ignoredPaths = new Set<string>();
   const prosePaths = new Set<string>();

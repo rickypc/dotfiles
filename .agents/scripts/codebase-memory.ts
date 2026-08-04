@@ -35,16 +35,24 @@ const commandForSimple = (
   length: number,
 ): CommandSpec | undefined => {
   const projects = listProjectsFor(command, length);
-  if (projects) return projects;
-  if (!project) return undefined;
-  if (command === 'index-status' && length === 2)
+  if (projects) {
+    return projects;
+  }
+  if (!project) {
+    return undefined;
+  }
+  if (command === 'index-status' && length === 2) {
     return cbmCommands.indexStatus(project);
-  if (command === 'architecture' && length === 2)
+  }
+  if (command === 'architecture' && length === 2) {
     return cbmCommands.getArchitecture(project);
-  if (command === 'schema' && length === 2)
+  }
+  if (command === 'schema' && length === 2) {
     return cbmCommands.getGraphSchema(project);
-  if (command === 'snippet' && value && length === 3)
+  }
+  if (command === 'snippet' && value && length === 3) {
     return cbmCommands.getCodeSnippet(project, value);
+  }
   return undefined;
 };
 
@@ -113,8 +121,9 @@ const commandForTrace = (
     !depth ||
     length !== 5 ||
     (direction !== 'inbound' && direction !== 'outbound')
-  )
+  ) {
     return undefined;
+  }
   return cbmCommands.tracePath(project, value, direction, positiveLimit(depth));
 };
 
@@ -124,13 +133,15 @@ const limitedCommand = (
   value: string,
   limit: string,
 ): CommandSpec | undefined => {
-  if (command === 'search-graph')
+  if (command === 'search-graph') {
     return cbmCommands.searchGraph(project, value, positiveLimit(limit));
-  if (command === 'search-code')
+  }
+  if (command === 'search-code') {
     return cbmCommands.searchCode(project, value, positiveLimit(limit));
-  if (command === 'query')
-    return cbmCommands.queryGraph(project, value, positiveLimit(limit));
-  return undefined;
+  }
+  return command === 'query'
+    ? cbmCommands.queryGraph(project, value, positiveLimit(limit))
+    : undefined;
 };
 
 const commandForLimited = (
@@ -147,7 +158,9 @@ const commandForLimited = (
 export const commandFor = (args: readonly string[]): CommandSpec => {
   const [command, project, value, limitOrDirection, depthOrLimit] = args;
   const simple = commandForSimple(command, project, value, args.length);
-  if (simple) return simple;
+  if (simple) {
+    return simple;
+  }
   const limited = commandForLimited(
     command,
     project,
@@ -155,7 +168,9 @@ export const commandFor = (args: readonly string[]): CommandSpec => {
     limitOrDirection,
     args.length,
   );
-  if (limited) return limited;
+  if (limited) {
+    return limited;
+  }
   const trace = commandForTrace(
     command,
     project,
@@ -164,7 +179,9 @@ export const commandFor = (args: readonly string[]): CommandSpec => {
     depthOrLimit,
     args.length,
   );
-  if (trace) return trace;
+  if (trace) {
+    return trace;
+  }
   throw new Error(usage());
 };
 
@@ -180,8 +197,11 @@ export const run = async (
   inspect = inspectCbm,
   temporaryDirectory = tmpdir(),
 ): Promise<void> => {
-  if (await runInspect(args, write, read, resolve, inspect, temporaryDirectory))
+  if (
+    await runInspect(args, write, read, resolve, inspect, temporaryDirectory)
+  ) {
     return;
+  }
   const [command, root, project, query] = args;
   if (command === 'discover' && root && project && query && args.length === 4) {
     write(

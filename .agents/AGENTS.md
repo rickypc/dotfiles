@@ -32,6 +32,40 @@ Resolve `<agents-root>` by walking up from the current project directory,
 looking for `.agents/`. Use the first one found; if none is found, fall back to
 `~/.agents`. `<project-root>` is always the parent of `<agents-root>`.
 
+### Immutable `.agents` configuration boundary
+
+For every resolved `<project>/.agents` directory, including the global
+`~/.agents` directory, the following files are user-owned configuration and
+policy inputs:
+
+```text
+.gitignore
+biome.jsonc
+bunfig.toml
+LICENSE
+NOTICE
+package.json
+tsconfig.json
+```
+
+The assistant MUST NOT edit, create, delete, rename, move, format, autofix,
+stage, reset, or otherwise mutate any of these files. This prohibition applies
+even when a lint, type, test, build, hook, or generated-artifact failure would
+be resolved by changing one of them, and even when a broad command such as a
+formatter, linter, package tool, or generated-file tool could change one
+indirectly. Read-only inspection is allowed.
+
+If satisfying the user's task requires a change to one of these files, stop
+before making that change, show the exact required user action or proposed
+diff, and ask the user to make it. Do not assume approval from a request to
+fix the surrounding code. All automated writes under `<project>/.agents`
+MUST use an explicit allowlist that excludes these protected paths; never run
+a whole-directory write or autofix that could include them.
+
+The assistant may update this `AGENTS.md` policy only when the user explicitly
+requests an instruction or guardrail change; that exception does not permit
+changes to the protected files above.
+
 - Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
   selected runtime's assets together and use its own scripts and utilities.
 - Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and

@@ -52,7 +52,9 @@ const afterFinalGate = (): AidlcIntent => {
 
 const firstCompressionEntryFor = (intent: AidlcIntent) => {
   const session = intent.kbCompressionSession;
-  if (!session) return undefined;
+  if (!session) {
+    return undefined;
+  }
   return 'entries' in session ? session.entries[0] : session;
 };
 
@@ -72,7 +74,9 @@ const closeoutDependencies = (): {
         mkdir: mock(async () => undefined),
         readFile: mock(async (path: string) => {
           const content = files.get(path);
-          if (content === undefined) throw missingFile();
+          if (content === undefined) {
+            throw missingFile();
+          }
           return content;
         }),
         rm: mock(async (path: string) => {

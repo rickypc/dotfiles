@@ -227,7 +227,9 @@ test('parses prose-only local links and honors the AIDLC ignore boundary', async
       })),
     readFile: async (path: string): Promise<string> => {
       const content = files[path];
-      if (content === undefined) throw new Error(`Missing ${path}`);
+      if (content === undefined) {
+        throw new Error(`Missing ${path}`);
+      }
       return content;
     },
   };
@@ -284,7 +286,9 @@ test('reports missing reference links and rejects invalid prose-review roots', a
       })),
     readFile: async (path: string): Promise<string> => {
       const content = files[path];
-      if (content === undefined) throw new Error(`Missing ${path}`);
+      if (content === undefined) {
+        throw new Error(`Missing ${path}`);
+      }
       return content;
     },
   };
@@ -313,4 +317,19 @@ test('reports missing reference links and rejects invalid prose-review roots', a
       '/tmp/.agents/skills/demo',
     ]),
   ).rejects.toThrow('directory listing support');
+});
+
+test('skips directory entries whose names have non-prose extensions', async () => {
+  const fileSystem = {
+    readdir: async (path: string) => {
+      if (path === '/tmp/.agents/skills/demo') {
+        return [{ isDirectory: () => true, name: 'generated.js' }];
+      }
+      return [];
+    },
+    readFile: async () => '# ignored',
+  };
+  await expect(
+    reviewSkillProse(fileSystem, ['/tmp/.agents/skills/demo']),
+  ).resolves.toMatchObject({ prosePaths: [] });
 });

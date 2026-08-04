@@ -225,8 +225,9 @@ export const nextAidlcRouteStage = (
   current: AidlcStageSlug,
 ): AidlcStageSlug | undefined => {
   const index = route.findIndex((item) => item.slug === current);
-  if (index < 0)
+  if (index < 0) {
     throw new Error(`Stage is not in this AIDLC route: ${current}.`);
+  }
   return route[index + 1]?.slug;
 };
 
@@ -234,7 +235,9 @@ export const stageDefinitionFor = (
   slug: AidlcStageSlug,
 ): AidlcStageDefinition => {
   const stage = universalCodeChangeStages.find((item) => item.slug === slug);
-  if (!stage) throw new Error(`Unknown AIDLC stage: ${slug}.`);
+  if (!stage) {
+    throw new Error(`Unknown AIDLC stage: ${slug}.`);
+  }
   return stage;
 };
 
@@ -402,9 +405,15 @@ export const sensorsForStage = (
   slug: AidlcStageSlug,
 ): readonly AidlcSensor[] => {
   const sensors: AidlcSensor[] = ['intent-evidence'];
-  if (slug === 'reverse-engineering') sensors.push('context-snapshot');
-  if (slug === 'approval-handoff') sensors.push('approval-gate');
-  if (slug === 'build-and-test') sensors.push('validation-evidence');
+  if (slug === 'reverse-engineering') {
+    sensors.push('context-snapshot');
+  }
+  if (slug === 'approval-handoff') {
+    sensors.push('approval-gate');
+  }
+  if (slug === 'build-and-test') {
+    sensors.push('validation-evidence');
+  }
   return sensors;
 };
 

@@ -161,9 +161,12 @@ export const intentIdFor = (summary: string): string => {
     .trim()
     .replaceAll(/[^a-z0-9]+/gu, '-')
     .replaceAll(/^-|-$/gu, '');
-  if (!value)
+  if (!value) {
     throw new Error('Intent summary must contain letters or numbers.');
-  if (value.length <= intentIdMaxLength) return value;
+  }
+  if (value.length <= intentIdMaxLength) {
+    return value;
+  }
   const hash = createHash('sha256')
     .update(value)
     .digest('hex')
@@ -223,7 +226,9 @@ const activateNext = (
   const next = route
     .slice(current + 1)
     .find((record) => record.status === 'pending')?.slug;
-  if (!next) return { ...intent, route };
+  if (!next) {
+    return { ...intent, route };
+  }
   return {
     ...intent,
     route: route.map((item) =>
@@ -337,7 +342,9 @@ export const createAidlcIntent = (
 
 const currentRecord = (intent: AidlcIntent): AidlcStageRecord => {
   const record = intent.route.find((item) => item.slug === intent.stage);
-  if (!record) throw new Error('AIDLC current stage is not in its route.');
+  if (!record) {
+    throw new Error('AIDLC current stage is not in its route.');
+  }
   return record;
 };
 
@@ -360,7 +367,9 @@ export const advanceAidlcIntent = (intent: AidlcIntent): AidlcIntent => {
 };
 
 const field = (data: Record<string, unknown>, name: string): unknown => {
-  if (!(name in data)) throw new Error('AIDLC intent frontmatter is invalid.');
+  if (!(name in data)) {
+    throw new Error('AIDLC intent frontmatter is invalid.');
+  }
   return data[name];
 };
 
@@ -434,7 +443,9 @@ const optionalBooleanField = (
   data: Record<string, unknown>,
   name: string,
 ): boolean | undefined => {
-  if (!(name in data)) return undefined;
+  if (!(name in data)) {
+    return undefined;
+  }
   const value = field(data, name);
   if (typeof value !== 'boolean') {
     throw new Error('AIDLC intent frontmatter is invalid.');
@@ -446,7 +457,9 @@ const parseKnowledgeCloseout = (
   data: Record<string, unknown>,
 ): AidlcKnowledgeCloseout | undefined => {
   const value = data.kb_closeout;
-  if (value === undefined) return undefined;
+  if (value === undefined) {
+    return undefined;
+  }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('AIDLC knowledge closeout is invalid.');
   }
@@ -481,7 +494,9 @@ const parseKnowledgeCompressionSession = (
   data: Record<string, unknown>,
 ): AidlcKnowledgeCompressionSession | undefined => {
   const value = data.kb_compression_session;
-  if (value === undefined) return undefined;
+  if (value === undefined) {
+    return undefined;
+  }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return invalidKnowledgeCompressionSession();
   }
@@ -503,7 +518,9 @@ const parseKnowledgeContext = (
   data: Record<string, unknown>,
 ): AidlcKnowledgeContext => {
   const value = data.kb_context;
-  if (value === undefined) return emptyAidlcKnowledgeContext();
+  if (value === undefined) {
+    return emptyAidlcKnowledgeContext();
+  }
   const context = value as AidlcKnowledgeContext;
   if (
     !context?.bindings ||
@@ -601,7 +618,9 @@ const optionalStringField = (
   data: Record<string, unknown>,
   name: string,
 ): string | undefined => {
-  if (!(name in data)) return undefined;
+  if (!(name in data)) {
+    return undefined;
+  }
   return stringField(data, name);
 };
 
@@ -619,8 +638,9 @@ export const supersedeAidlcIntent = (
   intent: AidlcIntent,
   replacementId: string,
 ): AidlcIntent => {
-  if (!replacementId.trim())
+  if (!replacementId.trim()) {
     throw new Error('Replacement intent id is required.');
+  }
   if (intent.lifecycle === 'superseded') {
     throw new Error('AIDLC intent is already superseded.');
   }
@@ -649,11 +669,13 @@ export const completeAidlcStage = (
   intent: AidlcIntent,
   evidence: string,
 ): AidlcIntent => {
-  if (!evidence.trim())
+  if (!evidence.trim()) {
     throw new Error('AIDLC stage completion requires evidence.');
+  }
   const record = currentRecord(intent);
-  if (record.status !== 'active')
+  if (record.status !== 'active') {
     throw new Error('Only an active AIDLC stage can be completed.');
+  }
   if (intent.stage === 'reverse-engineering' && !intent.kbContext.resolvedAt) {
     throw new Error(
       'Reverse Engineering requires a resolved knowledge context before completion.',
@@ -683,7 +705,9 @@ export const skipAidlcStage = (
   intent: AidlcIntent,
   reason: string,
 ): AidlcIntent => {
-  if (!reason.trim()) throw new Error('AIDLC stage skip requires a reason.');
+  if (!reason.trim()) {
+    throw new Error('AIDLC stage skip requires a reason.');
+  }
   const record = currentRecord(intent);
   const stage = stageDefinitionFor(intent.stage);
   if (record.status !== 'active' || stage.gate) {
@@ -752,8 +776,9 @@ const validateRoute = (
   uiRequired: boolean,
 ): void => {
   const expected = initialAidlcRoute(uiRequired);
-  if (route.length !== expected.length)
+  if (route.length !== expected.length) {
     throw new Error('AIDLC intent route is invalid.');
+  }
   for (const [index, record] of route.entries()) {
     if (
       record.slug !== expected[index]?.slug ||

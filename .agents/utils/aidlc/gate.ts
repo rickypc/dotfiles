@@ -49,7 +49,9 @@ export const executeFinalGate = (
 };
 
 export const parseAidlcGateConfig = (content: string): AidlcGateConfig => {
-  if (!content.trim()) return {};
+  if (!content.trim()) {
+    return {};
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);

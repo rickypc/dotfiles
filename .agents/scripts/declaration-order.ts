@@ -36,7 +36,9 @@ export const run = async (
     paths.map(async (path) => {
       const source = await read(path);
       const fixed = apply ? fixDeclarationOrder(path, source) : undefined;
-      if (fixed?.changed) await save(path, fixed.source);
+      if (fixed?.changed) {
+        await save(path, fixed.source);
+      }
       const report = fixed?.report ?? inspectDeclarationOrder(path, source);
       const check = declarationOrderResult(report);
       return {

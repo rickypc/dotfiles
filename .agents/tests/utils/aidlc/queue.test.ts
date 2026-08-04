@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import {
   createAidlcIntent,
   renderAidlcIntent,
+  supersedeAidlcIntent,
   withAidlcKnowledgeCloseout,
 } from '../../../utils/aidlc/intent.js';
 import { inventoryAidlcIntents } from '../../../utils/aidlc/queue.js';
@@ -35,11 +36,38 @@ test('inventories valid intents, malformed records, and stable categories', asyn
     evidence: 'No durable lesson was identified.',
     references: [],
   });
+  const initialApproval = createAidlcIntent('repo', 'Awaiting approval');
+  const approvalIndex = initialApproval.route.findIndex(
+    (record) => record.slug === 'approval-handoff',
+  );
+  const approval = {
+    ...initialApproval,
+    route: initialApproval.route.map((record, index) =>
+      record.slug === 'refined-mockups'
+        ? record
+        : {
+            ...record,
+            status:
+              index < approvalIndex
+                ? ('completed' as const)
+                : index === approvalIndex
+                  ? ('active' as const)
+                  : ('pending' as const),
+          },
+    ),
+    stage: 'approval-handoff' as const,
+  };
+  const superseded = supersedeAidlcIntent(
+    createAidlcIntent('repo', 'Superseded'),
+    'replacement',
+  );
   const files = new Map([
     [`${root}/active.md`, renderAidlcIntent(active)],
     [`${root}/broken.md`, 'not an intent'],
     [`${root}/completed.md`, renderAidlcIntent(completedRoute)],
     [`${root}/closed.md`, renderAidlcIntent(closed)],
+    [`${root}/approval.md`, renderAidlcIntent(approval)],
+    [`${root}/superseded.md`, renderAidlcIntent(superseded)],
   ]);
   const report = await inventoryAidlcIntents(
     fileSystemFor(files, [
@@ -47,19 +75,25 @@ test('inventories valid intents, malformed records, and stable categories', asyn
       'active.md',
       'completed.md',
       'closed.md',
+      'approval.md',
+      'superseded.md',
     ]),
     '/agents',
     'repo',
   );
-  expect(report.leftoverCount).toBe(3);
+  expect(report.leftoverCount).toBe(4);
   expect(report.items.map((item) => item.category)).toEqual([
     'active',
+    'awaiting-approval',
     'invalid',
     'needs-knowledge-closeout',
+    'superseded',
     'retirable',
   ]);
   expect(report.items[0]?.summary).toBe('Active');
-  expect(report.items[1]?.error).toContain('frontmatter');
+  expect(
+    report.items.find((item) => item.category === 'invalid')?.error,
+  ).toContain('frontmatter');
 });
 
 test('returns an empty report when the intent directory is absent', async () => {
@@ -98,4 +132,19 @@ test('propagates unexpected directory errors', async () => {
   await expect(
     inventoryAidlcIntents(fileSystem, '/agents', 'repo'),
   ).rejects.toThrow('permission');
+});
+
+test('rejects a queue filesystem without directory listing support', async () => {
+  await expect(
+    inventoryAidlcIntents(
+      {
+        mkdir: async () => undefined,
+        readFile: async () => '',
+        rm: async () => undefined,
+        writeFile: async () => undefined,
+      },
+      '/agents',
+      'repo',
+    ),
+  ).rejects.toThrow('directory listing support');
 });

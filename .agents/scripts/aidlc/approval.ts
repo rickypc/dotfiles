@@ -43,7 +43,9 @@ const approvalContextFor = async (
   intent: AidlcIntent,
   context: ApprovalContext | undefined,
 ): Promise<AidlcIntent['kbContext'] | undefined> => {
-  if (!context) return undefined;
+  if (!context) {
+    return undefined;
+  }
   return resolveAidlcKnowledgeContextForIntent(
     nodeFileSystem,
     intent,
@@ -110,7 +112,9 @@ const nextApprovalIntentFor = (
   activeApprovalHandoff: boolean,
   command: ApprovalCommand,
 ): AidlcIntent => {
-  if (command.contextOnlyFollowup) return intent;
+  if (command.contextOnlyFollowup) {
+    return intent;
+  }
   if (activeApprovalHandoff) {
     return approveAidlcIntent(
       completeAidlcStage(intent, command.evidence ?? ''),
@@ -127,7 +131,9 @@ const persistApprovalFor = async (
   update: typeof updateAidlcIntent,
   appendAudit: typeof appendAidlcAuditEvent,
 ): Promise<void> => {
-  if (command.contextOnlyFollowup) return;
+  if (command.contextOnlyFollowup) {
+    return;
+  }
   await update(nodeFileSystem, command.intentPath, next);
   await appendAudit(nodeFileSystem, command.intentPath, {
     at: new Date().toISOString(),
@@ -195,7 +201,9 @@ const standardApprovalCommandFor = (
 const approvalCommandFor = (
   args: readonly string[],
 ): ApprovalCommand | undefined => {
-  if (args[0] !== 'approve' || !args[1] || args.length < 2) return undefined;
+  if (args[0] !== 'approve' || !args[1] || args.length < 2) {
+    return undefined;
+  }
   return isContextOnlyFollowup(args)
     ? contextOnlyApprovalCommandFor(args)
     : standardApprovalCommandFor(args);
@@ -205,7 +213,9 @@ const validatedPostApprovalRecordFor = (
   intent: AidlcIntent,
   input: string | undefined,
 ): readonly AidlcRecordInput[] | undefined => {
-  if (!input) return undefined;
+  if (!input) {
+    return undefined;
+  }
   const transitions = parseAidlcRecordInputs(input);
   validateAidlcRecordTransitions(intent, transitions);
   return transitions;
@@ -220,7 +230,9 @@ export const runAidlcApprove = async (
   write: (message: string) => void,
 ): Promise<boolean> => {
   const command = approvalCommandFor(args);
-  if (!command) return false;
+  if (!command) {
+    return false;
+  }
   const intent = await load(nodeFileSystem, command.intentPath);
   const activeApprovalHandoff = activeApprovalHandoffFor(intent);
   assertApprovalCommandState(

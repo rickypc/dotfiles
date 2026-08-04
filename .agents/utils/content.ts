@@ -161,6 +161,7 @@ export const validateContentPackage = (content: ContentPackage): void => {
   for (const claim of content.claims) {
     validateContentClaim(content, sources, claim);
   }
-  if (content.refreshInventory)
+  if (content.refreshInventory) {
     validateRefreshInventory(content.refreshInventory);
+  }
 };

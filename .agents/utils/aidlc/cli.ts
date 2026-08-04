@@ -20,7 +20,9 @@ export const runAidlcCliWhenMain = <Result>(
   args: readonly string[],
   runner: CliRunner<Result>,
 ): void => {
-  if (!isMain) return;
+  if (!isMain) {
+    return;
+  }
   void Promise.resolve(runner(args)).catch((error: unknown) => {
     console.error(formatAidlcCliError(error));
     process.exitCode = 1;

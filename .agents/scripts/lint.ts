@@ -1,4 +1,5 @@
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import { checkImmutableAgentsConfig } from '../utils/immutable-agents-config.js';
 import {
   lintExitCode,
   runLintCommands,
@@ -17,11 +18,22 @@ export const run = async (
     process.exitCode = code;
   },
 ): Promise<void> => {
-  if (args.length !== 0) throw new Error(usage());
+  if (args.length !== 0) {
+    throw new Error(usage());
+  }
+  const immutableConfigReceipt = await checkImmutableAgentsConfig(
+    executor,
+    agentsRoot,
+  );
+  if (immutableConfigReceipt.status === 'failed') {
+    throw new Error(immutableConfigReceipt.detail);
+  }
   const receipts = await runLintCommands(executor, agentsRoot);
   writeLintDiagnostics(receipts, write);
   const exitCode = lintExitCode(receipts);
-  if (exitCode !== 0) setExitCode(exitCode);
+  if (exitCode !== 0) {
+    setExitCode(exitCode);
+  }
 };
 
 export const runWhenMain = runCliWhenMain;

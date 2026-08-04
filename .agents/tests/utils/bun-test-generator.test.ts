@@ -119,6 +119,16 @@ test('requires mocks for every external SUT module and global boundary', () => {
   expect(() =>
     validateExternalDependencyMocks(
       sutSource,
+      `${testSource}\nmock.module('./sut.js', () => ({ load: mock() }));`,
+      './sut.js',
+    ),
+  ).toThrow('selected SUT');
+  expect(() =>
+    validateExternalDependencyMocks(sutSource, testSource, ' '),
+  ).toThrow('must not be blank');
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
       testSource.replace(
         "mock.module('./clock.js', () => ({ now: mock() }));\n",
         '',
@@ -133,22 +143,37 @@ test('requires mocks for every external SUT module and global boundary', () => {
         .replace('void consoleLog;\n', ''),
     ),
   ).toThrow('console');
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
+      testSource.replace(
+        "import { expect, mock, test } from 'bun:test';",
+        "import { expect, test } from 'bun:test';",
+      ),
+    ),
+  ).toThrow('mock import');
 });
 
 test('renders quality-focused templates and converts supported Jest tests', () => {
   const source = renderBunTestTemplate({
     actualExpression: 'sut.parse(input)',
     cases: [{ expected: 'empty', input: null, label: 'null input' }],
+    externalMocks: [{ exports: ['now'], specifier: './clock.js' }],
     importPath: './sut.js',
     matcher: 'toEqual',
   });
   expect(source).toContain('test.each');
+  expect(source).toContain(
+    'mock.module("./clock.js", () => ({\n  now: mock(),\n}));',
+  );
+  expect(source).toContain("import { expect, mock, test } from 'bun:test';");
   expect(source).not.toContain('as const');
   expect(source).not.toContain('toBeDefined');
   expect(() =>
     renderBunTestTemplate({
       actualExpression: 'parse(input)',
       cases: [{ expected: 'empty', input: null, label: 'null input' }],
+      externalMocks: [],
       importPath: './sut.js',
       matcher: 'toEqual',
     }),
@@ -157,6 +182,7 @@ test('renders quality-focused templates and converts supported Jest tests', () =
     renderBunTestTemplate({
       actualExpression: 'sut.parse(input)',
       cases: [],
+      externalMocks: [],
       importPath: './sut.js',
       matcher: 'toEqual',
     }),
@@ -165,10 +191,50 @@ test('renders quality-focused templates and converts supported Jest tests', () =
     renderBunTestTemplate({
       actualExpression: 'sut.parse(input)',
       cases: [{ expected: 'empty', input: null, label: '' }],
+      externalMocks: [],
       importPath: './sut.js',
       matcher: 'toEqual',
     }),
   ).toThrow('label');
+  expect(() =>
+    renderBunTestTemplate({
+      actualExpression: 'sut.parse(input)',
+      cases: [{ expected: 'empty', input: null, label: 'null input' }],
+      externalMocks: [{ exports: [], specifier: '' }],
+      importPath: './sut.js',
+      matcher: 'toEqual',
+    }),
+  ).toThrow('module specifier');
+  expect(() =>
+    renderBunTestTemplate({
+      actualExpression: 'sut.parse(input)',
+      cases: [{ expected: 'empty', input: null, label: 'null input' }],
+      externalMocks: [
+        { exports: [], specifier: './clock.js' },
+        { exports: [], specifier: './clock.js' },
+      ],
+      importPath: './sut.js',
+      matcher: 'toEqual',
+    }),
+  ).toThrow('duplicate');
+  expect(() =>
+    renderBunTestTemplate({
+      actualExpression: 'sut.parse(input)',
+      cases: [{ expected: 'empty', input: null, label: 'null input' }],
+      externalMocks: [{ exports: ['not-valid!'], specifier: './clock.js' }],
+      importPath: './sut.js',
+      matcher: 'toEqual',
+    }),
+  ).toThrow('invalid export');
+  expect(() =>
+    renderBunTestTemplate({
+      actualExpression: 'sut.parse(input)',
+      cases: [{ expected: 'empty', input: null, label: 'null input' }],
+      externalMocks: [{ exports: ['parse'], specifier: './sut.js' }],
+      importPath: './sut.js',
+      matcher: 'toEqual',
+    }),
+  ).toThrow('selected SUT');
   expect(
     convertJestToBun(
       "import { expect, jest, test } from '@jest/globals'; test('x', () => expect(jest.fn()).toBeTruthy());",

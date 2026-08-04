@@ -263,7 +263,9 @@ export const renderCapturedConcept = (
   evidence: string,
   body: string,
 ): string => {
-  if (!evidence.trim()) throw new Error('KB capture evidence is required.');
+  if (!evidence.trim()) {
+    throw new Error('KB capture evidence is required.');
+  }
   return renderOkfConcept(
     metadata,
     `${body.trim()}\n\n## Evidence\n\n${evidence.trim()}`,
@@ -343,19 +345,24 @@ export const searchKnowledgeBase = async (
     throw new Error('KB root must be an absolute path.');
   }
   const needle = query.trim().toLowerCase();
-  if (!needle) throw new Error('KB search query is required.');
+  if (!needle) {
+    throw new Error('KB search query is required.');
+  }
   const results: KnowledgeSearchResult[] = [];
   const resultForEntry = async (
     directory: string,
     entry: DirectoryEntry,
   ): Promise<KnowledgeSearchResult | undefined> => {
-    if (entry.name === 'index.md' || !entry.name.endsWith('.md'))
+    if (entry.name === 'index.md' || !entry.name.endsWith('.md')) {
       return undefined;
+    }
     const path = `${directory}/${entry.name}`;
     const content = await readText(fileSystem, path);
     const metadata = parseOkfConcept(content);
     const searchable = `${path}\n${metadata.title}\n${metadata.description}\n${content}`;
-    if (!searchable.toLowerCase().includes(needle)) return undefined;
+    if (!searchable.toLowerCase().includes(needle)) {
+      return undefined;
+    }
     return {
       description: metadata.description,
       path: path.slice(kbRoot.replace(/\/$/u, '').length + 1),
@@ -374,7 +381,9 @@ export const searchKnowledgeBase = async (
         continue;
       }
       const result = await resultForEntry(directory, entry);
-      if (result) results.push(result);
+      if (result) {
+        results.push(result);
+      }
     }
   };
   await walk(kbRoot.replace(/\/$/u, ''));
@@ -492,8 +501,9 @@ export const reconcileConcepts = async (
   kbRoot: string,
   plan: ReconciliationPlan,
 ): Promise<ReconciliationReceipt> => {
-  if (!kbRoot.startsWith('/'))
+  if (!kbRoot.startsWith('/')) {
     throw new Error('KB root must be an absolute path.');
+  }
   await validateReconciliationPlan(fileSystem, kbRoot, plan);
   const concepts: CapturedConcept[] = [];
   for (const operation of plan.operations) {

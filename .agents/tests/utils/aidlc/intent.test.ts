@@ -66,6 +66,16 @@ test('rejects empty summaries and reports deterministic paths', () => {
   );
 });
 
+test('rejects an intent whose current stage is absent from its route', () => {
+  const intent = createAidlcIntent('repo', 'Missing current stage');
+  expect(() =>
+    canAdvanceAidlcIntent({
+      ...intent,
+      stage: 'not-a-real-stage' as typeof intent.stage,
+    }),
+  ).toThrow('not in its route');
+});
+
 test('allows lifecycle I/O only for canonical temporary intent paths', () => {
   expect(() =>
     assertAidlcIntentPath('/agents/aidlc/repo/intents/build-kb.md'),
@@ -232,7 +242,9 @@ test('parses a multi-concept compression bundle and rejects duplicate references
     parseAidlcIntent(renderAidlcIntent(intent)).kbCompressionSession,
   ).toEqual(intent.kbCompressionSession);
   const duplicate = intent.kbCompressionSession.entries.at(0);
-  if (!duplicate) throw new Error('Fixture requires one compression entry.');
+  if (!duplicate) {
+    throw new Error('Fixture requires one compression entry.');
+  }
   expect(() =>
     parseAidlcIntent(
       renderAidlcIntent({
@@ -366,6 +378,21 @@ test('requires resolved knowledge context before Reverse Engineering completes',
       'research complete',
     ).stage,
   ).toBe('requirements-analysis');
+});
+
+test('does not complete a stage that is not active', () => {
+  const intent = createAidlcIntent('repo', 'Inactive stage');
+  const pending = {
+    ...intent,
+    route: intent.route.map((record) =>
+      record.slug === intent.stage
+        ? { ...record, status: 'pending' as const }
+        : record,
+    ),
+  };
+  expect(() => completeAidlcStage(pending, 'evidence')).toThrow(
+    'Only an active AIDLC stage',
+  );
 });
 
 test('requires a passing final-gate receipt before Build and Test completes', () => {
@@ -786,6 +813,17 @@ test('rejects malformed routes and conflicting intent IDs', () => {
   const intent = createAidlcIntent('repo', 'X');
   expect(() => parseAidlcIntent('not an intent')).toThrow('frontmatter');
   expect(() =>
+    parseAidlcIntent(renderAidlcIntent(intent).replace(/^id:.*\n/mu, '')),
+  ).toThrow('frontmatter is invalid');
+  expect(
+    parseAidlcIntent(
+      renderAidlcIntent(intent).replace(
+        /^kb_context:[\s\S]*?^lifecycle:/mu,
+        'lifecycle:',
+      ),
+    ).kbContext,
+  ).toEqual({ bindings: {}, rules: [], sources: [] });
+  expect(() =>
     parseAidlcIntent(
       renderAidlcIntent(intent).replace(
         'approval: pending',
@@ -803,6 +841,14 @@ test('rejects malformed routes and conflicting intent IDs', () => {
       renderAidlcIntent(intent).replace(
         /route:\n[\s\S]*?\nstage:/u,
         'route: invalid\nstage:',
+      ),
+    ),
+  ).toThrow('route');
+  expect(() =>
+    parseAidlcIntent(
+      renderAidlcIntent(intent).replace(
+        /route:\n[\s\S]*?\nstage:/u,
+        'route: []\nstage:',
       ),
     ),
   ).toThrow('route');
