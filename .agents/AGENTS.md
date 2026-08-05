@@ -66,6 +66,29 @@ The assistant may update this `AGENTS.md` policy only when the user explicitly
 requests an instruction or guardrail change; that exception does not permit
 changes to the protected files above.
 
+### String-only structured payload boundary
+
+When a tool or script accepts a string containing JSON, pass a string, never an
+object. For any backtick-, dollar-, quote-, or newline-rich JSON that must be
+written to disk, use the shared TypeScript writer:
+
+```text
+bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'
+<valid-json-object-or-array>
+JSON
+```
+
+Use exactly one absolute output-path argument; the writer reads JSON from
+stdin, validates it before writing, pretty-prints it, and permits only paths
+inside `os.tmpdir()`. Quote the heredoc delimiter exactly as shown so payload
+text is not shell-evaluated. Never put backtick-rich JSON in a double-quoted
+shell argument, pass an object to a string-only `content` field, or improvise a
+Python/inline writer. For JSON file materialization, invoke `write-json.ts`
+directly and bypass the built-in write tool entirely; there is no
+`JSON.stringify(request)` tool-call fallback. The owning skill determines the
+`request` schema and lifecycle; the request itself still follows that owner's
+schema.
+
 - Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
   selected runtime's assets together and use its own scripts and utilities.
 - Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and

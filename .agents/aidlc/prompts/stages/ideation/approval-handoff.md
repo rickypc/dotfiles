@@ -38,11 +38,13 @@ Present Approve, Re-plan, or Decline, then end the response. The assistant must
 wait for a later user message that explicitly approves this intent; it must not
 call `approve` based on task authorization, an earlier approval, or its own
 restatement of the plan. Before asking for approval, obtain any validated
-context bindings from `/knowledge-base`. After explicit approval, use the one
-returned action from `utils/aidlc/command-contract.ts`; it atomically
-persists the handoff, approval, and any already-validated context or
-consecutive evidence. Do not complete this stage separately, repeat approval,
-or use standalone context resolution on a normal new route.
+context bindings from `/knowledge-base` when they are available. After explicit
+approval, use the one returned action from `utils/aidlc/command-contract.ts`:
+use atomic approval with `--context` when bindings are validated, otherwise use
+approval alone. If the receipt returns `resolve-knowledge-context`, execute
+that exact returned `context.ts resolve` action once and re-read the receipt.
+Do not complete this stage separately, repeat approval, or guess a standalone
+resolver command.
 
 Approval applies to this evidence-backed scope. A material later change must be
 re-planned against its impact; it does not add routine approval gates.

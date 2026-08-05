@@ -65,6 +65,32 @@ Path basis: an `aidlc/...` or `skills/...` reference resolves from
 | Knowledge context | `—` | The returned AIDLC action requires it or validated context can change a decision. | `/knowledge-base` selects the private-KB root and material concepts; no local router overrides it. |
 | Lifecycle recovery | `<returned-arguments>` | The runtime returns an approval, re-plan, closeout, or recovery action. | The command contract remains canonical; do not create a parallel recovery route. |
 
+### Approval and context decision
+
+Use the returned command-contract row that matches the observed state:
+
+| Observed state | Action | Do not do |
+| --- | --- | --- |
+| Explicit approval plus validated organization/team/project/KB bindings | Use the atomic `approve ... --context ...` action. | Do not run `context.ts resolve` first or call approval twice. |
+| Explicit approval but no validated bindings yet | Use `approve <intent-path> <approval-evidence>` alone. | Do not treat the absence of `--context` as a stuck intent. |
+| The approval receipt returns `next.action: resolve-knowledge-context` | Execute that exact returned `context.ts resolve` action once, with its returned arguments, then re-read the receipt. | Do not invent a neighboring command, retry with altered arguments, or run it in parallel. |
+| A persisted already-approved intent explicitly requires context recovery | Use the standalone resolver only when the runtime returns that recovery action. | Do not use the resolver as a normal pre-approval step. |
+
+When stage evidence or capture JSON contains Markdown code spans, invoke
+`bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'`
+directly for the JSON file and bypass the built-in write tool entirely. Use a
+single-quoted or file-based argument for non-JSON evidence; never use a
+double-quoted shell argument containing backticks. The writer's validation and
+path policy are owned by the universal runtime and `/knowledge-base`; this
+skill owns the lifecycle schema and returned-action selection.
+
+The route selects approve --context as one atomic command and names the typed
+AIDLC contract as owner. approve alone is an allowed normal step and a
+returned resolve-knowledge-context action is followed exactly once. Evidence
+crosses the CLI as a safe file or single-quoted/string-safe boundary. The agent
+executes the exact returned action and arguments and continues until a real
+gate or terminal result.
+
 ## Operating route
 
 1. From the selected `<project-root>`, use the normal `start` row in the
@@ -89,7 +115,10 @@ Path basis: an `aidlc/...` or `skills/...` reference resolves from
    authorization, an earlier approval, a plan summary, or model-written text as
    approval evidence. After that user message, use the returned approval action
    once. The combined approval action can resolve already-validated KB bindings
-   and persist already-known consecutive evidence.
+   and persist already-known consecutive evidence. If the receipt instead
+   returns `resolve-knowledge-context`, execute that exact returned action once
+   and continue from its receipt. Do not complete this stage separately,
+   repeat approval, or guess a context command.
    This is the sole approval boundary. Use `--ui` only when the request has a
    user-facing UI requirement; otherwise the packet deterministically skips
    the UI-only stage. Do not add mockup ceremony outside that conditional stage.
@@ -136,7 +165,8 @@ Use the canonical command catalog’s priority order. In particular, when user
 approval and factual post-approval evidence are both ready, use the one
 combined approval-and-record action; never call approval and record separately
 for the same facts. Approval Handoff and Build and Test remain atomic
-boundaries. Use recovery actions only when the runtime returns them.
+boundaries. Use recovery actions only when the runtime returns them, including
+the context resolver returned after approval without validated context.
 
 ## Stage quality
 

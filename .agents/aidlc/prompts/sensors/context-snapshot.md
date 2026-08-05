@@ -3,10 +3,16 @@
 ## Applies to
 
 Reverse Engineering (2.1) only. The executable check is
-`utils/aidlc/sensors.ts`; normal routes persist validated context atomically
-through the canonical AIDLC approval-with-context command row. The separate
-`scripts/aidlc/context.ts` command is recovery-only for an already-approved
-older intent.
+`utils/aidlc/sensors.ts`. When validated bindings are available before
+approval, normal routes persist them atomically through the canonical AIDLC
+approval-with-context command row. When they are not available, approval may
+persist first; if its receipt returns `resolve-knowledge-context`, execute that
+exact returned `scripts/aidlc/context.ts resolve` action once. The standalone
+resolver is recovery-only when returned by the runtime, not a guessed
+pre-approval step.
+
+The supported `scripts/aidlc/context.ts` boundary owns the context-only update;
+do not reproduce it with an ad hoc filesystem edit.
 
 ## Pass condition
 
@@ -25,5 +31,6 @@ relationship or a knowledge rule.
 
 ## On failure
 
-Resolve context through the supported script/skill boundary, correct invalid
-bindings or contradictions, and rerun the sensor before completing 2.1.
+Resolve context through the supported script/skill boundary named by the
+returned action, correct invalid bindings or contradictions, and rerun the
+sensor before completing 2.1. Preserve the returned arguments exactly.
