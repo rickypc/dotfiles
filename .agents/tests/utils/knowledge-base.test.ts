@@ -117,6 +117,60 @@ test('captures a concept and updates both deterministic indexes', async () => {
   ).rejects.toThrow('read failure');
 });
 
+test('preserves description-suffixed index entries across subsequent captures', async () => {
+  const writes = new Map<string, string>();
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async (path: string) => {
+      const value = writes.get(path);
+      if (value === undefined) {
+        const error = Object.assign(new Error('missing'), { code: 'ENOENT' });
+        throw error;
+      }
+      return value;
+    },
+    rm: async () => undefined,
+    writeFile: async (path: string, content: string) => {
+      writes.set(path, content);
+    },
+  };
+  const firstMetadata = {
+    description: 'first concept description',
+    tags: ['t'],
+    title: 'First',
+    type: 'note',
+  };
+  const secondMetadata = {
+    description: 'second concept description',
+    tags: ['t'],
+    title: 'Second',
+    type: 'note',
+  };
+  await captureConcept(
+    fileSystem,
+    '/kb',
+    'shared/agent/first.md',
+    firstMetadata,
+    'Body.',
+    'Observed evidence.',
+  );
+  await captureConcept(
+    fileSystem,
+    '/kb',
+    'shared/agent/second.md',
+    secondMetadata,
+    'Body.',
+    'Observed evidence.',
+  );
+  const subjectIndex = writes.get('/kb/shared/agent/index.md') ?? '';
+  expect(subjectIndex).toContain(
+    '[First](first.md) - first concept description',
+  );
+  expect(subjectIndex).toContain(
+    '[Second](second.md) - second concept description',
+  );
+});
+
 test('requires every OKF metadata field', () => {
   expect(() =>
     validateOkfMetadata({

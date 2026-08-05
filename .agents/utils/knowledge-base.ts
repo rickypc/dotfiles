@@ -97,9 +97,13 @@ export const conceptIndexPath = (path: string): string => {
   return `${scope}/${subject}/index.md`;
 };
 
-const indexChildren = (content: string): readonly string[] =>
-  [...content.matchAll(/^- \[[^\]]+\]\(([^)]+)\)$/gmu)].map(
-    (match) => match[1],
+const indexChildren = (content: string): readonly DirectoryIndexEntry[] =>
+  [...content.matchAll(/^- \[([^\]]+)\]\(([^)]+)\)(?:\s+-\s(.*))?$/gmu)].map(
+    (match) => ({
+      description: match[3]?.trim() || undefined,
+      path: match[2],
+      title: match[1],
+    }),
   );
 
 const linkTarget = (path: string): string => `](/${path})`;

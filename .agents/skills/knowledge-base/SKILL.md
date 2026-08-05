@@ -58,14 +58,79 @@ The semantic owner is a reviewed decision, not an inference from a directory
 name. Do not infer a taxonomy. Do not move, delete, or merge existing concepts
 during reconciliation. Ambiguous ownership is a user decision.
 
-For an approved non-AIDLC reconciliation, create one fixed reconciliation
-request JSON file and invoke the deterministic command below. The request has
-one `canonicalPath`, a non-empty `operations` array, and explicit links. Each
-operation identifies its `disposition`, `relativePath`, complete `metadata`,
-replacement `body`, and factual `evidence`. The runtime validates duplicate
-paths, create/update preconditions, one canonical owner, and declared
-bundle-relative Markdown links. It validates mechanical integrity; it cannot
-prove semantic equivalence or decide ownership for the caller.
+For an approved non-AIDLC reconciliation, build one fixed reconciliation
+request JSON file at an absolute path under the OS temporary directory, then
+invoke the deterministic command below. The request JSON must be a single
+string value serialized to disk — write it with the `write` tool's `content`
+parameter as a JSON-serialized string, not an object literal. Inline object
+literals are rejected by the file-writing tool's schema; the runtime reads
+the request back from disk via `readText` and parses it as JSON.
+
+The request schema is the `ReconciliationPlan` interface in
+`utils/knowledge-base.ts`. All three top-level fields are REQUIRED:
+
+- `canonicalPath` (`string`): exactly one operation's `relativePath` that
+  owns the canonical rule for this reconciliation. Every reconciliation must
+  declare exactly one canonical owner; pick the operation that best owns the
+  central lesson.
+- `links` (`array`): may be empty `[]`. Each link has `from` and `to` fields
+  that MUST equal two operations' `relativePath` values, and the `from`
+  operation's `body` MUST contain the markdown link `](<to-relativePath>)`
+  (the runtime permits the bundle-relative `](<to-relativePath>)` form).
+  Omit a link rather than declare one whose source body lacks the marker.
+- `operations` (`array`, non-empty): each operation has `body` (markdown
+  string, non-blank), `disposition` (`new-primary` | `update-existing`),
+  `evidence` (non-blank string), `metadata` (object with `type`, `title`,
+  `description`, `tags` array), and `relativePath` matching
+  `^(<cbm-index>|shared)/<subject>/<concept>\.md$`.
+
+The runtime validates duplicate paths, create/update preconditions, exactly
+one canonical owner, every link's endpoints exist as operations, and every
+declared link's source body contains the markdown target token. It validates
+mechanical integrity; it cannot prove semantic equivalence or decide ownership
+for the caller.
+
+Generic request template (replace placeholders; do NOT keep angle brackets
+in the final JSON):
+
+```json
+{
+  "canonicalPath": "<cbm-index-or-shared>/<subject-a>/<concept-a>.md",
+  "links": [
+    {
+      "from": "<cbm-index-or-shared>/<subject-a>/<concept-a>.md",
+      "to": "<cbm-index-or-shared>/<subject-b>/<concept-b>.md"
+    }
+  ],
+  "operations": [
+    {
+      "disposition": "new-primary",
+      "relativePath": "<cbm-index-or-shared>/<subject-a>/<concept-a>.md",
+      "metadata": {
+        "type": "<pattern|lesson|incident|reference|plan|preference|practice>",
+        "title": "<concise title>",
+        "description": "<one-line description for search discoverability>",
+        "tags": ["<tag-one>", "<tag-two>"]
+      },
+      "body": "## Context\n\n<observed-situation>\n\n## Action\n\n<durable-fix>\n\n## Evidence\n\n- Source: <factual-source-path-or-event>\n- Verification: <observed-test-command-or-state>\n- Related concept: [Related concept](<cbm-index-or-shared>/<subject-b>/<concept-b>.md).",
+      "evidence": "<factual-capture-evidence-one-sentence>"
+    }
+  ]
+}
+```
+
+Workflow:
+
+1. Compose the JSON as a single string in the file-writing tool's `content`
+   parameter. NEVER pass an inline object as `content`; the tool expects a
+   string and rejects objects with a schema error.
+2. Write to an absolute path under `os.tmpdir()` (macOS:
+   `/var/folders/.../T/opencode/`); the runtime reads only files at absolute
+   paths.
+3. Run the reconcile command below. The runtime re-reads the file from disk
+   and validates every precondition before applying writes.
+4. On success, run `/md-compress` `begin` on every returned source path,
+   edit only the returned paths, then run the returned `finalize` action.
 
 | Priority | When | Required inputs | Command | Result | Next |
 | --- | --- | --- | --- | --- | --- |
