@@ -17,6 +17,7 @@ export interface SearchFallbackReceipt {
 }
 
 const ignoredGlobs = ['!**/.git/**', '!**/node_modules/**'] as const;
+const rgContextLines = 2;
 
 const assertSearchInput = (root: string, query: string): void => {
   if (!root.startsWith('/')) {
@@ -88,6 +89,10 @@ export const rgLiteralCommand = (
   ignoreCase: boolean,
 ): CommandSpec => ({
   args: [
+    '--color',
+    'never',
+    '--context',
+    String(rgContextLines),
     '--line-number',
     '--fixed-strings',
     ...(ignoreCase ? ['--ignore-case'] : []),

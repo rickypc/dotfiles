@@ -16,6 +16,30 @@ or an unapproved root.
 The wrapper returns machine-readable JSON receipts; read those receipts before
 choosing any next step.
 
+## Deterministic fallback and search correctness
+
+Fallback is an expected, deterministic outcome, not a degradation by itself.
+Interpret the receipt before acting:
+
+| Receipt result | Meaning | Caller action |
+| --- | --- | --- |
+| `source: "cbm"` | CBM returned a JSON result containing the requested query. | Use the CBM result; do not run `rg` or another backend manually. |
+| `source: "rg"` | CBM was unavailable or had no requested match, so the wrapper ran its ordered textual fallback. | Use the returned fallback output and state that the source was `rg`; do not repeat a listed attempt. |
+| `source: "none"` | Neither CBM nor the ordered fallback found a result. | Report not-found with the receipt; do not invent a path or retry a listed attempt. |
+
+The search path is deterministic: CBM graph, CBM code search, exact literal
+content, case-insensitive literal content, then filename discovery. A wrong
+answer can still occur when the query is too broad, the result is semantically
+irrelevant, or the indexed snapshot does not reflect current uncommitted
+content. That is a query/snapshot limitation, not random fallback behavior.
+Use the smallest symbol, literal, or path-bearing query that answers the
+question. If the receipt found a broad result that does not answer the actual
+question, issue one new narrower `/codebase-memory` query; do not bypass the
+wrapper with independent discovery commands or a guessed search path. Treat a ready
+index as engine readiness, not proof that an uncommitted working tree and the
+indexed snapshot are identical; report that limitation when it affects the
+claim.
+
 This skill is the sole owner for CBM command syntax. List projects, resolve the
 intended index by its returned `name`, inspect status, index only when no
 matching project index exists, re-check status, then retry the requested read

@@ -11,6 +11,10 @@ import {
 test('builds the shared literal and file-name rg commands', () => {
   expect(rgLiteralCommand('/repo', 'Needle', false)).toEqual({
     args: [
+      '--color',
+      'never',
+      '--context',
+      '2',
       '--line-number',
       '--fixed-strings',
       '--glob',
@@ -46,7 +50,7 @@ test('stops after a literal match and records skipped strategies', async () => {
     '/repo',
     'Needle',
   );
-  expect(commands).toEqual(['--line-number']);
+  expect(commands).toEqual(['--color']);
   expect(receipt).toMatchObject({
     found: true,
     output: '/repo/file.ts:3:Needle',
@@ -74,6 +78,22 @@ test('tries case-insensitive content after an exact miss', async () => {
     'found',
     'skipped',
   ]);
+});
+
+test('preserves contextual rg output without color codes', async () => {
+  const receipt = await stagedRgSearch(
+    async () => ({
+      code: 0,
+      stderr: '',
+      stdout:
+        '/repo/file.ts-1-before\n/repo/file.ts:2:Needle\n/repo/file.ts-3-after',
+    }),
+    '/repo',
+    'Needle',
+  );
+  expect(receipt.output).toContain('/repo/file.ts-1-before');
+  expect(receipt.output).toContain('/repo/file.ts:2:Needle');
+  expect(receipt.output).not.toContain('\u001b[');
 });
 
 test('tries file-name discovery after content misses and records command errors', async () => {

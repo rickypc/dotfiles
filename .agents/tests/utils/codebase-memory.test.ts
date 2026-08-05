@@ -530,3 +530,133 @@ test('uses CBM code search before staged rg when graph search has no match', asy
   expect(cbmFailure).toMatchObject({ found: true, source: 'rg' });
   expect(cbmFailure.attempts[0]?.status).toBe('error');
 });
+
+test('normalizes one padded query for CBM graph and code searches', async () => {
+  const commands: string[][] = [];
+  const result = await searchWithCbmFallback(
+    async (spec) => {
+      commands.push([...spec.args]);
+      if (spec.args.includes('index_status')) {
+        return { code: 0, stderr: '', stdout: 'ready' };
+      }
+      if (spec.args.includes('search_graph')) {
+        return { code: 0, stderr: '', stdout: '{"total":0,"results":[]}' };
+      }
+      if (spec.args.includes('search_code')) {
+        return {
+          code: 0,
+          stderr: '',
+          stdout: '{"total_results":0,"results":[]}',
+        };
+      }
+      return { code: 1, stderr: '', stdout: '' };
+    },
+    {
+      allowedRoots: ['/repo'],
+      query: '  needle  ',
+      root: { index: 'repo', root: '/repo' },
+    },
+  );
+  expect(result).toMatchObject({ found: false, source: 'none' });
+  expect(
+    commands
+      .filter((args) => args.includes('--query'))
+      .map((args) => args[args.indexOf('--query') + 1]),
+  ).toEqual(['needle']);
+  expect(
+    commands
+      .filter((args) => args.includes('--pattern'))
+      .map((args) => args[args.indexOf('--pattern') + 1]),
+  ).toEqual(['needle']);
+});
+
+test('rejects graph matches that contain the query only in unrelated metadata', async () => {
+  const result = await searchWithCbmFallback(
+    async (spec) => {
+      if (spec.args.includes('index_status')) {
+        return { code: 0, stderr: '', stdout: 'ready' };
+      }
+      if (spec.args.includes('search_graph')) {
+        return {
+          code: 0,
+          stderr: '',
+          stdout:
+            '{"total":1,"results":[{"name":"unrelated","description":"needle"}]}',
+        };
+      }
+      if (spec.args.includes('search_code')) {
+        return {
+          code: 0,
+          stderr: '',
+          stdout: '{"total_results":0,"results":[]}',
+        };
+      }
+      return { code: 1, stderr: '', stdout: '' };
+    },
+    {
+      allowedRoots: ['/repo'],
+      query: 'needle',
+      root: { index: 'repo', root: '/repo' },
+    },
+  );
+  expect(result).toMatchObject({ found: false, source: 'none' });
+  expect(result.attempts.map((attempt) => attempt.strategy)).toEqual([
+    'cbm-search-graph',
+    'cbm-search-code',
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-files',
+  ]);
+});
+
+test('accepts graph matches in structured identity fields', async () => {
+  const result = await searchWithCbmFallback(
+    async (spec) => {
+      if (spec.args.includes('index_status')) {
+        return { code: 0, stderr: '', stdout: 'ready' };
+      }
+      if (spec.args.includes('search_graph')) {
+        return {
+          code: 0,
+          stderr: '',
+          stdout: '{"total":1,"results":[{"file_path":"src/needle.ts"}]}',
+        };
+      }
+      return { code: 1, stderr: '', stdout: '' };
+    },
+    {
+      allowedRoots: ['/repo'],
+      query: 'needle',
+      root: { index: 'repo', root: '/repo' },
+    },
+  );
+  expect(result).toMatchObject({ found: true, source: 'cbm' });
+  expect(result.attempts.map((attempt) => attempt.status)).toEqual([
+    'found',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+  ]);
+});
+
+test('requires structured graph identity fields for query-aware matching', () => {
+  expect(
+    cbmOutputHasMatches(
+      '{"total":1,"results":[{"description":"needle"}]}',
+      'needle',
+    ),
+  ).toBeFalse();
+  expect(
+    cbmOutputHasMatches(
+      '{"total":1,"results":[{"qualified_name":"repo.needle"}]}',
+      'needle',
+    ),
+  ).toBeTrue();
+  expect(
+    cbmOutputHasMatches(
+      '{"total":2,"results":[null,{"path":"src/needle.ts"}]}',
+      'needle',
+    ),
+  ).toBeTrue();
+});

@@ -336,12 +336,20 @@ export const cbmOutputHasMatches = (
       readonly total_results?: unknown;
     };
     if (query?.trim()) {
-      const expected = query.trim().toLocaleLowerCase();
+      const expected = query.trim().toLowerCase();
       return (
         Array.isArray(value.results) &&
-        value.results.some((result) =>
-          JSON.stringify(result).toLocaleLowerCase().includes(expected),
-        )
+        value.results.some((result) => {
+          if (!result || typeof result !== 'object' || Array.isArray(result)) {
+            return false;
+          }
+          const record = result as Record<string, unknown>;
+          return ['name', 'qualified_name', 'file_path', 'path'].some(
+            (field) =>
+              typeof record[field] === 'string' &&
+              record[field].toLowerCase().includes(expected),
+          );
+        })
       );
     }
     return (
@@ -649,23 +657,30 @@ export const searchWithCbmFallback = async (
   request: CbmSearchFallbackRequest,
 ): Promise<CbmSearchFallbackReceipt> => {
   assertAllowedCbmRoot(request.root.root, request.allowedRoots);
-  if (!request.query.trim()) {
+  const query = request.query.trim();
+  if (!query) {
     throw new Error('Search query is required.');
   }
+  const normalizedRequest =
+    query === request.query ? request : { ...request, query };
   try {
-    await assertExistingReadyCbmIndex(executor, request);
-    const graph = await runCbmSearch(executor, request, 'cbm-search-graph');
+    await assertExistingReadyCbmIndex(executor, normalizedRequest);
+    const graph = await runCbmSearch(
+      executor,
+      normalizedRequest,
+      'cbm-search-graph',
+    );
     if (graph.matched) {
       return {
         attempts: [
           graph.attempt,
           skippedCbmCodeAttempt(
-            request,
+            normalizedRequest,
             'Skipped because CBM graph search found a match.',
           ),
           ...skippedRgAttempts(
-            request.root.root,
-            request.query,
+            normalizedRequest.root.root,
+            normalizedRequest.query,
             'Skipped because CBM found a match.',
           ),
         ],
@@ -674,15 +689,19 @@ export const searchWithCbmFallback = async (
         source: 'cbm',
       };
     }
-    const code = await runCbmSearch(executor, request, 'cbm-search-code');
+    const code = await runCbmSearch(
+      executor,
+      normalizedRequest,
+      'cbm-search-code',
+    );
     if (code.matched) {
       return {
         attempts: [
           graph.attempt,
           code.attempt,
           ...skippedRgAttempts(
-            request.root.root,
-            request.query,
+            normalizedRequest.root.root,
+            normalizedRequest.query,
             'Skipped because CBM code search found a match.',
           ),
         ],
@@ -693,8 +712,8 @@ export const searchWithCbmFallback = async (
     }
     const fallback = await stagedRgSearch(
       executor,
-      request.root.root,
-      request.query,
+      normalizedRequest.root.root,
+      normalizedRequest.query,
     );
     return {
       attempts: [graph.attempt, code.attempt, ...fallback.attempts],
@@ -705,19 +724,19 @@ export const searchWithCbmFallback = async (
   } catch (error) {
     const fallback = await stagedRgSearch(
       executor,
-      request.root.root,
-      request.query,
+      normalizedRequest.root.root,
+      normalizedRequest.query,
     );
     return {
       attempts: [
         cbmAttempt(
-          request,
+          normalizedRequest,
           'cbm-search-graph',
           'error',
           error instanceof Error ? error.message : String(error),
         ),
         skippedCbmCodeAttempt(
-          request,
+          normalizedRequest,
           'Skipped because CBM index readiness failed.',
         ),
         ...fallback.attempts,

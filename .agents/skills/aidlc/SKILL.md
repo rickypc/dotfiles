@@ -31,6 +31,29 @@ extra ceremony; brownfield research is added only where existing behavior can
 change an acceptance item. Batching established evidence reduces calls; it is
 never a stage bypass.
 
+## Scope profile and context budget
+
+Before `start`, classify the request from observable boundaries. This profile
+optimizes reading depth and safe batching; it is not a second route, an
+authorization decision, or permission to skip a selected stage.
+
+| Profile | Observable signals | Context and batching posture |
+| --- | --- | --- |
+| `ui-change` | The product request creates, redesigns, or visually refreshes a user-facing screen or interaction. | Pass `--ui`; read the one UI-definition packet when selected; do not add a second mockup or design ceremony. |
+| `small-local-fix` | One known module or behavior boundary, localized implementation, no new public interface/data model/integration, and a focused proof is apparent. | Read only declared packet assets; batch consecutive factual non-gated outcomes; evaluate conditional stages and record evidence-backed skips. |
+| `standard-code-change` | Multiple files, a normal behavior change, or a code/test change whose boundary is known but not purely local. | Use the normal packet; batch only already-established consecutive outcomes and keep unresolved decisions visible. |
+| `large-cross-cutting` | Multiple subsystems or repositories, public-contract or data changes, integrations, migrations, or material security/performance/reliability risk. | Use the full declared packet for each stage; do not batch uncertain work; treat feasibility, design, NFR, and delivery evidence as presumptively material until evidence says otherwise. |
+| `ambiguous` | The request does not establish a boundary or has conflicting signals. | Default to `standard-code-change`; ask one material question only if the ambiguity changes scope, safety, architecture, or the final gate. |
+
+Use concrete boundaries, not adjectives such as “quick,” “simple,” or “big,”
+to choose a profile. A profile may make a conditional stage easier to skip
+with a factual reason, but it must never skip Intent Capture, Scope Definition,
+Approval, Requirements Analysis, Application Design, Units Generation, Code
+Generation, Build and Test, or KB closeout. For every profile, preserve the
+same typed route, exact returned-action rule, explicit approval, one final gate,
+and durable-knowledge disposition. If the profile is revised by new evidence,
+use the lifecycle's `replan` action rather than silently changing posture.
+
 ## Authorities and protected state
 
 - `utils/aidlc/stages.ts` is the typed authority for the four phases, selected
@@ -126,6 +149,10 @@ gate or terminal result.
    non-gated outcomes in one record only when every item is already established.
    Execute only the returned action; never use `--help`, altered retries,
    retired aliases, standalone gate helpers, or direct CBM/KB commands.
+   For `small-local-fix`, prefer one evidence-backed batch for adjacent
+   conditional skips and completions; for `large-cross-cutting`, keep each
+   uncertain decision in its owning stage. Never create a user turn merely to
+   narrate a non-blocking stage transition.
 5. Before Construction validation, map every acceptance item to an executable
    test, smoke check, or directly observable result. An unmapped item remains
    open even when preliminary checks pass.
@@ -182,7 +209,7 @@ the context resolver returned after approval without validated context.
   parallel universal scanner or gate.
 
 Design-stage comparison is owned by
-[`interaction-design-patterns.md`](../../aidlc/knowledge/roles/design/interaction-design-patterns.md);
+`aidlc/knowledge/roles/design/interaction-design-patterns.md` (file: `interaction-design-patterns.md`);
 its scoring expression is `sum((criterion score / 5) * weight)`.
 
 ## Failure and resume
