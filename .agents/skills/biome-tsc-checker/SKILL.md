@@ -33,9 +33,9 @@ regions are not a rule or source of ordering metadata.
 
 ## Declaration-order protocol
 
-Apply `aidlc/knowledge/shared/command-catalog.md`. These commands operate on
-one explicitly selected path; repeat the same complete command for another
-path rather than writing shorthand arguments.
+The command tables below are owned by this skill and its scripts. These
+commands operate on one explicitly selected path; repeat the same complete
+command for another path rather than writing shorthand arguments.
 
 Use this protocol exactly in a new session. Without `--apply`, the script is an
 inspection and evidence command: it never edits a source file. It writes one JSON object with
@@ -65,9 +65,9 @@ summary per inspection; failures retain only failed or blocked paths and
 declaration-order action packets. Selected JavaScript paths remain covered by
 the checker command above.
 
-The AIDLC baseline records the inspection JSON. The candidate rerun is the
-candidate receipt; a final unchanged rerun is the challenge receipt. Record
-each actual output in the active intent before claiming the stage passed.
+The caller may record the inspection JSON as baseline evidence, the candidate
+rerun as candidate evidence, and an unchanged rerun as challenge evidence.
+Record each actual output before claiming the selected path passed.
 
 Do not change a target project's configuration, manifest, or dependencies. If a
 project-specific setting is required, return the standard user-action protocol.

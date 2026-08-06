@@ -96,6 +96,7 @@ test('batches independent matrix and skill-file pairs into one receipt', async (
 test('reviews absolute static roots through the Skill Manager integrity receipt', async () => {
   const write = mock();
   const fileSystem = {
+    mkdir: mock(async () => undefined),
     readdir: mock(async (path: string) => {
       if (path === '/tmp/.agents/skills/demo') {
         return [{ isDirectory: () => false, name: 'SKILL.md' }];
@@ -111,6 +112,8 @@ test('reviews absolute static roots through the Skill Manager integrity receipt'
       }
       throw new Error(`Missing ${path}`);
     }),
+    rm: mock(async () => undefined),
+    writeFile: mock(async () => undefined),
   };
   await run(
     ['review', '/tmp/.agents/skills/demo'],
@@ -120,4 +123,69 @@ test('reviews absolute static roots through the Skill Manager integrity receipt'
   );
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"prosePaths"'));
   await expect(run(['review', 'relative-root'])).rejects.toThrow(usage());
+});
+
+test('validates a selected skill through the public command', async () => {
+  const write = mock();
+  const fileSystem = {
+    mkdir: mock(async () => undefined),
+    readdir: mock(async () => []),
+    readFile: mock(async () =>
+      [
+        '---',
+        'name: demo',
+        'description: Demonstrate validation.',
+        '---',
+        '',
+        '# Demo',
+      ].join('\n'),
+    ),
+    rm: mock(async () => undefined),
+    writeFile: mock(async () => undefined),
+  };
+  await run(
+    ['validate', '/tmp/.agents/skills/demo'],
+    undefined,
+    write,
+    fileSystem,
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"status": "valid"'),
+  );
+  await expect(run(['validate', 'relative-root'])).rejects.toThrow(usage());
+});
+
+test('initializes a selected skill through the public command', async () => {
+  const write = mock();
+  await expect(
+    run(['init', 'relative-root', 'Public demo skill.'], undefined, write),
+  ).rejects.toThrow(usage());
+  const files = new Map<string, string>();
+  const fileSystem = {
+    mkdir: mock(async () => undefined),
+    readdir: mock(async () => []),
+    readFile: mock(async (path: string) => {
+      const content = files.get(path);
+      if (content === undefined) {
+        throw new Error('missing');
+      }
+      return content;
+    }),
+    rm: mock(async () => undefined),
+    writeFile: mock(async (path: string, content: string) => {
+      files.set(path, content);
+    }),
+  };
+  await run(
+    ['init', '/tmp/.agents/skills/public-demo', 'Public demo skill.'],
+    undefined,
+    write,
+    fileSystem,
+  );
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('"status": "created"'),
+  );
+  expect(files.get('/tmp/.agents/skills/public-demo/SKILL.md')).toContain(
+    'name: public-demo',
+  );
 });

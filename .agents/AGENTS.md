@@ -91,6 +91,11 @@ schema.
 
 - Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
   selected runtime's assets together and use its own scripts and utilities.
+- Use `<agents-root>/skills/skill-manager/SKILL.md` for every skill creation,
+  update, rename, synchronization, review, optimization, or repair request.
+  Skill Manager owns the deterministic scaffold, frontmatter validation,
+  prose/link review, quality matrix, and closeout; do not route skill package
+  work through another skill.
 - Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and
   `<agents-root>/skills/knowledge-base/SKILL.md` for private knowledge stored
   outside the runtime at the configured private-KB root. Do not bypass either
@@ -114,6 +119,7 @@ skill already supplies the command contract.
 | Skill | Required input | Use when |
 | --- | --- | --- |
 | `/aidlc` | `<intent-summary>` `[--ui]` `[--initial-record '<stage-outcomes-json>']`; use the priority-ordered catalog rendered by `utils/aidlc/command-contract.ts`. | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` and `<project-root>` from its executing script. |
+| `/aidx` | `<goal-and-concerns>` or `resume <goal-id>` or `status <goal-id>` | An explicit goal needs the question, approved-plan, implementation, test, repair, lesson, and resumable AIDX lane. AIDX is LLM-triggered and does not use the AIDLC route. |
 | `/codebase-memory` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
 | `/knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
 | `/biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
@@ -123,7 +129,7 @@ skill already supplies the command contract.
 | `/playwright-test-generator` | `<criteria>` `<project-root>` `<playwright-runner>`. | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
 | `/content-writer` | `<objective>` `<audience>` `<format>` `<constraints>` `<citation-style>`. | Research-backed content must be drafted, refreshed, or validated. |
 | `/md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>`. | Durable Markdown needs lossless compression with a verified temporary backup. |
-| `/skill-manager` | `<intent-id>` `<evaluation-phase>` `<matrix-jsonl-path>` `<skill-file-path>`; requires an active AIDLC intent as a prerequisite; read its command catalog first. | A skill needs to be created, reviewed, renamed, synchronized, optimized, or validated. |
+| `/skill-manager` | `init <absolute-skill-path> <description>`, `validate <absolute-skill-path>`, or the selected review/evaluation command; read its command catalog first. | Any skill, including AIDX and legacy skills, needs to be created, updated, reviewed, renamed, synchronized, optimized, or validated. |
 
 `/knowledge-base` alone owns the private-KB root. `/codebase-memory` alone owns
 CBM command selection and fallback search. The arguments above are selection

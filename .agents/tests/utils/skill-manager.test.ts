@@ -1,19 +1,21 @@
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 
 import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
   evaluateSkillMatrix,
   ignoredByAgentsGitignore,
+  initializeSkill,
   localMarkdownLinkTargets,
   parseMatrixJsonl,
   reviewSkillProse,
+  validateSkill,
 } from '../../utils/skill-manager.js';
 
 test('creates a matrix-definition packet from the draft state', () => {
   const packet = createSkillManagerPacket({
     failedAssertionIds: [],
-    intentId: 'improve-skill',
+    reviewId: 'improve-skill',
     state: 'draft',
     targetSkillPath: '/skills/example',
   });
@@ -27,7 +29,7 @@ test('requires failed assertions and rejects a state without an action', () => {
   expect(() =>
     createSkillManagerPacket({
       failedAssertionIds: [],
-      intentId: 'improve-skill',
+      reviewId: 'improve-skill',
       state: 'candidate_requested',
       targetSkillPath: '/skills/example',
     }),
@@ -35,7 +37,7 @@ test('requires failed assertions and rejects a state without an action', () => {
   expect(() =>
     createSkillManagerPacket({
       failedAssertionIds: ['case-a'],
-      intentId: 'improve-skill',
+      reviewId: 'improve-skill',
       state: 'accepted',
       targetSkillPath: '/skills/example',
     }),
@@ -47,7 +49,7 @@ test.each(['candidate_requested', 'candidate_checked'] as const)(
   (state) => {
     const packet = createSkillManagerPacket({
       failedAssertionIds: ['scope'],
-      intentId: 'improve-skill',
+      reviewId: 'improve-skill',
       state,
       targetSkillPath: '/skills/example',
     });
@@ -195,15 +197,101 @@ test('requires at least one batch target', () => {
   );
 });
 
-test('parses prose-only local links and honors the AIDLC ignore boundary', async () => {
+test('scaffolds a new skill without overwriting an existing skill', async () => {
+  const files = new Map<string, string>();
+  const fileSystem = {
+    mkdir: mock(async () => undefined),
+    readFile: mock(async (path: string) => {
+      const content = files.get(path);
+      if (content === undefined) {
+        throw new Error('missing');
+      }
+      return content;
+    }),
+    writeFile: mock(async (path: string, content: string) => {
+      files.set(path, content);
+    }),
+  };
+  const receipt = await initializeSkill(
+    fileSystem,
+    '/tmp/skills/example-skill',
+    'Handle example work.',
+  );
+  expect(receipt).toEqual({
+    description: 'Handle example work.',
+    name: 'example-skill',
+    path: '/tmp/skills/example-skill',
+    status: 'created',
+  });
+  expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain(
+    'description: "Handle example work."',
+  );
+  await expect(
+    initializeSkill(fileSystem, 'relative-skill', 'A description.'),
+  ).rejects.toThrow('must be absolute');
+  await expect(
+    initializeSkill(fileSystem, '/tmp/skills/empty-description', '  '),
+  ).rejects.toThrow('must be absolute');
+  await expect(
+    initializeSkill(
+      fileSystem,
+      '/tmp/skills/example-skill',
+      'A replacement description.',
+    ),
+  ).rejects.toThrow('Skill already exists');
+});
+
+test('validates skill frontmatter, name, description, and instructions', async () => {
+  const fileSystem = {
+    readFile: mock(async () =>
+      [
+        '---',
+        'name: example-skill',
+        'description: Handle example work.',
+        '---',
+        '',
+        '# Example Skill',
+        '',
+        'Follow the contract.',
+      ].join('\n'),
+    ),
+  };
+  await expect(
+    validateSkill(fileSystem, '/tmp/skills/example-skill'),
+  ).resolves.toEqual({
+    description: 'Handle example work.',
+    name: 'example-skill',
+    path: '/tmp/skills/example-skill',
+    status: 'valid',
+  });
+  await expect(
+    validateSkill(fileSystem, '/tmp/skills/ExampleSkill'),
+  ).rejects.toThrow('lowercase letters');
+  await expect(validateSkill(fileSystem, 'relative-skill')).rejects.toThrow(
+    'must be absolute',
+  );
+  await expect(
+    validateSkill(
+      { readFile: mock(async () => '# Missing frontmatter') },
+      '/tmp/skills/example-skill',
+    ),
+  ).rejects.toThrow('must contain valid name');
+  await expect(
+    validateSkill(
+      {
+        readFile: mock(async () => {
+          throw new Error('read failed');
+        }),
+      },
+      '/tmp/skills/example-skill',
+    ),
+  ).rejects.toThrow('frontmatter is invalid');
+});
+
+test('parses prose-only local links and honors the runtime ignore boundary', async () => {
   const files: Record<string, string> = {
-    '/tmp/.agents/.gitignore': [
-      '/aidlc/*/',
-      '!/aidlc/knowledge/',
-      '!/aidlc/*.md',
-    ].join('\n'),
-    '/tmp/.agents/aidlc/knowledge/README.md': '# Knowledge',
-    '/tmp/.agents/aidlc/runtime/private.md': '# Runtime',
+    '/tmp/.agents/.gitignore': '/skills/aidx/sessions',
+    '/tmp/.agents/skills/aidx/sessions/goal.md': '# Goal',
     '/tmp/.agents/skills/demo/agents/openai.yaml': 'display_name: Demo',
     '/tmp/.agents/skills/demo/guide.md': '# Guide',
     '/tmp/.agents/skills/demo/SKILL.md': [
@@ -213,9 +301,8 @@ test('parses prose-only local links and honors the AIDLC ignore boundary', async
     ].join('\n'),
   };
   const directories: Record<string, readonly string[]> = {
-    '/tmp/.agents/aidlc': ['knowledge', 'runtime'],
-    '/tmp/.agents/aidlc/knowledge': ['README.md'],
-    '/tmp/.agents/aidlc/runtime': ['private.md'],
+    '/tmp/.agents/skills/aidx': ['sessions'],
+    '/tmp/.agents/skills/aidx/sessions': ['goal.md'],
     '/tmp/.agents/skills/demo': ['SKILL.md', 'agents', 'guide.md'],
     '/tmp/.agents/skills/demo/agents': ['openai.yaml'],
   };
@@ -235,7 +322,7 @@ test('parses prose-only local links and honors the AIDLC ignore boundary', async
   };
   const receipt = await reviewSkillProse(fileSystem, [
     '/tmp/.agents/skills/demo',
-    '/tmp/.agents/aidlc',
+    '/tmp/.agents/skills/aidx/sessions',
   ]);
   const skillSource = files['/tmp/.agents/skills/demo/SKILL.md'] ?? '';
   const gitignore = files['/tmp/.agents/.gitignore'] ?? '';
@@ -246,12 +333,12 @@ test('parses prose-only local links and honors the AIDLC ignore boundary', async
   expect(
     ignoredByAgentsGitignore(
       '/tmp/.agents',
-      '/tmp/.agents/aidlc/runtime/private.md',
+      '/tmp/.agents/skills/aidx/sessions',
       gitignore,
     ),
   ).toBe(true);
   expect(receipt.prosePaths).not.toContain(
-    '/tmp/.agents/aidlc/runtime/private.md',
+    '/tmp/.agents/skills/aidx/sessions/goal.md',
   );
   expect(receipt.checkedLocalLinkTargets).toBe(2);
   expect(receipt.findings).toEqual([

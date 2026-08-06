@@ -13,12 +13,22 @@ import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
   evaluateSkillMatrix,
+  initializeSkill,
   parseMatrixJsonl,
   reviewSkillProse,
+  validateSkill,
 } from '../utils/skill-manager.js';
 
 export const usage = (): string =>
-  'Use the skill-manager command catalog. packet requires <intent-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path>; evaluate requires <baseline-or-candidate-or-challenge> <absolute-matrix-jsonl-path> <absolute-skill-file-path>; batch requires <intent-id> <baseline-or-candidate> plus at least two absolute matrix-and-skill pairs; review requires one or more absolute skill or static-asset roots.';
+  [
+    'Usage:',
+    '  bun <agents-root>/scripts/skill-manager.ts init <absolute-skill-path> <description>',
+    '  bun <agents-root>/scripts/skill-manager.ts validate <absolute-skill-path>',
+    '  bun <agents-root>/scripts/skill-manager.ts review <absolute-skill-or-static-root-path> [absolute-additional-static-root-path]',
+    '  bun <agents-root>/scripts/skill-manager.ts evaluate <baseline-or-candidate-or-challenge> <absolute-matrix-jsonl-path> <absolute-skill-file-path>',
+    '  bun <agents-root>/scripts/skill-manager.ts batch <review-id> <baseline-or-candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> ...',
+    '  bun <agents-root>/scripts/skill-manager.ts packet <review-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path> [failed-assertion-ids]',
+  ].join('\n');
 
 const defaultRead = readText.bind(undefined, nodeFileSystem);
 
@@ -72,14 +82,31 @@ const phaseFor = (
   throw new Error(usage());
 };
 
+const runInit = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  fileSystem: FileSystem,
+): Promise<void> => {
+  if (args.length !== 3 || !args[1]?.startsWith('/') || !args[2]) {
+    throw new Error(usage());
+  }
+  write(
+    JSON.stringify(
+      await initializeSkill(fileSystem, args[1], args[2]),
+      null,
+      2,
+    ),
+  );
+};
+
 const runPacket = (
   args: readonly string[],
   write: (message: string) => void,
 ): void => {
-  const [, intentId, state, targetSkillPath, failedAssertionIds] = args;
+  const [, reviewId, state, targetSkillPath, failedAssertionIds] = args;
   if (
     args[0] !== 'packet' ||
-    !intentId ||
+    !reviewId ||
     !state ||
     !targetSkillPath ||
     args.length < 4 ||
@@ -92,7 +119,7 @@ const runPacket = (
       createSkillManagerPacket({
         failedAssertionIds:
           failedAssertionIds?.split(',').filter(Boolean) ?? [],
-        intentId,
+        reviewId,
         state: state as WorkflowState,
         targetSkillPath,
       }),
@@ -112,13 +139,32 @@ const runReview = async (
   write(JSON.stringify(await reviewSkillProse(fileSystem, roots), null, 2));
 };
 
+const runValidate = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  fileSystem: Pick<FileSystem, 'readFile'>,
+): Promise<void> => {
+  if (args.length !== 2 || !args[1]?.startsWith('/')) {
+    throw new Error(usage());
+  }
+  write(JSON.stringify(await validateSkill(fileSystem, args[1]), null, 2));
+};
+
 export const run = async (
   args: readonly string[],
   read: (path: string) => Promise<string | Buffer> = defaultRead,
   write: (message: string) => void = console.log,
-  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'> = nodeFileSystem,
+  fileSystem: FileSystem = nodeFileSystem,
 ): Promise<void> => {
   const [command, first, second, third, fourth] = args;
+  if (command === 'init') {
+    await runInit(args, write, fileSystem);
+    return;
+  }
+  if (command === 'validate') {
+    await runValidate(args, write, fileSystem);
+    return;
+  }
   if (command === 'review') {
     await runReview(args, write, fileSystem);
     return;

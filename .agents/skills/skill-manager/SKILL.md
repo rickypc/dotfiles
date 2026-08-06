@@ -1,16 +1,39 @@
 ---
 name: skill-manager
-description: Create or improve one agent skill through an evidence-gated, batched workflow.
+description: Create, update, review, rename, synchronize, optimize, validate, or repair any agent skill through an evidence-gated process with clear trigger boundaries, reusable references, deterministic scaffolding, frozen quality matrices, lossless Markdown protection, and targeted validation.
 ---
 
-# Skill Manager
+# Skill Manager — Create, Maintain, and Govern Skills
 
-Use for one requested skill creation, rename, review, or behavior change.
-`evidence-gated-workflow-controller` owns the state and evidence; this skill
-owns only the skill-specific matrix and candidate work.
+Use this skill as the sole owner for any skill lifecycle request: create a new
+skill, update an existing skill, rename or synchronize a skill, review its
+quality, optimize its context cost, or repair a failed validation. It manages
+every skill, including AIDX and specialized capability skills. Do not route
+skill creation or maintenance to another skill.
 
-Apply `aidlc/knowledge/shared/command-catalog.md`. Matrix JSONL artifacts are
-temporary inputs and must use the operating system temporary directory.
+The generic evidence controller owns evaluation state and receipts. Skill
+Manager owns the selected skill's contract, resources, references, matrices,
+prose review, deterministic validation, and repair packet.
+
+## Ownership boundary
+
+Skill Manager owns the complete lifecycle:
+
+- trigger description and frontmatter contract;
+- `SKILL.md` normal path, router, delegated owners, and completion proof;
+- bundled references, scripts, assets, and folder maps that the skill declares;
+- create/update/rename decisions and scope control;
+- quality matrices, integrity review, validation, and forward-testing; and
+- final changed-file, test, limitation, and handoff evidence.
+
+Other skills may provide domain knowledge or execute a delegated operation,
+but they do not create, update, or validate the skill package itself.
+
+Read [skill-lifecycle.md](references/skill-lifecycle.md) for the create and
+update method. Read [index.md](references/index.md) for the reference map.
+
+The script below owns the command grammar. Matrix JSONL artifacts are temporary
+inputs and must use the operating system temporary directory.
 
 ## Skill quality contract
 
@@ -42,17 +65,44 @@ remove the split.
 
 | Priority | When | Command | Result | Next |
 | --- | --- | --- | --- | --- |
-| 1 | One selected skill needs a baseline, targeted candidate repair, or challenge evaluation. | `bun <agents-root>/scripts/skill-manager.ts evaluate "<baseline-or-candidate-or-challenge>" "<absolute-matrix-jsonl-path>" "<absolute-skill-file-path>"` | One evaluation receipt for the selected skill. | Apply only the returned repair packet. |
-| 2 | Two independent skills need baseline evaluation. | `bun <agents-root>/scripts/skill-manager.ts batch "<intent-id>" "baseline" "<absolute-first-matrix-jsonl-path>" "<absolute-first-skill-file-path>" "<absolute-second-matrix-jsonl-path>" "<absolute-second-skill-file-path>"` | Concurrent baseline receipts in one result. | Complete compatible repairs as one candidate batch. |
-| 3 | Two independent skills need candidate evaluation. | `bun <agents-root>/scripts/skill-manager.ts batch "<intent-id>" "candidate" "<absolute-first-matrix-jsonl-path>" "<absolute-first-skill-file-path>" "<absolute-second-matrix-jsonl-path>" "<absolute-second-skill-file-path>"` | Concurrent candidate receipts and challenge results after every candidate passes. | Apply only returned targeted repair packets. |
-| 4 | A script-produced packet requests a draft or repair handoff. | `bun <agents-root>/scripts/skill-manager.ts packet "<intent-id>" "<candidate-checked-or-candidate-requested-or-draft>" "<absolute-skill-path>"` | One state-derived action packet. | Follow that packet; do not invent an assertion result. |
-| 5 | A selected skill and its declared static prose roots need an ignore-aware integrity receipt. | `bun <agents-root>/scripts/skill-manager.ts review "<absolute-skill-or-static-root-path>" ["<absolute-additional-static-root-path>"]` | Recursive prose inventory, ignored-path record, and actual local-Markdown-link findings. | Repair each returned finding within its correct owner, then rerun the receipt. |
+| 1 | A new skill package is authorized and its path is known. | `bun <agents-root>/scripts/skill-manager.ts init <absolute-skill-path> <description>` | Creates one non-overwriting `SKILL.md` scaffold. | Fill the contract and resources, then validate. |
+| 2 | A skill package needs structural frontmatter validation. | `bun <agents-root>/scripts/skill-manager.ts validate <absolute-skill-path>` | Validates name, description, instructions, and directory naming. | Run `review`, then the selected matrix. |
+| 3 | A selected skill and its static roots need integrity review. | `bun <agents-root>/scripts/skill-manager.ts review "<absolute-skill-or-static-root-path>" ["<absolute-additional-static-root-path>"]` | Recursive prose inventory, ignore record, and local-link findings. | Repair each finding in its owning file, then rerun. |
+| 4 | One selected skill needs a baseline, candidate repair, or challenge evaluation. | `bun <agents-root>/scripts/skill-manager.ts evaluate "<baseline-or-candidate-or-challenge>" "<absolute-matrix-jsonl-path>" "<absolute-skill-file-path>"` | One evaluation receipt. | Apply only the returned repair packet. |
+| 5 | Two independent skills need the same evaluation phase. | `bun <agents-root>/scripts/skill-manager.ts batch "<review-id>" "baseline" "<absolute-first-matrix-jsonl-path>" "<absolute-first-skill-file-path>" "<absolute-second-matrix-jsonl-path>" "<absolute-second-skill-file-path>"` | Concurrent receipts and candidate challenges after all candidates pass. | Apply only returned targeted repair packets. |
+| 6 | Two independent skills need candidate evaluation. | `bun <agents-root>/scripts/skill-manager.ts batch "<review-id>" "candidate" "<absolute-first-matrix-jsonl-path>" "<absolute-first-skill-file-path>" "<absolute-second-matrix-jsonl-path>" "<absolute-second-skill-file-path>"` | Concurrent candidate receipts and challenge results after every candidate passes. | Apply only returned targeted repair packets. |
+| 7 | A script-produced packet requests a draft or repair handoff. | `bun <agents-root>/scripts/skill-manager.ts packet "<review-id>" "<candidate-checked-or-candidate-requested-or-draft>" "<absolute-skill-path>"` | One state-derived action packet. | Follow that packet; do not invent an assertion result. |
+
+`init` and `validate` are the deterministic skill-creation and skill-update
+support that callers use instead of a separate skill-authoring route. The LLM
+still owns domain judgment, wording, resource selection, and user questions.
+
+## Create and update contract
+
+For a new skill, first establish the trigger examples, outcome, owner, scope,
+and runtime location. Then use `init`, write the minimal normal path, add only
+resources that improve completion predictability, freeze the quality matrix,
+and validate the package. Do not create provider-specific metadata unless the
+runtime explicitly requires it.
+
+For an existing skill, read the current package and its local instructions,
+record the requested behavior change, identify affected owners and consumers,
+preserve unrelated user changes, and update only the approved surface. A
+rename or split must include a link and trigger migration plan; do not leave a
+second router or stale duplicate skill behind. Do not create a second router.
+
+Every create or update must finish with `validate`, `review`, the applicable
+quality matrix, and project-appropriate type, lint, or test checks. Use
+`/md-compress` begin/finalize for every durable Markdown file in the review
+set before and after prose edits. Forward-test a complex skill on a realistic
+task from a clean context; treat the raw output and emitted artifacts as
+evidence, not as proof supplied by the test prompt.
 
 ## Router governance
 
 Skill Manager governs every router in a skill and its static owned assets,
-including the AIDLC skill and static `aidlc/` methodology assets. It does not
-govern transient runtime state under `aidlc/<cbm-index>/`.
+including lifecycle lanes and static methodology assets. It does not govern
+transient evaluation state under the operating-system temporary directory.
 
 A router belongs in the caller that selects the next command or information.
 Place a compact router in that caller's `SKILL.md`. Create a separate reference
@@ -115,9 +165,9 @@ declared path basis as part of the human authority and clarity review.
 
 For global `.agents` work, read `.agents/.gitignore` before inventorying the
 review set. Exclude every ignored path and include every non-ignored static
-path. In particular, AIDLC review includes its non-ignored methodology assets
-and excludes machine-local indexed runtime directories and coverage. Do not use
-ignored state as review evidence or edit it unless the user explicitly names it.
+path. Exclude machine-local indexed runtime directories and coverage. Do not
+use ignored state as review evidence or edit it unless the user explicitly
+names it.
 
 Review every in-scope durable Markdown file for clarity, non-redundancy,
 authority, and link integrity. Run the direct `/md-compress` begin/finalize
@@ -125,7 +175,7 @@ transaction for each one—even when no wording change is necessary—to preserv
 lossless-token evidence. A successful transaction proves preservation, not that
 the prose review can be skipped.
 
-1. Resume or prepare the one matching intent before any edit.
+1. Resume or prepare one matching review run before any edit.
 2. Define a non-filler matrix. Every case needs typed assertions, failure mode,
    repair boundary, and an independent verifier. Freeze it before baseline.
 3. For two independent skills, use Priority 2. It reads and evaluates both

@@ -5,7 +5,7 @@ description: Generate and retain project-local Playwright browser regression tes
 
 # Playwright Test Generator
 
-Use only for user-facing web acceptance criteria. The intent acceptance
+Use only for user-facing web acceptance criteria. The goal acceptance
 checklist is the coverage boundary; describe each criterion in plain observable
 condition, action, and outcome language rather than scenario keyword syntax.
 
@@ -65,8 +65,8 @@ browser configuration.
 Read the selected project's manifest and Playwright configuration before using
 any command. Each placeholder below is a value declared by that project; do not
 invent a fallback command or run an installation command.
-Apply `aidlc/knowledge/shared/command-catalog.md`; this table is ordered from
-the normal flow to diagnostic work.
+This table is ordered from the normal flow to diagnostic work and is owned by
+this skill.
 
 | Priority | When | Required inputs | Project command | Result | Next |
 | --- | --- | --- | --- | --- | --- |
@@ -110,7 +110,7 @@ layout and interaction behavior rather than committing brittle image output.
 
 ## Performance branch
 
-Generate browser performance coverage only when the approved intent supplies a
+Generate browser performance coverage only when the approved goal supplies a
 project-owned measurable budget and controlled measurement conditions. A
 project-local Playwright test may capture browser timing, network observations,
 or a trace for that flow. Do not claim a Core Web Vitals pass from that evidence

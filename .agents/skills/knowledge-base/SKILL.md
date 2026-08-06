@@ -22,8 +22,8 @@ Concept paths must match
 directory has an `index.md`; concepts use Markdown frontmatter with required
 `type`, `title`, `description`, and `tags`.
 
-Apply `aidlc/knowledge/shared/command-catalog.md` to derived command tables.
-Any fixed reconciliation request is an absolute path under the operating system
+The command tables below are owned by this skill and its scripts. Any fixed
+reconciliation request is an absolute path under the operating system
 temporary directory; the request is parsed by this runtime, never passed to an
 external dependency as a raw payload.
 
@@ -76,8 +76,8 @@ in its body, then its parent `index.md` must list it.
 
 ## Cross-topic distillation
 
-One intent may contain several atomic lessons. Do not turn that fact into one
-file per intent or duplicate the same rule in several files. First use the
+One capture request may contain several atomic lessons. Do not turn that fact
+into one file per request or duplicate the same rule in several files. First use the
 related lookup to return candidate concepts from their titles, descriptions,
 and tags. Then make one explicit disposition for each atomic lesson:
 
@@ -91,7 +91,7 @@ The semantic owner is a reviewed decision, not an inference from a directory
 name. Do not infer a taxonomy. Do not move, delete, or merge existing concepts
 during reconciliation. Ambiguous ownership is a user decision.
 
-For an approved non-AIDLC reconciliation, build one fixed reconciliation
+For an approved reconciliation, build one fixed reconciliation
 request JSON file at an absolute path under the OS temporary directory with the
 TypeScript writer above, then invoke the deterministic command below. The
 request JSON must be serialized to disk as text; the runtime reads it back via
@@ -167,13 +167,11 @@ Workflow:
 | Priority | When | Required inputs | Command | Result | Next |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Find candidates before a distillation decision. | `<private-kb-root>`, `<query>` | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated concept candidates matching the supplied query. | Select one explicit disposition. |
-| 2 | Apply an approved multi-concept reconciliation outside AIDLC. | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. | Start the returned Markdown guard for every changed concept. |
+| 2 | Apply an approved multi-concept reconciliation. | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. | Start the returned Markdown guard for every changed concept. |
 
-Inside AIDLC, do not call `related` or `reconcile` directly. The AIDLC
-closeout boundary owns the same fixed reconciliation request through its one
-`capture-and-begin` action. It returns every guarded source path and its one
-`finalize-and-recover` action; do not bypass that transaction with standalone
-commands.
+If a caller supplies a guarded reconciliation packet, honor its exact owner,
+source paths, and next action; do not begin a second compression transaction.
+Otherwise use the direct `related` and `reconcile` commands above.
 
 When merging an older draft, treat the current validated KB as the starting
 authority and the older draft as a candidate source. fact-check every draft-only
@@ -206,8 +204,9 @@ create or refresh the named CBM index; do not invent another index.
 bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
 ```
 
-For AIDLC practices, use only validated concept records. Organization and team
-records retain their precedence; project records may live under any subject:
+For organization, team, or project practices, use only validated concept
+records. Organization and team records retain their precedence; project records
+may live under any subject:
 
 ```text
 shared/organization/<concept>.md
@@ -215,6 +214,6 @@ shared/team/<concept>.md
 <cbm-index>/<subject>/<concept>.md
 ```
 
-Use `<agents-root>/aidlc/prompts/templates/practice-record.md` as the public
-structure reference. The resolver rejects a matching `ALWAYS` / `NEVER` rule
-conflict; do not create placeholder organization, team, or project records.
+Use the required OKF metadata and evidence sections as the structure reference.
+The resolver rejects a matching `ALWAYS` / `NEVER` rule conflict; do not create
+placeholder organization, team, or project records.

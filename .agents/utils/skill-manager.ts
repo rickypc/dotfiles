@@ -1,4 +1,5 @@
-import { dirname, extname, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import matter from 'gray-matter';
 import type {
   MatrixCase,
   MatrixEvidence,
@@ -22,6 +23,13 @@ import {
 import type { WorkflowState } from './evidence-gated-workflow-controller/state.js';
 import type { FileSystem } from './filesystem.js';
 
+export interface SkillInitializationReceipt {
+  readonly description: string;
+  readonly name: string;
+  readonly path: string;
+  readonly status: 'created';
+}
+
 export interface SkillManagerBatchEvaluation {
   readonly phase: 'baseline' | 'candidate';
   readonly results: readonly SkillManagerBatchResult[];
@@ -44,7 +52,7 @@ export interface SkillManagerBatchTarget {
 
 export interface SkillManagerPacketInput {
   readonly failedAssertionIds: readonly string[];
-  readonly intentId: string;
+  readonly reviewId: string;
   readonly state: WorkflowState;
   readonly targetSkillPath: string;
 }
@@ -61,6 +69,13 @@ export interface SkillProseReviewReceipt {
   readonly ignoredPaths: readonly string[];
   readonly prosePaths: readonly string[];
   readonly reviewedRoots: readonly string[];
+}
+
+export interface SkillValidationReceipt {
+  readonly description: string;
+  readonly name: string;
+  readonly path: string;
+  readonly status: 'valid';
 }
 
 const actionTitleFor = (state: WorkflowState): string => {
@@ -98,10 +113,10 @@ export const createSkillManagerPacket = (
       'Edit paths outside the target skill.',
       'Claim completion without script-produced evidence.',
     ],
-    intentId: input.intentId,
+    intentId: input.reviewId,
     knownUserQuestions: [],
     nextPhase: input.state === 'draft' ? 'baseline' : 'evaluate',
-    packetId: `${input.intentId}-${input.state}`,
+    packetId: `${input.reviewId}-${input.state}`,
     requiredActionGroups: [
       {
         allowedPaths: [input.targetSkillPath],
@@ -136,6 +151,97 @@ const failedAssertionIdsFor = (receipt: EvidenceReceipt): string[] => [
 
 const isExternalTarget = (target: string): boolean =>
   /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(target);
+
+const skillNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+
+const skillNameFor = (skillPath: string): string => {
+  const name = basename(resolve(skillPath));
+  if (!skillNamePattern.test(name)) {
+    throw new Error(
+      'Skill directory names must use lowercase letters, digits, and hyphens.',
+    );
+  }
+  return name;
+};
+
+const titleFor = (name: string): string =>
+  name
+    .split('-')
+    .map((word) => `${word[0]?.toUpperCase() ?? ''}${word.slice(1)}`)
+    .join(' ');
+
+const skillSourceFor = (name: string, description: string): string => `---
+name: ${name}
+description: ${JSON.stringify(description)}
+---
+
+# ${titleFor(name)}
+
+Use this skill only after its trigger is confirmed. State the normal path,
+the owner of each delegated command or information source, and the proof that
+closes the work. Keep detailed branch guidance in linked references.
+`;
+
+export const initializeSkill = async (
+  fileSystem: Pick<FileSystem, 'mkdir' | 'readFile' | 'writeFile'>,
+  skillPath: string,
+  description: string,
+): Promise<SkillInitializationReceipt> => {
+  if (!skillPath.startsWith('/') || !description.trim()) {
+    throw new Error(
+      'Skill path must be absolute and description must be nonblank.',
+    );
+  }
+  const path = resolve(skillPath);
+  const name = skillNameFor(path);
+  const skillFile = join(path, 'SKILL.md');
+  if ((await readOptional(fileSystem, skillFile)) !== undefined) {
+    throw new Error(`Skill already exists: ${skillFile}`);
+  }
+  await fileSystem.mkdir(path, { recursive: true });
+  await fileSystem.writeFile(
+    skillFile,
+    skillSourceFor(name, description),
+    'utf8',
+  );
+  return { description, name, path, status: 'created' };
+};
+
+export const validateSkill = async (
+  fileSystem: Pick<FileSystem, 'readFile'>,
+  skillPath: string,
+): Promise<SkillValidationReceipt> => {
+  if (!skillPath.startsWith('/')) {
+    throw new Error('Skill path must be absolute.');
+  }
+  const path = resolve(skillPath);
+  const name = skillNameFor(path);
+  let parsed: ReturnType<typeof matter>;
+  try {
+    parsed = matter(await fileSystem.readFile(join(path, 'SKILL.md'), 'utf8'));
+  } catch {
+    throw new Error(
+      `Skill SKILL.md frontmatter is invalid: ${join(path, 'SKILL.md')}`,
+    );
+  }
+  if (
+    typeof parsed.data.name !== 'string' ||
+    parsed.data.name !== name ||
+    typeof parsed.data.description !== 'string' ||
+    !parsed.data.description.trim() ||
+    !parsed.content.trim()
+  ) {
+    throw new Error(
+      `Skill SKILL.md must contain valid name, description, and instructions: ${join(path, 'SKILL.md')}`,
+    );
+  }
+  return {
+    description: parsed.data.description,
+    name,
+    path,
+    status: 'valid',
+  };
+};
 
 const proseExtensions = new Set(['.md', '.txt', '.yaml', '.yml']);
 
@@ -342,7 +448,7 @@ const receiptFor = (
   );
 
 const repairFor = (
-  intentId: string,
+  reviewId: string,
   target: SkillManagerBatchTarget,
   receipt: EvidenceReceipt,
 ): ActionPacket | undefined => {
@@ -351,14 +457,14 @@ const repairFor = (
     ? undefined
     : createSkillManagerPacket({
         failedAssertionIds,
-        intentId,
+        reviewId,
         state: 'candidate_requested',
         targetSkillPath: target.targetSkillPath,
       });
 };
 
 export const evaluateSkillManagerBatch = (
-  intentId: string,
+  reviewId: string,
   phase: 'baseline' | 'candidate',
   targets: readonly SkillManagerBatchTarget[],
 ): SkillManagerBatchEvaluation => {
@@ -386,7 +492,7 @@ export const evaluateSkillManagerBatch = (
           : undefined;
       const repair =
         phase === 'candidate'
-          ? repairFor(intentId, target, challenge ?? candidate)
+          ? repairFor(reviewId, target, challenge ?? candidate)
           : undefined;
       return {
         candidate,
