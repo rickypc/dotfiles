@@ -1,5 +1,6 @@
 // biome-ignore lint/style/noExcessiveLinesPerFile: AIDLC public CLI dispatch remains intentionally centralized.
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +31,7 @@ import {
   skipAidlcStage,
   supersedeAidlcIntent,
   updateAidlcIntent,
+  validateAidlcConstructionPlan,
   validateAidlcKnowledgeCloseoutReferences,
   withAidlcKnowledgeCloseout,
 } from '../utils/aidlc/intent.js';
@@ -531,9 +533,16 @@ const runBuildAndTest = async (
   executeGate?: AidlcGateExecutor,
   closeout?: AidlcKnowledgeCloseout,
   retire: typeof retireAidlcIntent = retireAidlcIntent,
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: lifecycle closeout keeps gate, audit, persistence, and retirement outcomes explicit.
 ): Promise<void> => {
   if (!intent.projectRoot) {
     throw new Error('Build and Test requires an absolute project root.');
+  }
+  if (existsSync(intentPath)) {
+    validateAidlcConstructionPlan(
+      await readText(nodeFileSystem, intentPath),
+      intent.projectRoot,
+    );
   }
   const result = executeFinalGate(
     intent.projectRoot,

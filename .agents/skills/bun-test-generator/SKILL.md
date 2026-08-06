@@ -44,6 +44,25 @@ This rule is CRITICAL, ALWAYS enforced, and applies to existing test repairs as
 well as newly generated tests. If a test mocks the selected SUT, stop and
 rewrite it to call the real SUT while mocking only its dependencies.
 
+## Shared-suite integration boundary
+
+The default scope is `isolated-unit`, and the external-boundary rule above is
+unchanged for that scope. When a test is intentionally part of an existing
+shared Bun process and must exercise a real in-repository helper, declare
+`shared-suite-integration` in the boundary-validation request. In that scope:
+
+- the selected SUT and local helpers remain real;
+- local relative modules must not be registered with `mock.module()` because
+  Bun module mocks can persist across test files in one process;
+- process, filesystem, network, package, and global boundaries still require
+  explicit mocks; and
+- the test must be labeled as an integration-preservation test in its matrix
+  and must use the canonical existing suite rather than creating a parallel
+  isolated test.
+
+This is an explicit scope decision, not a bypass. Never use it to leave an
+external boundary live or to mock the selected SUT.
+
 For accepted user-facing browser flows, use `/playwright-test-generator` instead
 of this unit-test skill. It retains project-local browser regression tests;
 this skill remains responsible for selected JavaScript or TypeScript SUT units.
@@ -117,3 +136,5 @@ bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-
 The boundary-validation JSON MUST include the exact module specifier used by
 the test to import the selected SUT. Validation fails if that specifier is
 passed to `mock.module()`; only the other module specifiers are mockable.
+It may include `"scope":"shared-suite-integration"` only when the shared
+suite condition above is factual; omission defaults to `isolated-unit`.

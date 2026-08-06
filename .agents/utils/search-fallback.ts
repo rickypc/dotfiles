@@ -47,14 +47,16 @@ const attempt = async (
 ): Promise<{ readonly attempt: SearchAttempt; readonly output: string }> => {
   try {
     const result = await executor(spec);
-    const output = outputFor(result);
+    const output = result.stdout.trim();
     return {
       attempt: {
         command: commandText(spec),
-        detail: output || `Exit code ${result.code}.`,
+        detail: outputFor(result) || `Exit code ${result.code}.`,
         status:
-          result.code === 0 && output
-            ? 'found'
+          result.code === 0
+            ? output
+              ? 'found'
+              : 'not-found'
             : result.code === 1
               ? 'not-found'
               : 'error',

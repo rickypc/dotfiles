@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noExcessiveLinesPerFile: this integration contract suite exercises the public AIDLC CLI in one canonical file.
 import { expect, mock, test } from 'bun:test';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -706,6 +707,54 @@ test('records Code Generation and executes the final gate in one command', async
   expect(write).toHaveBeenCalledWith(
     expect.stringContaining('knowledge-base-closeout-and-recover'),
   );
+});
+
+test('validates a persisted construction plan before running the final gate', async () => {
+  const intentPath =
+    '/Users/rhuang/.agents/aidlc/repo/intents/coverage-plan.md';
+  mkdirSync('/Users/rhuang/.agents/aidlc/repo/intents', { recursive: true });
+  writeFileSync(
+    intentPath,
+    [
+      '## Construction plan',
+      '',
+      '| Step | Status | Requirements and units | What | Where | Why | Depends on | Focused proof | Review and re-plan trigger | Actual evidence |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+      '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+      '',
+      '## Execution evidence',
+    ].join('\n'),
+  );
+  try {
+    const initial = createAidlcIntent('repo', 'Persisted construction plan', {
+      projectRoot: '/a-project-without-a-config',
+    });
+    const intent = {
+      ...initial,
+      route: initial.route.map((record) => ({
+        ...record,
+        status:
+          record.slug === 'build-and-test'
+            ? ('active' as const)
+            : ('completed' as const),
+      })),
+      stage: 'build-and-test' as const,
+    };
+    await run(
+      ['complete', intentPath],
+      undefined,
+      mock(),
+      mock(async () => intent),
+      mock(async () => undefined),
+      mock(async () => undefined),
+      undefined,
+      undefined,
+      undefined,
+      mock(() => ({ status: 0 })) as unknown as AidlcGateExecutor,
+    );
+  } finally {
+    rmSync(intentPath, { force: true });
+  }
 });
 
 test('runs the final gate within Build and Test and returns knowledge closeout', async () => {

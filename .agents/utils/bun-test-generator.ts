@@ -13,6 +13,8 @@ interface BunTestExternalMock {
   readonly specifier: string;
 }
 
+export type BunTestScope = 'isolated-unit' | 'shared-suite-integration';
+
 export interface BunTestTemplate {
   readonly actualExpression: string;
   readonly cases: readonly {
@@ -197,6 +199,8 @@ export const validateExternalDependencyMocks = (
   sutSource: string,
   testSource: string,
   sutModuleSpecifier?: string,
+  scope: BunTestScope = 'isolated-unit',
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: boundary validation keeps each failure mode explicit.
 ): void => {
   if (sutModuleSpecifier !== undefined && !sutModuleSpecifier.trim()) {
     throw new Error('The selected SUT module specifier must not be blank.');
@@ -210,12 +214,30 @@ export const validateExternalDependencyMocks = (
     );
   }
   const externalModules = externalModuleSpecifiersFor(sutSource);
-  if (externalModules.length > 0 && !bunMockImport.test(testSource)) {
+  if (scope !== 'isolated-unit' && scope !== 'shared-suite-integration') {
+    throw new Error(`Unsupported Bun test scope: ${scope}.`);
+  }
+  const localModules = externalModules.filter((specifier) =>
+    specifier.startsWith('.'),
+  );
+  const locallyMocked = mockedModuleSpecifiersFor(testSource).filter(
+    (specifier) => specifier.startsWith('.'),
+  );
+  if (scope === 'shared-suite-integration' && locallyMocked.length > 0) {
+    throw new Error(
+      `Shared-suite integration tests must not mock local modules: ${locallyMocked.join(', ')}.`,
+    );
+  }
+  const modulesRequiringMocks =
+    scope === 'shared-suite-integration'
+      ? externalModules.filter((specifier) => !localModules.includes(specifier))
+      : externalModules;
+  if (modulesRequiringMocks.length > 0 && !bunMockImport.test(testSource)) {
     throw new Error(
       'External module boundaries require mock.module() and a mock import from bun:test.',
     );
   }
-  const missingModules = externalModules.filter(
+  const missingModules = modulesRequiringMocks.filter(
     (specifier) =>
       !new RegExp(
         `\\bmock\\.module\\(\\s*['"]${escapeRegExp(specifier)}['"]`,

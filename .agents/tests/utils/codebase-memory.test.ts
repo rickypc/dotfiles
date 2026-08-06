@@ -4,6 +4,7 @@ import {
   assertAllowedCbmRoot,
   assertKnownCbmProject,
   cbmCommands,
+  cbmGraphIdentityFields,
   cbmInspectionCommand,
   cbmOutputHasMatches,
   cbmProjectForRoot,
@@ -641,6 +642,12 @@ test('accepts graph matches in structured identity fields', async () => {
 });
 
 test('requires structured graph identity fields for query-aware matching', () => {
+  expect(cbmGraphIdentityFields).toEqual([
+    'name',
+    'qualified_name',
+    'file_path',
+    'path',
+  ]);
   expect(
     cbmOutputHasMatches(
       '{"total":1,"results":[{"description":"needle"}]}',

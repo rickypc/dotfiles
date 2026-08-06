@@ -57,6 +57,18 @@ Use the smallest read that answers the question. Commands are exact flags, not
 JSON payloads. Apply `aidlc/knowledge/shared/command-catalog.md` to every
 derived command table.
 
+## Query-aware graph match contract
+
+The wrapper treats a CBM graph result as a query match only when the normalized
+query occurs in one of the schema-owned identity fields exported by
+`utils/codebase-memory.ts`: `name`, `qualified_name`, `file_path`, or `path`.
+Descriptions, ranking text, serialized metadata, and unrelated fields are not
+identity evidence. If the CBM schema adds another identity field, verify it
+through the graph schema or a live result, add it to the exported field
+contract, and add a regression test before using it. A graph result count alone
+is sufficient only for an unqualified read; query-aware fallback must prove the
+query in an identity field.
+
 ## Command catalog
 
 | Priority | When | Command | Result | Next |

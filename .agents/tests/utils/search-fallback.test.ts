@@ -140,3 +140,17 @@ test('tries file-name discovery after content misses and records command errors'
     ),
   ).rejects.toThrow('query');
 });
+
+test('does not treat stderr-only diagnostics as a content match', async () => {
+  const receipt = await stagedRgSearch(
+    async () => ({ code: 0, stderr: 'warning: ignored path', stdout: '' }),
+    '/repo',
+    'needle',
+  );
+  expect(receipt.found).toBeFalse();
+  expect(receipt.output).toBe('');
+  expect(receipt.attempts[0]).toMatchObject({
+    detail: 'warning: ignored path',
+    status: 'not-found',
+  });
+});

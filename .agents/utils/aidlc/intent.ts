@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import matter from 'gray-matter';
 import type { FileSystem } from '../filesystem.js';
 import { readText, removeFile, writeText } from '../filesystem.js';
@@ -297,6 +298,22 @@ const auditLineFor = (event: AidlcAuditEvent): string => {
     throw new Error('AIDLC audit events require a timestamp and detail.');
   }
   return `- ${event.at} | ${event.type} | ${event.stage} | ${event.detail.replaceAll(/\s+/gu, ' ').trim()}`;
+};
+
+const constructionPlanPathsFor = (row: string): readonly string[] =>
+  [...row.matchAll(/\/(?:[^|\s`<>])+/gu)]
+    .map((match) => (match[0] ?? '').replace(/[.,;:)]+$/u, ''))
+    .filter((path) => path.length > 1 && !path.includes('://'));
+
+const constructionPlanSectionFor = (content: string): string => {
+  const section =
+    /^## Construction plan\n([\s\S]*?)(?=\n## Execution evidence)/mu.exec(
+      content,
+    )?.[1];
+  if (!section) {
+    throw new Error('AIDLC construction plan section is missing.');
+  }
+  return section;
 };
 
 const constructionPlanTemplate = (): string =>
@@ -717,6 +734,51 @@ export const skipAidlcStage = (
     intent,
     updateRoute(intent, { ...record, evidence: reason, status: 'skipped' }),
   );
+};
+
+export const validateAidlcConstructionPlan = (
+  content: string,
+  _projectRoot: string,
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the validator intentionally fails closed across each proof obligation.
+): void => {
+  const section = constructionPlanSectionFor(content);
+  if (/<[^>]+>/u.test(section)) {
+    throw new Error(
+      'AIDLC construction plan still contains a placeholder; populate every row before Build and Test.',
+    );
+  }
+  const rows = section
+    .split('### Validation reconciliation', 1)[0]
+    ?.trim()
+    .split('\n')
+    .filter((line) => line.startsWith('|'))
+    .slice(2);
+  if (rows.length === 0) {
+    throw new Error('AIDLC construction plan must contain at least one row.');
+  }
+  for (const row of rows) {
+    const cells = row
+      .split('|')
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    if (cells.length !== 10 || cells.slice(0, 9).some((cell) => !cell)) {
+      throw new Error(
+        'AIDLC construction plan rows require step, status, ownership, location, rationale, proof, trigger, and evidence.',
+      );
+    }
+    if (cells[1] !== '`complete`') {
+      throw new Error(
+        'AIDLC construction plan rows must be complete before Build and Test.',
+      );
+    }
+    for (const path of constructionPlanPathsFor(row)) {
+      if (!existsSync(path)) {
+        throw new Error(
+          `AIDLC construction plan references a missing path: ${path}`,
+        );
+      }
+    }
+  }
 };
 
 export const validateAidlcKnowledgeCloseoutReferences = async (

@@ -9,10 +9,11 @@ export interface AidlcGateConfig {
 export type AidlcGateExecutor = (
   command: string,
   args: readonly string[],
-  options: { readonly cwd: string; readonly stdio: 'inherit' },
+  options: { readonly cwd: string; readonly stdio: 'pipe' },
 ) => SpawnSyncReturns<Buffer>;
 
 export interface AidlcGateResult {
+  readonly diagnostics: readonly string[];
   readonly exitCode: number;
   readonly gate: string;
   readonly receipt: string;
@@ -32,8 +33,27 @@ export const finalGateFor = (config: AidlcGateConfig): string => {
   return gate || defaultFinalGate;
 };
 
-export const finalGateReceipt = (gate: string, exitCode: number): string =>
-  `final gate: ${gate} ${exitCode === 0 ? 'passed' : 'failed'} (exit ${exitCode})`;
+export const finalGateReceipt = (
+  gate: string,
+  exitCode: number,
+  diagnostics: readonly string[] = [],
+): string => {
+  const status = `final gate: ${gate} ${exitCode === 0 ? 'passed' : 'failed'} (exit ${exitCode})`;
+  return diagnostics.length > 0
+    ? `${status}; diagnostics: ${diagnostics.join(' | ')}`
+    : status;
+};
+
+export const gateDiagnosticsFor = (output: string): readonly string[] =>
+  output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) =>
+      /(?:error|fail(?:ed|ure)?|exception|coverage|exited with code|no tests)/iu.test(
+        line,
+      ),
+    )
+    .slice(-8);
 
 export const executeFinalGate = (
   projectRoot: string,
@@ -42,10 +62,19 @@ export const executeFinalGate = (
 ): AidlcGateResult => {
   const result = execute('/bin/sh', ['-lc', gate], {
     cwd: projectRoot,
-    stdio: 'inherit',
+    stdio: 'pipe',
   });
   const exitCode = result.status ?? 1;
-  return { exitCode, gate, receipt: finalGateReceipt(gate, exitCode) };
+  const output = [result.stdout?.toString(), result.stderr?.toString()]
+    .filter(Boolean)
+    .join('\n');
+  const diagnostics = gateDiagnosticsFor(output);
+  return {
+    diagnostics,
+    exitCode,
+    gate,
+    receipt: finalGateReceipt(gate, exitCode, diagnostics),
+  };
 };
 
 export const parseAidlcGateConfig = (content: string): AidlcGateConfig => {

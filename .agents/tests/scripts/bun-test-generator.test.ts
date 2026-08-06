@@ -100,6 +100,17 @@ test('rejects invalid input and guards the main boundary', () => {
   expect(() => run(['validate-boundaries', '{}'])).toThrow(
     'sutSource, testSource, and sutModuleSpecifier',
   );
+  expect(() =>
+    run([
+      'validate-boundaries',
+      JSON.stringify({
+        scope: 'unsupported',
+        sutModuleSpecifier: './sut.js',
+        sutSource: 'export const load = () => true;',
+        testSource: "import { test } from 'bun:test';",
+      }),
+    ]),
+  ).toThrow('scope must be');
   expect(() => run([])).toThrow(usage());
   const runner = mock();
   runWhenMain(true, ['test-path', '/repo', '/repo/source.ts'], runner);

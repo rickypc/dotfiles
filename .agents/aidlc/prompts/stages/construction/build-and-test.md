@@ -43,7 +43,11 @@ findings and repeat the review before handoff.
    configured final gate executes it. A missing project-local runner or gate
    coverage leaves the criterion open; it does not authorize an implicit
    install, MCP, browser extension, or second command. Run focused checks
-   before this stage and record their outputs.
+   before this stage and record their outputs. Every path named in a
+   construction-plan location, focused-proof, or actual-evidence cell must be
+   absolute and must exist at this handoff. If a source or test moved, update
+   the plan and evidence and record the deviation before invoking the gate;
+   stale proof paths are a hard failure, not a documentation detail.
 2. Use the lifecycle final-gate action. It resolves the project configuration
    or `bun run test` default, executes it once, and emits the only valid 3.6
    receipt. Do not call a standalone gate helper or supply model-written gate

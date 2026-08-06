@@ -8,6 +8,7 @@ import {
   defaultFinalGate,
   finalGateFor,
   finalGateReceipt,
+  gateDiagnosticsFor,
   parseAidlcGateConfig,
   resolveAidlcGate,
   resolveFinalGate,
@@ -29,6 +30,12 @@ test('renders an unambiguous final-gate receipt', () => {
     'final gate: bun run test passed (exit 0)',
   );
   expect(finalGateReceipt('go test ./...', 1)).toContain('failed');
+  expect(
+    finalGateReceipt('bun run test', 1, ['error: test:unit failed']),
+  ).toContain('test:unit failed');
+  expect(
+    gateDiagnosticsFor('ok\nerror: test:unit failed\ncoverage: 93%\n'),
+  ).toEqual(['error: test:unit failed', 'coverage: 93%']);
 });
 
 test('resolves one configured gate from an absolute project root', () => {

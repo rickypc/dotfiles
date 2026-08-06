@@ -156,6 +156,9 @@ gate or terminal result.
 5. Before Construction validation, map every acceptance item to an executable
    test, smoke check, or directly observable result. An unmapped item remains
    open even when preliminary checks pass.
+   Construction-plan location and proof paths must be absolute existing paths
+   at Build and Test. If a source or test moves, reconcile every affected row
+   and evidence reference and record the deviation before the final gate.
 6. At 3.6, the lifecycle command runs exactly one project-owned final gate:
    `<project-root>/aidlc.config.json` may define `finalGate`; otherwise the
    default is `bun run test`. A non-zero result is failure, including cosmetic

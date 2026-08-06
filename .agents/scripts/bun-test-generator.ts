@@ -32,6 +32,7 @@ export const usage = (): string =>
 
 const validateBoundaries = (input: string): void => {
   const parsed = JSON.parse(input) as {
+    readonly scope?: unknown;
     readonly sutSource?: unknown;
     readonly sutModuleSpecifier?: unknown;
     readonly testSource?: unknown;
@@ -45,11 +46,21 @@ const validateBoundaries = (input: string): void => {
       'Boundary validation requires string sutSource, testSource, and sutModuleSpecifier.',
     );
   }
+  if (
+    parsed.scope !== undefined &&
+    parsed.scope !== 'isolated-unit' &&
+    parsed.scope !== 'shared-suite-integration'
+  ) {
+    throw new Error(
+      'Boundary validation scope must be isolated-unit or shared-suite-integration.',
+    );
+  }
   validateBunTestSource(parsed.testSource);
   validateExternalDependencyMocks(
     parsed.sutSource,
     parsed.testSource,
     parsed.sutModuleSpecifier,
+    parsed.scope,
   );
 };
 

@@ -22,6 +22,7 @@ import {
   skipAidlcStage,
   supersedeAidlcIntent,
   updateAidlcIntent,
+  validateAidlcConstructionPlan,
   validateAidlcKnowledgeCloseoutReferences,
   withAidlcKnowledgeCloseout,
   withAidlcKnowledgeContext,
@@ -35,6 +36,63 @@ test.each([
 ])('slugifies %s', (input, expected) =>
   expect(intentIdFor(input)).toBe(expected),
 );
+
+test('requires completed construction rows and existing proof paths', () => {
+  const valid = [
+    '## Construction plan',
+    '',
+    '| Step | Status | Requirements and units | What | Where | Why | Depends on | Focused proof | Review and re-plan trigger | Actual evidence |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+    '',
+    '## Execution evidence',
+  ].join('\n');
+  expect(() =>
+    validateAidlcConstructionPlan(valid, '/Users/rhuang'),
+  ).not.toThrow();
+  expect(() =>
+    validateAidlcConstructionPlan(
+      valid.replace('`complete`', '`pending`'),
+      '/Users/rhuang',
+    ),
+  ).toThrow('must be complete');
+  expect(() =>
+    validateAidlcConstructionPlan(
+      valid.replace(
+        '/Users/rhuang/.agents/utils/aidlc/intent.ts',
+        '/Users/rhuang/.agents/utils/aidlc/missing.ts',
+      ),
+      '/Users/rhuang',
+    ),
+  ).toThrow('missing path');
+  expect(() =>
+    validateAidlcConstructionPlan(
+      valid.replace('| U1 |', '| `<step>` |'),
+      '/Users/rhuang',
+    ),
+  ).toThrow('placeholder');
+  expect(() =>
+    validateAidlcConstructionPlan('## Execution evidence', '/repo'),
+  ).toThrow('section is missing');
+  expect(() =>
+    validateAidlcConstructionPlan(
+      valid.replace(
+        '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+        '',
+      ),
+      '/Users/rhuang',
+    ),
+  ).toThrow('at least one row');
+  expect(() =>
+    validateAidlcConstructionPlan(
+      valid.replace(
+        '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+        '| malformed | row |',
+      ),
+      '/Users/rhuang',
+    ),
+  ).toThrow('require step');
+});
 
 test('caps long intent filenames with a deterministic hash suffix', () => {
   const summary = `${'reusable-workflow-'.repeat(20)}plan`;

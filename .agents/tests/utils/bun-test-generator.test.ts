@@ -154,6 +154,55 @@ test('requires mocks for every external SUT module and global boundary', () => {
   ).toThrow('mock import');
 });
 
+test('protects shared Bun suites from local helper mock contamination', () => {
+  const sutSource = [
+    "import { readFile } from 'node:fs/promises';",
+    "import { now } from './clock.js';",
+    'export const load = () => now();',
+  ].join('\n');
+  const sharedTest = [
+    "import { expect, test } from 'bun:test';",
+    "test('load', () => expect(true).toBeTrue());",
+  ].join('\n');
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
+      sharedTest,
+      './sut.js',
+      'shared-suite-integration',
+    ),
+  ).toThrow('External module boundaries');
+  const withExternalMock = [
+    "import { expect, mock, test } from 'bun:test';",
+    "mock.module('node:fs/promises', () => ({ readFile: mock() }));",
+    "test('load', () => expect(true).toBeTrue());",
+  ].join('\n');
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
+      withExternalMock,
+      './sut.js',
+      'shared-suite-integration',
+    ),
+  ).not.toThrow();
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
+      `${withExternalMock}\nmock.module('./clock.js', () => ({ now: mock() }));`,
+      './sut.js',
+      'shared-suite-integration',
+    ),
+  ).toThrow('must not mock local modules');
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
+      withExternalMock,
+      './sut.js',
+      'unsupported' as 'isolated-unit',
+    ),
+  ).toThrow('Unsupported Bun test scope');
+});
+
 test('renders quality-focused templates and converts supported Jest tests', () => {
   const source = renderBunTestTemplate({
     actualExpression: 'sut.parse(input)',

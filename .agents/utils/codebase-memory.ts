@@ -82,6 +82,14 @@ interface ListedCbmProject {
   readonly roots: readonly string[];
 }
 
+/** The CBM graph fields whose values identify a returned node or source path. */
+export const cbmGraphIdentityFields = [
+  'name',
+  'qualified_name',
+  'file_path',
+  'path',
+] as const;
+
 export const cbmCommand = (
   operation: string,
   args: readonly string[] = [],
@@ -344,7 +352,7 @@ export const cbmOutputHasMatches = (
             return false;
           }
           const record = result as Record<string, unknown>;
-          return ['name', 'qualified_name', 'file_path', 'path'].some(
+          return cbmGraphIdentityFields.some(
             (field) =>
               typeof record[field] === 'string' &&
               record[field].toLowerCase().includes(expected),
