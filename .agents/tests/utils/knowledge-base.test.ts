@@ -305,14 +305,14 @@ test('preserves optional OKF metadata and reconciles linked concepts', async () 
       ],
       operations: [
         {
-          body: 'See [strategy](/shared/testing/strategy.md).',
+          body: 'See [strategy](strategy.md).',
           disposition: 'new-primary',
           evidence: 'Validated.',
           metadata,
           relativePath: 'shared/testing/playwright.md',
         },
         {
-          body: 'See [Playwright](/shared/testing/playwright.md).',
+          body: 'See [Playwright](playwright.md).',
           disposition: 'update-existing',
           evidence: 'Validated.',
           metadata: {

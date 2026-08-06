@@ -1,4 +1,5 @@
 import { expect, mock, test } from 'bun:test';
+import { join } from 'node:path';
 
 type FakeBabel = {
   availablePlugins: Record<string, (() => void) | undefined>;
@@ -64,7 +65,7 @@ type TransformOptions = {
   plugins?: unknown[];
 };
 
-const SUT_PATH = '/Users/rhuang/bin/devel.umd.js';
+const SUT_PATH = join(import.meta.dir, '../../../bin/devel.umd.js');
 
 const createBabel = (
   transformCalls: TransformCall[],

@@ -1,4 +1,6 @@
 import { expect, mock, test } from 'bun:test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import {
   assertAllowedCbmRoot,
@@ -17,9 +19,13 @@ import {
   searchWithCbmFallback,
 } from '../../utils/codebase-memory.js';
 
+const HOME_ROOT = join(tmpdir(), 'cbm-home');
+const REPO_ROOT = join(HOME_ROOT, 'Github', 'repo');
+const APP_ROOT = join(HOME_ROOT, 'tmp-app');
+
 test('accepts only a CBM project name returned by the project list', () => {
-  const projects = '{"projects":[{"name":"Users-rhuang"},{"name":"Bento"}]}';
-  expect(cbmProjectNames(projects)).toEqual(['Users-rhuang', 'Bento']);
+  const projects = '{"projects":[{"name":"home-index"},{"name":"Bento"}]}';
+  expect(cbmProjectNames(projects)).toEqual(['home-index', 'Bento']);
   expect(() => assertKnownCbmProject('Bento', projects)).not.toThrow();
   expect(() => assertKnownCbmProject('made-up', projects)).toThrow(
     'not a listed',
@@ -29,49 +35,44 @@ test('accepts only a CBM project name returned by the project list', () => {
 test('resolves a project only from an explicit indexed-root mapping', () => {
   const projects = JSON.stringify({
     projects: [
-      { name: 'Users-rhuang', repository_path: '/Users/rhuang' },
+      { name: 'home-index', repository_path: HOME_ROOT },
       {
-        name: 'Users-rhuang-Github-bento',
-        repository_path: '/Users/rhuang/Github/bento',
+        name: 'home-index-Github-bento',
+        repository_path: join(HOME_ROOT, 'Github', 'bento'),
       },
     ],
   });
-  expect(cbmProjectForRoot('/Users/rhuang/tmp-sum-app', projects)).toBe(
-    'Users-rhuang',
-  );
-  expect(cbmProjectForRoot('/Users/rhuang/Github/bento/src', projects)).toBe(
-    'Users-rhuang-Github-bento',
-  );
+  expect(cbmProjectForRoot(APP_ROOT, projects)).toBe('home-index');
+  expect(
+    cbmProjectForRoot(join(HOME_ROOT, 'Github', 'bento', 'src'), projects),
+  ).toBe('home-index-Github-bento');
   expect(() => cbmProjectForRoot('/other', projects)).toThrow(
     'explicit indexed root',
   );
   expect(() =>
-    cbmProjectForRoot(
-      '/Users/rhuang/tmp-sum-app',
-      '{"projects":[{"name":"Users-rhuang"}]}',
-    ),
+    cbmProjectForRoot(APP_ROOT, '{"projects":[{"name":"home-index"}]}'),
   ).toThrow('explicit indexed root');
   expect(() =>
     cbmProjectForRoot(
-      '/Users/rhuang/tmp-sum-app',
+      APP_ROOT,
       JSON.stringify({
         projects: [
-          { name: 'one', repository_path: '/Users/rhuang' },
-          { name: 'two', repository_path: '/Users/rhuang' },
+          { name: 'one', repository_path: HOME_ROOT },
+          { name: 'two', repository_path: HOME_ROOT },
         ],
       }),
     ),
   ).toThrow('Multiple CBM projects');
-  expect(() => cbmProjectForRoot('/Users/rhuang/tmp-sum-app', '{')).toThrow(
+  expect(() => cbmProjectForRoot(APP_ROOT, '{')).toThrow(
     'explicit indexed root',
   );
   const withExact = JSON.stringify({
     projects: [
-      { name: 'Users-rhuang', repository_path: '/Users/rhuang' },
-      { name: 'tmp', repository_path: '/Users/rhuang/tmp-sum-app' },
+      { name: 'home-index', repository_path: HOME_ROOT },
+      { name: 'tmp', repository_path: APP_ROOT },
     ],
   });
-  expect(cbmProjectForRoot('/Users/rhuang/tmp-sum-app', withExact)).toBe('tmp');
+  expect(cbmProjectForRoot(APP_ROOT, withExact)).toBe('tmp');
 });
 
 test('ignores malformed and incomplete project-list entries', () => {
@@ -94,17 +95,17 @@ test('resolves the index in-process from the single project-list command', async
     stderr: '',
     stdout: JSON.stringify({
       projects: [
-        { name: 'home', repository_path: '/Users/rhuang' },
-        { name: 'repo', repository_path: '/Users/rhuang/Github/repo' },
+        { name: 'home', repository_path: HOME_ROOT },
+        { name: 'repo', repository_path: REPO_ROOT },
       ],
     }),
   }));
   await expect(
-    resolveCbmProjectForRoot('/Users/rhuang/Github/repo/src', execute),
+    resolveCbmProjectForRoot(join(REPO_ROOT, 'src'), execute),
   ).resolves.toBe('repo');
   expect(execute).toHaveBeenCalledTimes(1);
   await expect(
-    resolveCbmProjectForRoot('/Users/rhuang', async () => ({
+    resolveCbmProjectForRoot(HOME_ROOT, async () => ({
       code: 1,
       stderr: 'offline',
       stdout: '',
@@ -115,8 +116,8 @@ test('resolves the index in-process from the single project-list command', async
 test('resolves the exact project identity without checking or substituting its index', async () => {
   const projectList = JSON.stringify({
     projects: [
-      { name: 'home', repository_path: '/Users/rhuang' },
-      { name: 'tmp-sum-app', repository_path: '/Users/rhuang/tmp-sum-app' },
+      { name: 'home', repository_path: HOME_ROOT },
+      { name: 'tmp-sum-app', repository_path: APP_ROOT },
     ],
   });
   const execute = mock(async () => ({
@@ -124,9 +125,9 @@ test('resolves the exact project identity without checking or substituting its i
     stderr: '',
     stdout: projectList,
   }));
-  await expect(
-    resolveCbmProjectForRoot('/Users/rhuang/tmp-sum-app', execute),
-  ).resolves.toBe('tmp-sum-app');
+  await expect(resolveCbmProjectForRoot(APP_ROOT, execute)).resolves.toBe(
+    'tmp-sum-app',
+  );
   expect(execute).toHaveBeenCalledTimes(1);
 });
 

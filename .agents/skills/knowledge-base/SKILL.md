@@ -34,9 +34,7 @@ JSON file, especially when its Markdown contains backticks, dollar signs,
 quotes, or newlines:
 
 ```text
-bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'
-<valid-json-object>
-JSON
+cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
 ```
 
 Materialize requests in two separate commands. First run `mktemp` alone and
@@ -44,8 +42,8 @@ retain the absolute path it prints. Never guess `/tmp`, `/private/tmp`, or a
 platform-specific path because the writer checks the actual `os.tmpdir()`.
 Then pass that printed path literally as the writer's one output-path argument
 in a second command. Do not use shell variables, command substitution, or
-backtick command substitution in the writer command. Keep the heredoc
-delimiter exactly quoted as `<<'JSON'`. Encode Markdown backticks and dollar
+backtick command substitution in the writer command, and do not use a heredoc
+or shell redirection to feed the writer. Encode Markdown backticks and dollar
 signs inside JSON strings as `\\u0060` and `\\u0024`; the writer decodes those
 escapes while preserving the intended content. Invoke reconcile or capture in
 a separate command with the same literal path after the writer succeeds.
@@ -53,7 +51,7 @@ a separate command with the same literal path after the writer succeeds.
 The command has exactly one argument: `<absolute-json-output-path>`. It reads
 the JSON from stdin, parses it before any write, formats it deterministically,
 and refuses malformed JSON, relative paths, or paths outside `os.tmpdir()`.
-Keep the quoted `JSON` heredoc delimiter; it is the shell-safety boundary.
+The file-to-stdin pipe is the shell-safety boundary.
 Never pass an object to a string-only `content` field, never place backtick-rich
 JSON in a double-quoted shell argument, and do not substitute Python or an
 inline shell writer. Invoke `write-json.ts` directly and bypass the built-in
@@ -163,15 +161,15 @@ in the final JSON):
 
 Workflow:
 
-1. Compose the request object and invoke
-   `bun <agents-root>/scripts/write-json.ts "<absolute-reconciliation-request-path>" <<'JSON'`
-   directly. The heredoc delimiter must be quoted exactly; do not embed the
-   payload in a double-quoted shell argument or call the built-in write tool.
-2. Write to the exact absolute path printed by the standalone `mktemp`
-   command; that path is already under `os.tmpdir()` and the runtime reads only
-   absolute paths there.
-3. Run the reconcile command below. The runtime re-reads the file from disk
-   and validates every precondition before applying writes.
+1. Compose the request object in an absolute temporary source file using the
+   approved file editor; do not place the JSON in a shell argument or heredoc.
+2. Run the exact mandatory pipe command:
+   `cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-reconciliation-request-path>`.
+   The source path and output path must be the literal paths returned by
+   standalone `mktemp` commands; never guess `/tmp`, `/private/tmp`, or use
+   shell variables or command substitution.
+3. Run the reconcile command below. The runtime re-reads the materialized
+   file from disk and validates every precondition before applying writes.
 4. On success, run `/md-compress` `begin` on every returned source path,
    edit only the returned paths, then run the returned `finalize` action.
 

@@ -96,7 +96,7 @@ const closeoutDependencies = (): {
             title: 'Typed closeout session',
             type: 'practice',
           },
-          relativePath: 'Users-rhuang/project/typed-closeout-session.md',
+          relativePath: 'test-index/project/typed-closeout-session.md',
         }),
       ),
     },
@@ -555,7 +555,7 @@ test('captures, guards, validates, persists closeout, and retires through one ty
 
   const entry = firstCompressionEntryFor(persisted);
   expect(entry?.sourcePath).toBe(
-    '/private-kb/Users-rhuang/project/typed-closeout-session.md',
+    '/private-kb/test-index/project/typed-closeout-session.md',
   );
   expect(files.get(entry?.backupPath ?? '')).toContain('`token`');
   expect(write).toHaveBeenCalledWith(
@@ -616,7 +616,7 @@ test('captures, guards, validates, persists closeout, and retires through one ty
   );
   expect(persisted.kbCompressionSession).toBeUndefined();
   expect(persisted.kbCloseout?.references).toEqual([
-    'Users-rhuang/project/typed-closeout-session.md',
+    'test-index/project/typed-closeout-session.md',
   ]);
   expect(appendAudit).toHaveBeenCalledTimes(1);
   expect(retire).toHaveBeenCalledTimes(1);
@@ -627,7 +627,7 @@ test('captures and guards every concept in one AIDLC reconciliation session', as
   let persisted = afterFinalGate();
   const { dependencies, files } = closeoutDependencies();
   files.set(
-    '/private-kb/Users-rhuang/testing/strategy.md',
+    '/private-kb/test-index/testing/strategy.md',
     'Existing testing strategy with `preserved-token`.',
   );
   const reconciliation: AidlcCloseoutDependencies = {
@@ -638,16 +638,16 @@ test('captures and guards every concept in one AIDLC reconciliation session', as
     },
     readRequest: mock(async () =>
       JSON.stringify({
-        canonicalPath: 'Users-rhuang/project/reconciliation.md',
+        canonicalPath: 'test-index/project/reconciliation.md',
         links: [
           {
-            from: 'Users-rhuang/project/reconciliation.md',
-            to: 'Users-rhuang/testing/strategy.md',
+            from: 'test-index/project/reconciliation.md',
+            to: 'test-index/testing/strategy.md',
           },
         ],
         operations: [
           {
-            body: '## Rule\n\nUse [testing strategy](/Users-rhuang/testing/strategy.md).',
+            body: '## Rule\n\nUse [testing strategy](../testing/strategy.md).',
             disposition: 'new-primary',
             evidence:
               'The implementation and its final gate verified the rule.',
@@ -657,10 +657,10 @@ test('captures and guards every concept in one AIDLC reconciliation session', as
               title: 'Reconciliation practice',
               type: 'practice',
             },
-            relativePath: 'Users-rhuang/project/reconciliation.md',
+            relativePath: 'test-index/project/reconciliation.md',
           },
           {
-            body: '## Related rule\n\nKeep `preserved-token`; see [reconciliation](/Users-rhuang/project/reconciliation.md).',
+            body: '## Related rule\n\nKeep `preserved-token`; see [reconciliation](../project/reconciliation.md).',
             disposition: 'link-related',
             evidence:
               'The implementation and its final gate verified the link.',
@@ -670,7 +670,7 @@ test('captures and guards every concept in one AIDLC reconciliation session', as
               title: 'Testing strategy',
               type: 'practice',
             },
-            relativePath: 'Users-rhuang/testing/strategy.md',
+            relativePath: 'test-index/testing/strategy.md',
           },
         ],
       }),
@@ -704,7 +704,7 @@ test('captures and guards every concept in one AIDLC reconciliation session', as
   const session = persisted.kbCompressionSession;
   const entries = session && 'entries' in session ? session.entries : [];
   const strategy = entries.find(
-    (entry) => entry.reference === 'Users-rhuang/testing/strategy.md',
+    (entry) => entry.reference === 'test-index/testing/strategy.md',
   );
   expect(entries).toHaveLength(2);
   expect(files.get(strategy?.backupPath ?? '')).toContain('`preserved-token`');
@@ -728,8 +728,8 @@ test('captures and guards every concept in one AIDLC reconciliation session', as
   );
 
   expect(persisted.kbCloseout?.references).toEqual([
-    'Users-rhuang/testing/strategy.md',
-    'Users-rhuang/project/reconciliation.md',
+    'test-index/testing/strategy.md',
+    'test-index/project/reconciliation.md',
   ]);
   expect(retire).toHaveBeenCalledTimes(1);
   expect(files.has(strategy?.backupPath ?? '')).toBeFalse();
@@ -769,7 +769,7 @@ test('rejects malformed capture request before writing lifecycle state', async (
     ...dependencies,
     readRequest: mock(async () =>
       JSON.stringify({
-        canonicalPath: 'Users-rhuang/project/reconciliation.md',
+        canonicalPath: 'test-index/project/reconciliation.md',
       }),
     ),
   };

@@ -75,33 +75,34 @@ object. For any backtick-, dollar-, quote-, or newline-rich JSON that must be
 written to disk, use the shared TypeScript writer:
 
 ```text
-bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'
-<valid-json-object-or-array>
-JSON
+cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
 ```
 
-Use this as two separate commands. First run `mktemp` alone and retain the
-absolute path it prints. Do not guess `/tmp`, `/private/tmp`, or a platform
-specific path: the writer accepts only the actual operating system
-`os.tmpdir()`. In the next command, pass that printed path literally as the
-writer's one output-path argument. Do not use shell variables, command
-substitution, or backtick command substitution in that command. Keep the
-heredoc delimiter exactly quoted as `<<'JSON'`. For Markdown backticks or
-dollar signs inside JSON strings, use the JSON escapes `\\u0060` and
-`\\u0024` so shell-sensitive characters never enter the command text; the
-writer decodes them into the intended content. After materialization succeeds,
-invoke the owning command in a separate command with the same literal path.
+This pipe form is mandatory in this runtime. Use two separate commands: first
+run `mktemp` alone and retain the absolute output path it prints; then create
+the request source file through the approved file editor and run the exact
+`cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts
+<absolute-json-output-path>` command. Do not use a heredoc, shell redirection,
+shell variables, command substitution, or backtick command substitution. Do
+not guess `/tmp`, `/private/tmp`, or a platform-specific path: the writer
+accepts only the actual operating system `os.tmpdir()`. After materialization
+succeeds, invoke the owning command separately with the same literal output
+path.
 
 Use exactly one absolute output-path argument; the writer reads JSON from
-stdin, validates it before writing, pretty-prints it, and permits only paths
-inside `os.tmpdir()`. Quote the heredoc delimiter exactly as shown so payload
-text is not shell-evaluated. Never put backtick-rich JSON in a double-quoted
+stdin, validates it before writing, pretty-prints it, and permits only output
+paths inside `os.tmpdir()`. Never put backtick-rich JSON in a double-quoted
 shell argument, pass an object to a string-only `content` field, or improvise a
 Python/inline writer. For JSON file materialization, invoke `write-json.ts`
-directly and bypass the built-in write tool entirely; there is no
+directly through the mandatory pipe and bypass the built-in write tool; there is no
 `JSON.stringify(request)` tool-call fallback. The owning skill determines the
 `request` schema and lifecycle; the request itself still follows that owner's
 schema.
+
+Reusable instructions and examples must use `<agents-root>`, `<project-root>`,
+`<cbm-index>`, or source-relative Markdown links. Never embed a concrete home
+directory, username, machine path, or other user-specific value in reusable
+guidance.
 
 - Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
   selected runtime's assets together and use its own scripts and utilities.

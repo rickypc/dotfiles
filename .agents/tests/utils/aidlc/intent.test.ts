@@ -1,4 +1,6 @@
 import { expect, mock, test } from 'bun:test';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
 import {
   acceptanceChecklistFor,
@@ -30,6 +32,13 @@ import {
 } from '../../../utils/aidlc/intent.js';
 import { renderOkfConcept } from '../../../utils/knowledge-base.js';
 
+const RUNTIME_ROOT = process.cwd();
+const HOME_ROOT = dirname(RUNTIME_ROOT);
+const AGENTS_INTENT_PATH = join(RUNTIME_ROOT, 'utils/aidlc/intent.ts');
+const AGENTS_TEST_PATH = join(RUNTIME_ROOT, 'tests/utils/aidlc/intent.test.ts');
+const KB_ROOT = join(tmpdir(), 'private-kb');
+const OTHER_KB_ROOT = join(tmpdir(), 'another-kb');
+
 test.each([
   ['Build KB!', 'build-kb'],
   ['  A  B  ', 'a-b'],
@@ -43,32 +52,30 @@ test('requires completed construction rows and existing proof paths', () => {
     '',
     '| Step | Status | Requirements and units | What | Where | Why | Depends on | Focused proof | Review and re-plan trigger | Actual evidence |',
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
-    '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+    `| U1 | \`complete\` | R1 | change | ${AGENTS_INTENT_PATH} | reason | none | ${AGENTS_TEST_PATH} | trigger | passed |`,
     '',
     '## Execution evidence',
   ].join('\n');
-  expect(() =>
-    validateAidlcConstructionPlan(valid, '/Users/rhuang'),
-  ).not.toThrow();
+  expect(() => validateAidlcConstructionPlan(valid, HOME_ROOT)).not.toThrow();
   expect(() =>
     validateAidlcConstructionPlan(
       valid.replace('`complete`', '`pending`'),
-      '/Users/rhuang',
+      HOME_ROOT,
     ),
   ).toThrow('must be complete');
   expect(() =>
     validateAidlcConstructionPlan(
       valid.replace(
-        '/Users/rhuang/.agents/utils/aidlc/intent.ts',
-        '/Users/rhuang/.agents/utils/aidlc/missing.ts',
+        AGENTS_INTENT_PATH,
+        join(RUNTIME_ROOT, 'utils/aidlc/missing.ts'),
       ),
-      '/Users/rhuang',
+      HOME_ROOT,
     ),
   ).toThrow('missing path');
   expect(() =>
     validateAidlcConstructionPlan(
       valid.replace('| U1 |', '| `<step>` |'),
-      '/Users/rhuang',
+      HOME_ROOT,
     ),
   ).toThrow('placeholder');
   expect(() =>
@@ -77,19 +84,19 @@ test('requires completed construction rows and existing proof paths', () => {
   expect(() =>
     validateAidlcConstructionPlan(
       valid.replace(
-        '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+        `| U1 | \`complete\` | R1 | change | ${AGENTS_INTENT_PATH} | reason | none | ${AGENTS_TEST_PATH} | trigger | passed |`,
         '',
       ),
-      '/Users/rhuang',
+      HOME_ROOT,
     ),
   ).toThrow('at least one row');
   expect(() =>
     validateAidlcConstructionPlan(
       valid.replace(
-        '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+        `| U1 | \`complete\` | R1 | change | ${AGENTS_INTENT_PATH} | reason | none | ${AGENTS_TEST_PATH} | trigger | passed |`,
         '| malformed | row |',
       ),
-      '/Users/rhuang',
+      HOME_ROOT,
     ),
   ).toThrow('require step');
 });
@@ -110,7 +117,7 @@ test('caps long intent filenames with a deterministic hash suffix', () => {
 
 test('rejects empty summaries and reports deterministic paths', () => {
   expect(() => intentIdFor('---')).toThrow('summary');
-  expect(() => createAidlcIntent('/Users/rhuang', 'Bad index')).toThrow(
+  expect(() => createAidlcIntent(HOME_ROOT, 'Bad index')).toThrow(
     'project name returned by codebase-memory',
   );
   expect(() =>
@@ -204,10 +211,10 @@ test('parses a persisted compression session and rejects malformed session metad
     ...createAidlcIntent('repo', 'Compression session'),
     kbCompressionSession: {
       backupPath: '/tmp/aidlc-md-compress/hash/concept.md.original',
-      kbRoot: '/private-kb',
+      kbRoot: KB_ROOT,
       lockPath: '/tmp/aidlc-md-compress/hash/concept.md.original.lock',
-      reference: 'Users-rhuang/project/concept.md',
-      sourcePath: '/private-kb/Users-rhuang/project/concept.md',
+      reference: 'test-index/project/concept.md',
+      sourcePath: join(KB_ROOT, 'test-index/project/concept.md'),
     },
   };
   expect(
@@ -230,7 +237,7 @@ test('parses a persisted compression session and rejects malformed session metad
         ...intent,
         kbCompressionSession: {
           ...intent.kbCompressionSession,
-          sourcePath: '/another-kb/Users-rhuang/project/concept.md',
+          sourcePath: join(OTHER_KB_ROOT, 'test-index/project/concept.md'),
         },
       }),
     ),
@@ -283,17 +290,17 @@ test('parses a multi-concept compression bundle and rejects duplicate references
         {
           backupPath: '/tmp/aidlc-md-compress/a/canonical.md.original',
           lockPath: '/tmp/aidlc-md-compress/a/canonical.md.original.lock',
-          reference: 'Users-rhuang/project/canonical.md',
-          sourcePath: '/private-kb/Users-rhuang/project/canonical.md',
+          reference: 'test-index/project/canonical.md',
+          sourcePath: join(KB_ROOT, 'test-index/project/canonical.md'),
         },
         {
           backupPath: '/tmp/aidlc-md-compress/b/related.md.original',
           lockPath: '/tmp/aidlc-md-compress/b/related.md.original.lock',
-          reference: 'Users-rhuang/testing/related.md',
-          sourcePath: '/private-kb/Users-rhuang/testing/related.md',
+          reference: 'test-index/testing/related.md',
+          sourcePath: join(KB_ROOT, 'test-index/testing/related.md'),
         },
       ],
-      kbRoot: '/private-kb',
+      kbRoot: KB_ROOT,
     },
   };
   expect(

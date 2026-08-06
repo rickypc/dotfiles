@@ -99,10 +99,11 @@ Use the returned command-contract row that matches the observed state:
 | The approval receipt returns `next.action: resolve-knowledge-context` | Execute that exact returned `context.ts resolve` action once, with its returned arguments, then re-read the receipt. | Do not invent a neighboring command, retry with altered arguments, or run it in parallel. |
 | A persisted already-approved intent explicitly requires context recovery | Use the standalone resolver only when the runtime returns that recovery action. | Do not use the resolver as a normal pre-approval step. |
 
-When stage evidence or capture JSON contains Markdown code spans, invoke
-`bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'`
-directly for the JSON file and bypass the built-in write tool entirely. Use a
-single-quoted or file-based argument for non-JSON evidence; never use a
+When stage evidence or capture JSON contains Markdown code spans, create the
+JSON request in an absolute temporary source file with the approved file
+editor, then run the mandatory pipe:
+`cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>`.
+Do not use a heredoc, shell redirection, shell variables, or a
 double-quoted shell argument containing backticks. The writer's validation and
 path policy are owned by the universal runtime and `/knowledge-base`; this
 skill owns the lifecycle schema and returned-action selection.

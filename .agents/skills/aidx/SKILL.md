@@ -35,12 +35,11 @@ error; they are not alternate request shapes.
 
 ## Configuration and final gate
 
-Resolve the project final gate from `<projectRoot>/aidx.json` when present;
-otherwise use the default `bun run test`. The optional JSON object may contain
-one `finalGate` property whose value is a string. It is data only: AIDX reads
-the string and executes it from the project root. There is no executable
-configuration file and no second configuration format. The AIDX `TEST` state
-executes exactly one resolved final gate. Before that invocation, do not run a
+Resolve the project final gate from `<projectRoot>/aidx.json`; when that file
+is absent, use the default `bun run test`. The JSON object may contain one
+`finalGate` property whose value is a string. A malformed configuration is an
+error, not a fallback to the default. The AIDX `TEST`
+state executes exactly one resolved final gate. Before that invocation, do not run a
 test, lint, type, coverage, or checker command whose work is included in the
 resolved `finalGate`; the gate is the one execution and proof for that work.
 Run a focused command only when it is not covered by the gate or when a failed

@@ -114,8 +114,6 @@ const indexChildren = (content: string): readonly DirectoryIndexEntry[] =>
     }),
   );
 
-const linkTarget = (path: string): string => `](/${path})`;
-
 const optionalDirectory = async (
   fileSystem: FileSystem,
   path: string,
@@ -156,6 +154,26 @@ const readOptionalText = async (
     throw error;
   }
 };
+
+const relativeLinkPath = (from: string, to: string): string => {
+  const fromDirectory = from.split('/').slice(0, -1);
+  const targetParts = to.split('/');
+  let commonLength = 0;
+  while (
+    commonLength < fromDirectory.length &&
+    commonLength < targetParts.length - 1 &&
+    fromDirectory[commonLength] === targetParts[commonLength]
+  ) {
+    commonLength += 1;
+  }
+  return [
+    ...fromDirectory.slice(commonLength).map(() => '..'),
+    ...targetParts.slice(commonLength),
+  ].join('/');
+};
+
+const linkTarget = (from: string, to: string): string =>
+  `](${relativeLinkPath(from, to)})`;
 
 export const renderDirectoryIndex = (
   title: string,
@@ -497,7 +515,7 @@ const validateReconciliationLinks = (
     const source = plan.operations.find(
       (operation) => operation.relativePath === link.from,
     );
-    if (!source?.body.includes(linkTarget(link.to))) {
+    if (!source?.body.includes(linkTarget(link.from, link.to))) {
       throw new Error(
         `KB reconciliation is missing declared link: ${link.from} -> ${link.to}`,
       );

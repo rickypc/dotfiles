@@ -21,6 +21,9 @@ import {
 } from '../../utils/aidlc/intent.js';
 import { renderOkfConcept } from '../../utils/knowledge-base.js';
 
+const AGENTS_ROOT = process.cwd();
+const HOME_ROOT = join(AGENTS_ROOT, '..');
+
 test('starts one temporary AIDLC intent from the selected working directory', async () => {
   const saved: unknown[][] = [];
   const save: typeof saveAidlcIntent = async (fileSystem, path, intent) => {
@@ -218,18 +221,12 @@ test('resolves the startup CBM index through an injected project-list boundary',
 });
 
 test('uses the home project for global runtime maintenance and the parent for a copied runtime', () => {
+  expect(projectRootForRuntime(AGENTS_ROOT, AGENTS_ROOT, HOME_ROOT)).toBe(
+    HOME_ROOT,
+  );
+  expect(projectRootForRuntime(AGENTS_ROOT, '/repo', HOME_ROOT)).toBe('/repo');
   expect(
-    projectRootForRuntime(
-      '/Users/rhuang/.agents',
-      '/Users/rhuang/.agents',
-      '/Users/rhuang',
-    ),
-  ).toBe('/Users/rhuang');
-  expect(
-    projectRootForRuntime('/Users/rhuang/.agents', '/repo', '/Users/rhuang'),
-  ).toBe('/repo');
-  expect(
-    projectRootForRuntime('/repo/.agents', '/repo/.agents', '/Users/rhuang'),
+    projectRootForRuntime('/repo/.agents', '/repo/.agents', HOME_ROOT),
   ).toBe('/repo');
 });
 
@@ -710,9 +707,9 @@ test('records Code Generation and executes the final gate in one command', async
 });
 
 test('validates a persisted construction plan before running the final gate', async () => {
-  const intentPath =
-    '/Users/rhuang/.agents/aidlc/repo/intents/coverage-plan.md';
-  mkdirSync('/Users/rhuang/.agents/aidlc/repo/intents', { recursive: true });
+  const intentDirectory = join(AGENTS_ROOT, 'aidlc/repo/intents');
+  const intentPath = join(intentDirectory, 'coverage-plan.md');
+  mkdirSync(intentDirectory, { recursive: true });
   writeFileSync(
     intentPath,
     [
@@ -720,7 +717,7 @@ test('validates a persisted construction plan before running the final gate', as
       '',
       '| Step | Status | Requirements and units | What | Where | Why | Depends on | Focused proof | Review and re-plan trigger | Actual evidence |',
       '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
-      '| U1 | `complete` | R1 | change | /Users/rhuang/.agents/utils/aidlc/intent.ts | reason | none | /Users/rhuang/.agents/tests/utils/aidlc/intent.test.ts | trigger | passed |',
+      `| U1 | \`complete\` | R1 | change | ${join(AGENTS_ROOT, 'utils/aidlc/intent.ts')} | reason | none | ${join(AGENTS_ROOT, 'tests/utils/aidlc/intent.test.ts')} | trigger | passed |`,
       '',
       '## Execution evidence',
     ].join('\n'),
