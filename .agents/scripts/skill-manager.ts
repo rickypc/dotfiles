@@ -1,14 +1,14 @@
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
 import {
-  fingerprint,
-  renderActionPacket,
-} from '../utils/evidence-gated-workflow-controller/packet.js';
-import type { WorkflowState } from '../utils/evidence-gated-workflow-controller/state.js';
-import {
   type FileSystem,
   nodeFileSystem,
   readText,
 } from '../utils/filesystem.js';
+import {
+  fingerprint,
+  renderActionPacket,
+} from '../utils/quality-engine/packet.js';
+import type { WorkflowState } from '../utils/quality-engine/state.js';
 import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,

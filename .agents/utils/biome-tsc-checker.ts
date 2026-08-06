@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 import type { CheckResult, CommandSpec } from './contracts.js';
 import { failed, passed } from './contracts.js';
 import { declarationOrderCheck } from './declaration-order.js';
@@ -10,9 +12,14 @@ export interface StaticCheckRequest {
   readonly paths: readonly string[];
 }
 
-const command = (executable: string, args: readonly string[]): CommandSpec => ({
+const command = (
+  executable: string,
+  args: readonly string[],
+  cwd: string,
+): CommandSpec => ({
   args,
   command: executable,
+  cwd,
 });
 
 const detail = (stdout: string, stderr: string): string =>
@@ -68,38 +75,40 @@ export const runStaticChecks = async (
   request: StaticCheckRequest,
   read: SourceReader = (path) => Bun.file(path).text(),
 ): Promise<CheckResult[]> => {
+  const paths = request.paths.map((path) => resolve(path));
   const biome = executor(
-    command(`${request.agentsRoot}/node_modules/.bin/biome`, [
-      'check',
-      '--config-path',
-      `${request.agentsRoot}/biome.jsonc`,
-      ...request.paths,
-    ]),
+    command(
+      `${request.agentsRoot}/node_modules/.bin/biome`,
+      ['check', '--config-path', `${request.agentsRoot}/biome.jsonc`, ...paths],
+      request.agentsRoot,
+    ),
   );
-  const sourcePaths = request.paths.filter((path) => sourcePath.test(path));
-  const typeScriptPaths = request.paths.filter((path) =>
-    typeScriptPath.test(path),
-  );
+  const sourcePaths = paths.filter((path) => sourcePath.test(path));
+  const typeScriptPaths = paths.filter((path) => typeScriptPath.test(path));
   const typeCheck =
     typeScriptPaths.length === 0
       ? undefined
       : executor(
-          command(`${request.agentsRoot}/node_modules/.bin/tsc`, [
-            '--noEmit',
-            '--ignoreConfig',
-            '--strict',
-            '--module',
-            'nodenext',
-            '--moduleResolution',
-            'nodenext',
-            '--target',
-            'esnext',
-            '--typeRoots',
-            `${request.agentsRoot}/node_modules/@types`,
-            '--types',
-            'bun',
-            ...typeScriptPaths,
-          ]),
+          command(
+            `${request.agentsRoot}/node_modules/.bin/tsc`,
+            [
+              '--noEmit',
+              '--ignoreConfig',
+              '--strict',
+              '--module',
+              'nodenext',
+              '--moduleResolution',
+              'nodenext',
+              '--target',
+              'esnext',
+              '--typeRoots',
+              `${request.agentsRoot}/node_modules/@types`,
+              '--types',
+              'bun',
+              ...typeScriptPaths,
+            ],
+            request.agentsRoot,
+          ),
         );
   const [biomeCommandResult, declarationOrder, typeCheckResult] =
     await Promise.all([

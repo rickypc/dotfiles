@@ -4,7 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { run, runWhenMain, usage } from '../../scripts/knowledge-base.js';
-import type { searchKnowledgeBase } from '../../utils/knowledge-base.js';
+import type {
+  searchKnowledgeBase,
+  searchKnowledgeBaseBatch,
+} from '../../utils/knowledge-base.js';
 
 const concept = [
   '---',
@@ -120,6 +123,44 @@ test('uses CBM and shared fallback for a three-argument KB discovery search', as
   expect(write).toHaveBeenCalledWith(expect.stringContaining('discovery'));
 });
 
+test('runs bounded distinct searches through the shared batch boundary', async () => {
+  const write = mock();
+  const batchSearch = mock(
+    async () =>
+      [
+        {
+          query: 'verifier',
+          receipt: {
+            concepts: [],
+            discovery: {
+              attempts: [],
+              found: false,
+              output: '',
+              source: 'none',
+            },
+          },
+        },
+      ] as Awaited<ReturnType<typeof searchKnowledgeBaseBatch>>,
+  );
+  await run(
+    ['search-batch', '/kb', 'kb-index', 'verifier'],
+    write,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    batchSearch,
+  );
+  expect(batchSearch).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.anything(),
+    '/kb',
+    'kb-index',
+    ['verifier'],
+  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('verifier'));
+});
+
 test('reconciles through one fixed request and an injected writer', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'knowledge-base-request-'));
   const requestPath = join(directory, 'request.json');
@@ -163,6 +204,10 @@ test('reconciles through one fixed request and an injected writer', async () => 
 test('rejects invalid KB input and guards the main boundary', async () => {
   await expect(run(['concept-index', '../secret.md'])).rejects.toThrow(usage());
   await expect(run([])).rejects.toThrow(usage());
+  await expect(run(['search', '/kb'])).rejects.toThrow(usage());
+  await expect(run(['related', '/kb', 'testing', 'extra'])).rejects.toThrow(
+    usage(),
+  );
   await expect(
     run(['capture', '/kb', 'shared/team/a.md', '{', 'Body', 'Evidence']),
   ).rejects.toThrow('metadata');

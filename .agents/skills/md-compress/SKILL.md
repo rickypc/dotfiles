@@ -31,8 +31,9 @@ Use fixed-arity typed calls, never an inline filesystem program:
 bun <agents-root>/scripts/md-compress.ts begin <markdown-path>
 ```
 
-`begin` writes the backup and lock under the system temporary directory,
-the system temporary compression directory, and returns the exact `finalize` action. Edit only
+`begin` uses `tmpdir()` to write the backup and lock under the system temporary
+directory, specifically the temporary compression directory, and returns the
+exact `finalize` action. Edit only
 the selected Markdown in the same agent session. Then run the returned action:
 
 ```text

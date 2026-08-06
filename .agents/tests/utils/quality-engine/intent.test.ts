@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import {
   parseIntent,
   renderIntent,
-} from '../../../utils/evidence-gated-workflow-controller/intent.js';
+} from '../../../utils/quality-engine/intent.js';
 
 test('renders and parses the minimal persisted intent', () => {
   const intent = {

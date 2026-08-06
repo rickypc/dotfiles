@@ -5,6 +5,11 @@ implementation pass follows it in order and records actual work; validation
 reconciles it before the configured final gate. It is a software-engineering
 work record, not a second router, approval gate, or external task tracker.
 
+The goal record has one active plan only. A revised plan replaces the previous
+active plan; preserve history as a compact change note rather than appending a
+second full plan. Evidence files are compact event receipts and must never be
+the goal record itself.
+
 ## Completion rules
 
 - One row represents one independently reviewable implementation increment.

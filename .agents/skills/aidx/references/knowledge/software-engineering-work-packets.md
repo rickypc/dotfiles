@@ -127,9 +127,11 @@ for any material software-engineering iteration:
    behavior. A finding is actionable only when a reader can reproduce its
    failure scenario from the location and context. A clean review is a valid
    result when it names the reviewed scope and evidence.
-8. Record proof per requirement, run the project-owned final gate once at the
-   AIDX validation boundary, and leave limitations open rather than treating a
-   green gate as evidence for an untested claim.
+8. Record proof per requirement, mark whether each proof is covered by the
+   project-owned final gate, and run that gate once at the AIDX validation
+   boundary. Do not execute a covered focused test separately. Leave
+   limitations open rather than treating a green gate as evidence for an
+   untested claim.
 
 ## Requirement and acceptance discipline
 

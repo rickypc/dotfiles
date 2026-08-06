@@ -12,6 +12,7 @@ import {
   renderOkfConcept,
   scopeIndexPath,
   searchKnowledgeBase,
+  searchKnowledgeBaseBatch,
   searchKnowledgeBaseWithFallback,
   validateLesson,
   validateOkfMetadata,
@@ -571,6 +572,41 @@ test('combines CBM discovery with validated KB search results', async () => {
     concepts: [{ path: 'shared/practice/fixture.md' }],
     discovery: { found: true, source: 'cbm' },
   });
+});
+
+test('batches bounded distinct KB queries and rejects duplicates', async () => {
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readdir: async () => [],
+    readFile: async () => '',
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  };
+  const executor = async () => ({ code: 0, stderr: '', stdout: 'ready' });
+  await expect(
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', [
+      'verifier',
+      'temporary path',
+    ]),
+  ).resolves.toHaveLength(2);
+  await expect(
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', [
+      'Verifier',
+      ' verifier ',
+    ]),
+  ).rejects.toThrow('unique');
+  await expect(
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['']),
+  ).rejects.toThrow('nonblank');
+  await expect(
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', [
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+    ]),
+  ).rejects.toThrow('1-4');
 });
 
 test('starts local KB lookup while CBM discovery waits for index readiness', async () => {

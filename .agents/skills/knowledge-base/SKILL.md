@@ -39,6 +39,17 @@ bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'
 JSON
 ```
 
+Materialize requests in two separate commands. First run `mktemp` alone and
+retain the absolute path it prints. Never guess `/tmp`, `/private/tmp`, or a
+platform-specific path because the writer checks the actual `os.tmpdir()`.
+Then pass that printed path literally as the writer's one output-path argument
+in a second command. Do not use shell variables, command substitution, or
+backtick command substitution in the writer command. Keep the heredoc
+delimiter exactly quoted as `<<'JSON'`. Encode Markdown backticks and dollar
+signs inside JSON strings as `\\u0060` and `\\u0024`; the writer decodes those
+escapes while preserving the intended content. Invoke reconcile or capture in
+a separate command with the same literal path after the writer succeeds.
+
 The command has exactly one argument: `<absolute-json-output-path>`. It reads
 the JSON from stdin, parses it before any write, formats it deterministically,
 and refuses malformed JSON, relative paths, or paths outside `os.tmpdir()`.
@@ -156,9 +167,9 @@ Workflow:
    `bun <agents-root>/scripts/write-json.ts "<absolute-reconciliation-request-path>" <<'JSON'`
    directly. The heredoc delimiter must be quoted exactly; do not embed the
    payload in a double-quoted shell argument or call the built-in write tool.
-2. Write to an absolute path under `os.tmpdir()` (macOS:
-   `/var/folders/.../T/opencode/`); the runtime reads only files at absolute
-   paths.
+2. Write to the exact absolute path printed by the standalone `mktemp`
+   command; that path is already under `os.tmpdir()` and the runtime reads only
+   absolute paths there.
 3. Run the reconcile command below. The runtime re-reads the file from disk
    and validates every precondition before applying writes.
 4. On success, run `/md-compress` `begin` on every returned source path,
@@ -217,3 +228,15 @@ shared/team/<concept>.md
 Use the required OKF metadata and evidence sections as the structure reference.
 The resolver rejects a matching `ALWAYS` / `NEVER` rule conflict; do not create
 placeholder organization, team, or project records.
+
+## Retrieval discipline
+
+Use `/knowledge-base` once in every nontrivial workflow for durable prior context and again for a verified lesson when the work produces a reusable correction. This skill owns private knowledge retrieval; it is not the repository file inventory. Use `/codebase-memory` for code, files, symbols, and call paths. Use `search-batch` for multiple independent keywords in one invocation; it rejects blank and duplicate normalized queries and runs bounded read-only work through the shared batch runner. Never run the same query twice. Every temporary request path must come from standalone `mktemp` or `os.tmpdir()` evidence, never from a guessed platform path or a placeholder.
+
+## Batch search command
+
+For several independent keyword searches, use one bounded command: bun agents-root/scripts/knowledge-base.ts search-batch private-kb-root kb-cbm-index query query ...
+
+The command accepts one to four nonblank queries, rejects duplicate queries after trimming and case normalization, and uses the shared read-only batch runner. It returns one receipt per query in input order. Do not invoke the same query repeatedly or run separate commands for a batch that fits this contract.
+
+For backtick-rich request JSON, keep one OS temporary directory and use distinct files only when the state contract requires them. The writer receives one absolute path from mktemp/os.tmpdir evidence and text on stdin; if a shell heredoc is unavailable, use one bounded stdin session with the same writer and path.

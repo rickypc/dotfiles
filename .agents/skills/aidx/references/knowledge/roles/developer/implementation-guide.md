@@ -46,10 +46,16 @@ For each entity, implement or verify:
 When modifying existing codebases (most common scenario):
 
 ### Before Writing Code
-1. **Map the change surface**: Identify all files that will be touched
-2. **Trace the call chain**: Follow the execution path from entry point to persistence
-3. **Check for tests**: Find existing tests that cover the area being modified
-4. **Identify conventions**: Note patterns used in surrounding code
+
+1. **Map the complete change surface**: Identify every source, test, config,
+   reference, example, and pattern that will be touched.
+2. **Trace the call chain**: Follow the execution path from entry point to
+   persistence or external side effect.
+3. **Check for tests**: Find existing tests that cover the area being modified.
+   For a TypeScript/Bun test, delegate immediately to `/bun-test-generator`
+   before writing or repairing the test.
+4. **Identify conventions**: Note the exact naming, declaration-order, import,
+   and error-handling conventions used in surrounding code.
 
 ### Modification Rules
 - Match the surrounding code's style exactly, even if you prefer another style
@@ -58,6 +64,42 @@ When modifying existing codebases (most common scenario):
 - Add backward-compatible defaults for new configuration
 - Update existing tests to cover the changed behavior
 - Add new tests for new behavior
+
+### Batch implementation and gate procedure
+
+Follow these steps in order:
+
+1. Freeze the approved file and behavior scope.
+2. Apply all related source, test, reference, example, and pattern changes in
+   one coherent implementation batch.
+3. Compare every planned focused test or checker with the configured final
+   gate. If the gate includes that work, do not run it separately. Run a
+   focused check only when it is outside the gate or needed to diagnose a
+   failure; do not run the final gate after each small edit.
+4. Run the configured final gate once after the complete batch.
+5. If it fails, classify all failures first, repair the complete affected
+   boundary, and rerun the same final gate once. Use a targeted diagnostic only
+   when it narrows the failure and is not already covered by that gate.
+6. Repeat only for a new evidence-backed repair batch. For declaration-order
+   failures, apply the full emitted reorder packet before rerunning the gate.
+
+Declaration-order mutation is a guarded operation: inspect all selected files
+read-only first, apply at most one emitted packet to one file, verify the
+post-fix report and diff, and stop if source content is not preserved. Never
+use a broad autofix or whole-directory write to repair declaration order.
+
+The final gate is the repository's one decision boundary. Do not replace it
+with a green focused test, and do not create a second gate for a neighboring
+change.
+
+Run one final-gate invocation per repair batch. Distinct bounded lanes inside
+that one gate may run concurrently: one Biome process, one TypeScript process,
+one Tree-sitter declaration-order pass, and one unit-test process are separate
+work. Never launch multiple instances of the same checker, multiple checker
+wrappers, or multiple final-gate invocations in parallel. Start them from the
+selected project's `<agents-root>` directory with paths inside that root;
+invoking a checker from the user's home can make Biome scan unrelated
+protected directories.
 
 ### Common Pitfalls
 - Breaking existing imports by renaming or moving files
@@ -134,3 +176,9 @@ Add `data-testid` attributes to all interactive elements to support automated te
   - Avoid dynamic or auto-generated IDs (e.g., `button-${index}`) — use semantic names instead
   - Group related elements under a container `data-testid` (e.g., `user-table` wrapping `user-table-row-{id}`)
   - Apply to both visible and programmatically interactive elements (e.g., hidden file inputs triggered by a button)
+
+## Required change-batch protocol
+
+Before editing, inventory all affected code, tests, instructions, examples, and references with `/codebase-memory`; retrieve durable context and prior lessons with `/knowledge-base`. Make the complete approved change set first, including all mechanically related references. For TypeScript/Bun tests, hand off to `/bun-test-generator` immediately before writing or repairing tests, then retain its boundary evidence.
+
+Run the configured final gate once after the complete batch. Do not run focused checks that the final gate already covers, and do not run the gate after each small edit. If it fails, fix every compatible failure from that receipt in one repair batch, then rerun the final gate once. Never run the same checker or final gate concurrently; distinct bounded read-only checks may run in parallel. Preserve existing code and make the smallest safe change; stop before an edit when the required contract is not known.

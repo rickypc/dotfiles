@@ -100,3 +100,7 @@ attempt.
 ```bash
 bun <agents-root>/scripts/codebase-memory.ts discover "<approved-root>" "<cbm-index>" "<query>"
 ```
+
+## Retrieval discipline
+
+There is no universal `.agents/references` directory and this skill never resolves or invents one. `/codebase-memory` is the primary tool for finding repository files, symbols, call paths, and code text. Start with one narrow `discover` query; use one `inspect` request for several independent reads; then read only the returned file snippets needed for the decision. Do not dump or read whole TypeScript trees. Respect the approved root and its gitignore-aware index. Batch distinct queries only through an explicit batch request, reject blank or duplicate normalized queries, and never run the same query or checker twice concurrently. Obtain every temporary request path from standalone `mktemp` or `os.tmpdir()` evidence.

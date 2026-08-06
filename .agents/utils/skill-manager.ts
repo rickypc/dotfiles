@@ -1,27 +1,28 @@
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import matter from 'gray-matter';
-import type {
-  MatrixCase,
-  MatrixEvidence,
-} from './evidence-gated-workflow-controller/matrix.js';
+import type { FileSystem } from './filesystem.js';
+import type { MatrixCase, MatrixEvidence } from './quality-engine/matrix.js';
 import {
   casesFor,
   evaluateMatrix,
   validateMatrix,
-} from './evidence-gated-workflow-controller/matrix.js';
+} from './quality-engine/matrix.js';
 import {
   type ActionPacket,
   createActionPacket,
   fingerprint,
-} from './evidence-gated-workflow-controller/packet.js';
-import type { EvidenceReceipt } from './evidence-gated-workflow-controller/receipt.js';
+} from './quality-engine/packet.js';
+import type { EvidenceReceipt } from './quality-engine/receipt.js';
 import {
   createReceipt,
   failedCheckNames,
   receiptPasses,
-} from './evidence-gated-workflow-controller/receipt.js';
-import type { WorkflowState } from './evidence-gated-workflow-controller/state.js';
-import type { FileSystem } from './filesystem.js';
+} from './quality-engine/receipt.js';
+import type { WorkflowState } from './quality-engine/state.js';
+import {
+  isMatrixVerifierId,
+  runIndependentVerifier,
+} from './quality-engine/verifier.js';
 
 export interface SkillInitializationReceipt {
   readonly description: string;
@@ -69,6 +70,21 @@ export interface SkillProseReviewReceipt {
   readonly ignoredPaths: readonly string[];
   readonly prosePaths: readonly string[];
   readonly reviewedRoots: readonly string[];
+}
+
+export interface SkillRubricContract {
+  readonly minimumPassRate: number;
+  readonly requiredCaseFields: readonly string[];
+  readonly requiredVisibility: readonly string[];
+  readonly schemaVersion: number;
+  readonly verifierIds: readonly string[];
+}
+
+export interface SkillSuiteValidationReceipt {
+  readonly matrixCount: number;
+  readonly prose: SkillProseReviewReceipt;
+  readonly skillCount: number;
+  readonly status: 'valid';
 }
 
 export interface SkillValidationReceipt {
@@ -136,8 +152,14 @@ export const evaluateSkillMatrix = (
   phase: 'baseline_recorded' | 'candidate_checked' | 'challenge_checked',
 ): EvidenceReceipt => {
   const visibility = phase === 'challenge_checked' ? 'challenge' : 'candidate';
+  const selectedCases = casesFor(cases, visibility);
   return createReceipt({
-    checks: evaluateMatrix(casesFor(cases, visibility), evidence),
+    checks: [
+      ...evaluateMatrix(selectedCases, evidence),
+      ...selectedCases.map((matrixCase) =>
+        runIndependentVerifier(matrixCase, evidence),
+      ),
+    ],
     sourceFingerprint,
     state: phase,
   });
@@ -151,6 +173,75 @@ const failedAssertionIdsFor = (receipt: EvidenceReceipt): string[] => [
 
 const isExternalTarget = (target: string): boolean =>
   /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(target);
+
+const expectedRubricFields = new Set([
+  'assertions',
+  'failureMode',
+  'id',
+  'independentVerifier',
+  'repairBoundary',
+  'scenario',
+  'visibility',
+]);
+
+export const parseSkillRubric = (content: string): SkillRubricContract => {
+  const parsed = matter(content);
+  const data = parsed.data as Record<string, unknown>;
+  const requiredCaseFields = data.requiredCaseFields;
+  const requiredVisibility = data.requiredVisibility;
+  const verifierIds = data.verifierIds;
+  if (
+    data.schemaVersion !== 1 ||
+    typeof data.minimumPassRate !== 'number' ||
+    data.minimumPassRate !== 1 ||
+    !Array.isArray(requiredCaseFields) ||
+    !requiredCaseFields.every((value) => typeof value === 'string') ||
+    !Array.isArray(requiredVisibility) ||
+    !requiredVisibility.every((value) => typeof value === 'string') ||
+    !Array.isArray(verifierIds) ||
+    !verifierIds.every(
+      (value) => typeof value === 'string' && isMatrixVerifierId(value),
+    ) ||
+    !parsed.content.trim()
+  ) {
+    throw new Error(
+      'Evaluation rubric requires schemaVersion 1, minimumPassRate 1, executable verifier IDs, and prose.',
+    );
+  }
+  const fields = requiredCaseFields as string[];
+  if (
+    fields.length !== expectedRubricFields.size ||
+    fields.some((field) => !expectedRubricFields.has(field)) ||
+    !requiredVisibility.includes('candidate') ||
+    !requiredVisibility.includes('challenge')
+  ) {
+    throw new Error(
+      'Evaluation rubric must require every matrix field and both visibility values.',
+    );
+  }
+  return {
+    minimumPassRate: data.minimumPassRate,
+    requiredCaseFields: fields,
+    requiredVisibility: requiredVisibility as string[],
+    schemaVersion: data.schemaVersion,
+    verifierIds: verifierIds as string[],
+  };
+};
+
+const validateRubricForMatrix = (
+  rubric: SkillRubricContract,
+  matrix: readonly MatrixCase[],
+): void => {
+  if (
+    !matrix.every((matrixCase) =>
+      rubric.verifierIds.includes(matrixCase.independentVerifier),
+    )
+  ) {
+    throw new Error(
+      'Evaluation rubric does not authorize every matrix verifier.',
+    );
+  }
+};
 
 const skillNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
@@ -245,6 +336,9 @@ export const validateSkill = async (
 
 const proseExtensions = new Set(['.md', '.txt', '.yaml', '.yml']);
 
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
 const isProsePath = (path: string): boolean =>
   proseExtensions.has(extname(path));
 
@@ -323,6 +417,158 @@ const readOptional = async (
   } catch {
     return undefined;
   }
+};
+
+const skillMatrixPaths = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  skillPath: string,
+): Promise<readonly string[]> => {
+  const evalsPath = join(skillPath, 'evals');
+  const entries = await fileSystem.readdir?.(evalsPath, {
+    withFileTypes: true,
+  });
+  if (!entries) {
+    throw new Error('Skill evaluation requires directory listing support.');
+  }
+  const matrixPaths = entries
+    .filter((entry) => !entry.isDirectory() && entry.name.endsWith('.jsonl'))
+    .map((entry) => join(evalsPath, entry.name))
+    .sort();
+  if (matrixPaths.length === 0) {
+    throw new Error(`Skill has no evaluation matrix: ${evalsPath}`);
+  }
+  if (!matrixPaths.includes(join(evalsPath, 'cases.jsonl'))) {
+    throw new Error(
+      `Skill is missing its canonical evaluation matrix: ${join(evalsPath, 'cases.jsonl')}`,
+    );
+  }
+  const rubricPath = join(evalsPath, 'rubric.md');
+  if (!(await readOptional(fileSystem, rubricPath))?.trim()) {
+    throw new Error(
+      `Skill is missing a nonblank evaluation rubric: ${rubricPath}`,
+    );
+  }
+  return matrixPaths;
+};
+
+const validateSkillEvaluations = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  skillPath: string,
+): Promise<number> => {
+  const sourcePath = join(skillPath, 'SKILL.md');
+  const sourceText = await fileSystem.readFile(sourcePath, 'utf8');
+  const sourceFingerprint = fingerprint(sourceText);
+  const matrixPaths = await skillMatrixPaths(fileSystem, skillPath);
+  const rubric = parseSkillRubric(
+    (await readOptional(fileSystem, join(skillPath, 'evals', 'rubric.md'))) ??
+      '',
+  );
+  let candidateCount = 0;
+  let challengeCount = 0;
+  for (const matrixPath of matrixPaths) {
+    const matrix = parseMatrixJsonl(
+      await fileSystem.readFile(matrixPath, 'utf8'),
+    );
+    validateRubricForMatrix(rubric, matrix);
+    const matrixCandidateCount = matrix.filter(
+      ({ visibility }) => visibility === 'candidate',
+    ).length;
+    const matrixChallengeCount = matrix.filter(
+      ({ visibility }) => visibility === 'challenge',
+    ).length;
+    candidateCount += matrixCandidateCount;
+    challengeCount += matrixChallengeCount;
+    const phases = [
+      {
+        count: matrixCandidateCount,
+        label: 'candidate',
+        phase: 'candidate_checked' as const,
+      },
+      {
+        count: matrixChallengeCount,
+        label: 'challenge',
+        phase: 'challenge_checked' as const,
+      },
+    ].filter(({ count }) => count > 0);
+    for (const { label, phase } of phases) {
+      const receipt = evaluateSkillMatrix(
+        matrix,
+        { delegatedChecks: {}, ownedFiles: new Set(), text: sourceText },
+        sourceFingerprint,
+        phase,
+      );
+      if (!receiptPasses(receipt)) {
+        throw new Error(
+          `${matrixPath} ${label} evaluation failed: ${failedCheckNames(receipt).join(', ')}`,
+        );
+      }
+    }
+  }
+  if (candidateCount === 0 || challengeCount === 0) {
+    throw new Error(
+      `Skill evaluation requires at least one candidate and one challenge case: ${skillPath}`,
+    );
+  }
+  return matrixPaths.length;
+};
+
+export const validateAllSkills = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  skillsRoot: string,
+): Promise<SkillSuiteValidationReceipt> => {
+  if (!skillsRoot.startsWith('/') || !fileSystem.readdir) {
+    throw new Error(
+      'All-skill validation requires an absolute skills root and directory listing support.',
+    );
+  }
+  const root = resolve(skillsRoot);
+  const entries = await fileSystem.readdir(root, { withFileTypes: true });
+  const skillPaths = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(root, entry.name))
+    .sort();
+  if (skillPaths.length === 0) {
+    throw new Error(`No skills found under ${root}.`);
+  }
+  const results = await Promise.allSettled(
+    skillPaths.map(async (skillPath) => {
+      try {
+        await validateSkill(fileSystem, skillPath);
+        return {
+          matrixCount: await validateSkillEvaluations(fileSystem, skillPath),
+        };
+      } catch (error) {
+        throw new Error(`${skillPath}: ${errorMessage(error)}`);
+      }
+    }),
+  );
+  const failures = results.flatMap((result) =>
+    result.status === 'rejected' ? [errorMessage(result.reason)] : [],
+  );
+  if (failures.length > 0) {
+    throw new Error(`Skill validation failed:\n${failures.join('\n')}`);
+  }
+  const prose = await reviewSkillProse(fileSystem, [root]);
+  if (prose.findings.length > 0) {
+    throw new Error(
+      `Skill prose review failed: ${prose.findings
+        .map(
+          ({ sourcePath, targetPath, kind }) =>
+            `${kind}: ${sourcePath} -> ${targetPath}`,
+        )
+        .join('; ')}`,
+    );
+  }
+  return {
+    matrixCount: results.reduce(
+      (count, result) =>
+        count + (result.status === 'fulfilled' ? result.value.matrixCount : 0),
+      0,
+    ),
+    prose,
+    skillCount: skillPaths.length,
+    status: 'valid',
+  };
 };
 
 const proseReview = {

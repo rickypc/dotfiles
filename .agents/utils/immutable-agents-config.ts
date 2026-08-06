@@ -34,7 +34,7 @@ const gitStatusSpecFor = (agentsRoot: string): CommandSpec => ({
     '--porcelain=v1',
     '--untracked-files=all',
     '--',
-    ...protectedAgentsConfigPaths.map((path) => `.agents/${path}`),
+    ...protectedAgentsConfigPaths,
   ],
   command: 'git',
   cwd: agentsRoot,

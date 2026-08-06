@@ -4,7 +4,7 @@ import {
   decideBaseline,
   decideCandidate,
   decideChallenge,
-} from '../../../utils/evidence-gated-workflow-controller/controller.js';
+} from '../../../utils/quality-engine/controller.js';
 
 const passingReceipt = {
   checks: [{ detail: 'clean', name: 'matrix', status: 'passed' as const }],

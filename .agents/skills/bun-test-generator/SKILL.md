@@ -40,6 +40,30 @@ before exercising the selected SUT. This is mandatory and cannot be waived:
 - If the dependency cannot be mocked without guessing its contract, stop and
   ask for the missing contract; never bypass validation or leave it live.
 
+## Shared-consumer impact and mock-isolation gate
+
+Before modifying a selected SUT, a canonical shared test, or any shared mock
+registration, use `/codebase-memory` to inventory direct importers, call sites,
+public command consumers, and every test file loaded by the configured Bun
+command. Record a compact impact map: consumer, boundary touched, compatibility
+risk, and focused proof. A selected SUT is shared when another test, script, or
+runtime module imports it; a test is shared when it runs in the same Bun process
+as other files.
+
+Bun module mocks may persist across test files. Never add a top-level
+`mock.module()` to a shared suite until every same-process consumer has been
+identified and the replacement contract has been checked against each one.
+Prefer dependency injection, a test-local boundary, or a separately spawned
+test process. Do not assume test-file isolation or `mock.restore()` removes a
+registered module. If safe isolation is not proven, stop and ask for the
+missing boundary plan; do not mutate the shared harness or SUT to make
+coverage green.
+
+When shared production code changes, apply the same impact gate to the SUT:
+preserve all identified consumers, add focused regression coverage for each
+material risk, and run the relevant shared suite before the final gate. A
+coverage-only change must not alter SUT behavior.
+
 This rule is CRITICAL, ALWAYS enforced, and applies to existing test repairs as
 well as newly generated tests. If a test mocks the selected SUT, stop and
 rewrite it to call the real SUT while mocking only its dependencies.
@@ -101,7 +125,8 @@ failure-recovery, and retry partitions whenever the public contract makes them
 relevant; every negative case asserts both the returned error/normalized result
 and the absence of unintended side effects.
 
-Mock every external boundary explicitly; an isolated harness is not permission
+Mock every external boundary explicitly; mock every one with `mock()` and use
+`mock.module()` for every imported module. An isolated harness is not permission
 to leave a boundary live. The test must mock every external boundary before it
 asserts the selected SUT behavior.
 
@@ -111,14 +136,18 @@ separate from the assertion text—for example, a validator, focused test
 command, or observable contract check that can independently reject a weak or
 filler case.
 
+Mock every one with `mock()` and use `mock.module()` for every imported module.
+Reject filler.
+
 Convert selected Jest tests to typed Bun tests at the canonical path. Inventory
 their behavior first, preserve or improve SUT line/function coverage, remove the
 legacy Jest test only after Bun validation, then delegate lint/type checking to
 `/biome-tsc-checker`.
 
 Use this exact order: resolve the project root or declared shared-test owner;
-locate canonical and selected legacy tests; inventory observable contracts and
-every external boundary from the SUT source; freeze the behavior matrix;
+locate canonical and selected legacy tests; inventory observable contracts,
+every external boundary, and shared consumers from the SUT source; freeze the
+impact map and behavior matrix;
 generate or convert the TypeScript Bun test;
 run `validate-boundaries` with the exact SUT and test source; run
 `/biome-tsc-checker` for the test; run the selected Bun coverage command; then
@@ -128,6 +157,20 @@ assertion before rerunning; do not bypass it. Never alter a SUT, project
 configuration, or test location to make coverage appear green. For a JavaScript
 SUT, the generated test remains TypeScript and uses explicit types without
 `any` or suppression comments.
+
+## Command-contract preflight
+
+Before invoking `bun-test-generator.ts` or any delegated checker, read the
+owning script's usage text, argument parser, and implementation contract. Verify
+the exact argument count, positional meanings, whether each value is a path or
+source text, the exact SUT module specifier, and whether a JSON payload is
+inline text or a temporary file. For `validate-boundaries`, `sutSource` and
+`testSource` are source strings while `sutModuleSpecifier` is the exact import
+specifier used by the test; do not pass file paths in the source fields.
+Materialize rich JSON through the shared TypeScript writer when the owner
+requires a request file. Run the owning validator before executing tests and
+repair a rejected command before any retry; never infer a contract from a
+failed invocation.
 
 ```bash
 bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-testSource-and-sutModuleSpecifier>'

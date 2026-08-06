@@ -11,15 +11,15 @@ import {
   decideBaseline,
   decideCandidate,
   decideChallenge,
-} from './evidence-gated-workflow-controller/controller.js';
+} from './quality-engine/controller.js';
 import {
   type ActionPacket,
   createActionPacket,
-} from './evidence-gated-workflow-controller/packet.js';
+} from './quality-engine/packet.js';
 import {
   createReceipt,
   type EvidenceReceipt,
-} from './evidence-gated-workflow-controller/receipt.js';
+} from './quality-engine/receipt.js';
 
 export type DeclarationKind =
   | 'const-function'
@@ -538,6 +538,22 @@ const applyTypeGroup = (
   return [before, typeText, after].filter(Boolean).join('\n\n');
 };
 
+const topLevelStatementSet = (
+  filePath: string,
+  source: string,
+): readonly string[] =>
+  sourceStatements(filePath, source)
+    .statements.map(({ end, start }) => source.slice(start, end).trim())
+    .sort(alphabetically);
+
+const preservesTopLevelStatements = (
+  filePath: string,
+  before: string,
+  after: string,
+): boolean =>
+  JSON.stringify(topLevelStatementSet(filePath, before)) ===
+  JSON.stringify(topLevelStatementSet(filePath, after));
+
 const violationsFor = (groups: readonly DeclarationOrderGroup[]): string[] =>
   groups
     .filter(
@@ -714,6 +730,7 @@ export const declarationOrderCheck = (
 export const fixDeclarationOrder = (
   filePath: string,
   source: string,
+  preserve?: (filePath: string, before: string, after: string) => boolean,
 ): DeclarationOrderFixResult => {
   const baseline = inspectDeclarationOrder(filePath, source);
   if (baseline.blockers.length > 0 || baseline.violations.length === 0) {
@@ -731,9 +748,26 @@ export const fixDeclarationOrder = (
     afterTypes,
     afterTypeReport.groups.filter((group) => group.kind === 'runtime'),
   );
+  const finalReport = inspectDeclarationOrder(filePath, next);
+  const sourceGuard = preserve ?? preservesTopLevelStatements;
+  if (!sourceGuard(filePath, source, next)) {
+    return {
+      changed: false,
+      report: {
+        ...finalReport,
+        blockers: [
+          ...finalReport.blockers,
+          'Automatic reorder rejected because top-level source statements changed.',
+        ],
+        packet: undefined,
+        violations: [],
+      },
+      source,
+    };
+  }
   return {
     changed: next !== source,
-    report: inspectDeclarationOrder(filePath, next),
+    report: finalReport,
     source: next,
   };
 };

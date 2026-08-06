@@ -4,7 +4,13 @@ import { runStaticChecks } from '../../utils/biome-tsc-checker.js';
 
 test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   const executor = mock(
-    async ({ command }: { args: readonly string[]; command: string }) =>
+    async ({
+      command,
+    }: {
+      args: readonly string[];
+      command: string;
+      cwd?: string;
+    }) =>
       command.endsWith('/biome')
         ? { code: 0, stderr: '', stdout: 'clean' }
         : { code: 1, stderr: 'type error', stdout: '' },
@@ -28,6 +34,8 @@ test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
     },
   ]);
   expect(executor).toHaveBeenCalledTimes(2);
+  expect(executor.mock.calls[0]?.[0].cwd).toBe('/agents');
+  expect(executor.mock.calls[1]?.[0].cwd).toBe('/agents');
   expect(executor.mock.calls[0]?.[0].args).toContain('--config-path');
   expect(executor.mock.calls[1]?.[0].args).toContain('--ignoreConfig');
   expect(executor.mock.calls[1]?.[0].args).toContain(
@@ -35,7 +43,7 @@ test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   );
 });
 
-test('starts independent Biome, TypeScript, and declaration-order work together', async () => {
+test('runs independent Biome, declaration-order, and TypeScript checks together', async () => {
   let releaseBiome:
     | ((value: { code: number; stderr: string; stdout: string }) => void)
     | undefined;
@@ -181,7 +189,7 @@ test('uses the default source reader for an existing selected TypeScript path', 
   await expect(
     runStaticChecks(executor, {
       agentsRoot: '/agents',
-      paths: ['tests/utils/contracts.test.ts'],
+      paths: [new URL('./contracts.test.ts', import.meta.url).pathname],
     }),
   ).resolves.toEqual(
     expect.arrayContaining([

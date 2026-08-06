@@ -20,7 +20,9 @@ design quality, or risk reduction matters more than individual throughput.
 2. Read the relevant requirements, code, tests, and constraints together.
 3. Set a short driver rotation, normally 10–15 minutes.
 4. Keep a visible decision and follow-up list.
-5. Run focused validation after each meaningful increment.
+5. Review or run focused validation after each meaningful increment only when
+   it is outside the configured final gate; do not execute a covered check
+   before the gate.
 6. End by recording what changed, what remains, and the next owner.
 
 ## When to collaborate

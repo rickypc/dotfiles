@@ -24,9 +24,11 @@ option; duplicating it is permitted only when the project proves it is an
 exact synchronized strengthening. Never remove shared coverage or lint/type
 gates to make a project green.
 
-Do not create `aidlc.config.json` merely to repeat the default final gate. The
-AIDLC default is `bun run test`; add that file only when the project needs a
-different, explicitly justified final gate.
+Do not create `aidx.json` merely to repeat the default final gate. The AIDX
+default is `bun run test`; add `aidx.json` only when the project needs a
+different, explicitly justified final gate. It is a compact JSON object with an
+optional string `finalGate` property. AIDX reads it as data; it is never
+executed as a program.
 
 Resolve `<agents-root>` by walking up from the current project directory,
 looking for `.agents/`. Use the first one found; if none is found, fall back to
@@ -77,6 +79,18 @@ bun <agents-root>/scripts/write-json.ts "<absolute-json-output-path>" <<'JSON'
 <valid-json-object-or-array>
 JSON
 ```
+
+Use this as two separate commands. First run `mktemp` alone and retain the
+absolute path it prints. Do not guess `/tmp`, `/private/tmp`, or a platform
+specific path: the writer accepts only the actual operating system
+`os.tmpdir()`. In the next command, pass that printed path literally as the
+writer's one output-path argument. Do not use shell variables, command
+substitution, or backtick command substitution in that command. Keep the
+heredoc delimiter exactly quoted as `<<'JSON'`. For Markdown backticks or
+dollar signs inside JSON strings, use the JSON escapes `\\u0060` and
+`\\u0024` so shell-sensitive characters never enter the command text; the
+writer decodes them into the intended content. After materialization succeeds,
+invoke the owning command in a separate command with the same literal path.
 
 Use exactly one absolute output-path argument; the writer reads JSON from
 stdin, validates it before writing, pretty-prints it, and permits only paths
@@ -162,6 +176,32 @@ use.
 - Do not remove pre-existing dead code that this change did not create or
   replace on assumption. Report the exact evidence and ask the user whether to
   include that separate cleanup.
+- Before changing shared production code, a canonical shared test, or a
+  shared mock registration, build a bounded impact map with
+  `/codebase-memory`: direct importers and call sites, public command
+  consumers, tests loaded by the same command/process, and compatibility or
+  contamination risks. Record the affected consumers and the focused checks
+  that cover each risk before editing. If the map cannot be established from
+  repository evidence, stop before the mutation and ask for direction.
+- A shared Bun suite must never receive an unbounded top-level `mock.module()`
+  change. Bun module mocks can persist across test files in one process, so
+  identify every same-process consumer first and prove that the mock is
+  compatible with all of them. Prefer test-local dependency injection or an
+  isolated process/module boundary; do not assume `mock.restore()` or test
+  file boundaries undo module registration. If safe isolation is not proven,
+  do not change the shared harness.
+- Before invoking any script or skill command, read its owning command catalog
+  and parser/entrypoint, then verify the exact arity, positional meanings,
+  transport type (path, inline string, or temporary request file), and JSON
+  schema. Validate the request with the owning parser before a side effect.
+  Treat a rejected invocation as a command-contract defect to repair, not as
+  evidence and not as a reason to repeat the same malformed command.
+- Use a failure-first repair loop for multi-lane work: run one baseline
+  discovery/validation pass, collect all independent failures, apply compatible
+  repairs as one batch, run focused checks for that batch, and run the final
+  gate once. Keep a short command/result/next-action ledger. Never rerun the
+  full gate after each individual fix or repeat an unchanged command whose
+  contract and inputs have not changed.
 - For every JavaScript or TypeScript test addition or modification, invoke
   `/bun-test-generator` first. Use its behavior matrix, mock or inject every
   external boundary, run `validate-boundaries`, then use `/biome-tsc-checker`
@@ -169,3 +209,15 @@ use.
 - For retained browser acceptance coverage, invoke `/playwright-test-generator`
   instead. It uses the selected project's local Playwright runner and does not
   replace unit coverage or modify global dependencies.
+
+## Non-negotiable execution guardrails
+
+For every nontrivial workflow, invoke `/knowledge-base` for durable prior context and lesson capture. Use `/codebase-memory` as the primary authority for repository files, symbols, call paths, and code text; do not read whole files when a targeted discovery or inspection receipt answers the question. There is no universal `.agents/references` directory: never invent or hardcode one. Before any code edit, collect the smallest sufficient CBM/KB receipts.
+
+Batch independent reads and distinct checks when they are safe, but never run the same checker, command, query, or final gate concurrently. Reject duplicate normalized queries in every batch API. For AIDX, use one `advance-batch` request for consecutive prepared non-gated transitions; issue an individual transition only when the state contract requires a user gate, test receipt, repair receipt, or other non-batchable event.
+
+All temporary paths must be printed by a standalone `mktemp` command or derived from `os.tmpdir()` evidence. Never guess a platform temp path, reuse a placeholder path, or create multiple temp directories for one workflow when one OS temp directory and distinct files are sufficient. After a complete implementation batch, run the configured final gate exactly once. If it fails, make all compatible repairs together and run that final gate exactly once for the repair batch.
+
+## JSON materialization fallback
+
+The canonical JSON writer always receives exactly one absolute output path that was printed by standalone mktemp or proven under os.tmpdir(). Send the JSON as text through the writer stdin. If the shell heredoc form is rejected by the runtime, keep the same writer and path, open one bounded stdin session, write the JSON text, and close stdin; do not switch to an object-valued tool call, Python, a guessed path, or JSON.stringify inside the command. Use escaped Unicode for backticks and dollar signs inside JSON strings, and verify the writer receipt before the next command.

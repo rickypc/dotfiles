@@ -16,6 +16,27 @@ interface DeclarationOrderScriptCheck {
   readonly status: 'blocked' | 'failed' | 'passed';
 }
 
+const checkPath = async (
+  path: string,
+  apply: boolean,
+  read: (path: string) => Promise<string>,
+  save: (path: string, source: string) => Promise<unknown>,
+): Promise<DeclarationOrderScriptCheck> => {
+  const source = await read(path);
+  const fixed = apply ? fixDeclarationOrder(path, source) : undefined;
+  const report = fixed?.report ?? inspectDeclarationOrder(path, source);
+  const check = declarationOrderResult(report);
+  if (fixed?.changed && check.status === 'passed') {
+    await save(path, fixed.source);
+  }
+  return {
+    actionPacket: report.packet ?? null,
+    detail: declarationOrderDetail(report),
+    path,
+    status: check.status,
+  };
+};
+
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/declaration-order.ts <path>; use the biome-tsc-checker command catalog for apply and summary variants.';
 
@@ -32,23 +53,15 @@ export const run = async (
   const apply = flags.has('--apply');
   const summary = flags.has('--summary');
   const paths = normalizePaths(args.filter((arg) => !arg.startsWith('--')));
-  const checks: DeclarationOrderScriptCheck[] = await Promise.all(
-    paths.map(async (path) => {
-      const source = await read(path);
-      const fixed = apply ? fixDeclarationOrder(path, source) : undefined;
-      if (fixed?.changed) {
-        await save(path, fixed.source);
-      }
-      const report = fixed?.report ?? inspectDeclarationOrder(path, source);
-      const check = declarationOrderResult(report);
-      return {
-        actionPacket: report.packet ?? null,
-        detail: declarationOrderDetail(report),
-        path,
-        status: check.status,
-      };
-    }),
-  );
+  if (apply && paths.length !== 1) {
+    throw new Error(
+      'Declaration-order --apply accepts exactly one file; inspect all files first and apply one emitted packet at a time.',
+    );
+  }
+  const checks: DeclarationOrderScriptCheck[] = [];
+  for (const path of paths) {
+    checks.push(await checkPath(path, apply, read, save));
+  }
   const nonPassing = checks.filter((check) => check.status !== 'passed');
   if (summary) {
     write(

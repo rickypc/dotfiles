@@ -12,7 +12,7 @@ criteria, affected boundaries, risks, and proof. Calibrate depth to evidence:
 | Goal shape | Plan depth | Typical proof |
 | --- | --- | --- |
 | One isolated behavior or defect | One increment, one owner boundary | Focused unit or integration check |
-| Several related files or a small feature | Two to four increments | Focused checks plus the repository gate |
+| Several related files or a small feature | Two to four increments | Focused checks not covered by the repository gate, plus the gate |
 | Cross-boundary, public, security-sensitive, or data-changing work | Explicit requirements, design decisions, dependency order, rollback or compatibility notes | Tests for each boundary plus the repository gate |
 
 Do not create an epic, story hierarchy, or artificial work stream for a single
@@ -29,6 +29,8 @@ For each acceptance criterion, record:
 - the affected file, symbol, interface, data shape, or narrow discovery
   boundary; and
 - the focused proof and final-gate relationship.
+- If the repository gate already executes the proof, mark it gate-covered and
+  do not schedule a second execution.
 
 For each implementation increment, record what changes, where it changes, why
 it is ordered there, what it depends on, how it will be checked, and the fact

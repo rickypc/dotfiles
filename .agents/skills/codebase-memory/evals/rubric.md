@@ -1,3 +1,21 @@
+---
+schemaVersion: 1
+requiredCaseFields:
+  - id
+  - visibility
+  - scenario
+  - assertions
+  - failureMode
+  - repairBoundary
+  - independentVerifier
+requiredVisibility:
+  - candidate
+  - challenge
+minimumPassRate: 1
+verifierIds:
+  - source-structure
+---
+
 # Codebase Memory Evaluation Rubric
 
 Verify allowed-root, readiness, and wrapper-only discovery behavior. The skill

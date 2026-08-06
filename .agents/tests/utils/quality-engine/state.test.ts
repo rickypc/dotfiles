@@ -1,9 +1,6 @@
 import { expect, test } from 'bun:test';
 
-import {
-  isTerminal,
-  transition,
-} from '../../../utils/evidence-gated-workflow-controller/state.js';
+import { isTerminal, transition } from '../../../utils/quality-engine/state.js';
 
 test('moves across legal workflow transitions', () => {
   expect(transition('draft', 'matrix_ready')).toBe('matrix_ready');

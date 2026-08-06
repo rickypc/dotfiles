@@ -11,8 +11,8 @@ test('sets a nonzero exit code after replaying every failed command diagnostic',
   const write = mock();
   const setExitCode = mock();
   await run([], executor, '/agents', write, setExitCode);
-  expect(executor).toHaveBeenCalledTimes(3);
-  expect(write).toHaveBeenCalledTimes(4);
+  expect(executor).toHaveBeenCalledTimes(4);
+  expect(write).toHaveBeenCalledTimes(6);
   expect(setExitCode).toHaveBeenCalledWith(1);
 });
 
@@ -34,7 +34,7 @@ test('throws before lint commands when a protected file has worktree changes', a
   const executor = mock(async ({ args }: { args: readonly string[] }) => ({
     code: 0,
     stderr: '',
-    stdout: args[2] === 'status' ? ' M .agents/biome.jsonc\n' : '',
+    stdout: args[2] === 'status' ? ' M biome.jsonc\n' : '',
   }));
   await expect(run([], executor, '/agents')).rejects.toThrow(
     'stop and ask the user',

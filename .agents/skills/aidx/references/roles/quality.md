@@ -5,8 +5,10 @@ project’s final validation gate.
 
 ## Required output
 
-- Map each acceptance item to focused proof covering meaningful success,
-  failure, and boundary behavior.
+- Map each acceptance item to proof covering meaningful success, failure, and
+  boundary behavior. Mark whether each proof is supplied by the final gate;
+  do not execute a focused test separately when the final gate already runs
+  it.
 - Identify development checks and the behavior that must be included in the
   project’s final gate.
 - For accepted browser behavior, require retained project-local coverage unless
@@ -19,6 +21,7 @@ project’s final validation gate.
 
 A passing unit test, coverage number, screenshot, or exploratory check does not
 close an unrelated acceptance item. Do not add a universal test command or a
-second approval gate.
+second approval gate. Do not run a focused test and then run the final gate
+when the gate includes that same test; use one gate execution as the proof.
 
 Related methodology: [quality knowledge branch](../knowledge/roles/quality/index.md).

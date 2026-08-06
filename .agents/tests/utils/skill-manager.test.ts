@@ -1,6 +1,19 @@
 import { expect, mock, test } from 'bun:test';
+import * as path from 'node:path';
+import realMatter from 'gray-matter';
 
-import {
+interface AllSkillsFixtureOptions {
+  readonly evalFiles?: readonly string[];
+  readonly matrix?: string;
+  readonly rubric?: string | null;
+  readonly skills?: readonly string[];
+  readonly source?: string;
+}
+
+mock.module('node:path', () => path);
+mock.module('gray-matter', () => ({ default: realMatter }));
+
+const {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
   evaluateSkillMatrix,
@@ -8,9 +21,23 @@ import {
   initializeSkill,
   localMarkdownLinkTargets,
   parseMatrixJsonl,
+  parseSkillRubric,
   reviewSkillProse,
+  validateAllSkills,
   validateSkill,
-} from '../../utils/skill-manager.js';
+} = await import('../../utils/skill-manager.js');
+
+const validRubric = [
+  '---',
+  'schemaVersion: 1',
+  'requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]',
+  'requiredVisibility: [candidate, challenge]',
+  'minimumPassRate: 1',
+  'verifierIds: [source-structure]',
+  '---',
+  '',
+  '# Rubric',
+].join('\n');
 
 test('creates a matrix-definition packet from the draft state', () => {
   const packet = createSkillManagerPacket({
@@ -65,6 +92,7 @@ test('parses and evaluates a frozen candidate and challenge matrix', () => {
         assertions: [{ expected: 'required', kind: 'required-text' }],
         failureMode: 'missing',
         id: 'candidate',
+        independentVerifier: 'source-structure',
         repairBoundary: '/skill',
         scenario: 'content',
         visibility: 'candidate',
@@ -73,6 +101,7 @@ test('parses and evaluates a frozen candidate and challenge matrix', () => {
         assertions: [{ expected: 'secret', kind: 'forbidden-text' }],
         failureMode: 'leak',
         id: 'challenge',
+        independentVerifier: 'source-structure',
         repairBoundary: '/skill',
         scenario: 'safety',
         visibility: 'challenge',
@@ -105,6 +134,7 @@ test('batches independent candidates and challenges only after every candidate p
         assertions: [{ expected: 'required', kind: 'required-text' }],
         failureMode: 'missing',
         id: 'candidate',
+        independentVerifier: 'source-structure',
         repairBoundary: '/skill',
         scenario: 'content',
         visibility: 'candidate',
@@ -113,6 +143,7 @@ test('batches independent candidates and challenges only after every candidate p
         assertions: [{ expected: 'forbidden', kind: 'forbidden-text' }],
         failureMode: 'leak',
         id: 'challenge',
+        independentVerifier: 'source-structure',
         repairBoundary: '/skill',
         scenario: 'safety',
         visibility: 'challenge',
@@ -144,6 +175,7 @@ test('returns one targeted repair packet and suppresses challenges when a candid
       assertions: [{ expected: 'required', kind: 'required-text' }],
       failureMode: 'missing',
       id: 'candidate',
+      independentVerifier: 'source-structure',
       repairBoundary: '/skill',
       scenario: 'content',
       visibility: 'candidate',
@@ -169,6 +201,7 @@ test('records baseline receipts without issuing a challenge or repair packet', (
       assertions: [{ expected: 'required', kind: 'required-text' }],
       failureMode: 'missing',
       id: 'candidate',
+      independentVerifier: 'source-structure',
       repairBoundary: '/skill',
       scenario: 'content',
       visibility: 'candidate',
@@ -286,6 +319,260 @@ test('validates skill frontmatter, name, description, and instructions', async (
       '/tmp/skills/example-skill',
     ),
   ).rejects.toThrow('frontmatter is invalid');
+});
+
+test('rejects malformed rubric contracts and unauthorized matrix verifiers', async () => {
+  expect(() =>
+    parseSkillRubric(
+      validRubric.replace('schemaVersion: 1', 'schemaVersion: 2'),
+    ),
+  ).toThrow('schemaVersion 1');
+  expect(() =>
+    parseSkillRubric(
+      validRubric.replace(
+        'requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]',
+        'requiredCaseFields: [id]',
+      ),
+    ),
+  ).toThrow('every matrix field');
+  const unauthorizedMatrix = [
+    matrixRowFor('candidate').replace(
+      '"independentVerifier":"source-structure"',
+      '"independentVerifier":"matrix-shape"',
+    ),
+    matrixRowFor('challenge').replace(
+      '"independentVerifier":"source-structure"',
+      '"independentVerifier":"matrix-shape"',
+    ),
+  ].join('\n');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ matrix: unauthorizedMatrix }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('does not authorize every matrix verifier');
+});
+
+test('validates every skill matrix, rubric, and prose link under one skills root', async () => {
+  const matrix = [
+    JSON.stringify({
+      assertions: [{ expected: 'contract', kind: 'required-text' }],
+      failureMode: 'missing contract',
+      id: 'candidate',
+      independentVerifier: 'source-structure',
+      repairBoundary: 'SKILL.md',
+      scenario: 'contract',
+      visibility: 'candidate',
+    }),
+    JSON.stringify({
+      assertions: [{ expected: 'secret', kind: 'forbidden-text' }],
+      failureMode: 'secret leak',
+      id: 'challenge',
+      independentVerifier: 'source-structure',
+      repairBoundary: 'SKILL.md',
+      scenario: 'safety',
+      visibility: 'challenge',
+    }),
+  ].join('\n');
+  const files = new Map<string, string>([
+    [
+      '/tmp/.agents/skills/demo/SKILL.md',
+      [
+        '---',
+        'name: demo',
+        'description: Demo skill.',
+        '---',
+        '',
+        '# Demo',
+        '',
+        'contract',
+      ].join('\n'),
+    ],
+    ['/tmp/.agents/skills/demo/evals/cases.jsonl', matrix],
+    ['/tmp/.agents/skills/demo/evals/rubric.md', validRubric],
+  ]);
+  const directories: Record<string, readonly string[]> = {
+    '/tmp/.agents/skills': ['demo'],
+    '/tmp/.agents/skills/demo': ['SKILL.md', 'evals'],
+    '/tmp/.agents/skills/demo/evals': ['cases.jsonl', 'rubric.md'],
+  };
+  const fileSystem = {
+    readdir: async (path: string) =>
+      (directories[path] ?? []).map((name) => ({
+        isDirectory: () => directories[`${path}/${name}`] !== undefined,
+        name,
+      })),
+    readFile: async (path: string): Promise<string> => {
+      const content = files.get(path);
+      if (content === undefined) {
+        throw new Error(`Missing ${path}`);
+      }
+      return content;
+    },
+  };
+  await expect(
+    validateAllSkills(fileSystem, '/tmp/.agents/skills'),
+  ).resolves.toEqual(
+    expect.objectContaining({
+      matrixCount: 1,
+      skillCount: 1,
+      status: 'valid',
+    }),
+  );
+});
+
+const demoSkillSource = [
+  '---',
+  'name: demo',
+  'description: Demo skill.',
+  '---',
+  '',
+  '# Demo',
+  '',
+  'contract',
+].join('\n');
+
+const matrixRowFor = (visibility: 'candidate' | 'challenge'): string =>
+  JSON.stringify({
+    assertions: [
+      {
+        expected: visibility === 'candidate' ? 'contract' : 'secret',
+        kind: visibility === 'candidate' ? 'required-text' : 'forbidden-text',
+      },
+    ],
+    failureMode: 'invalid',
+    id: visibility,
+    independentVerifier: 'source-structure',
+    repairBoundary: 'SKILL.md',
+    scenario: visibility,
+    visibility,
+  });
+
+const fullSkillMatrix = [
+  matrixRowFor('candidate'),
+  matrixRowFor('challenge'),
+].join('\n');
+
+const allSkillsFileSystemFor = (options: AllSkillsFixtureOptions = {}) => {
+  const evalFiles = options.evalFiles ?? ['cases.jsonl', 'rubric.md'];
+  const skills = options.skills ?? ['demo'];
+  const files = new Map<string, string>([
+    ['/tmp/.agents/skills/demo/SKILL.md', options.source ?? demoSkillSource],
+    [
+      '/tmp/.agents/skills/demo/evals/cases.jsonl',
+      options.matrix ?? fullSkillMatrix,
+    ],
+    [
+      '/tmp/.agents/skills/demo/evals/other.jsonl',
+      options.matrix ?? fullSkillMatrix,
+    ],
+  ]);
+  if (options.rubric !== null) {
+    files.set(
+      '/tmp/.agents/skills/demo/evals/rubric.md',
+      options.rubric ?? validRubric,
+    );
+  }
+  const directories: Record<string, readonly string[]> = {
+    '/tmp/.agents/skills': skills,
+    '/tmp/.agents/skills/demo': ['SKILL.md', 'evals'],
+    '/tmp/.agents/skills/demo/evals': evalFiles,
+  };
+  return {
+    readdir: async (path: string) =>
+      (directories[path] ?? []).map((name) => ({
+        isDirectory: () => directories[`${path}/${name}`] !== undefined,
+        name,
+      })),
+    readFile: async (path: string): Promise<string> => {
+      const content = files.get(path);
+      if (content === undefined) {
+        throw new Error(`Missing ${path}`);
+      }
+      return content;
+    },
+  };
+};
+
+test('reports every deterministic all-skill validation boundary', async () => {
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ evalFiles: [] }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('no evaluation matrix');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ evalFiles: ['other.jsonl', 'rubric.md'] }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('canonical evaluation matrix');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ evalFiles: ['cases.jsonl'], rubric: null }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('nonblank evaluation rubric');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({
+        source: demoSkillSource.replace('contract', 'missing'),
+      }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('candidate evaluation failed');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ source: `${demoSkillSource}\nsecret` }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('challenge evaluation failed');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ matrix: matrixRowFor('candidate') }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('at least one candidate and one challenge');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({
+        source: `${demoSkillSource}\n[Missing](./missing.md)`,
+      }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('Skill prose review failed');
+  await expect(
+    validateAllSkills(
+      allSkillsFileSystemFor({ skills: [] }),
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('No skills found');
+  await expect(
+    validateAllSkills(allSkillsFileSystemFor(), 'relative-skills'),
+  ).rejects.toThrow('absolute skills root');
+  await expect(
+    validateAllSkills(
+      { readFile: async () => demoSkillSource },
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('absolute skills root and directory listing');
+  let directoryReads = 0;
+  await expect(
+    validateAllSkills(
+      {
+        readdir: async (_path: string) => {
+          directoryReads += 1;
+          if (directoryReads === 1) {
+            return [{ isDirectory: () => true, name: 'demo' }];
+          }
+          return undefined as never;
+        },
+        readFile: async (path: string): Promise<string> =>
+          path.endsWith('/SKILL.md') ? demoSkillSource : '# Rubric',
+      },
+      '/tmp/.agents/skills',
+    ),
+  ).rejects.toThrow('directory listing support');
 });
 
 test('parses prose-only local links and honors the runtime ignore boundary', async () => {

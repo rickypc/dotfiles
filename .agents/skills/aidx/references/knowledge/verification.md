@@ -24,7 +24,9 @@ that do not validate the requested behavior.
 The gate is the repository's configured final validation command, or
 `bun run test` when the repository has no configured gate. It executes the gate.
 Lint, type checks, focused tests, coverage, visual checks, and a prior green run
-can provide development evidence, but none can substitute for the final receipt:
+can provide development evidence, but none can substitute for the final receipt.
+When one of those checks is already included in the configured gate, do not run
+it separately; the final gate is its single execution and proof:
 
 ~~~text
 final gate: <command> passed (exit 0)

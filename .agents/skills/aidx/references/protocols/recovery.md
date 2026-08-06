@@ -5,8 +5,10 @@ folder names. Read the current state, required sections, latest plan version,
 approval, evidence, and the next legal action.
 
 If the record is malformed, report the parser error, preserve the original,
-and repair it through the state helper or a user-editable answer file. If a
-question answer is missing, remain in the question state. If a check fails,
+and repair it through the state helper. If a question answer is missing, remain
+in the question state and ask the user in chat; do not manufacture an answer
+file. If the user explicitly chose file-based resume, accept the one agreed
+file and merge it into the canonical record. If a check fails,
 record the command and diagnosis, repair only the approved boundary, and rerun
 the same proof. After three failed attempts at the same boundary, pause with a
 factual blocker instead of guessing.

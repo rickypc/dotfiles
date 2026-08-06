@@ -1,3 +1,20 @@
+---
+schemaVersion: 1
+requiredCaseFields:
+  - id
+  - visibility
+  - scenario
+  - assertions
+  - failureMode
+  - repairBoundary
+  - independentVerifier
+requiredVisibility:
+  - candidate
+  - challenge
+minimumPassRate: 1
+verifierIds:
+  - source-structure
+---
 # AIDLC evaluation rubric
 
 Evaluate the universal route, authoritative knowledge/code discovery boundaries,

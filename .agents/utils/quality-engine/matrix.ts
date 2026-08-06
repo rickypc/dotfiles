@@ -18,6 +18,7 @@ export interface MatrixCase {
   readonly assertions: readonly MatrixAssertion[];
   readonly failureMode: string;
   readonly id: string;
+  readonly independentVerifier: MatrixVerifierId;
   readonly repairBoundary: string;
   readonly scenario: string;
   readonly visibility: CaseVisibility;
@@ -28,6 +29,8 @@ export interface MatrixEvidence {
   readonly ownedFiles: ReadonlySet<string>;
   readonly text: string;
 }
+
+export type MatrixVerifierId = 'source-structure' | 'matrix-shape';
 
 const assertionKinds = new Set<AssertionKind>([
   'required-text',
@@ -133,7 +136,9 @@ const validateMatrixCase = (matrixCase: MatrixCase, ids: Set<string>): void => {
     isBlank(matrixCase.repairBoundary) ||
     matrixCase.assertions.length === 0
   ) {
-    throw new Error(`Matrix case is incomplete: ${matrixCase.id}`);
+    throw new Error(
+      `Matrix case is incomplete or missing an independent verifier: ${matrixCase.id}`,
+    );
   }
   for (const assertion of matrixCase.assertions) {
     if (!assertionKinds.has(assertion.kind) || isBlank(assertion.expected)) {

@@ -10,9 +10,34 @@ import {
   reconcileConcepts,
   renderDirectoryIndex,
   searchKnowledgeBase,
+  searchKnowledgeBaseBatch,
   searchKnowledgeBaseWithFallback,
 } from '../utils/knowledge-base.js';
 import { bunExecutor } from '../utils/process.js';
+
+const runBatchSearchCommand = async (
+  args: readonly string[],
+  batchSearch: typeof searchKnowledgeBaseBatch,
+  write: (message: string) => void,
+): Promise<boolean> => {
+  const [command, value, cbmIndex, ...queries] = args;
+  if (
+    command !== 'search-batch' ||
+    !value ||
+    !cbmIndex ||
+    queries.length === 0
+  ) {
+    return false;
+  }
+  write(
+    JSON.stringify(
+      await batchSearch(nodeFileSystem, bunExecutor, value, cbmIndex, queries),
+      null,
+      2,
+    ),
+  );
+  return true;
+};
 
 const runCapture = async (
   args: readonly string[],
@@ -69,52 +94,6 @@ const runConceptIndex = (
   return true;
 };
 
-const runReadCommand = async (
-  args: readonly string[],
-  search: typeof searchKnowledgeBase,
-  discover: typeof searchKnowledgeBaseWithFallback,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, value, ...rest] = args;
-  if (command === 'validate' && value && args.length === 2) {
-    parseOkfConcept(await readText(nodeFileSystem, value));
-    write('okf: passed');
-    return true;
-  }
-  if (command === 'render-index' && value && args.length >= 2) {
-    write(renderDirectoryIndex(value, rest));
-    return true;
-  }
-  if (command === 'search' && value && rest.length === 1 && args.length === 3) {
-    write(
-      JSON.stringify(await search(nodeFileSystem, value, rest[0]), null, 2),
-    );
-    return true;
-  }
-  if (command === 'search' && value && rest.length === 2 && args.length === 4) {
-    write(
-      JSON.stringify(
-        await discover(nodeFileSystem, bunExecutor, value, rest[0], rest[1]),
-        null,
-        2,
-      ),
-    );
-    return true;
-  }
-  if (
-    command === 'related' &&
-    value &&
-    rest.length === 1 &&
-    args.length === 3
-  ) {
-    write(
-      JSON.stringify(await search(nodeFileSystem, value, rest[0]), null, 2),
-    );
-    return true;
-  }
-  return false;
-};
-
 const runReconcile = async (
   args: readonly string[],
   reconcile: typeof reconcileConcepts,
@@ -142,8 +121,58 @@ const runReconcile = async (
   return true;
 };
 
+const runSearchCommand = async (
+  args: readonly string[],
+  search: typeof searchKnowledgeBase,
+  discover: typeof searchKnowledgeBaseWithFallback,
+  write: (message: string) => void,
+): Promise<boolean> => {
+  const [command, value, first, second] = args;
+  if ((command !== 'search' && command !== 'related') || !value || !first) {
+    return false;
+  }
+  if (args.length === 3) {
+    write(JSON.stringify(await search(nodeFileSystem, value, first), null, 2));
+    return true;
+  }
+  if (command === 'search' && second && args.length === 4) {
+    write(
+      JSON.stringify(
+        await discover(nodeFileSystem, bunExecutor, value, first, second),
+        null,
+        2,
+      ),
+    );
+    return true;
+  }
+  return false;
+};
+
+const runReadCommand = async (
+  args: readonly string[],
+  search: typeof searchKnowledgeBase,
+  discover: typeof searchKnowledgeBaseWithFallback,
+  batchSearch: typeof searchKnowledgeBaseBatch,
+  write: (message: string) => void,
+): Promise<boolean> => {
+  const [command, value, ...rest] = args;
+  if (command === 'validate' && value && args.length === 2) {
+    parseOkfConcept(await readText(nodeFileSystem, value));
+    write('okf: passed');
+    return true;
+  }
+  if (command === 'render-index' && value && args.length >= 2) {
+    write(renderDirectoryIndex(value, rest));
+    return true;
+  }
+  if (command === 'search' || command === 'related') {
+    return runSearchCommand(args, search, discover, write);
+  }
+  return runBatchSearchCommand(args, batchSearch, write);
+};
+
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|reconcile|related|render-index|search|validate> <arguments>; reconcile requires an absolute request path and validate requires one absolute concept-file path.';
+  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|reconcile|related|render-index|search|search-batch|validate> <arguments>; search-batch takes one KB root, one CBM index, and 1-4 unique queries.';
 
 export const run = async (
   args: readonly string[],
@@ -152,6 +181,7 @@ export const run = async (
   search: typeof searchKnowledgeBase = searchKnowledgeBase,
   discover: typeof searchKnowledgeBaseWithFallback = searchKnowledgeBaseWithFallback,
   reconcile: typeof reconcileConcepts = reconcileConcepts,
+  batchSearch: typeof searchKnowledgeBaseBatch = searchKnowledgeBaseBatch,
 ): Promise<void> => {
   if (await runCapture(args, capture, write)) {
     return;
@@ -162,7 +192,7 @@ export const run = async (
   if (runConceptIndex(args, write)) {
     return;
   }
-  if (await runReadCommand(args, search, discover, write)) {
+  if (await runReadCommand(args, search, discover, batchSearch, write)) {
     return;
   }
   throw new Error(usage());

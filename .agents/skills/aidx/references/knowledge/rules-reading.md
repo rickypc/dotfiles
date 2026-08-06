@@ -16,10 +16,12 @@ the private KB root. knowledge-base alone does that.
 ## Read protocol
 
 - Read the user and applicable project instructions before planning.
-- Before presenting a plan, ask knowledge-base to select only concepts that
-  materially affect the change. Preserve selected context and its source in
-  the goal record; do not make knowledge-base retrieval a mandatory ceremony
-  for a goal it cannot materially change.
+- During `INSPECT_CONTEXT`, run the lightweight `/knowledge-base` search for
+  the goal's relevant prior decisions, policies, and verified lessons before
+  asking questions. Run it in parallel with independent `/codebase-memory`
+  discovery, then preserve both receipts in the goal record. A no-result KB
+  search is valid evidence and does not become an invented fact; do not expand
+  the search into unrelated concepts or make a no-result lookup a blocker.
 - Use /codebase-memory for code facts. It has its own staged fallback; do not
   invoke CBM, MCP, CLI, grep, or a path guess directly.
 - Treat a concept's `ALWAYS` or `NEVER` rule as a constraint. Conflicting

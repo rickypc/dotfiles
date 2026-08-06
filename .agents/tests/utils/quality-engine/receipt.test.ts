@@ -5,7 +5,7 @@ import {
   failedCheckNames,
   receiptPasses,
   renderReceipt,
-} from '../../../utils/evidence-gated-workflow-controller/receipt.js';
+} from '../../../utils/quality-engine/receipt.js';
 
 test('accepts passing and not-applicable checks', () => {
   const receipt = {

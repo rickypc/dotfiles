@@ -8,6 +8,9 @@ every task into a ceremony-heavy project:
 1. **Evidence before inference.** User input, project instructions,
    `/codebase-memory` facts, and `/knowledge-base` context are distinct
    sources.
+   During `INSPECT_CONTEXT`, run independent current-code and durable-context
+   lookups in parallel, merge both receipts, and preserve their authority
+   boundaries.
 2. **One resumable record.** The gray-matter goal record owns the user goal,
    evidence, questions, plan, approval, execution, validation, and outcome. It
    is runtime state, not a project artifact or a private-KB replacement.

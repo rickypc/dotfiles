@@ -11,7 +11,7 @@ quality, optimize its context cost, or repair a failed validation. It manages
 every skill, including AIDX and specialized capability skills. Do not route
 skill creation or maintenance to another skill.
 
-The generic evidence controller owns evaluation state and receipts. Skill
+The generic `quality-engine` owns evaluation state and receipts. Skill
 Manager owns the selected skill's contract, resources, references, matrices,
 prose review, deterministic validation, and repair packet.
 
@@ -72,6 +72,7 @@ remove the split.
 | 5 | Two independent skills need the same evaluation phase. | `bun <agents-root>/scripts/skill-manager.ts batch "<review-id>" "baseline" "<absolute-first-matrix-jsonl-path>" "<absolute-first-skill-file-path>" "<absolute-second-matrix-jsonl-path>" "<absolute-second-skill-file-path>"` | Concurrent receipts and candidate challenges after all candidates pass. | Apply only returned targeted repair packets. |
 | 6 | Two independent skills need candidate evaluation. | `bun <agents-root>/scripts/skill-manager.ts batch "<review-id>" "candidate" "<absolute-first-matrix-jsonl-path>" "<absolute-first-skill-file-path>" "<absolute-second-matrix-jsonl-path>" "<absolute-second-skill-file-path>"` | Concurrent candidate receipts and challenge results after every candidate passes. | Apply only returned targeted repair packets. |
 | 7 | A script-produced packet requests a draft or repair handoff. | `bun <agents-root>/scripts/skill-manager.ts packet "<review-id>" "<candidate-checked-or-candidate-requested-or-draft>" "<absolute-skill-path>"` | One state-derived action packet. | Follow that packet; do not invent an assertion result. |
+| 8 | The global skill package needs its deterministic lint contract. | `bun <agents-root>/scripts/validate-skills.ts` | Validates every local skill, rubric, candidate/challenge matrix, frontmatter, and ignore-aware prose link scope. | Repair all reported skill-owned failures, then rerun once. |
 
 `init` and `validate` are the deterministic skill-creation and skill-update
 support that callers use instead of a separate skill-authoring route. The LLM
@@ -97,6 +98,12 @@ quality matrix, and project-appropriate type, lint, or test checks. Use
 set before and after prose edits. Forward-test a complex skill on a realistic
 task from a clean context; treat the raw output and emitted artifacts as
 evidence, not as proof supplied by the test prompt.
+
+The global `.agents` `test:lint` runs this all-skill validator as one distinct
+checker alongside Biome and declaration-order. It is deterministic: it does
+not ask an LLM to judge prose quality, and it fails when any local skill lacks
+the required assets or when any candidate/challenge assertion, frontmatter, or
+link-scope check fails.
 
 ## Router governance
 
@@ -197,3 +204,9 @@ Ask all unresolved material questions together when the packet permits no safe
 candidate batch. Never invent a score, provider, credential, or evidence. A
 challenge result is not a security boundary; it is simply not issued in the
 candidate packet.
+
+## Machine-evaluated rubric and verifier contract
+
+Every evals/rubric.md must contain the machine-readable schemaVersion, requiredCaseFields, requiredVisibility, minimumPassRate, and fixed verifierIds frontmatter. Human rubric prose remains useful context, but it is not acceptance evidence by itself. The evaluator must parse this contract, reject missing or unknown verifier IDs, and execute each declared verifier through the in-process fixed registry. No arbitrary shell command or descriptive verifier text is accepted as execution.
+
+The reusable evaluator engine lives under utils/quality-engine. Its state, packet, receipt, matrix, and bounded batch behavior remain one coherent unit; do not split or redesign it while changing the package name. Use runBatched for bounded read-only batch work, reject duplicate normalized queries, and keep exclusive work serial. Candidate and challenge receipts must include the executed independent-verifier checks.

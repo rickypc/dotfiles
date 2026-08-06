@@ -4,7 +4,7 @@ import {
   createActionPacket,
   fingerprint,
   renderActionPacket,
-} from '../../../utils/evidence-gated-workflow-controller/packet.js';
+} from '../../../utils/quality-engine/packet.js';
 
 const actionGroup = {
   allowedPaths: ['/skill/SKILL.md'],

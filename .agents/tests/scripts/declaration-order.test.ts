@@ -132,6 +132,19 @@ test('applies a safe action packet only when explicitly requested', async () => 
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"passed"'));
 });
 
+test('never applies more than one file in a mutation request', async () => {
+  const save = mock(async () => undefined);
+  await expect(
+    run(
+      ['--apply', 'one.ts', 'two.ts'],
+      async () => 'function alpha() {}',
+      mock(),
+      save,
+    ),
+  ).rejects.toThrow('accepts exactly one file');
+  expect(save).not.toHaveBeenCalled();
+});
+
 test('emits a blocked result without authorizing an unsafe reorder', async () => {
   const write = mock();
   await expect(

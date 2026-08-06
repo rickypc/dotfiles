@@ -6,6 +6,7 @@ import {
 import type { DirectoryEntry, FileSystem } from './filesystem.js';
 import { readText, writeText } from './filesystem.js';
 import type { CommandExecutor } from './process.js';
+import { type BatchTask, runBatched } from './quality-engine/batch.js';
 
 export interface CapturedConcept {
   readonly conceptPath: string;
@@ -18,6 +19,11 @@ export interface DirectoryIndexEntry {
   readonly description?: string;
   readonly path: string;
   readonly title?: string;
+}
+
+export interface KnowledgeBaseBatchSearchResult {
+  readonly query: string;
+  readonly receipt: KnowledgeBaseSearchReceipt;
 }
 
 export interface KnowledgeBaseSearchReceipt {
@@ -75,6 +81,8 @@ export interface ReconciliationReceipt {
   readonly concepts: readonly CapturedConcept[];
   readonly links: readonly ReconciliationLink[];
 }
+
+export const maxKnowledgeBaseBatchSize = 4;
 
 const conceptPath =
   /^(?:shared|[A-Za-z0-9][A-Za-z0-9._-]*)\/[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*\.md$/u;
@@ -413,6 +421,53 @@ export const searchKnowledgeBaseWithFallback = async (
     concepts,
     discovery,
   };
+};
+
+export const searchKnowledgeBaseBatch = async (
+  fileSystem: FileSystem,
+  executor: CommandExecutor,
+  kbRoot: string,
+  cbmIndex: string,
+  queries: readonly string[],
+): Promise<readonly KnowledgeBaseBatchSearchResult[]> => {
+  if (queries.length === 0 || queries.length > maxKnowledgeBaseBatchSize) {
+    throw new Error(
+      `KB search-batch requires 1-${maxKnowledgeBaseBatchSize} queries.`,
+    );
+  }
+  const normalized = queries.map((query) =>
+    query.trim().toLocaleLowerCase('en-US'),
+  );
+  if (normalized.some((query) => !query)) {
+    throw new Error('KB search-batch queries must be nonblank.');
+  }
+  if (new Set(normalized).size !== normalized.length) {
+    throw new Error(
+      'KB search-batch queries must be unique after normalization.',
+    );
+  }
+  const tasks: BatchTask<KnowledgeBaseSearchReceipt>[] = queries.map(
+    (query, index) => ({
+      id: `query-${index}`,
+      mode: 'read-only',
+      run: () =>
+        searchKnowledgeBaseWithFallback(
+          fileSystem,
+          executor,
+          kbRoot,
+          cbmIndex,
+          query,
+        ),
+    }),
+  );
+  const receipts = await runBatched(tasks);
+  const receiptById = new Map(
+    receipts.map((result) => [result.id, result.value]),
+  );
+  return queries.map((query, index) => ({
+    query,
+    receipt: receiptById.get(`query-${index}`) as KnowledgeBaseSearchReceipt,
+  }));
 };
 
 const validateReconciliationHeader = (plan: ReconciliationPlan): void => {

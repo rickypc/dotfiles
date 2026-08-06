@@ -173,6 +173,12 @@ test('parses TSX, preserves comments as source trivia, and blocks syntax errors'
   ).toEqual([
     'Source contains syntax errors; declaration order was not evaluated.',
   ]);
+  expect(
+    inspectDeclarationOrder(
+      '/repo/module.js',
+      'function zebra() { return alpha(); }\nfunction alpha() {}',
+    ).groups[0],
+  ).toEqual(expect.objectContaining({ desiredOrder: ['alpha', 'zebra'] }));
 });
 
 test('applies only safe type and runtime declaration moves idempotently', () => {
@@ -254,6 +260,15 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
       source:
         'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
     }),
+  );
+});
+
+test('rejects a reorder when the source-preservation guard fails', () => {
+  const source = 'function zebra() {}\nfunction alpha() {}';
+  const fixed = fixDeclarationOrder('/repo/guard.ts', source, () => false);
+  expect(fixed).toEqual(expect.objectContaining({ changed: false, source }));
+  expect(fixed.report.blockers).toContain(
+    'Automatic reorder rejected because top-level source statements changed.',
   );
 });
 

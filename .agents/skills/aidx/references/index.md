@@ -3,8 +3,8 @@
 Use this map to select references after the goal and repository evidence are
 known. Do not load every reference for a small change.
 
-- [state-model.md](state-model.md) — persisted record, user-editable questions,
-  required sections, and legal transitions.
+- [state-model.md](state-model.md) — the single persisted record, interactive
+  question capture, required sections, and legal transitions.
 - [implementation-plan.md](implementation-plan.md) — approved implementation
   plan and validation-reconciliation template.
 - [conductor.md](conductor.md) — response-quality and evidence discipline

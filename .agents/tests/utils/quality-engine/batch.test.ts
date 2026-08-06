@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import { runBatched } from '../../../utils/evidence-gated-workflow-controller/batch.js';
+import { runBatched } from '../../../utils/quality-engine/batch.js';
 
 test('runs read-only tasks before exclusive tasks and preserves group order', async () => {
   const events: string[] = [];

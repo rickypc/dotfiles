@@ -57,13 +57,17 @@ the JSON fields as the only authority for declaration ordering.
 6. If `status: "failed"` has a null `actionPacket`, stop and report a checker
    defect. Do not invent a reorder.
 
-For the global `<agents-root>` package, `bun run test:lint` runs Biome and
-declaration-order inspection for every TypeScript source independently. It
-always reports both gate results and fails when either fails. A noncanonical or
+For the global `<agents-root>` package, `bun run test:lint` runs Biome,
+declaration-order inspection for every TypeScript source, and the all-skill
+validator as three distinct checkers. It always reports all three gate results
+and fails when any fails. The Biome and declaration-order source gates always
+report both source-gate results and fail when either fails. A noncanonical or
 blocked TypeScript file fails that gate. Its healthy output is one checked-file
 summary per inspection; failures retain only failed or blocked paths and
-declaration-order action packets. Selected JavaScript paths remain covered by
-the checker command above.
+declaration-order action packets.
+The source-gate summary always reports both gate results. The combined source
+check fails when either fails.
+Selected JavaScript paths remain covered by the checker command above.
 
 The caller may record the inspection JSON as baseline evidence, the candidate
 rerun as candidate evidence, and an unchanged rerun as challenge evidence.

@@ -2,7 +2,7 @@ import type { CommandResult, CommandSpec } from './contracts.js';
 import type { CommandExecutor } from './process.js';
 
 export interface LintReceipt {
-  readonly name: 'biome' | 'declaration-order';
+  readonly name: 'biome' | 'declaration-order' | 'skills';
   readonly result: CommandResult;
 }
 
@@ -28,9 +28,13 @@ export const lintCommandsFor = (
   {
     name: 'declaration-order',
     spec: shellCommand(
-      "rg --files -0 -g '*.{ts,tsx,mts,cts}' | xargs -0 bun scripts/declaration-order.ts --summary",
+      "rg --files -0 -g '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}' | xargs -0 bun scripts/declaration-order.ts --summary",
       agentsRoot,
     ),
+  },
+  {
+    name: 'skills',
+    spec: shellCommand('bun scripts/validate-skills.ts', agentsRoot),
   },
 ];
 

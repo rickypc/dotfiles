@@ -7,17 +7,23 @@ import {
   writeLintDiagnostics,
 } from '../../utils/lint.js';
 
-test('defines the two lint commands under one agents root', () => {
+test('defines the distinct lint commands under one agents root', () => {
   const commands = lintCommandsFor('/agents');
   expect(commands.map(({ name }) => name)).toEqual([
     'biome',
     'declaration-order',
+    'skills',
   ]);
   expect(commands.every(({ spec }) => spec.cwd === '/agents')).toBe(true);
-  expect(commands[1]?.spec.args.join(' ')).toContain('declaration-order');
+  expect(commands[1]?.spec.args.join(' ')).toContain(
+    '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}',
+  );
+  expect(commands[2]?.spec.args.join(' ')).toContain(
+    'scripts/validate-skills.ts',
+  );
 });
 
-test('starts all commands together and preserves every command result', async () => {
+test('runs distinct lint commands together and preserves every command result', async () => {
   let releaseBiome:
     | ((value: { code: number; stderr: string; stdout: string }) => void)
     | undefined;
@@ -34,9 +40,9 @@ test('starts all commands together and preserves every command result', async ()
       : { code: 0, stderr: '', stdout: `${started}` };
   });
   const receipts = runLintCommands(executor, '/agents');
-  expect(started).toBe(2);
+  expect(started).toBe(3);
   releaseBiome?.({ code: 0, stderr: '', stdout: 'biome' });
-  await expect(receipts).resolves.toHaveLength(2);
+  await expect(receipts).resolves.toHaveLength(3);
 });
 
 test('replays command output without converting failures into replacement errors', () => {

@@ -5,12 +5,13 @@ import {
   evaluateMatrix,
   type MatrixCase,
   validateMatrix,
-} from '../../../utils/evidence-gated-workflow-controller/matrix.js';
+} from '../../../utils/quality-engine/matrix.js';
 
 const candidateCase: MatrixCase = {
   assertions: [{ expected: 'Use the skill', kind: 'required-text' }],
   failureMode: 'missing instruction',
   id: 'scope',
+  independentVerifier: 'source-structure',
   repairBoundary: 'SKILL.md only',
   scenario: 'skill has an explicit trigger',
   visibility: 'candidate',
@@ -43,6 +44,9 @@ test('rejects empty, duplicate, incomplete, and invalid matrix cases', () => {
       },
     ]),
   ).toThrow('invalid');
+  expect(() =>
+    validateMatrix([{ ...candidateCase, repairBoundary: ' ' }]),
+  ).toThrow('incomplete');
 });
 
 test('evaluates every typed assertion from independent evidence', () => {
