@@ -1,4 +1,4 @@
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { stdin as input, stdout as output } from 'node:process';
@@ -7,6 +7,7 @@ import { createInterface } from 'node:readline/promises';
 import matter from 'gray-matter';
 
 import {
+  acquireAidpLock,
   cbmIndexForProject,
   derivePlanSummary,
   planPathFor,
@@ -216,6 +217,8 @@ const isDirectory = async (path: string): Promise<boolean> => {
   }
 };
 
+const pathBasename = (path: string): string => path.split('/').at(-1) ?? path;
+
 const privateKnowledgeBaseRoot = (): string =>
   join(homedir(), 'Library', 'Application Support', 'agent-knowledge-base');
 
@@ -249,6 +252,15 @@ const runOwnedRead = async (
   arguments_: readonly string[],
   cwd: string,
 ): Promise<string> => {
+  if (
+    !['codebase-memory.ts', 'knowledge-base.ts'].includes(
+      pathBasename(scriptPath),
+    )
+  ) {
+    throw new Error(
+      `AIDP owned-read boundary rejected child script: ${scriptPath}`,
+    );
+  }
   const child = Bun.spawn(['bun', scriptPath, ...arguments_], {
     cwd,
     stderr: 'pipe',
@@ -266,6 +278,8 @@ const runOwnedRead = async (
   }
   return stdout.trim();
 };
+
+const AIDP_LOCK_STALE_AFTER_MS = 15 * 60 * 1000;
 
 const contextFor = async (
   projectRoot: string,
@@ -391,6 +405,21 @@ export const run = async (
   const invocationRoot = process.cwd();
   const projectRoot = resolveProjectRoot(invocationRoot, options.projectRoot);
   await assertDirectory(projectRoot, 'Project root');
+  const lock = await acquireAidpLock(
+    {
+      mkdir: async (path, options) => {
+        await mkdir(path, { recursive: options.recursive });
+      },
+      readFile,
+      unlink,
+      writeFile,
+    },
+    projectRoot,
+    options.request ?? 'interactive',
+    process.pid,
+    Date.now(),
+    AIDP_LOCK_STALE_AFTER_MS,
+  );
   const templateContent = await readFile(templatePath, 'utf8');
   const readline = suppliedPrompt
     ? undefined
@@ -447,6 +476,7 @@ export const run = async (
     );
   } finally {
     readline?.close();
+    await lock.release();
   }
 };
 

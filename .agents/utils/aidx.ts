@@ -23,6 +23,8 @@ export interface AidxPlanDocument {
 
 export type AidxPlanImporter = (planPath: string) => Promise<unknown>;
 
+export type AidxPlanRemover = (planPath: string) => Promise<void>;
+
 const PLAN_HEADINGS = [
   'ROLE',
   'OBJECTIVE',
@@ -39,12 +41,27 @@ const assertCompleted = (value: string, heading: string): string => {
   return value;
 };
 
+const EXECUTION_STEP_FIELDS = [
+  'Action',
+  'Target or Boundary',
+  'Change or Decision',
+  'Dependency or Ordering',
+  'Reason',
+  'Acceptance or Proof',
+  'Failure or Stop',
+] as const;
+
 export const completeAidxPlan = async (
   planPath: string,
   plan: AidxPlanDocument,
   importer: AidxPlanImporter,
+  remover: AidxPlanRemover = async () => undefined,
 ): Promise<AidxCompletionReceipt> => ({
-  importerReceipt: await importer(planPath),
+  importerReceipt: await (async () => {
+    const importerReceipt = await importer(planPath);
+    await remover(planPath);
+    return importerReceipt;
+  })(),
   planPath,
   status: 'completed-with-knowledge-base-receipt',
   title: plan.title,
@@ -85,6 +102,23 @@ const section = (body: string, heading: string): string => {
     throw new Error(`Plan section is required: ${heading}.`);
   }
   return match[1].trim();
+};
+
+const validateExecutionStep = (step: string): void => {
+  const present = EXECUTION_STEP_FIELDS.filter((field) =>
+    new RegExp(`${field}:\\s*\\S`, 'u').test(step),
+  );
+  if (present.length === 0) {
+    return;
+  }
+  const missing = EXECUTION_STEP_FIELDS.filter(
+    (field) => !present.includes(field),
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `AIDX execution step is missing contract field(s): ${missing.join(', ')}.`,
+    );
+  }
 };
 
 const validateFrontmatter = (
@@ -151,6 +185,7 @@ export const parseAidxPlan = (content: string): AidxPlanDocument => {
       'AIDX execution steps must be granular and technically precise.',
     );
   }
+  executionSteps.forEach(validateExecutionStep);
   return {
     ...metadata,
     constraints,

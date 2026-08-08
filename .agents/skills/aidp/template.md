@@ -17,7 +17,7 @@ status: "pending"
 - [Core rule or theme for this run]
 
 # EXECUTION STEPS
-1. [Comprehensive, step-by-step granular itinerary item 1]
+1. Action: [concrete operation]; Target or Boundary: [exact file, symbol, artifact, or scope]; Change or Decision: [observable result]; Dependency or Ordering: [preceding/following step]; Reason: [evidence-backed purpose]; Acceptance or Proof: [focused check]; Failure or Stop: [condition that returns to planning]
 2. [Comprehensive, step-by-step granular itinerary item 2]
 
 # CONSTRAINTS

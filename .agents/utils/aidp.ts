@@ -1,6 +1,36 @@
-import { basename, isAbsolute, join, relative, resolve } from 'node:path';
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+} from 'node:path';
 
 import matter from 'gray-matter';
+
+export interface AidpLockFileSystem {
+  readonly mkdir: (
+    path: string,
+    options: { recursive: boolean },
+  ) => Promise<void>;
+  readonly readFile: (path: string, encoding: 'utf8') => Promise<string>;
+  readonly unlink: (path: string) => Promise<void>;
+  readonly writeFile: (
+    path: string,
+    content: string,
+    options: { encoding: 'utf8'; flag: 'wx' },
+  ) => Promise<void>;
+}
+
+export interface AidpLockMetadata {
+  readonly pid: number;
+  readonly planKey: string;
+  readonly projectRoot: string;
+  readonly startedAt: number;
+}
+
+export type AidpLockRelease = () => Promise<void>;
 
 export interface AidpPlanInput {
   readonly cbmIndex: string;
@@ -21,6 +51,105 @@ export interface AidpProjectContext {
   readonly cbmIndex: string;
   readonly projectRoot: string;
 }
+
+export const aidpLockIsStale = (
+  metadata: AidpLockMetadata,
+  now: number,
+  staleAfterMs: number,
+): boolean => now - metadata.startedAt >= staleAfterMs;
+
+export const aidpLockMetadata = (
+  projectRoot: string,
+  planKey: string,
+  pid: number,
+  startedAt: number,
+): AidpLockMetadata => ({
+  pid,
+  planKey,
+  projectRoot: resolve(projectRoot),
+  startedAt,
+});
+
+const lockKey = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, '-')
+    .replace(/^-+|-+$/gu, '')
+    .slice(0, 96) || 'interactive';
+
+export const aidpLockPathFor = (projectRoot: string, planKey: string): string =>
+  join(
+    resolve(projectRoot),
+    '.agents',
+    '.aidp-locks',
+    `${lockKey(planKey)}.lock`,
+  );
+
+export const acquireAidpLock = async (
+  fileSystem: AidpLockFileSystem,
+  projectRoot: string,
+  planKey: string,
+  pid: number,
+  now: number,
+  staleAfterMs: number,
+): Promise<{
+  readonly metadata: AidpLockMetadata;
+  readonly release: AidpLockRelease;
+  readonly path: string;
+}> => {
+  if (staleAfterMs < 1) {
+    throw new Error('AIDP lock stale duration must be positive.');
+  }
+  const path = aidpLockPathFor(projectRoot, planKey);
+  const metadata = aidpLockMetadata(projectRoot, planKey, pid, now);
+  await fileSystem.mkdir(dirname(path), { recursive: true });
+  try {
+    await fileSystem.writeFile(path, JSON.stringify(metadata), {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+  } catch (error: unknown) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+      throw error;
+    }
+    let existing: AidpLockMetadata | undefined;
+    try {
+      existing = JSON.parse(
+        await fileSystem.readFile(path, 'utf8'),
+      ) as AidpLockMetadata;
+    } catch {
+      existing = undefined;
+    }
+    if (!existing || !aidpLockIsStale(existing, now, staleAfterMs)) {
+      throw new Error(`AIDP already running for project plan: ${planKey}`);
+    }
+    await fileSystem.unlink(path);
+    await fileSystem.writeFile(path, JSON.stringify(metadata), {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+  }
+  return {
+    metadata,
+    path,
+    release: async () => {
+      try {
+        const current = JSON.parse(
+          await fileSystem.readFile(path, 'utf8'),
+        ) as AidpLockMetadata;
+        if (
+          current.pid === metadata.pid &&
+          current.startedAt === metadata.startedAt
+        ) {
+          await fileSystem.unlink(path);
+        }
+      } catch {
+        // The lock was already released or replaced by a later invocation.
+      }
+    },
+  };
+};
 
 const REQUIRED_FIELDS = [
   'title',
@@ -188,6 +317,33 @@ export const planPathFor = (
 const stepsSection = (values: readonly string[]): string =>
   values.map((value, index) => `${index + 1}. ${value}`).join('\n');
 
+const EXECUTION_STEP_FIELDS = [
+  'Action',
+  'Target or Boundary',
+  'Change or Decision',
+  'Dependency or Ordering',
+  'Reason',
+  'Acceptance or Proof',
+  'Failure or Stop',
+] as const;
+
+export const validateExecutionStepContract = (step: string): void => {
+  const present = EXECUTION_STEP_FIELDS.filter((field) =>
+    new RegExp(`${field}:\\s*\\S`, 'u').test(step),
+  );
+  if (present.length === 0) {
+    return;
+  }
+  const missing = EXECUTION_STEP_FIELDS.filter(
+    (field) => !present.includes(field),
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `EXECUTION STEPS item is missing contract field(s): ${missing.join(', ')}.`,
+    );
+  }
+};
+
 export const renderAidpPlan = (
   template: string,
   input: AidpPlanInput,
@@ -207,6 +363,7 @@ export const renderAidpPlan = (
                 `EXECUTION STEPS item ${stepIndex + 1} must be granular and technically precise.`,
               );
             }
+            validateExecutionStepContract(step);
             return step;
           },
         ),

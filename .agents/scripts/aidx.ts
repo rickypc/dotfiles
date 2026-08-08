@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, unlink } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 
 import { completeAidxPlan, parseAidxPlan } from '../utils/aidx.js';
@@ -66,7 +66,12 @@ export const run = async (
     const planPath = relativePlanPath(args[1]);
     const absolutePlanPath = resolve(projectRoot, planPath);
     const plan = parseAidxPlan(await readFile(absolutePlanPath, 'utf8'));
-    const completion = await completeAidxPlan(planPath, plan, planImporter);
+    const completion = await completeAidxPlan(
+      planPath,
+      plan,
+      planImporter,
+      async () => unlink(absolutePlanPath),
+    );
     write(JSON.stringify(completion, null, 2));
     return;
   }

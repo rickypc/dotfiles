@@ -7,6 +7,7 @@ mock.module('gray-matter', () => ({ default: realMatter }));
 
 const {
   cbmIndexForProject,
+  acquireAidpLock,
   derivePlanSummary,
   planPathFor,
   relativePlanPathFor,
@@ -15,6 +16,7 @@ const {
   resolveProjectRoot,
   slugifyPlanSummary,
   validatePlanFrontmatter,
+  validateExecutionStepContract,
 } = await import('../../utils/aidp.js');
 
 const template = `---
@@ -137,6 +139,165 @@ test('rejects incomplete list content instead of guessing missing requirements',
       updatedAt: '2026-08-07',
     }),
   ).toThrow('granular');
+});
+
+test('validates structured execution steps and rejects missing proof fields', () => {
+  const complete =
+    'Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence; Acceptance or Proof: test; Failure or Stop: ambiguity';
+  expect(() => validateExecutionStepContract(complete)).not.toThrow();
+  expect(() =>
+    validateExecutionStepContract(
+      'Action: inspect; Target or Boundary: parser',
+    ),
+  ).toThrow('Acceptance or Proof');
+  expect(() =>
+    validateExecutionStepContract(
+      'A legacy but granular step remains compatible.',
+    ),
+  ).not.toThrow();
+});
+
+test('uses an atomic project-plan lock, rejects a concurrent owner, and releases it', async () => {
+  const files = new Map<string, string>();
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async (path: string) =>
+      files.get(path) ??
+      (() => {
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      })(),
+    unlink: async (path: string) => {
+      files.delete(path);
+    },
+    writeFile: async (
+      path: string,
+      content: string,
+      options: { flag: string },
+    ) => {
+      if (options.flag === 'wx' && files.has(path)) {
+        throw Object.assign(new Error('exists'), { code: 'EEXIST' });
+      }
+      files.set(path, content);
+    },
+  };
+  const first = await acquireAidpLock(
+    fileSystem,
+    '/workspace/project',
+    'same plan',
+    1,
+    1000,
+    100,
+  );
+  await expect(
+    acquireAidpLock(
+      fileSystem,
+      '/workspace/project',
+      'same plan',
+      2,
+      1001,
+      100,
+    ),
+  ).rejects.toThrow('already running');
+  await first.release();
+  await expect(
+    acquireAidpLock(
+      fileSystem,
+      '/workspace/project',
+      'same plan',
+      2,
+      1001,
+      100,
+    ),
+  ).resolves.toBeDefined();
+});
+
+test('recovers a stale project-plan lock deterministically', async () => {
+  const files = new Map<string, string>();
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async (path: string) =>
+      files.get(path) ??
+      (() => {
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      })(),
+    unlink: async (path: string) => {
+      files.delete(path);
+    },
+    writeFile: async (
+      path: string,
+      content: string,
+      options: { flag: string },
+    ) => {
+      if (options.flag === 'wx' && files.has(path)) {
+        throw Object.assign(new Error('exists'), { code: 'EEXIST' });
+      }
+      files.set(path, content);
+    },
+  };
+  const first = await acquireAidpLock(
+    fileSystem,
+    '/workspace/project',
+    'stale plan',
+    1,
+    0,
+    100,
+  );
+  expect(first.path).toContain('.aidp-locks');
+  await expect(
+    acquireAidpLock(
+      fileSystem,
+      '/workspace/project',
+      'stale plan',
+      2,
+      101,
+      100,
+    ),
+  ).resolves.toBeDefined();
+});
+
+test('rejects invalid lock configuration and unexpected filesystem failures', async () => {
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async () => '',
+    unlink: async () => undefined,
+    writeFile: async () => {
+      throw Object.assign(new Error('permission denied'), { code: 'EPERM' });
+    },
+  };
+  await expect(
+    acquireAidpLock(fileSystem, '/workspace/project', 'bad duration', 1, 1, 0),
+  ).rejects.toThrow('stale duration');
+  await expect(
+    acquireAidpLock(
+      fileSystem,
+      '/workspace/project',
+      'filesystem failure',
+      1,
+      1,
+      100,
+    ),
+  ).rejects.toThrow('permission denied');
+});
+
+test('treats an unreadable existing lock as an active owner', async () => {
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async () => 'not-json',
+    unlink: async () => undefined,
+    writeFile: async () => {
+      throw Object.assign(new Error('exists'), { code: 'EEXIST' });
+    },
+  };
+  await expect(
+    acquireAidpLock(
+      fileSystem,
+      '/workspace/project',
+      'unreadable lock',
+      1,
+      1,
+      100,
+    ),
+  ).rejects.toThrow('already running');
 });
 
 test('rejects empty, placeholder, unsafe, and malformed planner inputs', () => {

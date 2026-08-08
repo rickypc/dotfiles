@@ -10,6 +10,10 @@ retrieves approved CBM and private-KB context, gathers only materially missing
 answers, materializes the physical `template.md`, and writes exactly one plan
 file. It never edits source code or executes an execution step.
 
+Use [plan-authoring-contract.md](references/plan-authoring-contract.md) for
+role selection, fact/decision separation, and the comprehensive execution-step
+contract.
+
 ## Trigger and contract
 
 Use `/aidp` when the user wants a feature or fix turned into a detailed plan,

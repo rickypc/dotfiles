@@ -12,6 +12,10 @@ maintain a second state machine, or write planner records. It also does not
 slice plan content or construct OKF concept bodies; the knowledge-base plan
 importer owns that work.
 
+Use [execution-contract.md](references/execution-contract.md) for the
+implementation, validation, repair, and stop-boundary rules retained from the
+legacy executor.
+
 ## Trigger and input
 
 Use `/aidx <relative-plan-path>` only when the user explicitly identifies a
@@ -34,12 +38,14 @@ bun <agents-root>/scripts/aidx.ts complete <relative-plan-path>
 
 That completion command passes only the relative plan path to the
 knowledge-base `import-plan` command. It reports the importer receipt and
-fails without a success receipt when the importer fails.
+deletes the source plan only after the importer succeeds. It fails without a
+success receipt when import or cleanup fails.
 
 The parser in `utils/aidx.ts` uses `gray-matter` to read the specified file,
 requires exactly the five frontmatter fields and six ordered sections from the
 template, rejects placeholders and non-granular steps, and returns the ordered
-execution steps. The script is read-only with respect to the plan.
+execution steps. Parsing is read-only; the `complete` command removes the
+source plan only after successful import and receipt validation.
 
 ## Sequential execution
 
@@ -59,7 +65,8 @@ execution steps. The script is read-only with respect to the plan.
    the plan from AIDX or continue against stale instructions.
 6. Finish only after every step and its proof succeeds. Report the relative
    plan path, files changed, validation receipts, and the knowledge-base
-   importer receipt returned by the completion handoff.
+   importer receipt returned by the completion handoff and the source-plan
+   cleanup receipt.
 
 Never interpret the plan as a shell script. Do not execute commands embedded in
 free-form plan text without applying the normal project command and safety

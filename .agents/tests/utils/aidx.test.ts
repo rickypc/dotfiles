@@ -51,11 +51,13 @@ test('hands only the relative plan path to the importer and consumes its receipt
     conceptPath: 'Users-demo/plans/execute-the-parser-refactor.md',
     planPath,
   }));
+  const remover = mock(async () => undefined);
   await expect(
     completeAidxPlan(
       '.agents/plans/Users-demo/execute-the-parser-refactor.md',
       parseAidxPlan(validPlan),
       importer,
+      remover,
     ),
   ).resolves.toEqual({
     importerReceipt: {
@@ -69,19 +71,52 @@ test('hands only the relative plan path to the importer and consumes its receipt
   expect(importer).toHaveBeenCalledWith(
     '.agents/plans/Users-demo/execute-the-parser-refactor.md',
   );
+  expect(remover).toHaveBeenCalledWith(
+    '.agents/plans/Users-demo/execute-the-parser-refactor.md',
+  );
 });
 
 test('does not emit a completion receipt when the importer fails', async () => {
   const importer = mock(async () => {
     throw new Error('import failed');
   });
+  const remover = mock(async () => undefined);
   await expect(
     completeAidxPlan(
       '.agents/plans/Users-demo/execute-the-parser-refactor.md',
       parseAidxPlan(validPlan),
       importer,
+      remover,
     ),
   ).rejects.toThrow('import failed');
+  expect(remover).not.toHaveBeenCalled();
+});
+
+test('supports the parser utility without a filesystem cleanup callback', async () => {
+  await expect(
+    completeAidxPlan(
+      '.agents/plans/Users-demo/execute-the-parser-refactor.md',
+      parseAidxPlan(validPlan),
+      async () => ({ conceptPath: 'Users-demo/plans/plan.md' }),
+    ),
+  ).resolves.toMatchObject({ status: 'completed-with-knowledge-base-receipt' });
+});
+
+test('does not emit a completion receipt when source-plan cleanup fails', async () => {
+  const importer = mock(async () => ({
+    conceptPath: 'Users-demo/plans/plan.md',
+  }));
+  const remover = mock(async () => {
+    throw new Error('cleanup failed');
+  });
+  await expect(
+    completeAidxPlan(
+      '.agents/plans/Users-demo/execute-the-parser-refactor.md',
+      parseAidxPlan(validPlan),
+      importer,
+      remover,
+    ),
+  ).rejects.toThrow('cleanup failed');
 });
 
 test('rejects plans with missing sections or non-granular steps', () => {
@@ -96,6 +131,17 @@ test('rejects plans with missing sections or non-granular steps', () => {
       ),
     ),
   ).toThrow('granular');
+});
+
+test('rejects partially structured execution steps before execution', () => {
+  expect(() =>
+    parseAidxPlan(
+      validPlan.replace(
+        'Inspect the current parser imports and record every direct consumer before editing the implementation.',
+        'Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence.',
+      ),
+    ),
+  ).toThrow('Acceptance or Proof');
 });
 
 test('rejects missing frontmatter, unsupported metadata, and unfinished sections', () => {
