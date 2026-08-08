@@ -9,6 +9,13 @@ Use for a selected SUT and `<all>`, method list, or method range. For a
 project-owned SUT, resolve the nearest `package.json` project root and use
 exactly `<project-root>/tests/<sut-relative-path-without-extension>.test.ts`.
 
+This skill is a mandatory pre-edit gate for every JavaScript or TypeScript test
+addition, conversion, repair, rename, or deletion, including work initiated by
+`/aidx`. The caller must record the generator invocation and returned behavior
+matrix before changing the test. A later passing test, coverage report,
+`/biome-tsc-checker`, or all-skill validation does not prove that this gate was
+run and cannot replace its receipt.
+
 For an explicitly declared globally owned or shared SUT that lives outside the
 nearest package root, the declared owner and declared shared test root are
 authoritative. The declared test root is the owner's canonical test location

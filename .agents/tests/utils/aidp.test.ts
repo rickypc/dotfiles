@@ -15,6 +15,7 @@ const {
   renderAidpPlan,
   resolveProjectRoot,
   slugifyPlanSummary,
+  validatePlanIntegrity,
   validatePlanFrontmatter,
   validateExecutionStepContract,
 } = await import('../../utils/aidp.js');
@@ -344,4 +345,77 @@ test('rejects empty, placeholder, unsafe, and malformed planner inputs', () => {
   expect(() =>
     validatePlanFrontmatter('---\ntitle: Missing\nstatus: pending\n---\n'),
   ).toThrow('exactly the required YAML fields');
+});
+
+test('rejects duplicate plan items and interactive transcript tokens', () => {
+  const completeInput = {
+    cbmIndex: 'Users-demo',
+    constraints: ['Keep the change scoped.'],
+    coreDirectives: ['Preserve the public command contract.'],
+    createdAt: '2026-08-07',
+    executionSteps: [
+      'Inspect the current parser and record every consumer before editing the implementation.',
+    ],
+    inputsToProcess: ['The approved plan.'],
+    objective: 'Persist one detailed implementation plan.',
+    role: 'Principal developer infrastructure architect',
+    status: 'pending',
+    summary: 'Valid planner input',
+    updatedAt: '2026-08-07',
+  };
+  expect(() =>
+    renderAidpPlan(template, {
+      ...completeInput,
+      constraints: ['Keep the change scoped.', 'keep the change scoped.'],
+    }),
+  ).toThrow('duplicate');
+  expect(() =>
+    renderAidpPlan(template, {
+      ...completeInput,
+      objective: 'KEEP',
+    }),
+  ).toThrow('interactive');
+});
+
+test('validates the complete materialized plan contract', () => {
+  const rendered = renderAidpPlan(template, {
+    cbmIndex: 'Users-demo',
+    constraints: ['Keep the change scoped.'],
+    coreDirectives: ['Preserve the public command contract.'],
+    createdAt: '2026-08-07',
+    executionSteps: [
+      'Inspect the current parser and record every consumer before editing the implementation.',
+    ],
+    inputsToProcess: ['The approved plan.'],
+    objective: 'Persist one detailed implementation plan.',
+    role: 'Principal developer infrastructure architect',
+    status: 'pending',
+    summary: 'Valid planner input',
+    updatedAt: '2026-08-07',
+  });
+  expect(() => validatePlanIntegrity(rendered, 'Users-demo')).not.toThrow();
+  expect(() =>
+    validatePlanIntegrity(
+      rendered.replace('# ROLE', '# ROLE\n# ROLE'),
+      'Users-demo',
+    ),
+  ).toThrow('six required headings');
+  expect(() => validatePlanIntegrity(rendered, 'Other-demo')).toThrow(
+    'CBM index does not match',
+  );
+  expect(() =>
+    validatePlanIntegrity(
+      rendered.replace(
+        'Inspect the current parser and record every consumer before editing the implementation.',
+        'Inspect it.',
+      ),
+      'Users-demo',
+    ),
+  ).toThrow('granular');
+  expect(() =>
+    validatePlanIntegrity(
+      rendered.replace('Principal developer infrastructure architect', ''),
+      'Users-demo',
+    ),
+  ).toThrow('section is required');
 });

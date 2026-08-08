@@ -5,7 +5,8 @@ import realMatter from 'gray-matter';
 mock.module('node:path', () => realPath);
 mock.module('gray-matter', () => ({ default: realMatter }));
 
-const { completeAidxPlan, parseAidxPlan } = await import('../../utils/aidx.js');
+const { assertPlanPathForIndex, completeAidxPlan, parseAidxPlan } =
+  await import('../../utils/aidx.js');
 
 const validPlan = `---
 title: "Execute the parser refactor"
@@ -184,4 +185,34 @@ test('rejects missing frontmatter, unsupported metadata, and unfinished sections
         .replace('Principal developer infrastructure architect\n\n', ''),
     ),
   ).toThrow('section is required');
+});
+
+test('rejects duplicate items and interactive transcript tokens before execution', () => {
+  expect(() =>
+    parseAidxPlan(
+      validPlan.replace(
+        '- Read the plan before touching source files.',
+        '- Read the plan before touching source files.\n- read the plan before touching source files.',
+      ),
+    ),
+  ).toThrow('duplicate');
+  expect(() =>
+    parseAidxPlan(
+      validPlan.replace(
+        'Stop when a step is ambiguous or changes scope.',
+        'KEEP',
+      ),
+    ),
+  ).toThrow('interactive');
+  expect(() =>
+    parseAidxPlan(
+      validPlan.replace('Principal developer infrastructure architect', 'KEEP'),
+    ),
+  ).toThrow('interactive');
+});
+
+test('rejects a canonical plan path under the wrong CBM index', () => {
+  expect(() =>
+    assertPlanPathForIndex('.agents/plans/Other-demo/plan.md', 'Users-demo'),
+  ).toThrow('selected CBM index');
 });

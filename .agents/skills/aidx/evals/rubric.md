@@ -17,5 +17,6 @@ verifierIds:
 ---
 # AIDX Evaluation Rubric
 
-Verify that AIDX parses one relative six-section plan with gray-matter and
-executes its ordered steps sequentially without becoming a second planner.
+Verify that AIDX parses one valid six-section plan with gray-matter, safely
+accepts equivalent relative and canonical absolute inputs, executes ordered
+steps sequentially, and never becomes a second planner.

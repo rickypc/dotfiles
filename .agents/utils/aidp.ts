@@ -171,6 +171,9 @@ const assertNonEmpty = (value: string, label: string): string => {
   ) {
     throw new Error(`${label} still contains a template placeholder.`);
   }
+  if (/^(?:KEEP|TBD|TODO|PLACEHOLDER)$/u.test(normalized)) {
+    throw new Error(`${label} contains interactive or unfinished text.`);
+  }
   return normalized;
 };
 
@@ -181,9 +184,14 @@ const assertList = (
   if (values.length === 0) {
     throw new Error(`${label} requires at least one explicit item.`);
   }
-  return values.map((value, index) =>
+  const normalized = values.map((value, index) =>
     assertNonEmpty(value, `${label} item ${index + 1}`),
   );
+  const keys = normalized.map((value) => value.toLowerCase());
+  if (new Set(keys).size !== keys.length) {
+    throw new Error(`${label} cannot contain duplicate items.`);
+  }
+  return normalized;
 };
 
 export const derivePlanSummary = (
@@ -381,13 +389,15 @@ export const renderAidpPlan = (
       values[heading],
     );
   }, parsedTemplate.content.trim());
-  return matter.stringify(`${body.trim()}\n`, {
+  const rendered = matter.stringify(`${body.trim()}\n`, {
     cbm_index: safeSegment(input.cbmIndex, 'CBM index'),
     created_at: assertNonEmpty(input.createdAt, 'created_at'),
     status: assertNonEmpty(input.status, 'status'),
     title: assertNonEmpty(input.summary, 'Plan summary'),
     updated_at: assertNonEmpty(input.updatedAt, 'updated_at'),
   });
+  validatePlanIntegrity(rendered, input.cbmIndex);
+  return rendered;
 };
 
 const PLAN_HEADINGS = [
@@ -409,5 +419,65 @@ export const validatePlanFrontmatter = (content: string): void => {
     throw new Error(
       'Plan frontmatter must contain exactly the required YAML fields.',
     );
+  }
+  for (const field of REQUIRED_FIELDS) {
+    assertNonEmpty(String(parsed.data[field] ?? ''), field);
+  }
+};
+
+export const validatePlanIntegrity = (
+  content: string,
+  expectedCbmIndex?: string,
+): void => {
+  validatePlanFrontmatter(content);
+  const body = matter(content).content.trim();
+  const headings = [...body.matchAll(/^# (.+)$/gmu)].map((match) => match[1]);
+  if (headings.join('\n') !== PLAN_HEADINGS.join('\n')) {
+    throw new Error(
+      'Plan must contain exactly the six required headings in template order.',
+    );
+  }
+  if (
+    expectedCbmIndex &&
+    String((matter(content).data as Record<string, unknown>).cbm_index) !==
+      expectedCbmIndex
+  ) {
+    throw new Error(`Plan CBM index does not match: ${expectedCbmIndex}.`);
+  }
+  const sections = PLAN_HEADINGS.map((heading, index) => {
+    const next = PLAN_HEADINGS[index + 1];
+    const pattern = next
+      ? new RegExp(`^# ${heading}\n([\\s\\S]*?)(?=^# ${next}\n)`, 'mu')
+      : new RegExp(`^# ${heading}\n([\\s\\S]*)$`, 'mu');
+    const match = pattern.exec(body);
+    if (!match?.[1]?.trim()) {
+      throw new Error(`Plan section is required: ${heading}.`);
+    }
+    return match[1].trim();
+  });
+  assertNonEmpty(sections[0], 'ROLE');
+  assertNonEmpty(sections[1], 'OBJECTIVE');
+  for (const [index, heading] of [
+    'CORE DIRECTIVES',
+    'EXECUTION STEPS',
+    'CONSTRAINTS',
+    'INPUTS TO PROCESS',
+  ].entries()) {
+    const items = assertList(
+      sections[index + 2]
+        .split('\n')
+        .map((line) => line.replace(/^(?:[-*]|\d+\.)\s+/u, '').trim()),
+      heading,
+    );
+    if (heading === 'EXECUTION STEPS') {
+      items.forEach((step, stepIndex) => {
+        if (step.length < 24) {
+          throw new Error(
+            `EXECUTION STEPS item ${stepIndex + 1} must be granular and technically precise.`,
+          );
+        }
+        validateExecutionStepContract(step);
+      });
+    }
   }
 };

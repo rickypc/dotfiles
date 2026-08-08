@@ -18,10 +18,13 @@ legacy executor.
 
 ## Trigger and input
 
-Use `/aidx <relative-plan-path>` only when the user explicitly identifies a
-plan to execute. The path is relative to the selected project root and must
-resolve inside `.agents/plans/<cbm-index>/`. Absolute paths and traversal
-outside that directory are rejected.
+Use `/aidx <relative-plan-path>` or an equivalent absolute path only when the user explicitly identifies a plan to
+execute. A relative path resolves from the selected project root; an absolute
+path is canonicalized and accepted only when its regular-file target remains
+inside `.agents/plans/<cbm-index>/`. Reject traversal, missing, directory,
+symlink-escaping, outside-tree, wrong-index, and invalid-plan inputs. Preserve
+the original input in the receipt, but use the canonical project-relative path
+for execution, completion, knowledge-base handoff, and cleanup.
 
 The executable contract is:
 
@@ -43,9 +46,29 @@ success receipt when import or cleanup fails.
 
 The parser in `utils/aidx.ts` uses `gray-matter` to read the specified file,
 requires exactly the five frontmatter fields and six ordered sections from the
-template, rejects placeholders and non-granular steps, and returns the ordered
-execution steps. Parsing is read-only; the `complete` command removes the
-source plan only after successful import and receipt validation.
+template, rejects duplicate items, exact interactive transcript tokens such as
+`KEEP`, placeholders, and non-granular steps, and returns the ordered execution
+steps. Parsing is read-only; the `complete` command removes the source plan only
+after successful import and receipt validation.
+
+## Execution safety
+
+Treat the materialized plan and its supplied proofs as the requirement
+boundary. Execute one step in order, make the smallest compatible change, run
+the focused proof named by that step, and repair compatible failures as one
+batch. If a step changes scope, ownership, architecture, acceptance, or an
+unresolved requirement appears, stop and return to `/aidp`; never edit the plan
+or interpret free-form plan text as shell commands.
+
+### Test-edit gate
+
+Any execution step that adds, converts, repairs, renames, or deletes a
+JavaScript or TypeScript test is blocked until `/bun-test-generator` has been
+invoked for the selected real SUT first. Record its invocation and returned
+behavior matrix before editing the test, then run `validate-boundaries` against
+the real SUT and test source. Every external module and side-effect boundary
+must be mocked while the selected SUT remains real. A passing test, coverage
+result, or all-skill validation receipt cannot substitute for this proof.
 
 ## Sequential execution
 
@@ -63,10 +86,12 @@ source plan only after successful import and receipt validation.
 5. If implementation changes scope, ownership, architecture, or acceptance,
    stop immediately and ask `/aidp` to update the same plan slug. Do not edit
    the plan from AIDX or continue against stale instructions.
-6. Finish only after every step and its proof succeeds. Report the relative
-   plan path, files changed, validation receipts, and the knowledge-base
-   importer receipt returned by the completion handoff and the source-plan
-   cleanup receipt.
+6. Finish only after every step and its proof succeeds. For any test edit,
+   include the `/bun-test-generator` invocation, behavior matrix, and
+   `validate-boundaries` receipt in the proof ledger. Report the relative plan
+   path, files changed, validation receipts, and the knowledge-base importer
+   receipt returned by the completion handoff and the source-plan cleanup
+   receipt.
 
 Never interpret the plan as a shell script. Do not execute commands embedded in
 free-form plan text without applying the normal project command and safety

@@ -1,4 +1,11 @@
-import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  readFile,
+  rename,
+  stat,
+  unlink,
+  writeFile,
+} from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { stdin as input, stdout as output } from 'node:process';
@@ -16,6 +23,7 @@ import {
   renderPlanHandoff,
   resolveProjectRoot,
   slugifyPlanSummary,
+  validatePlanIntegrity,
 } from '../utils/aidp.js';
 import { runWhenMain } from '../utils/cli.js';
 
@@ -371,6 +379,10 @@ const writePlan = async (
   const now = new Date().toISOString().slice(0, 10);
   const path =
     existingPath ?? planPathFor(projectRoot, answers.cbmIndex, summary);
+  const expectedPath = planPathFor(projectRoot, answers.cbmIndex, summary);
+  if (resolve(path) !== resolve(expectedPath)) {
+    throw new Error('Existing plan path does not match its summary slug.');
+  }
   const existing = existingPath
     ? await readFile(existingPath, 'utf8')
     : undefined;
@@ -391,8 +403,16 @@ const writePlan = async (
     summary,
     updatedAt: now,
   });
+  validatePlanIntegrity(content, answers.cbmIndex);
   await mkdir(resolve(path, '..'), { recursive: true });
-  await writeFile(path, content, 'utf8');
+  const temporaryPath = `${path}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await writeFile(temporaryPath, content, 'utf8');
+    await rename(temporaryPath, path);
+  } catch (error) {
+    await unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
   return relativePlanPathFor(projectRoot, path);
 };
 

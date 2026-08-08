@@ -104,8 +104,12 @@ Reusable instructions and examples must use `<agents-root>`, `<project-root>`,
 directory, username, machine path, or other user-specific value in reusable
 guidance.
 
-- Use `<agents-root>/skills/aidlc/SKILL.md` for lifecycle work. Keep the
-  selected runtime's assets together and use its own scripts and utilities.
+Retired AIDLC references are preserved here as historical evidence only and
+are not executable routing: `<agents-root>/skills/aidlc/SKILL.md`,
+`aidlc/<cbm-index>/intents/<id>.md`, `/aidlc`, `<intent-summary>`, `[--ui]`,
+`[--initial-record '<stage-outcomes-json>']`, `utils/aidlc/command-contract.ts`,
+and `start`.
+
 - Use `<agents-root>/skills/skill-manager/SKILL.md` for every skill creation,
   update, rename, synchronization, review, optimization, or repair request.
   Skill Manager owns the deterministic scaffold, frontmatter validation,
@@ -117,9 +121,6 @@ guidance.
   with independent discovery calls.
 - Universal executable scripts live in `scripts/`; reusable TypeScript lives in
   `utils/`. Do not add a global `tools/` directory or platform-specific hooks.
-- Temporary workflow intents are centralized at
-  `aidlc/<cbm-index>/intents/<id>.md` and must be read/written through the
-  gray-matter-based AIDLC scripts.
 - During ordinary work, treat all of `.agents` as read-only except that one
   temporary-intent namespace. Do not edit, create, delete, or move runtime
   assets. The user must explicitly request an exact runtime asset change; the
@@ -133,7 +134,6 @@ skill already supplies the command contract.
 
 | Skill | Required input | Use when |
 | --- | --- | --- |
-| `/aidlc` | `<intent-summary>` `[--ui]` `[--initial-record '<stage-outcomes-json>']`; use the priority-ordered catalog rendered by `utils/aidlc/command-contract.ts`. | A code change needs the four-phase intent, approval, one final gate, and KB closeout route. `start` derives `<agents-root>` and `<project-root>` from its executing script. |
 | `/aidx` | `<goal-and-concerns>` or `resume <goal-id>` or `status <goal-id>` | An explicit goal needs the question, approved-plan, implementation, test, repair, lesson, and resumable AIDX lane. AIDX is LLM-triggered and does not use the AIDLC route. |
 | `/codebase-memory` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
 | `/knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
@@ -203,10 +203,14 @@ use.
   gate once. Keep a short command/result/next-action ledger. Never rerun the
   full gate after each individual fix or repeat an unchanged command whose
   contract and inputs have not changed.
-- For every JavaScript or TypeScript test addition or modification, invoke
-  `/bun-test-generator` first. Use its behavior matrix, mock or inject every
-  external boundary, run `validate-boundaries`, then use `/biome-tsc-checker`
-  for selected paths. The one AIDLC final gate remains the only final decision.
+- For every JavaScript or TypeScript test addition, conversion, repair, rename,
+  or deletion, invoke `/bun-test-generator` before touching the test. Record
+  its invocation and behavior-matrix receipt, run `validate-boundaries` against
+  the real SUT and test source, mock every external boundary while keeping the
+  selected SUT real, then use `/biome-tsc-checker` for selected paths. A passing
+  test, coverage, or all-skill validation result cannot substitute for the
+  generator receipt; missing receipt evidence blocks completion. The one
+  configured final gate remains the only final decision.
 - For retained browser acceptance coverage, invoke `/playwright-test-generator`
   instead. It uses the selected project's local Playwright runner and does not
   replace unit coverage or modify global dependencies.

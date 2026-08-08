@@ -1,7 +1,11 @@
-import { readFile, unlink } from 'node:fs/promises';
+import { readFile, realpath, stat, unlink } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 
-import { completeAidxPlan, parseAidxPlan } from '../utils/aidx.js';
+import {
+  assertPlanPathForIndex,
+  completeAidxPlan,
+  parseAidxPlan,
+} from '../utils/aidx.js';
 import { runWhenMain } from '../utils/cli.js';
 
 type PlanImporter = (planPath: string) => Promise<unknown>;
@@ -37,20 +41,58 @@ const importCompletedPlan = async (planPath: string): Promise<unknown> => {
 };
 
 const relativePlanPath = (value: string | undefined): string => {
-  if (!value || isAbsolute(value)) {
-    throw new Error('AIDX requires a relative plan path.');
+  if (!value) {
+    throw new Error('AIDX requires a plan path.');
   }
-  const path = resolve(projectRoot, value);
-  const relativeToPlans = relative(plansRoot, path);
+  const path = resolve(isAbsolute(value) ? value : join(projectRoot, value));
+  const relativeToPlans = relative(plansRoot, path).replaceAll('\\', '/');
   if (
     !relativeToPlans ||
-    relativeToPlans.startsWith('..') ||
+    relativeToPlans.startsWith('../') ||
     isAbsolute(relativeToPlans) ||
     !relativeToPlans.endsWith('.md')
   ) {
     throw new Error('AIDX plans must live under .agents/plans/<cbm-index>/.');
   }
-  return value.replaceAll('\\', '/');
+  return relative(projectRoot, path).replaceAll('\\', '/');
+};
+
+const canonicalPlan = async (
+  value: string | undefined,
+): Promise<{
+  readonly absolutePath: string;
+  readonly inputPath: string;
+  readonly relativePath: string;
+}> => {
+  if (!value) {
+    throw new Error('AIDX requires a plan path.');
+  }
+  const candidate = resolve(
+    isAbsolute(value) ? value : join(projectRoot, value),
+  );
+  const relativeCandidate = relativePlanPath(value);
+  const plansRootReal = await realpath(plansRoot);
+  const candidateReal = await realpath(candidate);
+  const relativeReal = relative(plansRootReal, candidateReal).replaceAll(
+    '\\',
+    '/',
+  );
+  if (
+    !relativeReal ||
+    relativeReal.startsWith('../') ||
+    isAbsolute(relativeReal) ||
+    !relativeReal.endsWith('.md')
+  ) {
+    throw new Error('AIDX plan path must resolve inside .agents/plans/.');
+  }
+  if (!(await stat(candidateReal)).isFile()) {
+    throw new Error('AIDX plan path must resolve to a regular file.');
+  }
+  return {
+    absolutePath: candidateReal,
+    inputPath: value,
+    relativePath: relativeCandidate,
+  };
 };
 
 const usage = (): string =>
@@ -63,24 +105,26 @@ export const run = async (
 ): Promise<void> => {
   const planImporter = importer ?? importCompletedPlan;
   if (args.length === 2 && args[0] === 'complete') {
-    const planPath = relativePlanPath(args[1]);
-    const absolutePlanPath = resolve(projectRoot, planPath);
-    const plan = parseAidxPlan(await readFile(absolutePlanPath, 'utf8'));
+    const resolved = await canonicalPlan(args[1]);
+    const plan = parseAidxPlan(await readFile(resolved.absolutePath, 'utf8'));
+    assertPlanPathForIndex(resolved.relativePath, plan.cbmIndex);
     const completion = await completeAidxPlan(
-      planPath,
+      resolved.relativePath,
       plan,
       planImporter,
-      async () => unlink(absolutePlanPath),
+      async () => unlink(resolved.absolutePath),
     );
-    write(JSON.stringify(completion, null, 2));
+    write(
+      JSON.stringify({ ...completion, inputPath: resolved.inputPath }, null, 2),
+    );
     return;
   }
   if (args.length !== 1) {
     throw new Error(usage());
   }
-  const planPath = relativePlanPath(args[0]);
-  const absolutePlanPath = resolve(projectRoot, planPath);
-  const plan = parseAidxPlan(await readFile(absolutePlanPath, 'utf8'));
+  const resolved = await canonicalPlan(args[0]);
+  const plan = parseAidxPlan(await readFile(resolved.absolutePath, 'utf8'));
+  assertPlanPathForIndex(resolved.relativePath, plan.cbmIndex);
   write(
     JSON.stringify(
       {
@@ -88,8 +132,9 @@ export const run = async (
         constraints: plan.constraints,
         coreDirectives: plan.coreDirectives,
         executionSteps: plan.executionSteps,
+        inputPath: resolved.inputPath,
         inputsToProcess: plan.inputsToProcess,
-        planPath,
+        planPath: resolved.relativePath,
         status: 'ready-for-sequential-execution',
         title: plan.title,
       },

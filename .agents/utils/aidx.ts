@@ -25,6 +25,18 @@ export type AidxPlanImporter = (planPath: string) => Promise<unknown>;
 
 export type AidxPlanRemover = (planPath: string) => Promise<void>;
 
+export const assertPlanPathForIndex = (
+  relativePath: string,
+  cbmIndex: string,
+): void => {
+  const expectedPrefix = `.agents/plans/${cbmIndex}/`;
+  if (!relativePath.startsWith(expectedPrefix)) {
+    throw new Error(
+      `AIDX plan path must use the selected CBM index: ${cbmIndex}.`,
+    );
+  }
+};
+
 const PLAN_HEADINGS = [
   'ROLE',
   'OBJECTIVE',
@@ -37,6 +49,11 @@ const PLAN_HEADINGS = [
 const assertCompleted = (value: string, heading: string): string => {
   if (/^\[.*\]$/u.test(value.trim())) {
     throw new Error(`Plan section contains an unfinished item: ${heading}.`);
+  }
+  if (/^(?:KEEP|TBD|TODO|PLACEHOLDER)$/u.test(value.trim())) {
+    throw new Error(
+      `Plan section contains interactive or unfinished text: ${heading}.`,
+    );
   }
   return value;
 };
@@ -77,6 +94,17 @@ const listItems = (value: string, heading: string): readonly string[] => {
   );
   if (items.some((item) => !item || /^\[.*\]$/u.test(item))) {
     throw new Error(`Plan section contains an unfinished item: ${heading}.`);
+  }
+  if (
+    items.some((item) => /^(?:KEEP|TBD|TODO|PLACEHOLDER)$/u.test(item.trim()))
+  ) {
+    throw new Error(
+      `Plan section contains interactive or unfinished text: ${heading}.`,
+    );
+  }
+  const normalized = items.map((item) => item.trim().toLowerCase());
+  if (new Set(normalized).size !== normalized.length) {
+    throw new Error(`Plan section contains duplicate items: ${heading}.`);
   }
   return items;
 };

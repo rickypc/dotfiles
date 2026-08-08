@@ -17,5 +17,6 @@ verifierIds:
 ---
 # AIDP Evaluation Rubric
 
-Verify that AIDP owns clarification, template-driven plan materialization, and
-same-slug update routing while refusing code execution or guessed requirements.
+Verify that AIDP owns clarification, template-driven and fail-closed plan
+materialization, same-slug update routing, and atomic persistence while refusing
+code execution or guessed requirements.

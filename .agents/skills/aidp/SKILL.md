@@ -26,6 +26,26 @@ in this order: `ROLE`, `OBJECTIVE`, `CORE DIRECTIVES`, `EXECUTION STEPS`,
 `CONSTRAINTS`, and `INPUTS TO PROCESS`. Every execution step names the action,
 target, relevant boundary, and focused proof; a vague summary is unresolved.
 
+## Questioning and evidence
+
+Ask only for facts or decisions that can change scope, ownership, architecture,
+implementation safety, or proof. Explain why each missing answer matters, give
+the relevant tradeoff when choices are available, and narrow the answer
+iteratively rather than accepting a generic preference. Keep observed facts,
+inferences, decisions, rejected alternatives, and unresolved uncertainty
+separate. A material ambiguity is a clarification stop: leave the plan
+unwritten and do not invent a default.
+
+## Plan integrity
+
+Materialize a candidate in memory, validate it completely, then atomically
+replace the one canonical same-slug path. Reject duplicate headings or list
+items, duplicate inputs, unfinished placeholders, exact interactive transcript
+tokens such as `KEEP`, unsafe or absolute plan paths, and a path whose slug or
+CBM-index segment does not match the candidate. Preserve `created_at` and every
+item the user explicitly retains during a same-slug update; a failed candidate
+must leave the existing plan unchanged.
+
 ## Normal path
 
 1. Establish the project from the invocation context or an explicit project
