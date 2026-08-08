@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { run, runWhenMain, usage } from '../../scripts/knowledge-base.js';
 import type {
+  importPlan,
   searchKnowledgeBase,
   searchKnowledgeBaseBatch,
 } from '../../utils/knowledge-base.js';
@@ -60,6 +61,30 @@ test('captures through an injected KB writer', async () => {
     capture,
   );
   expect(capture).toHaveBeenCalled();
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('conceptPath'));
+});
+
+test('passes only the supplied plan path to the KB-owned importer', async () => {
+  const write = mock();
+  const importer = mock(async (_fileSystem, _kbRoot, planPath: string) => ({
+    conceptPath: 'workspace-example-app/plans/plan.md',
+    planPath,
+  })) as unknown as typeof importPlan;
+  await run(
+    ['import-plan', '.agents/plans/workspace-example-app/plan.md'],
+    write,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    importer,
+  );
+  expect(importer).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.stringContaining('agent-knowledge-base'),
+    expect.stringMatching(/\.agents\//u),
+  );
   expect(write).toHaveBeenCalledWith(expect.stringContaining('conceptPath'));
 });
 

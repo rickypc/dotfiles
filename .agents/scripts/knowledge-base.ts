@@ -1,8 +1,11 @@
+import { homedir } from 'node:os';
+import { resolve } from 'node:path';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import {
   captureConcept,
   conceptIndexPath,
+  importPlan as importPlanFromPath,
   isKbConceptPath,
   type OkfMetadata,
   parseOkfConcept,
@@ -14,6 +17,9 @@ import {
   searchKnowledgeBaseWithFallback,
 } from '../utils/knowledge-base.js';
 import { bunExecutor } from '../utils/process.js';
+
+const privateKnowledgeBaseRoot = (): string =>
+  resolve(homedir(), 'Library', 'Application Support', 'agent-knowledge-base');
 
 const runBatchSearchCommand = async (
   args: readonly string[],
@@ -91,6 +97,29 @@ const runConceptIndex = (
     return false;
   }
   write(conceptIndexPath(value));
+  return true;
+};
+
+const runImportPlan = async (
+  args: readonly string[],
+  importer: typeof importPlanFromPath,
+  write: (message: string) => void,
+): Promise<boolean> => {
+  const [command, planPath] = args;
+  if (command !== 'import-plan' || !planPath || args.length !== 2) {
+    return false;
+  }
+  write(
+    JSON.stringify(
+      await importer(
+        nodeFileSystem,
+        privateKnowledgeBaseRoot(),
+        resolve(process.cwd(), planPath),
+      ),
+      null,
+      2,
+    ),
+  );
   return true;
 };
 
@@ -172,7 +201,7 @@ const runReadCommand = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|reconcile|related|render-index|search|search-batch|validate> <arguments>; search-batch takes one KB root, one CBM index, and 1-4 unique queries.';
+  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes exactly one plan path; search-batch takes one KB root, one CBM index, and 1-4 unique queries.';
 
 export const run = async (
   args: readonly string[],
@@ -182,7 +211,11 @@ export const run = async (
   discover: typeof searchKnowledgeBaseWithFallback = searchKnowledgeBaseWithFallback,
   reconcile: typeof reconcileConcepts = reconcileConcepts,
   batchSearch: typeof searchKnowledgeBaseBatch = searchKnowledgeBaseBatch,
+  importer: typeof importPlanFromPath = importPlanFromPath,
 ): Promise<void> => {
+  if (await runImportPlan(args, importer, write)) {
+    return;
+  }
   if (await runCapture(args, capture, write)) {
     return;
   }

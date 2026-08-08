@@ -15,7 +15,7 @@ minimumPassRate: 1
 verifierIds:
   - source-structure
 ---
-# AIDX Evaluation Rubric
+# AIDP Evaluation Rubric
 
-Verify that AIDX parses one relative six-section plan with gray-matter and
-executes its ordered steps sequentially without becoming a second planner.
+Verify that AIDP owns clarification, template-driven plan materialization, and
+same-slug update routing while refusing code execution or guessed requirements.

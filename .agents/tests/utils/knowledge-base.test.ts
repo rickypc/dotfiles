@@ -3,8 +3,10 @@ import { expect, test } from 'bun:test';
 import {
   captureConcept,
   conceptIndexPath,
+  importPlan,
   isKbConceptPath,
   parseOkfConcept,
+  parsePlanForImport,
   reconcileConcepts,
   renderCapturedConcept,
   renderDirectoryIndex,
@@ -116,6 +118,114 @@ test('captures a concept and updates both deterministic indexes', async () => {
       'Evidence.',
     ),
   ).rejects.toThrow('read failure');
+});
+
+test('slices a six-section plan into one validated OKF concept and updates indexes', async () => {
+  const files = new Map<string, string>();
+  const planPath =
+    '/workspace/example-app/.agents/plans/workspace-example-app/execute-plan.md';
+  const plan = [
+    '---',
+    'title: Execute the parser refactor',
+    'cbm_index: workspace-example-app',
+    'created_at: 2026-08-07',
+    'updated_at: 2026-08-07',
+    'status: pending',
+    '---',
+    '',
+    '# ROLE',
+    'Principal developer.',
+    '',
+    '# OBJECTIVE',
+    'Deliver the parser refactor.',
+    '',
+    '# CORE DIRECTIVES',
+    '- Preserve the public contract.',
+    '- Stop on ambiguity.',
+    '',
+    '# EXECUTION STEPS',
+    '1. Inspect the parser and record every direct consumer before editing.',
+    '',
+    '# CONSTRAINTS',
+    '- Do not edit protected configuration.',
+    '',
+    '# INPUTS TO PROCESS',
+    '- The approved implementation plan.',
+    '',
+  ].join('\n');
+  files.set(planPath, plan);
+  const fileSystem = {
+    mkdir: async () => undefined,
+    readFile: async (path: string) => {
+      const value = files.get(path);
+      if (value === undefined) {
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      }
+      return value;
+    },
+    rm: async () => undefined,
+    writeFile: async (path: string, content: string) => {
+      files.set(path, content);
+    },
+  };
+  expect(parsePlanForImport(plan).sections).toHaveProperty('EXECUTION STEPS');
+  const receipt = await importPlan(fileSystem, '/kb', planPath);
+  expect(receipt).toMatchObject({
+    cbmIndex: 'workspace-example-app',
+    conceptPath: 'workspace-example-app/plans/execute-the-parser-refactor.md',
+    planPath,
+    sections: [
+      'ROLE',
+      'OBJECTIVE',
+      'CORE DIRECTIVES',
+      'EXECUTION STEPS',
+      'CONSTRAINTS',
+      'INPUTS TO PROCESS',
+    ],
+  });
+  expect(
+    files.get('/kb/workspace-example-app/plans/execute-the-parser-refactor.md'),
+  ).toContain('## INPUTS TO PROCESS');
+  expect(files.get('/kb/workspace-example-app/plans/index.md')).toContain(
+    '[Execute the parser refactor](execute-the-parser-refactor.md)',
+  );
+  expect(() =>
+    parsePlanForImport(plan.replace('# CONSTRAINTS', '# BROKEN')),
+  ).toThrow('six sections');
+  expect(() => parsePlanForImport('no frontmatter')).toThrow('frontmatter');
+  expect(() =>
+    parsePlanForImport(
+      plan.replace('status: pending', 'extra: true\nstatus: pending'),
+    ),
+  ).toThrow('unsupported');
+  expect(() =>
+    parsePlanForImport(
+      plan.replace('title: Execute the parser refactor', 'title:'),
+    ),
+  ).toThrow('title');
+  expect(() =>
+    parsePlanForImport(plan.replace('Principal developer.', '')),
+  ).toThrow('ROLE');
+  files.set(
+    planPath,
+    plan.replace('title: Execute the parser refactor', 'title: "!!!"'),
+  );
+  await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow(
+    'letters or numbers',
+  );
+  files.set(
+    planPath,
+    plan.replace('cbm_index: workspace-example-app', 'cbm_index: ../bad'),
+  );
+  await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow(
+    'invalid concept path',
+  );
+  await expect(importPlan(fileSystem, 'relative', planPath)).rejects.toThrow(
+    'absolute',
+  );
+  await expect(
+    importPlan(fileSystem, '/kb', '/workspace/example-app/plan.md'),
+  ).rejects.toThrow('.agents/plans');
 });
 
 test('preserves description-suffixed index entries across subsequent captures', async () => {

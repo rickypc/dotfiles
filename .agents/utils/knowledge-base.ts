@@ -1,3 +1,4 @@
+import { basename } from 'node:path';
 import matter from 'gray-matter';
 import {
   type CbmSearchFallbackReceipt,
@@ -53,6 +54,21 @@ export interface OkfMetadata {
   readonly [key: string]: unknown;
 }
 
+export interface PlanImportDocument {
+  readonly cbmIndex: string;
+  readonly objective: string;
+  readonly sections: Readonly<Record<string, string>>;
+  readonly title: string;
+}
+
+export interface PlanImportReceipt {
+  readonly cbmIndex: string;
+  readonly concept: CapturedConcept;
+  readonly conceptPath: string;
+  readonly planPath: string;
+  readonly sections: readonly string[];
+}
+
 export type ReconciliationDisposition =
   | 'link-related'
   | 'new-primary'
@@ -97,6 +113,23 @@ const requiredFields: readonly (keyof OkfMetadata)[] = [
   'tags',
 ];
 
+const planFrontmatterFields = new Set([
+  'title',
+  'cbm_index',
+  'created_at',
+  'updated_at',
+  'status',
+]);
+
+const planSectionHeadings = [
+  'ROLE',
+  'OBJECTIVE',
+  'CORE DIRECTIVES',
+  'EXECUTION STEPS',
+  'CONSTRAINTS',
+  'INPUTS TO PROCESS',
+] as const;
+
 export const conceptIndexPath = (path: string): string => {
   if (!isKbConceptPath(path)) {
     throw new Error(`Invalid KB concept path: ${path}`);
@@ -104,6 +137,11 @@ export const conceptIndexPath = (path: string): string => {
   const [scope, subject] = path.split('/');
   return `${scope}/${subject}/index.md`;
 };
+
+const importBody = (document: PlanImportDocument): string =>
+  planSectionHeadings
+    .map((heading) => `## ${heading}\n\n${document.sections[heading]}`)
+    .join('\n\n');
 
 const indexChildren = (content: string): readonly DirectoryIndexEntry[] =>
   [...content.matchAll(/^- \[([^\]]+)\]\(([^)]+)\)(?:\s+-\s(.*))?$/gmu)].map(
@@ -134,6 +172,35 @@ const optionalDirectory = async (
     }
     throw error;
   }
+};
+
+const planSection = (
+  body: string,
+  heading: string,
+  nextHeading?: string,
+): string => {
+  const end = nextHeading ? `(?=^# ${nextHeading}\\n)` : '$';
+  const match = new RegExp(`^# ${heading}\\n([\\s\\S]*?)${end}`, 'mu').exec(
+    body,
+  );
+  if (!match?.[1]?.trim()) {
+    throw new Error(`Plan section is required: ${heading}.`);
+  }
+  return match[1].trim();
+};
+
+const planSlug = (title: string): string => {
+  const slug = title
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, '-')
+    .replace(/^-+|-+$/gu, '')
+    .slice(0, 96);
+  if (!slug) {
+    throw new Error('Plan title must contain letters or numbers.');
+  }
+  return slug;
 };
 
 const readOptionalText = async (
@@ -206,6 +273,52 @@ const mergedDirectoryIndex = (
     ...(existing ? indexChildren(existing) : []),
     child,
   ]);
+
+const requiredPlanField = (
+  data: Record<string, unknown>,
+  field: string,
+): string => {
+  const value = data[field];
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`Plan frontmatter field is required: ${field}.`);
+  }
+  return value.trim();
+};
+
+export const parsePlanForImport = (content: string): PlanImportDocument => {
+  if (!matter.test(content)) {
+    throw new Error('Plan YAML frontmatter is required for KB import.');
+  }
+  const parsed = matter(content);
+  const metadata = parsed.data as Record<string, unknown>;
+  const unsupported = Object.keys(metadata).filter(
+    (field) => !planFrontmatterFields.has(field),
+  );
+  if (unsupported.length > 0) {
+    throw new Error(
+      `Plan frontmatter has unsupported field(s): ${unsupported.join(', ')}.`,
+    );
+  }
+  const body = parsed.content.trim();
+  const headings = [...body.matchAll(/^# (.+)$/gmu)].map((match) => match[1]);
+  if (headings.join('\n') !== planSectionHeadings.join('\n')) {
+    throw new Error(
+      'KB plan import requires the six sections in template order.',
+    );
+  }
+  const sections = Object.fromEntries(
+    planSectionHeadings.map((heading, index) => [
+      heading,
+      planSection(body, heading, planSectionHeadings[index + 1]),
+    ]),
+  );
+  return {
+    cbmIndex: requiredPlanField(metadata, 'cbm_index'),
+    objective: sections.OBJECTIVE,
+    sections,
+    title: requiredPlanField(metadata, 'title'),
+  };
+};
 
 export const scopeIndexPath = (path: string): string => {
   if (!isKbConceptPath(path)) {
@@ -363,6 +476,51 @@ export const captureConcept = async (
     rootIndexPath: rootIndexFilePath,
     scopeIndexPath: scopeIndexFilePath,
     subjectIndexPath: subjectIndexFilePath,
+  };
+};
+
+export const importPlan = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+  planPath: string,
+): Promise<PlanImportReceipt> => {
+  if (!kbRoot.startsWith('/') || !planPath.startsWith('/')) {
+    throw new Error('KB plan import requires absolute KB and plan paths.');
+  }
+  if (!planPath.includes('/.agents/plans/')) {
+    throw new Error('KB plan import requires a plan under .agents/plans/.');
+  }
+  const document = parsePlanForImport(await readText(fileSystem, planPath));
+  const conceptPath = `${document.cbmIndex}/plans/${planSlug(document.title)}.md`;
+  if (!isKbConceptPath(conceptPath)) {
+    throw new Error(
+      `KB plan import produced an invalid concept path: ${conceptPath}`,
+    );
+  }
+  const description = document.objective
+    .split(/\r?\n/u)[0]
+    .trim()
+    .slice(0, 240);
+  const sourceLabel = planPath.startsWith('/') ? basename(planPath) : planPath;
+  const concept = await captureConcept(
+    fileSystem,
+    kbRoot,
+    conceptPath,
+    {
+      description,
+      tags: ['implementation-plan', document.cbmIndex],
+      title: document.title,
+      type: 'plan',
+    },
+    importBody(document),
+    `Source plan: ${sourceLabel}. Verification: imported by the knowledge-base plan importer.`,
+  );
+  return {
+    cbmIndex: document.cbmIndex,
+    concept,
+    conceptPath,
+    planPath,
+    sections: planSectionHeadings,
   };
 };
 

@@ -27,6 +27,12 @@ reconciliation request is an absolute path under the operating system
 temporary directory; the request is parsed by this runtime, never passed to an
 external dependency as a raw payload.
 
+Plan handoff is path-only. The importer reads one completed six-section plan
+from the supplied path, parses its YAML frontmatter with `gray-matter`, slices
+the six sections into one validated OKF `plan` concept, and updates the KB
+indexes under the configured private-KB root. It preserves the source plan and
+returns one durable write receipt.
+
 ## Fixed JSON request boundary
 
 Use this when a KB reconciliation or capture request must be materialized as a
@@ -175,6 +181,7 @@ Workflow:
 
 | Priority | When | Required inputs | Command | Result | Next |
 | --- | --- | --- | --- | --- | --- |
+| 0 | A completed AIDX plan must be retained as durable knowledge. | One plan path | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>` | One validated OKF plan concept, updated indexes, and one write receipt. | Give the receipt to AIDX; do not construct concept bodies in AIDX. |
 | 1 | Find candidates before a distillation decision. | `<private-kb-root>`, `<query>` | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated concept candidates matching the supplied query. | Select one explicit disposition. |
 | 2 | Apply an approved multi-concept reconciliation. | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. | Start the returned Markdown guard for every changed concept. |
 
