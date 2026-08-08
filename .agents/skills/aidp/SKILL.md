@@ -18,7 +18,7 @@ contract.
 
 Use `/aidp` when the user wants a feature or fix turned into a detailed plan,
 or wants an existing plan revised from new feedback. Do not use it to implement
-the plan; hand the resulting relative path to `/aidx`.
+the plan; hand the resulting absolute plan path to `/aidx`.
 
 The plan frontmatter is YAML and contains exactly `title`, `cbm_index`,
 `created_at`, `updated_at`, and `status`. The body contains these six headings
@@ -74,12 +74,16 @@ must leave the existing plan unchanged.
    frontmatter and body, present its current values, apply explicit feedback,
    preserve `created_at`, update `updated_at`, and overwrite that same path.
    Otherwise create the new slugified path.
-6. Print the exact source-relative path, derived CBM index, and summary slug.
-   The user-facing handoff must then contain a Markdown link whose label is the
-   generated plan filename and whose target is its generated absolute path,
-   followed by a fenced `plaintext` block containing exactly
-   `/aidx <relative-plan-path>`. Report whether it was created or updated, then
-   stop without executing code.
+6. Print the exact source-relative path, absolute plan path, derived CBM index,
+   and summary slug. The absolute plan path is the canonical execution input;
+   it lets `/aidx` derive the project root from the plan's own
+   `.agents/plans/<cbm-index>/` route even when the caller is outside the
+   project directory. The user-facing handoff must then contain a Markdown
+   link whose label is the generated plan filename and whose target is its
+   generated absolute path, followed by a fenced `plaintext` block containing
+   exactly `/aidx <absolute-plan-path>`. The legacy relative form
+   `/aidx <relative-plan-path>` must not be emitted. Report whether it was
+   created or updated, then stop without executing code.
 
 ## Ownership and safety
 

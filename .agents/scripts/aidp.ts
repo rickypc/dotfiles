@@ -479,7 +479,7 @@ export const run = async (
       JSON.stringify(
         {
           absolutePlanPath: resolve(projectRoot, planPath),
-          aidxCommand: `/aidx ${planPath}`,
+          aidxCommand: `/aidx ${resolve(projectRoot, planPath)}`,
           cbmIndex: context.cbmIndex,
           handoff: renderPlanHandoff(
             projectRoot,

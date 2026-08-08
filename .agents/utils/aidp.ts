@@ -235,9 +235,9 @@ export const renderPlanHandoff = (
   projectRoot: string,
   absolutePlanPath: string,
 ): string => {
-  const relativePath = relativePlanPathFor(projectRoot, absolutePlanPath);
+  relativePlanPathFor(projectRoot, absolutePlanPath);
   const filename = basename(resolve(absolutePlanPath));
-  return `[${filename}](${resolve(absolutePlanPath)})\n\n\`\`\`plaintext\n/aidx ${relativePath}\n\`\`\``;
+  return `[${filename}](${resolve(absolutePlanPath)})\n\n\`\`\`plaintext\n/aidx ${resolve(absolutePlanPath)}\n\`\`\``;
 };
 
 const replaceSection = (

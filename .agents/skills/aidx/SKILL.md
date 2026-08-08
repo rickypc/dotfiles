@@ -18,19 +18,28 @@ legacy executor.
 
 ## Trigger and input
 
-Use `/aidx <relative-plan-path>` or an equivalent absolute path only when the user explicitly identifies a plan to
-execute. A relative path resolves from the selected project root; an absolute
-path is canonicalized and accepted only when its regular-file target remains
-inside `.agents/plans/<cbm-index>/`. Reject traversal, missing, directory,
-symlink-escaping, outside-tree, wrong-index, and invalid-plan inputs. Preserve
-the original input in the receipt, but use the canonical project-relative path
-for execution, completion, knowledge-base handoff, and cleanup.
+Use `/aidx <relative-plan-path>` or an equivalent absolute path only when the
+user explicitly identifies a plan to execute. The preferred handoff is the
+absolute plan path: AIDX derives the project root from the plan's own
+`/.agents/plans/<cbm-index>/` route, so the caller does not need to be in the
+project directory. A relative path resolves from the caller's current working
+directory. Both forms are canonicalized and accepted only when the
+regular-file target remains inside `.agents/plans/<cbm-index>/`. Reject
+traversal, missing, directory, symlink-escaping, outside-tree, wrong-index,
+and invalid-plan inputs. Preserve the original input in the receipt, but use
+the canonical project-relative path for execution, completion, knowledge-base
+handoff, and cleanup.
 
 The executable contract is:
 
 ```text
 bun <agents-root>/scripts/aidx.ts <relative-plan-path>
 ```
+
+The launcher must pass the user-supplied plan path unchanged to this
+canonical parser. It must not prepend `<agents-root>/.agents/plans/`, resolve
+the plan against the runtime home, or independently parse the Markdown before
+the parser returns its receipt.
 
 After all implementation steps and focused proofs pass, AIDX completes the
 path-only handoff with:

@@ -5,8 +5,12 @@ import realMatter from 'gray-matter';
 mock.module('node:path', () => realPath);
 mock.module('gray-matter', () => ({ default: realMatter }));
 
-const { assertPlanPathForIndex, completeAidxPlan, parseAidxPlan } =
-  await import('../../utils/aidx.js');
+const {
+  assertPlanPathForIndex,
+  completeAidxPlan,
+  parseAidxPlan,
+  projectRootForPlanPath,
+} = await import('../../utils/aidx.js');
 
 const validPlan = `---
 title: "Execute the parser refactor"
@@ -215,4 +219,31 @@ test('rejects a canonical plan path under the wrong CBM index', () => {
   expect(() =>
     assertPlanPathForIndex('.agents/plans/Other-demo/plan.md', 'Users-demo'),
   ).toThrow('selected CBM index');
+});
+
+test.each([
+  [
+    '/workspace/example-app/.agents/plans/workspace-example-app/plan.md',
+    '/workspace/example-app',
+  ],
+  [
+    '/Users/rhuang/tmp-sum-app/.agents/plans/Users-rhuang-tmp-sum-app/plan.md',
+    '/Users/rhuang/tmp-sum-app',
+  ],
+])('derives the project root from a plan path: %s', (planPath, expected) => {
+  expect(projectRootForPlanPath(planPath)).toBe(expected);
+});
+
+test('rejects a plan path that has no project-local plans route', () => {
+  expect(() => projectRootForPlanPath('/Users/rhuang/plan.md')).toThrow(
+    'project-local .agents/plans',
+  );
+  expect(() =>
+    projectRootForPlanPath('/Users/rhuang/.agents/plans/plan.md'),
+  ).toThrow('project-local .agents/plans');
+  expect(() =>
+    projectRootForPlanPath(
+      '/Users/rhuang/.agents/plans/not a valid index/plan.md',
+    ),
+  ).toThrow('project-local .agents/plans');
 });

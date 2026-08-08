@@ -5,23 +5,23 @@ import {
   assertPlanPathForIndex,
   completeAidxPlan,
   parseAidxPlan,
+  projectRootForPlanPath,
 } from '../utils/aidx.js';
 import { runWhenMain } from '../utils/cli.js';
 
 type PlanImporter = (planPath: string) => Promise<unknown>;
 
-const projectRoot = resolve(import.meta.dir, '..', '..');
-const plansRoot = join(projectRoot, '.agents', 'plans');
+const runtimeRoot = resolve(import.meta.dir, '..', '..');
 
 const importCompletedPlan = async (planPath: string): Promise<unknown> => {
   const child = Bun.spawn(
     [
       'bun',
-      join(projectRoot, '.agents', 'scripts', 'knowledge-base.ts'),
+      join(runtimeRoot, '.agents', 'scripts', 'knowledge-base.ts'),
       'import-plan',
       planPath,
     ],
-    { cwd: projectRoot, stderr: 'pipe', stdout: 'pipe' },
+    { cwd: runtimeRoot, stderr: 'pipe', stdout: 'pipe' },
   );
   const [stdout, stderr] = await Promise.all([
     new Response(child.stdout).text(),
@@ -40,11 +40,9 @@ const importCompletedPlan = async (planPath: string): Promise<unknown> => {
   }
 };
 
-const relativePlanPath = (value: string | undefined): string => {
-  if (!value) {
-    throw new Error('AIDX requires a plan path.');
-  }
-  const path = resolve(isAbsolute(value) ? value : join(projectRoot, value));
+const relativePlanPath = (value: string, projectRoot: string): string => {
+  const plansRoot = join(projectRoot, '.agents', 'plans');
+  const path = resolve(value);
   const relativeToPlans = relative(plansRoot, path).replaceAll('\\', '/');
   if (
     !relativeToPlans ||
@@ -62,16 +60,17 @@ const canonicalPlan = async (
 ): Promise<{
   readonly absolutePath: string;
   readonly inputPath: string;
+  readonly projectRoot: string;
   readonly relativePath: string;
 }> => {
   if (!value) {
     throw new Error('AIDX requires a plan path.');
   }
   const candidate = resolve(
-    isAbsolute(value) ? value : join(projectRoot, value),
+    isAbsolute(value) ? value : join(process.cwd(), value),
   );
-  const relativeCandidate = relativePlanPath(value);
-  const plansRootReal = await realpath(plansRoot);
+  const projectRoot = projectRootForPlanPath(candidate);
+  const plansRootReal = await realpath(join(projectRoot, '.agents', 'plans'));
   const candidateReal = await realpath(candidate);
   const relativeReal = relative(plansRootReal, candidateReal).replaceAll(
     '\\',
@@ -91,7 +90,8 @@ const canonicalPlan = async (
   return {
     absolutePath: candidateReal,
     inputPath: value,
-    relativePath: relativeCandidate,
+    projectRoot,
+    relativePath: relativePlanPath(candidateReal, projectRoot),
   };
 };
 
@@ -111,8 +111,8 @@ export const run = async (
     const completion = await completeAidxPlan(
       resolved.relativePath,
       plan,
-      planImporter,
-      async () => unlink(resolved.absolutePath),
+      () => planImporter(resolved.absolutePath),
+      () => unlink(resolved.absolutePath),
     );
     write(
       JSON.stringify({ ...completion, inputPath: resolved.inputPath }, null, 2),

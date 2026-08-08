@@ -87,14 +87,14 @@ test('resolves explicit project context and generates a request-derived summary'
   );
 });
 
-test('renders the clickable absolute link and fenced relative AIDX command', () => {
+test('renders the clickable absolute link and self-contained absolute AIDX command', () => {
   expect(
     renderPlanHandoff(
       '/workspace/example-app',
       '/workspace/example-app/.agents/plans/workspace-example-app/fix-routing.md',
     ),
   ).toBe(
-    '[fix-routing.md](/workspace/example-app/.agents/plans/workspace-example-app/fix-routing.md)\n\n```plaintext\n/aidx .agents/plans/workspace-example-app/fix-routing.md\n```',
+    '[fix-routing.md](/workspace/example-app/.agents/plans/workspace-example-app/fix-routing.md)\n\n```plaintext\n/aidx /workspace/example-app/.agents/plans/workspace-example-app/fix-routing.md\n```',
   );
 });
 

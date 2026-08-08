@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import matter from 'gray-matter';
 
 export interface AidxCompletionReceipt {
@@ -35,6 +36,31 @@ export const assertPlanPathForIndex = (
       `AIDX plan path must use the selected CBM index: ${cbmIndex}.`,
     );
   }
+};
+
+const plansMarker = '/.agents/plans/';
+
+export const projectRootForPlanPath = (planPath: string): string => {
+  const canonicalPath = resolve(planPath);
+  const markerIndex = canonicalPath.lastIndexOf(plansMarker);
+  if (markerIndex <= 0) {
+    throw new Error(
+      'AIDX plan path must contain a project-local .agents/plans/<cbm-index>/ route.',
+    );
+  }
+  const route = canonicalPath.slice(markerIndex + plansMarker.length);
+  const [cbmIndex, ...planSegments] = route.split('/');
+  if (
+    !cbmIndex ||
+    !/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(cbmIndex) ||
+    planSegments.length === 0 ||
+    !planSegments.at(-1)?.endsWith('.md')
+  ) {
+    throw new Error(
+      'AIDX plan path must contain a project-local .agents/plans/<cbm-index>/<plan>.md route.',
+    );
+  }
+  return canonicalPath.slice(0, markerIndex);
 };
 
 const PLAN_HEADINGS = [
