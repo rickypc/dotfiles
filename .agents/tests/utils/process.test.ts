@@ -92,6 +92,24 @@ describe('process', () => {
     },
   );
 
+  test('does not wait forever for a pipe inherited by a child process', async () => {
+    const cancel = mock(async () => undefined);
+    const inheritedPipe = new ReadableStream<Uint8Array>({ cancel });
+    const spawn: BunSpawner = () => ({
+      exited: Promise.resolve(0),
+      kill: mock(),
+      stderr: inheritedPipe,
+      stdout: null,
+    });
+
+    await expect(createBunExecutor(spawn)(spec)).resolves.toEqual({
+      code: 0,
+      stderr: '',
+      stdout: '',
+    });
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
   test('kills and rejects a child that exceeds its timeout', async () => {
     let finish!: (code: number) => void;
     const kill = mock(() => finish(9));

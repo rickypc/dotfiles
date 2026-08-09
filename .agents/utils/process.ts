@@ -9,6 +9,9 @@ export type BunSpawner = (options: {
 }) => SpawnedProcess;
 
 export type CommandExecutor = (spec: CommandSpec) => Promise<CommandResult>;
+type ReaderResult = Awaited<
+  ReturnType<ReadableStreamDefaultReader<Uint8Array>['read']>
+>;
 
 export interface SpawnedProcess {
   readonly exited: Promise<number>;
@@ -18,6 +21,7 @@ export interface SpawnedProcess {
 }
 
 export const DEFAULT_COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
+export const POST_EXIT_STREAM_TIMEOUT_MS = 250;
 
 const cancel = async (
   stream: ReadableStream<Uint8Array> | null,
@@ -25,13 +29,51 @@ const cancel = async (
   await stream?.cancel();
 };
 
-const decode = async (
+const readAfterExit = async (
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<ReaderResult | undefined> => {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise<undefined>((resolve) => {
+        timeout = setTimeout(
+          () => resolve(undefined),
+          POST_EXIT_STREAM_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
+  }
+};
+
+const decodeAfterExit = async (
   stream: ReadableStream<Uint8Array> | null,
 ): Promise<string> => {
   if (stream === null) {
     return '';
   }
-  return new Response(stream).text();
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let output = '';
+  try {
+    while (true) {
+      const next = await readAfterExit(reader);
+      if (next === undefined) {
+        await reader.cancel();
+        return output;
+      }
+      if (next.done) {
+        return output + decoder.decode();
+      }
+      output += decoder.decode(next.value, { stream: true });
+    }
+  } finally {
+    reader.releaseLock();
+  }
 };
 
 export const createBunExecutor =
@@ -46,11 +88,13 @@ export const createBunExecutor =
     const process = spec.environment
       ? spawn({ ...options, env: { ...Bun.env, ...spec.environment } })
       : spawn(options);
-    const result = Promise.all([
-      process.exited,
-      decode(process.stderr),
-      decode(process.stdout),
-    ]);
+    const result = process.exited.then(async (code) => {
+      const [stderr, stdout] = await Promise.all([
+        decodeAfterExit(process.stderr),
+        decodeAfterExit(process.stdout),
+      ]);
+      return [code, stderr, stdout] as const;
+    });
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       const [code, stderr, stdout] = await Promise.race([
