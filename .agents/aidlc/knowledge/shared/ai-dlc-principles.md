@@ -6,7 +6,9 @@ task into ceremony:
 `clear intent → research and architecture evidence → approved plan → controlled implementation → one verified final gate → reusable knowledge`
 
 1. **Evidence before inference.** User input, project instructions,
-   /codebase-memory facts, and /knowledge-base context are distinct sources.
+   /repo-search facts from its repository-memory contract and current CBM CLI
+   compatibility backend, and
+   /knowledge-base context are distinct sources.
 2. **One central temporary record.** The gray-matter intent records route,
    decisions, evidence, approval, and outcome; it is not a project artifact or
    a private-KB replacement.

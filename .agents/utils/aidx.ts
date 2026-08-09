@@ -67,7 +67,7 @@ const PLAN_HEADINGS = [
   'ROLE',
   'OBJECTIVE',
   'CORE DIRECTIVES',
-  'EXECUTION STEPS',
+  'ORDERED EXECUTION STEPS',
   'CONSTRAINTS',
   'INPUTS TO PROCESS',
 ] as const;
@@ -94,6 +94,8 @@ const EXECUTION_STEP_FIELDS = [
   'Failure or Stop',
 ] as const;
 
+const ORDERED_STEP_STATUS = /^\[(?: |~|!|x|-)\]\s+\S/u;
+
 export const completeAidxPlan = async (
   planPath: string,
   plan: AidxPlanDocument,
@@ -110,11 +112,15 @@ export const completeAidxPlan = async (
   title: plan.title,
 });
 
-const listItems = (value: string, heading: string): readonly string[] => {
+const listItems = (
+  value: string,
+  heading: string,
+  ordered = false,
+): readonly string[] => {
   const lines = value
     .split('\n')
     .map((line) => line.trim())
-    .filter(Boolean);
+    .filter((line) => line && (!ordered || /^\d+\.\s+/u.test(line)));
   const items = lines.map((line) =>
     line.replace(/^(?:[-*]|\d+\.)\s+/u, '').trim(),
   );
@@ -143,11 +149,13 @@ const requiredText = (data: Record<string, unknown>, key: string): string => {
   return value.trim();
 };
 
-const section = (body: string, heading: string): string => {
-  const headingIndex = PLAN_HEADINGS.indexOf(
-    heading as (typeof PLAN_HEADINGS)[number],
-  );
-  const nextHeading = PLAN_HEADINGS[headingIndex + 1];
+const section = (
+  body: string,
+  heading: string,
+  headings: readonly string[],
+): string => {
+  const headingIndex = headings.indexOf(heading);
+  const nextHeading = headings[headingIndex + 1];
   const pattern = nextHeading
     ? new RegExp(`^# ${heading}\\n([\\s\\S]*?)(?=^# ${nextHeading}\\n)`, 'mu')
     : new RegExp(`^# ${heading}\\n([\\s\\S]*)$`, 'mu');
@@ -159,12 +167,14 @@ const section = (body: string, heading: string): string => {
 };
 
 const validateExecutionStep = (step: string): void => {
+  if (!ORDERED_STEP_STATUS.test(step.trim())) {
+    throw new Error(
+      'AIDX ordered execution step must start with its own status checkbox.',
+    );
+  }
   const present = EXECUTION_STEP_FIELDS.filter((field) =>
     new RegExp(`${field}:\\s*\\S`, 'u').test(step),
   );
-  if (present.length === 0) {
-    return;
-  }
   const missing = EXECUTION_STEP_FIELDS.filter(
     (field) => !present.includes(field),
   );
@@ -219,19 +229,27 @@ export const parseAidxPlan = (content: string): AidxPlanDocument => {
       'AIDX plans must contain the six required sections in template order.',
     );
   }
-  const role = assertCompleted(section(body, 'ROLE'), 'ROLE');
-  const objective = assertCompleted(section(body, 'OBJECTIVE'), 'OBJECTIVE');
+  const role = assertCompleted(section(body, 'ROLE', PLAN_HEADINGS), 'ROLE');
+  const objective = assertCompleted(
+    section(body, 'OBJECTIVE', PLAN_HEADINGS),
+    'OBJECTIVE',
+  );
   const coreDirectives = listItems(
-    section(body, 'CORE DIRECTIVES'),
+    section(body, 'CORE DIRECTIVES', PLAN_HEADINGS),
     'CORE DIRECTIVES',
   );
+  const executionHeading = PLAN_HEADINGS[3];
   const executionSteps = listItems(
-    section(body, 'EXECUTION STEPS'),
-    'EXECUTION STEPS',
+    section(body, executionHeading, PLAN_HEADINGS),
+    executionHeading,
+    true,
   );
-  const constraints = listItems(section(body, 'CONSTRAINTS'), 'CONSTRAINTS');
+  const constraints = listItems(
+    section(body, 'CONSTRAINTS', PLAN_HEADINGS),
+    'CONSTRAINTS',
+  );
   const inputsToProcess = listItems(
-    section(body, 'INPUTS TO PROCESS'),
+    section(body, 'INPUTS TO PROCESS', PLAN_HEADINGS),
     'INPUTS TO PROCESS',
   );
   if (executionSteps.some((step) => step.length < 24)) {

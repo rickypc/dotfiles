@@ -5,52 +5,102 @@ description: Research, draft, refresh, and validate credible content with preser
 
 # Content Writer
 
-Collect objective, audience, format, constraints, citation style, and whether
-paired SEO/GEO is requested. Research material claims from primary or
-authoritative sources first; use weak sources only as discovery leads. Record
-publisher, date, URL, source class, and claim supported. Reject unsupported
-claims. Preserve all quotations exactly; for non-English quotes retain the
-original and ask before adding translation or transliteration when needed.
+## 1. Role & Scope
 
-## Research branch
+This skill owns research-backed drafting, refresh, and validation of audience-
+fit content. Use it when material claims need research, citations, quotations,
+refresh verification, or paired SEO/GEO work. It produces a credible draft and
+evidence record; it does not invent facts, silently translate quotations, or
+replace domain approval and publication ownership.
 
-Before searching, define the research question, intended audience, freshness
-requirement, evidence standard, and non-goals. When current, niche, or
-externally verifiable facts are needed, use the approved web-search capability
-available in the runtime. Search results are discovery aids, not authority:
-open and verify the primary or authoritative source before using a material
-claim, and label secondary sources as secondary.
+## 2. Immutable Operational Rules
 
-For substantial research, keep one Markdown research note or ledger with these
-fields: question or claim, source class, publisher or author, publication or
-update date, URL, supporting evidence, uncertainty, and final citation. Map
-every material claim to a source and record unresolved uncertainty rather than
-filling the gap from memory. If a claim cannot meet the evidence standard,
-return `needs-input` or `blocked`; do not silently lower the standard.
+- Research material claims first and retain a source-to-claim record. Primary
+  or authoritative sources are the evidence standard; weak sources are
+  discovery leads only.
+- Record publisher, date, URL, publisher/author, publication or update date,
+  source class,
+  supporting evidence, uncertainty, and the claim supported. Discovery-only
+  material cannot close a material claim.
+- **Preserve all quotations exactly**. Keep the original non-English quotation
+  and ask before adding translation or transliteration when audience needs it.
+- Keep the research ledger separate from reader-facing prose. Surface
+  uncertainty, do not fill gaps from memory, and ask one focused question when
+  audience, language, refresh state, or evidence standard changes the result.
+- SEO and GEO are one paired mode: enable both or neither. Do not lower the
+  evidence standard to satisfy a format, SEO, or deadline request.
 
-Before drafting, write a compact document contract: reader, job, format,
-defining takeaway, required sections, evidence standard, and non-goals. Build
-the outline from that contract before writing prose. Keep the research ledger
-separate from the reader-facing narrative so citations and uncertainty remain
-traceable without turning the document into a process dump.
+## 3. Input & Context Schema
 
-For documentation and guide pages, orient the reader with the page's job,
-defining constraint, trigger for using it, and place among nearby documents.
-Use only the sections the subject earns; remove template furniture that does
-not help the intended reader.
+- **Required:** Objective, audience, format, constraints, and citation style.
+- **Optional:** New versus refresh mode, existing-content inventory, paired
+  SEO/GEO mode, supplied references, freshness requirement, and quotation or
+  translation requirements.
+- **Context:** Research question, non-goals, document contract, source class,
+  publisher/author, date, URL, supported claim, existing content, uncertainty,
+  outline, and final citation mapping.
+- **Unknowns:** Unsupported claims, missing refresh facts, unresolved language
+  handling, inadequate source quality, or missing approval is `needs-input` or
+  `blocked`, not an invitation to write plausible prose.
 
-Use a claim matrix and completion gate: structure, audience fit, source-to-claim
-coverage, accurate citations, quotation preservation, and no fabricated facts.
-Refresh mode inventories the existing source first; without one, write new.
+## 4. Ordered Execution Chain
 
-SEO and GEO are one paired mode: enable both or neither. Keep source class,
-publisher or author, date, URL, and supported claim in the research record.
-Discovery-only material cannot support a material claim. Preserve quotations in
-their original form even when the quotation is English; never normalize or
-shorten it. Ask one focused question when a non-English quotation may need a
-translation or transliteration for the intended audience.
+1. **Intake:** Parse the brief, reader job, format, constraints, citation style,
+   freshness, non-goals, and whether this is new or refresh work. In refresh
+   mode, inventory the existing source before drafting.
+2. **Research:** Define the research question and evidence standard. Search
+   primary or authoritative sources first, open and verify each material
+   source, and record the research ledger.
+3. **Plan and draft:** Write the compact document contract—reader, job, format,
+   defining takeaway, required sections, evidence standard, and non-goals—then
+   build an earned outline and draft. Keep citations and uncertainty traceable.
+4. **Branch:** For documentation, orient the reader with job, constraint,
+   trigger, and place among nearby documents. For SEO/GEO, enable both modes.
+   For quotation handling, preserve the original and ask the focused language
+   question before translating/transliterating. For refresh, record every
+   changed, confirmed, rejected, and unresolved claim.
+5. **Verify and hand off:** Run claim coverage, citation accuracy, quotation
+   preservation, structure, audience-fit, and no-fabrication checks. Return
+   exactly `ready`, `needs-input`, or `blocked` and wait for approval when
+   publication ownership is external.
 
-Before returning a draft, verify: every material claim has an admissible source;
-citations identify their supporting claim; quotations are unchanged; structure
-matches audience and requested format; refresh work has a change record; and
-the result is exactly `ready`, `needs-input`, or `blocked`.
+### Research ledger and claim matrix
+
+For substantial research, keep one Markdown ledger with: question/claim,
+source class, publisher/author, publication/update date, URL, supporting
+evidence, uncertainty, and final citation. Map every material claim to an
+admissible source before returning the draft. If a claim cannot meet the
+standard, retain the gap and stop.
+
+### Refresh and research distillation
+
+Treat the current source as the starting authority. Fact-check draft-only
+claims against live evidence and classify them as current, confirmed-and-
+missing, conflicted/obsolete, or unverified. The verified current fact wins;
+reject obsolete and unverified claims instead of preserving a chronological
+log.
+
+## 5. Output & Completion Contract
+
+Success returns the draft in the requested format, research ledger, claim
+matrix, citations, unchanged quotation record, and refresh change record when
+applicable. Completion requires every material claim to have an admissible
+source, each citation to support its claim, structure to fit the audience, and
+the result to be exactly `ready`.
+
+`needs-input` names the focused missing decision; `blocked` names the evidence,
+approval, or format boundary. Fluency, citation count, or an outline is not
+proof. Never conceal unsupported claims or altered quotations.
+
+## 6. Evaluation Anchors
+
+- **Canonical:** A brief becomes a cited audience-fit draft with a source-to-
+  claim matrix and preserved quotations.
+- **Boundary:** Discovery-only material, an altered quotation, a missing
+  refresh inventory, or an unsupported claim cannot close the task.
+- **Challenge:** A request combines refresh and SEO/GEO while leaving a
+  non-English quotation unresolved; the skill preserves the source, enables
+  both modes only together, and returns `needs-input`.
+- **Independent verifier:** Claim coverage, citation checks, quotation-token
+  comparison, and the output gate verify the result independently of prose
+  fluency.

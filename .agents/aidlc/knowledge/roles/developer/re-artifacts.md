@@ -3,9 +3,10 @@
 ## Purpose
 
 Reverse engineering records the verified current state needed to make one safe
-change. It is not a second durable codebase index: codebase-memory remains the
-authoritative code-discovery system and knowledge-base remains the only private
-knowledge store.
+change. It is not a second durable codebase index: repo-search is the
+caller-facing discovery route and owner of the repository-memory contract,
+the current CBM CLI is a compatibility backend, and knowledge-base remains the
+only private knowledge store.
 
 ## Required evidence
 
@@ -28,7 +29,7 @@ For the affected boundary, capture:
 ## Verified code context
 
 ### Sources
-- codebase-memory query/result: [reference]
+- repo-search query/result: [reference]
 - project instruction or manifest: [path]
 - knowledge-base concept: [validated path, if applicable]
 
@@ -42,6 +43,9 @@ For the affected boundary, capture:
 ### Constraints and risks
 - [observed convention, compatibility constraint, or uncertainty]
 ~~~
+
+Callers should emit a `repo-search query/result` reference owned by the
+repository-memory contract.
 
 ## Architecture synthesis
 

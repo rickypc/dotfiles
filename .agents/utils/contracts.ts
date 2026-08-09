@@ -17,6 +17,7 @@ export interface CommandSpec {
   readonly command: string;
   readonly cwd?: string;
   readonly environment?: Readonly<Record<string, string>>;
+  readonly timeoutMs?: number;
 }
 
 export const failed = (name: string, detail: string): CheckResult => ({

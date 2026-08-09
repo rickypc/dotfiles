@@ -63,6 +63,8 @@ export interface DeclarationOrderItem {
 export interface DeclarationOrderLifecycleInput {
   readonly attempt?: number;
   readonly attemptBudget?: number;
+  readonly baselineSourceFingerprint: string;
+  readonly matrixFingerprint: string;
   readonly phase: DeclarationOrderPhase;
   readonly report: DeclarationOrderReport;
 }
@@ -148,6 +150,8 @@ export const declarationOrderResult = (
 export const evaluateDeclarationOrderLifecycle = ({
   attempt = 1,
   attemptBudget = 2,
+  baselineSourceFingerprint,
+  matrixFingerprint,
   phase,
   report,
 }: DeclarationOrderLifecycleInput): DeclarationOrderLifecycleResult => {
@@ -170,6 +174,7 @@ export const evaluateDeclarationOrderLifecycle = ({
           }
         : result,
     ],
+    matrixFingerprint,
     sourceFingerprint: report.sourceFingerprint,
     state,
   });
@@ -181,13 +186,22 @@ export const evaluateDeclarationOrderLifecycle = ({
       decision: decideCandidate({
         attempt,
         attemptBudget,
+        baselineSourceFingerprint,
+        matrixFingerprint,
         receipt,
         state: 'candidate_submitted',
       }),
       receipt,
     };
   }
-  return { decision: decideChallenge(receipt), receipt };
+  return {
+    decision: decideChallenge({
+      expectedMatrixFingerprint: matrixFingerprint,
+      expectedSourceFingerprint: report.sourceFingerprint,
+      receipt,
+    }),
+    receipt,
+  };
 };
 
 const hasField = (

@@ -120,6 +120,7 @@ test('captures a concept and updates both deterministic indexes', async () => {
   ).rejects.toThrow('read failure');
 });
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: The importer contract is covered as one transactional scenario.
 test('slices a six-section plan into one validated OKF concept and updates indexes', async () => {
   const files = new Map<string, string>();
   const planPath =
@@ -143,8 +144,8 @@ test('slices a six-section plan into one validated OKF concept and updates index
     '- Preserve the public contract.',
     '- Stop on ambiguity.',
     '',
-    '# EXECUTION STEPS',
-    '1. Inspect the parser and record every direct consumer before editing.',
+    '# ORDERED EXECUTION STEPS',
+    '1. [ ] Action: Inspect the parser and record every direct consumer before editing; Target or Boundary: parser module; Source -> Target: current parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.',
     '',
     '# CONSTRAINTS',
     '- Do not edit protected configuration.',
@@ -168,7 +169,9 @@ test('slices a six-section plan into one validated OKF concept and updates index
       files.set(path, content);
     },
   };
-  expect(parsePlanForImport(plan).sections).toHaveProperty('EXECUTION STEPS');
+  expect(parsePlanForImport(plan).sections).toHaveProperty(
+    'ORDERED EXECUTION STEPS',
+  );
   const receipt = await importPlan(fileSystem, '/kb', planPath);
   expect(receipt).toMatchObject({
     cbmIndex: 'workspace-example-app',
@@ -178,7 +181,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
       'ROLE',
       'OBJECTIVE',
       'CORE DIRECTIVES',
-      'EXECUTION STEPS',
+      'ORDERED EXECUTION STEPS',
       'CONSTRAINTS',
       'INPUTS TO PROCESS',
     ],

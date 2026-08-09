@@ -22,8 +22,9 @@ the private KB root. knowledge-base alone does that.
   utility validates allowed concept scopes and parses their OKF frontmatter.
   The separate context script is recovery-only for older already-approved
   intents.
-- Use /codebase-memory for code facts. It has its own staged fallback; do not
-  invoke CBM, MCP, CLI, grep, or a path guess directly.
+- Use /repo-search for code facts through its repository-memory contract and
+  current CBM CLI compatibility backend. It has its own staged fallback; do not invoke CBM, MCP, CLI, grep,
+  or a path guess directly.
 - Treat a concept's `ALWAYS` or `NEVER` rule as a constraint. Conflicting
   rules are an error from the resolver, not a precedence decision for the
   model to invent.

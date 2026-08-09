@@ -12,9 +12,18 @@ export type CommandExecutor = (spec: CommandSpec) => Promise<CommandResult>;
 
 export interface SpawnedProcess {
   readonly exited: Promise<number>;
+  readonly kill: (signal?: number) => void;
   readonly stderr: ReadableStream<Uint8Array> | null;
   readonly stdout: ReadableStream<Uint8Array> | null;
 }
+
+export const DEFAULT_COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
+
+const cancel = async (
+  stream: ReadableStream<Uint8Array> | null,
+): Promise<void> => {
+  await stream?.cancel();
+};
 
 const decode = async (
   stream: ReadableStream<Uint8Array> | null,
@@ -37,12 +46,42 @@ export const createBunExecutor =
     const process = spec.environment
       ? spawn({ ...options, env: { ...Bun.env, ...spec.environment } })
       : spawn(options);
-    const [code, stderr, stdout] = await Promise.all([
+    const result = Promise.all([
       process.exited,
       decode(process.stderr),
       decode(process.stdout),
     ]);
-    return { code, stderr, stdout };
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const [code, stderr, stdout] = await Promise.race([
+        result,
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => {
+            reject(
+              new Error(
+                `${spec.command} timed out after ${spec.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS}ms`,
+              ),
+            );
+          }, spec.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS);
+        }),
+      ]);
+      return { code, stderr, stdout };
+    } catch (error: unknown) {
+      process.kill(9);
+      await Promise.race([
+        Promise.allSettled([
+          process.exited,
+          cancel(process.stderr),
+          cancel(process.stdout),
+        ]),
+        new Promise<void>((resolve) => setTimeout(resolve, 1000)),
+      ]);
+      throw error;
+    } finally {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+      }
+    }
   };
 
 export const bunExecutor = createBunExecutor(

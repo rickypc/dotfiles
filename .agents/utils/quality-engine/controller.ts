@@ -16,6 +16,8 @@ export interface CandidateDecision {
 export interface CandidateDecisionInput {
   readonly attempt: number;
   readonly attemptBudget: number;
+  readonly baselineSourceFingerprint: string;
+  readonly matrixFingerprint: string;
   readonly receipt: EvidenceReceipt;
   readonly state: 'candidate_submitted';
 }
@@ -23,6 +25,12 @@ export interface CandidateDecisionInput {
 export interface ChallengeDecision {
   readonly nextState: WorkflowState;
   readonly nextStep: 'accept' | 'block';
+}
+
+export interface ChallengeDecisionInput {
+  readonly expectedMatrixFingerprint: string;
+  readonly expectedSourceFingerprint: string;
+  readonly receipt: EvidenceReceipt;
 }
 
 export const decideBaseline = (receipt: EvidenceReceipt): BaselineDecision => {
@@ -42,6 +50,14 @@ export const decideCandidate = (
 ): CandidateDecision => {
   if (input.attempt < 1 || input.attemptBudget < input.attempt) {
     throw new Error('Candidate attempt is outside its approved budget.');
+  }
+  if (input.receipt.matrixFingerprint !== input.matrixFingerprint) {
+    throw new Error(
+      'Candidate receipt matrix fingerprint does not match the frozen matrix.',
+    );
+  }
+  if (input.receipt.sourceFingerprint === input.baselineSourceFingerprint) {
+    throw new Error('Candidate source must differ from the baseline source.');
   }
   if (receiptPasses(input.receipt)) {
     return {
@@ -65,10 +81,17 @@ export const decideCandidate = (
 };
 
 export const decideChallenge = (
-  receipt: EvidenceReceipt,
+  input: ChallengeDecisionInput,
 ): ChallengeDecision => {
+  const { receipt } = input;
   if (receipt.state !== 'challenge_checked') {
     throw new Error('A challenge decision requires a challenge receipt.');
+  }
+  if (
+    receipt.matrixFingerprint !== input.expectedMatrixFingerprint ||
+    receipt.sourceFingerprint !== input.expectedSourceFingerprint
+  ) {
+    throw new Error('Challenge receipt does not match the candidate evidence.');
   }
   return receiptPasses(receipt)
     ? {

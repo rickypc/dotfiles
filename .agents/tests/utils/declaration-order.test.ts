@@ -358,8 +358,11 @@ test('uses the shared evidence controller for baseline, candidate, and challenge
     '/repo/order.ts',
     'function alpha() {}\nfunction zebra() {}',
   );
+  const matrixFingerprint = 'declaration-order-matrix';
   expect(
     evaluateDeclarationOrderLifecycle({
+      baselineSourceFingerprint: baselineReport.sourceFingerprint,
+      matrixFingerprint,
       phase: 'baseline',
       report: baselineReport,
     }),
@@ -371,6 +374,8 @@ test('uses the shared evidence controller for baseline, candidate, and challenge
   );
   expect(
     evaluateDeclarationOrderLifecycle({
+      baselineSourceFingerprint: baselineReport.sourceFingerprint,
+      matrixFingerprint,
       phase: 'candidate',
       report: candidateReport,
     }),
@@ -382,6 +387,8 @@ test('uses the shared evidence controller for baseline, candidate, and challenge
   );
   expect(
     evaluateDeclarationOrderLifecycle({
+      baselineSourceFingerprint: baselineReport.sourceFingerprint,
+      matrixFingerprint,
       phase: 'challenge',
       report: candidateReport,
     }),
@@ -393,8 +400,13 @@ test('uses the shared evidence controller for baseline, candidate, and challenge
   );
   expect(
     evaluateDeclarationOrderLifecycle({
+      baselineSourceFingerprint: baselineReport.sourceFingerprint,
+      matrixFingerprint,
       phase: 'candidate',
-      report: baselineReport,
+      report: inspectDeclarationOrder(
+        '/repo/cycle.ts',
+        'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
+      ),
     }),
   ).toEqual(
     expect.objectContaining({
@@ -403,6 +415,8 @@ test('uses the shared evidence controller for baseline, candidate, and challenge
   );
   expect(
     evaluateDeclarationOrderLifecycle({
+      baselineSourceFingerprint: baselineReport.sourceFingerprint,
+      matrixFingerprint,
       phase: 'candidate',
       report: inspectDeclarationOrder(
         '/repo/cycle.ts',

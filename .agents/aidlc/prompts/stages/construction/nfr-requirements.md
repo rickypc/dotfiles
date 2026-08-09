@@ -19,7 +19,7 @@ intent at `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`.
 
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `/codebase-memory`; for persistent knowledge, invoke
+facts, invoke `/repo-search`; it owns the repository-memory contract and uses the current CBM CLI compatibility backend; for persistent knowledge, invoke
 `/knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
 reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
@@ -54,7 +54,8 @@ perspective only when the approved requirements make it material.
 ### Step 2: Read Prior Artifacts
 
 Read applicable functional-design and requirements evidence from the central
-intent. For brownfield work, use verified codebase-memory findings. If
+intent. For brownfield work, use verified repo-search findings from its
+repository-memory contract and current CBM CLI compatibility backend. If
 Functional Design was conditionally skipped, derive NFR context from those
 sources without inventing a missing artifact.
 

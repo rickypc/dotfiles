@@ -1,4 +1,6 @@
 import type { CheckResult } from '../contracts.js';
+import { fingerprint } from './packet.js';
+import { isMatrixVerifierId } from './verifier.js';
 
 export type AssertionKind =
   | 'required-text'
@@ -40,6 +42,19 @@ const assertionKinds = new Set<AssertionKind>([
   'delegated-gate',
 ]);
 
+const canonicalCaseFor = (matrixCase: MatrixCase) => ({
+  assertions: matrixCase.assertions.map(({ expected, kind }) => ({
+    expected,
+    kind,
+  })),
+  failureMode: matrixCase.failureMode,
+  id: matrixCase.id,
+  independentVerifier: matrixCase.independentVerifier,
+  repairBoundary: matrixCase.repairBoundary,
+  scenario: matrixCase.scenario,
+  visibility: matrixCase.visibility,
+});
+
 export const casesFor = (
   cases: readonly MatrixCase[],
   visibility: CaseVisibility,
@@ -48,6 +63,16 @@ export const casesFor = (
 
 const isBlank = (value: string): boolean => value.trim().length === 0;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+export const matrixFingerprintFor = (cases: readonly MatrixCase[]): string =>
+  fingerprint(
+    cases
+      .map(canonicalCaseFor)
+      .sort((left, right) => left.id.localeCompare(right.id, 'en')),
+  );
+
 const normalized = (value: string): string =>
   value.replaceAll(/\s+/gu, ' ').trim();
 
@@ -55,8 +80,9 @@ const ownedFileResultFor = (
   matrixCase: MatrixCase,
   assertion: MatrixAssertion,
   evidence: MatrixEvidence,
+  assertionIndex: number,
 ): CheckResult => {
-  const name = `${matrixCase.id}:${assertion.kind}`;
+  const name = `${matrixCase.id}:${assertion.kind}:${assertionIndex + 1}`;
   return evidence.ownedFiles.has(assertion.expected)
     ? { detail: assertion.expected, name, status: 'passed' }
     : { detail: `Missing ${assertion.expected}`, name, status: 'failed' };
@@ -67,8 +93,9 @@ const textResultFor = (
   assertion: MatrixAssertion,
   text: string,
   expected: string,
+  assertionIndex: number,
 ): CheckResult => {
-  const name = `${matrixCase.id}:${assertion.kind}`;
+  const name = `${matrixCase.id}:${assertion.kind}:${assertionIndex + 1}`;
   if (assertion.kind === 'required-text') {
     return text.includes(expected)
       ? { detail: expected, name, status: 'passed' }
@@ -83,18 +110,19 @@ const resultFor = (
   matrixCase: MatrixCase,
   assertion: MatrixAssertion,
   evidence: MatrixEvidence,
+  assertionIndex: number,
 ): CheckResult => {
   const text = normalized(evidence.text);
   const expected = normalized(assertion.expected);
-  const name = `${matrixCase.id}:${assertion.kind}`;
+  const name = `${matrixCase.id}:${assertion.kind}:${assertionIndex + 1}`;
   if (
     assertion.kind === 'required-text' ||
     assertion.kind === 'forbidden-text'
   ) {
-    return textResultFor(matrixCase, assertion, text, expected);
+    return textResultFor(matrixCase, assertion, text, expected, assertionIndex);
   }
   if (assertion.kind === 'owned-file') {
-    return ownedFileResultFor(matrixCase, assertion, evidence);
+    return ownedFileResultFor(matrixCase, assertion, evidence, assertionIndex);
   }
   if (assertion.kind === 'frontmatter') {
     const hasFrontmatter = evidence.text.startsWith('---\n');
@@ -120,28 +148,46 @@ export const evaluateMatrix = (
   evidence: MatrixEvidence,
 ): CheckResult[] =>
   cases.flatMap((matrixCase) =>
-    matrixCase.assertions.map((assertion) =>
-      resultFor(matrixCase, assertion, evidence),
+    matrixCase.assertions.map((assertion, assertionIndex) =>
+      resultFor(matrixCase, assertion, evidence, assertionIndex),
     ),
   );
 
 const validateMatrixCase = (matrixCase: MatrixCase, ids: Set<string>): void => {
-  if (isBlank(matrixCase.id) || ids.has(matrixCase.id)) {
-    throw new Error(`Matrix case ID must be unique: ${matrixCase.id}`);
+  if (
+    !isRecord(matrixCase) ||
+    typeof matrixCase.id !== 'string' ||
+    isBlank(matrixCase.id) ||
+    ids.has(matrixCase.id)
+  ) {
+    throw new Error(
+      `Matrix case ID must be unique: ${isRecord(matrixCase) ? String(matrixCase.id) : String(matrixCase)}`,
+    );
   }
   ids.add(matrixCase.id);
   if (
+    typeof matrixCase.scenario !== 'string' ||
+    typeof matrixCase.failureMode !== 'string' ||
+    typeof matrixCase.repairBoundary !== 'string' ||
+    !Array.isArray(matrixCase.assertions) ||
     isBlank(matrixCase.scenario) ||
     isBlank(matrixCase.failureMode) ||
     isBlank(matrixCase.repairBoundary) ||
-    matrixCase.assertions.length === 0
+    matrixCase.assertions.length === 0 ||
+    !isMatrixVerifierId(matrixCase.independentVerifier)
   ) {
     throw new Error(
       `Matrix case is incomplete or missing an independent verifier: ${matrixCase.id}`,
     );
   }
   for (const assertion of matrixCase.assertions) {
-    if (!assertionKinds.has(assertion.kind) || isBlank(assertion.expected)) {
+    if (
+      !isRecord(assertion) ||
+      typeof assertion.kind !== 'string' ||
+      typeof assertion.expected !== 'string' ||
+      !assertionKinds.has(assertion.kind as AssertionKind) ||
+      isBlank(assertion.expected)
+    ) {
       throw new Error(`Matrix assertion is invalid: ${matrixCase.id}`);
     }
   }

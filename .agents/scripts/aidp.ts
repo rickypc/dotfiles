@@ -26,6 +26,11 @@ import {
   validatePlanIntegrity,
 } from '../utils/aidp.js';
 import { runWhenMain } from '../utils/cli.js';
+import {
+  type BunSpawner,
+  createBunExecutor,
+  execute,
+} from '../utils/process.js';
 
 interface CliOptions {
   readonly projectRoot?: string;
@@ -51,6 +56,8 @@ interface ProjectContext {
 }
 
 type Prompt = (question: string) => Promise<string>;
+
+const MAX_LIST_ITEMS_PER_ROUND = 5;
 
 const agentsRoot = resolve(import.meta.dir, '..');
 const templatePath = join(agentsRoot, 'skills', 'aidp', 'template.md');
@@ -108,6 +115,63 @@ const completeList = (
   return values;
 };
 
+const parseListBatch = (
+  rawAnswer: string,
+  heading: string,
+  round: number,
+): readonly string[] => {
+  let batch: unknown;
+  try {
+    batch = JSON.parse(rawAnswer.trim());
+  } catch (error: unknown) {
+    throw new Error(
+      `${heading} batch round ${round} must be one JSON array of up to ${MAX_LIST_ITEMS_PER_ROUND} strings; received invalid JSON. ` +
+        'Submit a corrected batch; this is an input error, not an unresolved requirement.',
+      { cause: error },
+    );
+  }
+  if (!Array.isArray(batch)) {
+    throw new Error(
+      `${heading} batch round ${round} must be a JSON array of up to ${MAX_LIST_ITEMS_PER_ROUND} strings; received ${typeof batch}.`,
+    );
+  }
+  if (batch.length > MAX_LIST_ITEMS_PER_ROUND) {
+    throw new Error(
+      `${heading} batch round ${round} contains ${batch.length} items; the maximum is ${MAX_LIST_ITEMS_PER_ROUND}. Submit at most ${MAX_LIST_ITEMS_PER_ROUND} items per round.`,
+    );
+  }
+  return batch.map((item, batchIndex) => {
+    if (typeof item !== 'string' || !item.trim()) {
+      throw new Error(
+        `${heading} batch round ${round} item ${batchIndex + 1} must be a non-empty string.`,
+      );
+    }
+    return item.trim();
+  });
+};
+
+const askListBatch = async (
+  prompt: Prompt,
+  heading: string,
+  round: number,
+): Promise<readonly string[]> => {
+  try {
+    const rawAnswer = await prompt(
+      `${heading} batch round ${round}: return one JSON array containing 1-${MAX_LIST_ITEMS_PER_ROUND} strings, one string per item. ` +
+        'Use "KEEP" for an existing item at the current position; return [] only when the complete list has been submitted.\n> ',
+    );
+    return parseListBatch(rawAnswer, heading, round);
+  } catch (error: unknown) {
+    const reason = error instanceof Error ? error.message : String(error);
+    if (reason.startsWith(`${heading} batch round ${round}`)) {
+      throw error;
+    }
+    throw new Error(`${heading} batch round ${round} input failed: ${reason}`, {
+      cause: error,
+    });
+  }
+};
+
 const askList = async (
   prompt: Prompt,
   heading: string,
@@ -116,23 +180,71 @@ const askList = async (
 ): Promise<readonly string[]> => {
   const values: string[] = [];
   let index = 0;
+  let round = 1;
   while (true) {
-    const suffix = existing[index] ? ` [existing: ${existing[index]}]` : '';
-    const answer = (
-      await prompt(
-        `${heading} item ${index + 1}${suffix}; enter KEEP to retain the existing item or leave blank to finish.\n> `,
-      )
-    ).trim();
-    if (!answer) {
+    const batch = await askListBatch(prompt, heading, round);
+    if (batch.length === 0) {
       return completeList(values, heading, minimum);
     }
-    values.push(
-      answer.toUpperCase() === 'KEEP' && existing[index]
-        ? existing[index]
-        : answer,
-    );
-    index += 1;
+    for (const item of batch) {
+      values.push(
+        item.toUpperCase() === 'KEEP' && existing[index]
+          ? existing[index]
+          : item,
+      );
+      index += 1;
+    }
+    round += 1;
   }
+};
+
+const skillManagerStep =
+  "[ ] Action: Invoke /skill-manager for the affected skill package before changing it; Target or Boundary: <agents-root>/skills/skill-manager/SKILL.md and the named skill package; Source -> Target: the plan's skill-target findings -> the Skill Manager-owned contract, review, validation, and evaluation lane; Change or Decision: route every skill-package change through /skill-manager; Dependency or Ordering: first applicable step before any skill-package edit; Reason: skill lifecycle ownership must be explicit for AIDX; Acceptance or Proof: /skill-manager validate, review, and applicable evaluation receipts; Failure or Stop: stop if the affected skill package or owner is unresolved.";
+
+const existingAnswers = (content: string): PlanAnswers => {
+  const metadata = matter(content).data as Record<string, unknown>;
+  const lines = content.split('\n');
+  const valuesFor = (
+    heading: string,
+    nextHeading?: string,
+    ordered = false,
+  ): readonly string[] => {
+    const start = lines.indexOf(`# ${heading}`) + 1;
+    const end = nextHeading ? lines.indexOf(`# ${nextHeading}`) : lines.length;
+    return lines
+      .slice(start, end < 0 ? lines.length : end)
+      .map((line) => line.trim())
+      .filter((line) =>
+        ordered ? /^\d+\.\s+/u.test(line) : line && !line.startsWith('['),
+      )
+      .map((line) => line.replace(/^(?:[-*]|\d+\.)\s+/u, '').trim());
+  };
+  const orderedHeading = 'ORDERED EXECUTION STEPS';
+  return {
+    cbmIndex: String(metadata.cbm_index ?? ''),
+    constraints: valuesFor('CONSTRAINTS', 'INPUTS TO PROCESS'),
+    coreDirectives: valuesFor('CORE DIRECTIVES', orderedHeading),
+    executionSteps: valuesFor(orderedHeading, 'CONSTRAINTS', true),
+    inputsToProcess: valuesFor('INPUTS TO PROCESS'),
+    objective: valuesFor('OBJECTIVE', 'CORE DIRECTIVES').join(' '),
+    role: valuesFor('ROLE', 'OBJECTIVE').join(' '),
+    summary: String(metadata.title ?? ''),
+  };
+};
+
+const includesSkillPackageTarget = (step: string): boolean =>
+  /\/skills\/|(?:^|\s)SKILL\.md\b|(?:^|\s)template\.md\b/iu.test(step);
+
+const ensureSkillManagerStep = (
+  executionSteps: readonly string[],
+): readonly string[] => {
+  if (
+    !executionSteps.some(includesSkillPackageTarget) ||
+    executionSteps.some((step) => /\/skill-manager\b/iu.test(step))
+  ) {
+    return executionSteps;
+  }
+  return [skillManagerStep, ...executionSteps];
 };
 
 const answersFor = async (
@@ -160,7 +272,7 @@ const answersFor = async (
   );
   const executionSteps = await askList(
     prompt,
-    'EXECUTION STEPS',
+    'ORDERED EXECUTION STEPS',
     1,
     existing?.executionSteps,
   );
@@ -180,37 +292,11 @@ const answersFor = async (
     cbmIndex,
     constraints,
     coreDirectives,
-    executionSteps,
+    executionSteps: ensureSkillManagerStep(executionSteps),
     inputsToProcess: [...contextInputs, ...inputsToProcess],
     objective,
     role,
     summary: existing?.summary ?? summary,
-  };
-};
-
-const existingAnswers = (content: string): PlanAnswers => {
-  const metadata = matter(content).data as Record<string, unknown>;
-  const lines = content.split('\n');
-  const valuesFor = (
-    heading: string,
-    nextHeading?: string,
-  ): readonly string[] => {
-    const start = lines.indexOf(`# ${heading}`) + 1;
-    const end = nextHeading ? lines.indexOf(`# ${nextHeading}`) : lines.length;
-    return lines
-      .slice(start, end < 0 ? lines.length : end)
-      .map((line) => line.replace(/^(?:[-*]|\d+\.)\s+/u, '').trim())
-      .filter((line) => line && !line.startsWith('['));
-  };
-  return {
-    cbmIndex: String(metadata.cbm_index ?? ''),
-    constraints: valuesFor('CONSTRAINTS', 'INPUTS TO PROCESS'),
-    coreDirectives: valuesFor('CORE DIRECTIVES', 'EXECUTION STEPS'),
-    executionSteps: valuesFor('EXECUTION STEPS', 'CONSTRAINTS'),
-    inputsToProcess: valuesFor('INPUTS TO PROCESS'),
-    objective: valuesFor('OBJECTIVE', 'CORE DIRECTIVES').join(' '),
-    role: valuesFor('ROLE', 'OBJECTIVE').join(' '),
-    summary: String(metadata.title ?? ''),
   };
 };
 
@@ -261,30 +347,21 @@ const runOwnedRead = async (
   cwd: string,
 ): Promise<string> => {
   if (
-    !['codebase-memory.ts', 'knowledge-base.ts'].includes(
-      pathBasename(scriptPath),
-    )
+    !['repo-search.ts', 'knowledge-base.ts'].includes(pathBasename(scriptPath))
   ) {
     throw new Error(
       `AIDP owned-read boundary rejected child script: ${scriptPath}`,
     );
   }
-  const child = Bun.spawn(['bun', scriptPath, ...arguments_], {
-    cwd,
-    stderr: 'pipe',
-    stdout: 'pipe',
-  });
-  const [stdout, stderr] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ]);
-  const exitCode = await child.exited;
-  if (exitCode !== 0) {
-    throw new Error(
-      `${scriptPath} failed with exit code ${exitCode}: ${stderr.trim() || stdout.trim()}`,
-    );
-  }
-  return stdout.trim();
+  const result = await execute(
+    createBunExecutor(Bun.spawn as unknown as BunSpawner),
+    {
+      args: [scriptPath, ...arguments_],
+      command: 'bun',
+      cwd,
+    },
+  );
+  return result.stdout.trim();
 };
 
 const AIDP_LOCK_STALE_AFTER_MS = 15 * 60 * 1000;
@@ -305,7 +382,7 @@ const contextFor = async (
     }
   }
   const cbmReceipt = await runOwnedRead(
-    join(agentsRoot, 'scripts', 'codebase-memory.ts'),
+    join(agentsRoot, 'scripts', 'repo-search.ts'),
     ['discover', projectRoot, cbmIndex, request],
     projectRoot,
   );
@@ -425,6 +502,11 @@ export const run = async (
   const invocationRoot = process.cwd();
   const projectRoot = resolveProjectRoot(invocationRoot, options.projectRoot);
   await assertDirectory(projectRoot, 'Project root');
+  if (!options.request && !suppliedPrompt && !input.isTTY) {
+    throw new Error(
+      'AIDP requires a plan request when stdin is not an interactive terminal.',
+    );
+  }
   const lock = await acquireAidpLock(
     {
       mkdir: async (path, options) => {
@@ -500,4 +582,13 @@ export const run = async (
   }
 };
 
-await runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+const mainResult = runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+if (mainResult instanceof Promise) {
+  try {
+    await mainResult;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`AIDP failed: ${message}`);
+    process.exitCode = 1;
+  }
+}

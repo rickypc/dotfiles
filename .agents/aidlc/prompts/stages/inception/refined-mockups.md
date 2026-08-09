@@ -18,8 +18,10 @@ requirements.
 
 Use approved requirements and acceptance criteria, existing UI, supplied
 screenshots, current component conventions, and the design role knowledge
-paths in the packet. For brownfield UI, use /codebase-memory to verify the
-existing component boundaries and behavior before proposing replacement UI.
+paths in the packet. For brownfield UI, use /repo-search to verify the
+existing component boundaries and behavior through the repository-memory
+contract and current CBM CLI compatibility backend before proposing replacement
+UI.
 Use `frontend-design` when the request creates, redesigns, or visually refreshes
 the UI; it is not required for behavior-only UI changes.
 

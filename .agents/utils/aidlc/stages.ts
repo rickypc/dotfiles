@@ -109,7 +109,7 @@ export const universalCodeChangeStages: readonly AidlcStageDefinition[] = [
   },
   {
     condition:
-      'For brownfield work, discover current code through codebase-memory and resolve durable context through knowledge-base.',
+      'For brownfield work, discover current code through repo-search and resolve durable context through knowledge-base.',
     gate: false,
     name: 'Reverse Engineering',
     number: '2.1',

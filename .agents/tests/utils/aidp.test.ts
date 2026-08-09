@@ -37,8 +37,8 @@ status: "pending"
 # CORE DIRECTIVES
 - [directive]
 
-# EXECUTION STEPS
-1. [step]
+# ORDERED EXECUTION STEPS
+1. [ ] Action: [step]; Target or Boundary: target; Source -> Target: source -> target; Change or Decision: decision; Dependency or Ordering: first; Reason: reason; Acceptance or Proof: proof; Failure or Stop: stop.
 
 # CONSTRAINTS
 - [constraint]
@@ -46,6 +46,9 @@ status: "pending"
 # INPUTS TO PROCESS
 - [input]
 `;
+
+const structuredStep =
+  '[ ] Action: Inspect the current parser and record every consumer before editing the implementation; Target or Boundary: parser module; Source -> Target: parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.';
 
 test('slugifies summaries and keeps plan paths inside the relative plans route', () => {
   expect(slugifyPlanSummary('Refactor YAML Frontmatter / Planner')).toBe(
@@ -108,8 +111,11 @@ test('renders every template section and replaces all placeholders', () => {
     ],
     createdAt: '2026-08-07',
     executionSteps: [
-      'Inspect the existing parser and record the exact consumers before changing the implementation.',
-      'Run focused validation and retain the receipt beside the changed plan artifact.',
+      structuredStep,
+      structuredStep.replace(
+        'record direct consumers',
+        'run focused validation',
+      ),
     ],
     inputsToProcess: ['.agents/skills/aidp/template.md'],
     objective: 'Persist one detailed implementation plan for later execution.',
@@ -119,9 +125,32 @@ test('renders every template section and replaces all placeholders', () => {
     updatedAt: '2026-08-07',
   });
   expect(rendered).toContain('cbm_index: Users-demo');
-  expect(rendered).toContain('# EXECUTION STEPS');
-  expect(rendered).toContain('Inspect the existing parser');
+  expect(rendered).toContain('# ORDERED EXECUTION STEPS');
+  expect(rendered).toContain('Inspect the current parser');
   expect(rendered).not.toContain('[role]');
+});
+
+test('rejects AIDP authoring-only restrictions from the executable plan', () => {
+  expect(() =>
+    renderAidpPlan(template, {
+      cbmIndex: 'Users-demo',
+      constraints: [
+        'AIDP only materializes and validates the plan; do not run /aidx or perform implementation during this task.',
+      ],
+      coreDirectives: [
+        'AIDX must execute the implementation plan.',
+        'Preserve the approved scope.',
+      ],
+      createdAt: '2026-08-07',
+      executionSteps: [structuredStep],
+      inputsToProcess: ['.agents/skills/aidp/template.md'],
+      objective: 'Implement the approved change and prove the result.',
+      role: 'Principal developer infrastructure architect',
+      status: 'pending',
+      summary: 'Reject contradictory plan content',
+      updatedAt: '2026-08-07',
+    }),
+  ).toThrow('authoring-only control');
 });
 
 test('rejects incomplete list content instead of guessing missing requirements', () => {
@@ -144,18 +173,23 @@ test('rejects incomplete list content instead of guessing missing requirements',
 
 test('validates structured execution steps and rejects missing proof fields', () => {
   const complete =
-    'Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence; Acceptance or Proof: test; Failure or Stop: ambiguity';
+    '[ ] Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence; Acceptance or Proof: test; Failure or Stop: ambiguity';
   expect(() => validateExecutionStepContract(complete)).not.toThrow();
   expect(() =>
     validateExecutionStepContract(
-      'Action: inspect; Target or Boundary: parser',
+      '[ ] Action: inspect; Target or Boundary: parser',
     ),
   ).toThrow('Acceptance or Proof');
   expect(() =>
     validateExecutionStepContract(
-      'A legacy but granular step remains compatible.',
+      '[ ] A legacy but granular step remains incompatible.',
     ),
-  ).not.toThrow();
+  ).toThrow('Action');
+  expect(() =>
+    validateExecutionStepContract(
+      'Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence; Acceptance or Proof: test; Failure or Stop: ambiguity',
+    ),
+  ).toThrow('status checkbox');
 });
 
 test('uses an atomic project-plan lock, rejects a concurrent owner, and releases it', async () => {
@@ -310,9 +344,7 @@ test('rejects empty, placeholder, unsafe, and malformed planner inputs', () => {
       'Stop on ambiguity.',
     ],
     createdAt: '2026-08-07',
-    executionSteps: [
-      'Inspect the current parser and record every consumer before editing the implementation.',
-    ],
+    executionSteps: [structuredStep],
     inputsToProcess: ['The approved plan.'],
     objective: 'Persist one detailed implementation plan.',
     role: 'Principal developer infrastructure architect',
@@ -353,9 +385,7 @@ test('rejects duplicate plan items and interactive transcript tokens', () => {
     constraints: ['Keep the change scoped.'],
     coreDirectives: ['Preserve the public command contract.'],
     createdAt: '2026-08-07',
-    executionSteps: [
-      'Inspect the current parser and record every consumer before editing the implementation.',
-    ],
+    executionSteps: [structuredStep],
     inputsToProcess: ['The approved plan.'],
     objective: 'Persist one detailed implementation plan.',
     role: 'Principal developer infrastructure architect',
@@ -383,9 +413,7 @@ test('validates the complete materialized plan contract', () => {
     constraints: ['Keep the change scoped.'],
     coreDirectives: ['Preserve the public command contract.'],
     createdAt: '2026-08-07',
-    executionSteps: [
-      'Inspect the current parser and record every consumer before editing the implementation.',
-    ],
+    executionSteps: [structuredStep],
     inputsToProcess: ['The approved plan.'],
     objective: 'Persist one detailed implementation plan.',
     role: 'Principal developer infrastructure architect',
@@ -405,13 +433,16 @@ test('validates the complete materialized plan contract', () => {
   );
   expect(() =>
     validatePlanIntegrity(
-      rendered.replace(
-        'Inspect the current parser and record every consumer before editing the implementation.',
-        'Inspect it.',
-      ),
+      rendered.replace(structuredStep, '[ ] short'),
       'Users-demo',
     ),
   ).toThrow('granular');
+  expect(() =>
+    validatePlanIntegrity(
+      rendered.replace(structuredStep, '[ ] Action: Inspect it.'),
+      'Users-demo',
+    ),
+  ).toThrow('missing contract field(s)');
   expect(() =>
     validatePlanIntegrity(
       rendered.replace('Principal developer infrastructure architect', ''),

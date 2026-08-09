@@ -16,7 +16,7 @@ Claims are user-provided, observed, inferred, or unknown. Preserve a material
 contradiction and follow the clarification contract in
 `protocols/stage-protocol.md`: resolve available evidence first, distinguish an
 unknown fact from a user decision, and ask one material question at a time with
-a recommended answer before waiting on an unresolved decision. `/codebase-memory`
+a recommended answer before waiting on an unresolved decision. `/repo-search`
 owns code facts, `/knowledge-base` owns durable private context, and the
 temporary intent owns previous lifecycle evidence. Runtime protection and
 command grammar are defined by `protocols/runtime.md` and

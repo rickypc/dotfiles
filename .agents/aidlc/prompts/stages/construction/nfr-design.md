@@ -19,7 +19,7 @@ intent at `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`.
 
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `/codebase-memory`; for persistent knowledge, invoke
+facts, invoke `/repo-search`; it owns the repository-memory contract and uses the current CBM CLI compatibility backend; for persistent knowledge, invoke
 `/knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
 reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
@@ -53,7 +53,7 @@ approved NFR needs it; otherwise do not create a synthetic dependency.
 
 ### Step 2: Read Prior Artifacts
 
-Read NFR requirements from the relevant central intent section. Read functional design artifacts from the relevant central intent section (if they exist). Read application design from the relevant central intent section (if exists) for architectural context; when the scope skipped those design stages, derive the architectural context from the NFR requirements and, on brownfield, the codebase-memory evidence — never invent the content of a missing artifact.
+Read NFR requirements from the relevant central intent section. Read functional design artifacts from the relevant central intent section (if they exist). Read application design from the relevant central intent section (if exists) for architectural context; when the scope skipped those design stages, derive the architectural context from the NFR requirements and, on brownfield, repo-search findings from its repository-memory contract and current CBM CLI compatibility backend — never invent the content of a missing artifact.
 
 ### Step 3: Generate Design Questions
 

@@ -6,7 +6,9 @@ evidence needed for that stage.
 
 1. Confirm the selected project and canonical intent; never borrow state from a
    similarly named project or CBM index.
-2. Separate user-provided facts, project instructions, codebase-memory findings,
+2. Separate user-provided facts, project instructions, repo-search findings
+   from its repository-memory contract and current CBM CLI compatibility
+   backend,
    validated KB context, inferences, and unknowns.
 3. Produce concise stage evidence: what was observed, the decision or factual
    skip, scope impact, risks, and links to project-owned artifacts when useful.
@@ -19,7 +21,8 @@ evidence needed for that stage.
 Clarification contract:
 
 1. Resolve available evidence before asking: project instructions, the selected
-   `/codebase-memory` project, `/knowledge-base` context, and the central
+   `/repo-search` project and its repository-memory contract through the
+   current CBM CLI compatibility backend, `/knowledge-base` context, and the central
    intent are the first sources. Do not ask the user for a fact that those
    sources establish.
 2. Label the gap as either an unknown fact or a user decision. An unknown fact

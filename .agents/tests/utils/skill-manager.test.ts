@@ -259,6 +259,9 @@ test('scaffolds a new skill without overwriting an existing skill', async () => 
   expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain(
     'description: "Handle example work."',
   );
+  expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain(
+    '## 1. Role & Scope',
+  );
   await expect(
     initializeSkill(fileSystem, 'relative-skill', 'A description.'),
   ).rejects.toThrow('must be absolute');

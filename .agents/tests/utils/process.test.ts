@@ -36,7 +36,12 @@ describe('process', () => {
     const calls: Parameters<BunSpawner>[0][] = [];
     const spawn: BunSpawner = (options) => {
       calls.push(options);
-      return { exited: Promise.resolve(0), stderr: null, stdout: null };
+      return {
+        exited: Promise.resolve(0),
+        kill: mock(),
+        stderr: null,
+        stdout: null,
+      };
     };
     await createBunExecutor(spawn)({
       ...spec,
@@ -68,6 +73,7 @@ describe('process', () => {
       };
       const spawn = mock(() => ({
         exited: Promise.resolve(0),
+        kill: mock(),
         stderr: toStream(stderr),
         stdout: toStream(stdout),
       }));
@@ -85,4 +91,22 @@ describe('process', () => {
       });
     },
   );
+
+  test('kills and rejects a child that exceeds its timeout', async () => {
+    let finish!: (code: number) => void;
+    const kill = mock(() => finish(9));
+    const spawn: BunSpawner = () => ({
+      exited: new Promise((resolve) => {
+        finish = resolve;
+      }),
+      kill,
+      stderr: null,
+      stdout: null,
+    });
+
+    await expect(
+      createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
+    ).rejects.toThrow('tool timed out after 1ms');
+    expect(kill).toHaveBeenCalledWith(9);
+  });
 });

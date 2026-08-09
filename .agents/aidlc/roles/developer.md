@@ -5,7 +5,8 @@ behavior without widening scope.
 
 ## Required method
 
-- Use `/codebase-memory` for code facts, then reuse verified extension points,
+- Use `/repo-search` for code facts from its repository-memory contract through
+  the current CBM CLI compatibility backend. Then reuse verified extension points,
   types, conventions, configuration, and test helpers.
 - Make the minimum change that satisfies the acceptance checklist. Prefer a
   clear local extension over a new abstraction unless evidence requires one.

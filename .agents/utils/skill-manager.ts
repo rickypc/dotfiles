@@ -1,10 +1,12 @@
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import matter from 'gray-matter';
 import type { FileSystem } from './filesystem.js';
-import type { MatrixCase, MatrixEvidence } from './quality-engine/matrix.js';
 import {
   casesFor,
   evaluateMatrix,
+  type MatrixCase,
+  type MatrixEvidence,
+  matrixFingerprintFor,
   validateMatrix,
 } from './quality-engine/matrix.js';
 import {
@@ -160,6 +162,7 @@ export const evaluateSkillMatrix = (
         runIndependentVerifier(matrixCase, evidence),
       ),
     ],
+    matrixFingerprint: matrixFingerprintFor(cases),
     sourceFingerprint,
     state: phase,
   });
@@ -271,6 +274,45 @@ description: ${JSON.stringify(description)}
 Use this skill only after its trigger is confirmed. State the normal path,
 the owner of each delegated command or information source, and the proof that
 closes the work. Keep detailed branch guidance in linked references.
+
+## 1. Role & Scope
+
+- **Role:** <single skill-owned job and normal-path owner>
+- **Objective:** <user-visible outcome>
+- **Trigger:** <observable request or condition>
+- **Boundary:** <out-of-scope work and neighboring owner>
+
+## 2. Immutable Operational Rules
+
+- <non-negotiable safety, ownership, ordering, and evidence rule>
+- <positive target, bright-line guardrail, and stop condition>
+
+## 3. Input & Context Schema
+
+- **Required:** <typed inputs and source>
+- **Optional:** <optional input and selection condition>
+- **Context:** <instructions, evidence, and delegated receipts>
+- **Unknowns:** <missing-input detection and stop behavior>
+
+## 4. Ordered Execution Chain
+
+1. **Intake:** <parse and validate inputs>
+2. **Normal path:** <ordered skill-owned actions>
+3. **Branching:** <observable predicates for alternatives>
+4. **Verification:** <independent focused proof>
+5. **Stop or hand off:** <failure, approval, or delegated boundary>
+
+## 5. Output & Completion Contract
+
+- **Success:** <artifacts, receipts, and user-facing result>
+- **Proof:** <completion evidence and final gate>
+- **Failure:** <failure shape, recovery, and handoff>
+
+## 6. Evaluation Anchors
+
+- **Canonical example:** <representative invocation or input/output>
+- **Boundary example:** <failure, uncertainty, or challenge case>
+- **Independent verifier:** <typed matrix assertion or owner check>
 `;
 
 export const initializeSkill = async (

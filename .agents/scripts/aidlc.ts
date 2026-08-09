@@ -44,7 +44,6 @@ import {
 } from '../utils/aidlc/record.js';
 import { stagePacketFor } from '../utils/aidlc/stage.js';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
-import { resolveCbmProjectForRoot } from '../utils/codebase-memory.js';
 import {
   type FileSystem,
   nodeFileSystem,
@@ -66,6 +65,7 @@ import {
 } from '../utils/md-compress.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
+import { resolveCbmProjectForRoot } from '../utils/repo-search.js';
 import { runAidlcApprove } from './aidlc/approval.js';
 
 interface AidlcCaptureBatch {

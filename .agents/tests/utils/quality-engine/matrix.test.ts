@@ -4,6 +4,7 @@ import {
   casesFor,
   evaluateMatrix,
   type MatrixCase,
+  matrixFingerprintFor,
   validateMatrix,
 } from '../../../utils/quality-engine/matrix.js';
 
@@ -80,6 +81,13 @@ test('evaluates every typed assertion from independent evidence', () => {
   ]);
 });
 
+test('fingerprints the normalized matrix independent of case order', () => {
+  const otherCase = { ...candidateCase, id: 'other' };
+  expect(matrixFingerprintFor([candidateCase, otherCase])).toBe(
+    matrixFingerprintFor([otherCase, candidateCase]),
+  );
+});
+
 test('reports failed or blocked evidence without trusting the matrix author', () => {
   const checks = evaluateMatrix(
     [
@@ -103,4 +111,13 @@ test('reports failed or blocked evidence without trusting the matrix author', ()
     'failed',
     'blocked',
   ]);
+});
+
+test('rejects unknown verifiers and malformed matrix records', () => {
+  expect(() =>
+    validateMatrix([
+      { ...candidateCase, independentVerifier: 'unknown' as never },
+    ]),
+  ).toThrow('independent verifier');
+  expect(() => validateMatrix([null as never])).toThrow('unique');
 });

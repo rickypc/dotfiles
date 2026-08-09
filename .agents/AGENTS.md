@@ -115,10 +115,12 @@ and `start`.
   Skill Manager owns the deterministic scaffold, frontmatter validation,
   prose/link review, quality matrix, and closeout; do not route skill package
   work through another skill.
-- Use `<agents-root>/skills/codebase-memory/SKILL.md` for code discovery and
+- Use `<agents-root>/skills/repo-search/SKILL.md` for caller-facing code
+  discovery; repo-search owns the complete repository-search contract and uses
+  the installed CBM CLI backend through its wrapper. Use
   `<agents-root>/skills/knowledge-base/SKILL.md` for private knowledge stored
   outside the runtime at the configured private-KB root. Do not bypass either
-  with independent discovery calls.
+  owner with independent discovery calls.
 - Universal executable scripts live in `scripts/`; reusable TypeScript lives in
   `utils/`. Do not add a global `tools/` directory or platform-specific hooks.
 - During ordinary work, treat all of `.agents` as read-only except that one
@@ -135,7 +137,7 @@ skill already supplies the command contract.
 | Skill | Required input | Use when |
 | --- | --- | --- |
 | `/aidx` | `<goal-and-concerns>` or `resume <goal-id>` or `status <goal-id>` | An explicit goal needs the question, approved-plan, implementation, test, repair, lesson, and resumable AIDX lane. AIDX is LLM-triggered and does not use the AIDLC route. |
-| `/codebase-memory` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed. |
+| `/repo-search` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed; repo-search owns the complete repository-search command contract and uses the installed CBM CLI backend through its wrapper. |
 | `/knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
 | `/biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
 | `/bun-test-generator` | `<sut-path>` `<all \| method-list \| method-range>`. | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
@@ -146,10 +148,46 @@ skill already supplies the command contract.
 | `/md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>`. | Durable Markdown needs lossless compression with a verified temporary backup. |
 | `/skill-manager` | `init <absolute-skill-path> <description>`, `validate <absolute-skill-path>`, or the selected review/evaluation command; read its command catalog first. | Any skill, including AIDX and legacy skills, needs to be created, updated, reviewed, renamed, synchronized, optimized, or validated. |
 
-`/knowledge-base` alone owns the private-KB root. `/codebase-memory` alone owns
-CBM command selection and fallback search. The arguments above are selection
-inputs, not executable grammar. Read the selected skill’s canonical command
-catalog before running a command.
+`/knowledge-base` alone owns the private-KB root. `/repo-search` owns the
+caller-facing discovery workflow and complete repository-search command
+contract; the installed CBM CLI is invoked only through its wrapper. The
+arguments above are selection inputs, not executable grammar. Read the
+selected skill’s canonical command catalog before running a command.
+
+### Repo-search command catalog
+
+The caller-facing wrapper is:
+
+```bash
+bun <agents-root>/scripts/repo-search.ts discover "<approved-root>" "<cbm-index>" "<query>"
+bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"
+```
+
+| Command or information | Arguments | When to use | Additional information |
+| --- | --- | --- | --- |
+| `list-projects` | `—` | Resolve approved roots and matching indexes | Returns the project list; select by explicit indexed root. |
+| `index-status` | `<cbm-index>` | Check readiness before a read | If not ready, follow the repo-search indexing boundary and receipt. |
+| `architecture` | `<cbm-index>` | Read indexed architecture | Returns one wrapper-owned architecture result. |
+| `schema` | `<cbm-index>` | Verify graph identity fields | Use before relying on a newly observed identity field. |
+| `snippet` | `<cbm-index>` `<qualified-name>` | Read one indexed code snippet | Use the smallest returned fragment needed for the decision. |
+| `search-graph` | `<cbm-index>` `<query>` `<positive-limit>` | Search graph nodes | A match requires normalized identity-field evidence. |
+| `search-code` | `<cbm-index>` `<literal-pattern>` `<positive-limit>` | Search indexed code text | Use after graph search or as a declared inspection operation. |
+| `query` | `<cbm-index>` `<graph-query>` `<positive-limit>` | Run a bounded graph query | Keep the query narrow and record the receipt. |
+| `trace` | `<cbm-index>` `<qualified-name>` `<inbound\|outbound>` `<positive-depth>` | Trace callers or callees | Direction is restricted to `inbound` or `outbound`. |
+| `discover` | `<approved-root>` `<cbm-index>` `<query>` | One code, symbol, call-path, architecture, or literal-text question | Returns one ordered CBM-first receipt; read every attempt and do not rerun a listed attempt. |
+| `inspect` | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>` | Several independent reads for one decision | Returns one resolved index, readiness result, and one ordered receipt per read. |
+| `inspection JSONL` | `architecture(path)`, `schema`, `search-graph(namePattern,label,limit)`, `snippet(qualifiedName)`, `trace(qualifiedName,direction,depth)`, `search-code(pattern,limit)` | Batch independent reads | Request file must be under the operating-system temporary directory. |
+
+Inspection JSONL operations:
+
+```jsonl
+{"operation":"architecture","path":"<directory-prefix>"}
+{"operation":"schema"}
+{"operation":"search-graph","namePattern":"<regular-expression>","label":"<graph-label>","limit":<positive-integer>}
+{"operation":"snippet","qualifiedName":"<qualified-name>"}
+{"operation":"trace","qualifiedName":"<qualified-name>","direction":"<inbound-or-outbound>","depth":<positive-integer>}
+{"operation":"search-code","pattern":"<literal-pattern>","limit":<positive-integer>}
+```
 
 In this runtime, `OKF` means Open Knowledge Format: the Markdown/frontmatter
 record format and indexing convention used by the private KB. It describes how
@@ -179,7 +217,7 @@ use.
   include that separate cleanup.
 - Before changing shared production code, a canonical shared test, or a
   shared mock registration, build a bounded impact map with
-  `/codebase-memory`: direct importers and call sites, public command
+  `/repo-search` through its complete repository-search contract and installed CBM CLI backend: direct importers and call sites, public command
   consumers, tests loaded by the same command/process, and compatibility or
   contamination risks. Record the affected consumers and the focused checks
   that cover each risk before editing. If the map cannot be established from
@@ -217,7 +255,7 @@ use.
 
 ## Non-negotiable execution guardrails
 
-For every nontrivial workflow, invoke `/knowledge-base` for durable prior context and lesson capture. Use `/codebase-memory` as the primary authority for repository files, symbols, call paths, and code text; do not read whole files when a targeted discovery or inspection receipt answers the question. There is no universal `.agents/references` directory: never invent or hardcode one. Before any code edit, collect the smallest sufficient CBM/KB receipts.
+For every nontrivial workflow, invoke `/knowledge-base` for durable prior context and lesson capture. Use `/repo-search` as the caller-facing primary authority for repository files, symbols, call paths, and code text through its complete repository-search contract and installed CBM CLI backend. Do not read whole files when a targeted discovery or inspection receipt answers the question. There is no universal `.agents/references` directory: never invent or hardcode one. Before any code edit, collect the smallest sufficient CBM/KB receipts.
 
 Batch independent reads and distinct checks when they are safe, but never run the same checker, command, query, or final gate concurrently. Reject duplicate normalized queries in every batch API. For AIDX, use one `advance-batch` request for consecutive prepared non-gated transitions; issue an individual transition only when the state contract requires a user gate, test receipt, repair receipt, or other non-batchable event.
 

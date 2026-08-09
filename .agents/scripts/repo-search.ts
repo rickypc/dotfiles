@@ -1,15 +1,15 @@
 import { tmpdir } from 'node:os';
 import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import type { CommandSpec } from '../utils/contracts.js';
+import { nodeFileSystem, readText } from '../utils/filesystem.js';
+import { bunExecutor } from '../utils/process.js';
 import {
   cbmCommands,
   inspectCbm,
   parseCbmInspectionJsonl,
   resolveCbmProjectForRoot,
   searchWithCbmFallback,
-} from '../utils/codebase-memory.js';
-import type { CommandSpec } from '../utils/contracts.js';
-import { nodeFileSystem, readText } from '../utils/filesystem.js';
-import { bunExecutor } from '../utils/process.js';
+} from '../utils/repo-search.js';
 import { commandText } from '../utils/search-fallback.js';
 
 const isTemporaryRequestPath = (
@@ -95,7 +95,7 @@ const runInspect = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/codebase-memory.ts <architecture|discover|index-status|inspect|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
+  'Usage: bun <agents-root>/scripts/repo-search.ts <architecture|discover|index-status|inspect|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
 
 const positiveLimit = (value: string): number => {
   const limit = Number(value);

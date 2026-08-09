@@ -19,7 +19,7 @@ intent at `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`.
 
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `/codebase-memory`; for persistent knowledge, invoke
+facts, invoke `/repo-search`; it owns the repository-memory contract and uses the current CBM CLI compatibility backend; for persistent knowledge, invoke
 `/knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
 reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
@@ -54,9 +54,10 @@ Apply the architect role (lead) perspective from the stage packet and its knowle
 Read the unit definition from the relevant central intent section and assigned stories from the relevant central intent section (if they exist). Read the relevant central intent section (if exists) and any application design artifacts from the relevant central intent section (if they exist).
 
 When Units Generation or Application Design is not needed, work from the
-approved requirements and, for brownfield work, verified codebase-memory
-findings. Treat existing code structure as evidence of the current design; do
-not invent a missing artifact.
+approved requirements and, for brownfield work, verified repo-search findings
+from its repository-memory contract and current CBM CLI compatibility backend.
+Treat existing code structure as evidence of the current design; do not invent
+a missing artifact.
 
 ### Step 3: Create Functional Design Plan
 

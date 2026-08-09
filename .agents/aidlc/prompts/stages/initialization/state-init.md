@@ -18,7 +18,8 @@ skipped only when `ui_required: false`; every other conditional stage remains
 available for evidence-based completion or factual skip. Do not add a scope
 grid, stage graph, phase directory, or state file. Do not classify a project
 as greenfield or brownfield from its parent path—2.1 performs bounded
-codebase-memory research when brownfield context is needed.
+repo-search research through its repository-memory contract and current CBM CLI
+compatibility backend when brownfield context is needed.
 
 The lifecycle, route ledger, audit trail, approval state, and KB bindings are
 stored only in the central intent's gray-matter frontmatter and body, using the

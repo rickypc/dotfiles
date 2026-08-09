@@ -19,7 +19,7 @@ intent at `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`.
 
 Use the role cards as review perspectives in the current assistant. Do not
 expect assistant-native orchestration or lifecycle storage. For repository
-facts, invoke `/codebase-memory`; for persistent knowledge, invoke
+facts, invoke `/repo-search`; it owns the repository-memory contract and uses the current CBM CLI compatibility backend; for persistent knowledge, invoke
 `/knowledge-base`. At completion, run the packet's sensors
 and use `aidlc.ts complete <intent-path> <evidence>` or `skip` with a factual
 reason. Only 1.7 waits for approval. Build and Test owns the final-gate route;
@@ -42,8 +42,9 @@ seam. These are research signals, not findings by themselves.
 
 ## Research procedure
 
-1. Use `/codebase-memory` for the project selected in the intent. Ask it for
-   the architecture, relevant symbols, inbound and outbound paths, and focused
+1. Use `/repo-search` for the project selected in the intent; its
+   repository-memory contract uses the current CBM CLI compatibility backend. Ask
+   it for the architecture, relevant symbols, inbound and outbound paths, and focused
    source snippets. It owns the escalation path; do not substitute independent
    discovery or a hand-composed index directory.
 2. Read the project instructions and the existing tests around the affected

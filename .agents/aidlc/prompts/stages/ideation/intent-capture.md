@@ -22,7 +22,10 @@ Record in the central intent's **Research** and **Decisions** sections:
 - known constraints, exclusions, deadlines, compatibility obligations, and
   user-provided references;
 - evidence source for each material claim: user-provided, project instruction,
-  codebase-memory observation, knowledge-base concept, or explicit assumption;
+  repo-search observation from its repository-memory contract and
+  current CBM CLI compatibility backend,
+  knowledge-base
+  concept, or explicit assumption;
 - unanswered questions that materially alter scope, behavior, safety, or
   architecture.
 

@@ -14,7 +14,8 @@ Implement the approved acceptance contract using the smallest compatible change.
    units, acceptance-to-proof mapping, and the central intent's **Construction
    plan**. Select the next `pending` row only when its dependencies are complete;
    mark it `in_progress` before work and `complete` only with actual evidence.
-   Use `/codebase-memory` for affected code facts and reuse verified project
+   Use `/repo-search` for affected code facts through its repository-memory contract and current
+   CBM CLI compatibility backend. Reuse verified project
    extension points.
    Keep the behavior local to the owning interface. Do not extract a pure
    helper only to make a test convenient when the real risk is in the caller,

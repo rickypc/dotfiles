@@ -33,8 +33,9 @@ untrusted assistant.
 
 - `start` uses the selected current workspace and accepts only an explicit CBM
   indexed-root match. Nested indexed roots remain independent projects.
-- Reverse Engineering uses `/codebase-memory`; durable context and closeout use
-  `/knowledge-base`. Neither may be bypassed by independent discovery or local
+- Reverse Engineering uses `/repo-search` and its repository-memory contract
+  through the current CBM CLI compatibility backend;
+  durable context and closeout use `/knowledge-base`. Neither may be bypassed by independent discovery or local
   reference paths.
 - Refined Mockups is the sole UI-definition stage and is active only for UI
   work. Unselected upstream stages never become hidden prerequisites.

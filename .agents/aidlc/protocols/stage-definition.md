@@ -36,5 +36,6 @@ create a blocker, an omitted artifact, or a hidden prerequisite.
 
 The central intent is the only temporary workflow record:
 `<agents-root>/aidlc/<cbm-index>/intents/<intent-id>.md`. Its CBM index must be a
-project name returned by `/codebase-memory`, never a filesystem path or a slug.
+project name returned by `/repo-search` through its repository-memory contract
+and current CBM CLI compatibility backend, never a filesystem path or a slug.
 Lifecycle frontmatter uses `gray-matter` exclusively and is never hand-edited.

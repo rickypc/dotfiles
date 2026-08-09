@@ -9,8 +9,10 @@ route_authority: "<agents-root>/utils/aidlc/stages.ts"
 # 2.3 Requirements Analysis
 
 Turn the approved intent into testable requirements. For brownfield work,
-start with the Reverse Engineering evidence and the cited codebase-memory
-findings; for greenfield work, start with the approved intent. Do not require
+start with the Reverse Engineering evidence and the cited repo-search findings
+from its repository-memory contract and current CBM CLI compatibility backend.
+For
+greenfield work, start with the approved intent. Do not require
 an omitted user-story stage, a mockup, or a local artifact tree.
 
 Path basis: the shortened `languages/...` and

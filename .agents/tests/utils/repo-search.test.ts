@@ -17,7 +17,7 @@ import {
   readWithReadyIndex,
   resolveCbmProjectForRoot,
   searchWithCbmFallback,
-} from '../../utils/codebase-memory.js';
+} from '../../utils/repo-search.js';
 
 const HOME_ROOT = join(tmpdir(), 'cbm-home');
 const REPO_ROOT = join(HOME_ROOT, 'Github', 'repo');

@@ -322,8 +322,16 @@ export const planPathFor = (
     `${slugifyPlanSummary(summary)}.md`,
   );
 
+const ORDERED_STEP_STATUS = /^\[(?: |~|!|x|-)\]\s+\S/u;
+
+const ORDERED_STEP_STATUS_LEGEND =
+  'Status legend: `[ ]` pending; `[~]` in-progress; `[!]` blocked; `[x]` complete; `[-]` skipped with a reason.';
+
 const stepsSection = (values: readonly string[]): string =>
-  values.map((value, index) => `${index + 1}. ${value}`).join('\n');
+  [
+    ORDERED_STEP_STATUS_LEGEND,
+    ...values.map((value, index) => `${index + 1}. ${value}`),
+  ].join('\n');
 
 const EXECUTION_STEP_FIELDS = [
   'Action',
@@ -336,18 +344,20 @@ const EXECUTION_STEP_FIELDS = [
 ] as const;
 
 export const validateExecutionStepContract = (step: string): void => {
+  if (!ORDERED_STEP_STATUS.test(step.trim())) {
+    throw new Error(
+      'ORDERED EXECUTION STEPS item must start with its own status checkbox.',
+    );
+  }
   const present = EXECUTION_STEP_FIELDS.filter((field) =>
     new RegExp(`${field}:\\s*\\S`, 'u').test(step),
   );
-  if (present.length === 0) {
-    return;
-  }
   const missing = EXECUTION_STEP_FIELDS.filter(
     (field) => !present.includes(field),
   );
   if (missing.length > 0) {
     throw new Error(
-      `EXECUTION STEPS item is missing contract field(s): ${missing.join(', ')}.`,
+      `ORDERED EXECUTION STEPS item is missing contract field(s): ${missing.join(', ')}.`,
     );
   }
 };
@@ -363,12 +373,16 @@ export const renderAidpPlan = (
       'CORE DIRECTIVES': listSection(
         assertList(input.coreDirectives, 'CORE DIRECTIVES'),
       ),
-      'EXECUTION STEPS': stepsSection(
-        assertList(input.executionSteps, 'EXECUTION STEPS').map(
+      'INPUTS TO PROCESS': listSection(
+        assertList(input.inputsToProcess, 'INPUTS TO PROCESS'),
+      ),
+      OBJECTIVE: assertNonEmpty(input.objective, 'OBJECTIVE'),
+      'ORDERED EXECUTION STEPS': stepsSection(
+        assertList(input.executionSteps, 'ORDERED EXECUTION STEPS').map(
           (step, stepIndex) => {
             if (step.length < 24) {
               throw new Error(
-                `EXECUTION STEPS item ${stepIndex + 1} must be granular and technically precise.`,
+                `ORDERED EXECUTION STEPS item ${stepIndex + 1} must be granular and technically precise.`,
               );
             }
             validateExecutionStepContract(step);
@@ -376,10 +390,6 @@ export const renderAidpPlan = (
           },
         ),
       ),
-      'INPUTS TO PROCESS': listSection(
-        assertList(input.inputsToProcess, 'INPUTS TO PROCESS'),
-      ),
-      OBJECTIVE: assertNonEmpty(input.objective, 'OBJECTIVE'),
       ROLE: assertNonEmpty(input.role, 'ROLE'),
     };
     return replaceSection(
@@ -404,10 +414,22 @@ const PLAN_HEADINGS = [
   'ROLE',
   'OBJECTIVE',
   'CORE DIRECTIVES',
-  'EXECUTION STEPS',
+  'ORDERED EXECUTION STEPS',
   'CONSTRAINTS',
   'INPUTS TO PROCESS',
 ] as const;
+
+const AIDP_AUTHORING_ONLY_PATTERN =
+  /(?:\bAIDP\s+only\b[\s\S]{0,180}\b(?:implement|source|\/aidx|mutat|execut)|\bwithout\s+implementation\b[\s\S]{0,180}\b(?:AIDP|\/aidx|plan)|\b(?:do not|must not|never)\s+(?:run\s+\/aidx|perform\s+implementation|implement|mutate\s+source)\b)/iu;
+
+const assertNoAuthoringOnlyControls = (sections: readonly string[]): void => {
+  const planSections = sections.slice(0, -1).join('\n');
+  if (AIDP_AUTHORING_ONLY_PATTERN.test(planSections)) {
+    throw new Error(
+      'Plan contains an AIDP authoring-only control. Keep planning/materialization boundaries in the AIDP skill; the plan must describe AIDX execution, implementation scope, and proof.',
+    );
+  }
+};
 
 export const validatePlanFrontmatter = (content: string): void => {
   const parsed = matter(content);
@@ -455,28 +477,33 @@ export const validatePlanIntegrity = (
     }
     return match[1].trim();
   });
+  assertNoAuthoringOnlyControls(sections);
   assertNonEmpty(sections[0], 'ROLE');
   assertNonEmpty(sections[1], 'OBJECTIVE');
   for (const [index, heading] of [
     'CORE DIRECTIVES',
-    'EXECUTION STEPS',
+    'ORDERED EXECUTION STEPS',
     'CONSTRAINTS',
     'INPUTS TO PROCESS',
   ].entries()) {
-    const items = assertList(
+    assertList(
       sections[index + 2]
         .split('\n')
         .map((line) => line.replace(/^(?:[-*]|\d+\.)\s+/u, '').trim()),
       heading,
     );
-    if (heading === 'EXECUTION STEPS') {
-      items.forEach((step, stepIndex) => {
+    if (heading === 'ORDERED EXECUTION STEPS') {
+      const orderedItems = sections[index + 2]
+        .split('\n')
+        .filter((line) => /^\d+\.\s+/u.test(line));
+      assertList(orderedItems, heading).forEach((step, stepIndex) => {
+        const normalizedStep = step.replace(/^\d+\.\s+/u, '').trim();
         if (step.length < 24) {
           throw new Error(
-            `EXECUTION STEPS item ${stepIndex + 1} must be granular and technically precise.`,
+            `ORDERED EXECUTION STEPS item ${stepIndex + 1} must be granular and technically precise.`,
           );
         }
-        validateExecutionStepContract(step);
+        validateExecutionStepContract(normalizedStep);
       });
     }
   }

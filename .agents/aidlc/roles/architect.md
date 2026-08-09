@@ -12,7 +12,9 @@ implementation design that preserves required behavior.
 
 ## Required output
 
-- State the current boundary and extension point from `/codebase-memory` evidence.
+- State the current boundary and extension point from `/repo-search` evidence
+  produced by its repository-memory contract and current CBM CLI compatibility
+  backend.
 - Prefer existing structure and patterns before proposing a new abstraction,
   component, service, schema, or dependency.
 - Specify the minimum implementation units in dependency order. Each unit maps

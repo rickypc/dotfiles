@@ -145,7 +145,7 @@ const assertCbmIndexName = (cbmIndex: string): void => {
     protectedAidlcAssetNames.has(cbmIndex)
   ) {
     throw new Error(
-      'CBM index must be a project name returned by codebase-memory, not a path.',
+      'CBM index must be a project name returned by repo-search, not a path.',
     );
   }
 };

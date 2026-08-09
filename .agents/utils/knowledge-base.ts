@@ -1,13 +1,13 @@
 import { basename } from 'node:path';
 import matter from 'gray-matter';
-import {
-  type CbmSearchFallbackReceipt,
-  searchWithCbmFallback,
-} from './codebase-memory.js';
 import type { DirectoryEntry, FileSystem } from './filesystem.js';
 import { readText, writeText } from './filesystem.js';
 import type { CommandExecutor } from './process.js';
 import { type BatchTask, runBatched } from './quality-engine/batch.js';
+import {
+  type CbmSearchFallbackReceipt,
+  searchWithCbmFallback,
+} from './repo-search.js';
 
 export interface CapturedConcept {
   readonly conceptPath: string;
@@ -56,6 +56,7 @@ export interface OkfMetadata {
 
 export interface PlanImportDocument {
   readonly cbmIndex: string;
+  readonly headings: readonly string[];
   readonly objective: string;
   readonly sections: Readonly<Record<string, string>>;
   readonly title: string;
@@ -125,7 +126,7 @@ const planSectionHeadings = [
   'ROLE',
   'OBJECTIVE',
   'CORE DIRECTIVES',
-  'EXECUTION STEPS',
+  'ORDERED EXECUTION STEPS',
   'CONSTRAINTS',
   'INPUTS TO PROCESS',
 ] as const;
@@ -139,7 +140,7 @@ export const conceptIndexPath = (path: string): string => {
 };
 
 const importBody = (document: PlanImportDocument): string =>
-  planSectionHeadings
+  document.headings
     .map((heading) => `## ${heading}\n\n${document.sections[heading]}`)
     .join('\n\n');
 
@@ -314,6 +315,7 @@ export const parsePlanForImport = (content: string): PlanImportDocument => {
   );
   return {
     cbmIndex: requiredPlanField(metadata, 'cbm_index'),
+    headings: planSectionHeadings,
     objective: sections.OBJECTIVE,
     sections,
     title: requiredPlanField(metadata, 'title'),

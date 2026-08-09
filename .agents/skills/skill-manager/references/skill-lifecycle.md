@@ -57,10 +57,22 @@ Define a non-filler JSONL matrix before candidate edits. Every case needs:
 - a repair boundary; and
 - an independent verifier outside the assertion wording.
 
-Evaluate the baseline, apply only compatible repair actions, evaluate the
-candidate, and run challenge cases only after every candidate case passes. Do
-not weaken the matrix after seeing a failure and do not treat a score as
+Record the matrix fingerprint before RED. Evaluate the baseline without the
+skill, preserve the exact failure/rationalization evidence, apply only
+compatible repair actions, then evaluate GREEN against the same matrix. Require
+the candidate source fingerprint to differ from baseline. Run challenge cases
+only after every candidate case passes, using the same candidate source and
+matrix fingerprint. Do not weaken the matrix after seeing a failure, reuse a
+receipt from another source or matrix, or treat a score or measurement as
 closure evidence.
+
+Choose the test form from the baseline failure: use positive structural
+contracts for wrong-shaped output or omissions; use bright-line counters and
+red flags for discipline failures; and use explicit predicate/action pairs for
+conditional behavior. For discipline skills, pressure-test with a no-guidance
+control, at least three combined pressures, 5+ samples where supported,
+manual review, and variance tracking. Capture rationalizations verbatim and
+add a targeted counter before the next REFACTOR pass.
 
 ## 6. Validate and forward-test
 
@@ -74,7 +86,10 @@ For a complex or high-risk skill, forward-test from a clean context with a
 realistic user request. Supply raw artifacts, not the intended answer. Check
 that the skill asks the right questions, uses the right owner, preserves scope,
 emits the expected artifacts, and reaches a verifiable result without leaked
-authoring context.
+authoring context. Read every flagged output; template echoes and quoted
+counterexamples are not behavioral failures. Treat inconsistent outputs across
+replications as a wording defect requiring a tighter form, not as permission
+to add untested prose.
 
 ## 7. Close out
 

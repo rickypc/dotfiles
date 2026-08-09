@@ -5,139 +5,120 @@ description: Retrieve, capture, validate, and distill durable knowledge stored i
 
 # Knowledge Base
 
-This skill manages durable knowledge through a retrieve, capture, validate, and
-distill lifecycle. OKF means Open Knowledge Format: the Markdown/frontmatter
-representation and indexing convention used for persisted concepts. The
-knowledge itself may concern projects, organizations, teams, policies, or prior
-decisions; OKF is the format, not the topic. This skill manages knowledge in
-that format; it is not a reference about the OKF specification.
+## 1. Role & Scope
 
-Durable KB records are outside `<agents-root>` at
-`~/Library/Application Support/agent-knowledge-base` (macOS) or
-`${XDG_DATA_HOME:-~/.local/share}/agent-knowledge-base` (Linux). Store only validated,
-durable knowledge. Never store raw chat, secrets, speculation, or a log.
+This skill owns validated private-KB retrieval, capture, reconciliation, and
+distillation. OKF means Open Knowledge Format: the Markdown/frontmatter
+representation and indexing convention for persisted concepts, not a topic or
+an excuse to retain raw conversation. The configured private-KB root is
+authoritative and lives outside `<agents-root>` at the platform-specific
+`agent-knowledge-base` location.
 
-Concept paths must match
-`^(<cbm-index>|shared)/<subject>/<concept>\.md$`. Each KB root and subject
-directory has an `index.md`; concepts use Markdown frontmatter with required
-`type`, `title`, `description`, and `tags`.
+The skill is selected for a private-KB lookup, capture, validation, distillation,
+or completed-plan import. It returns validated knowledge or deterministic
+receipts; it does not let runtime instructions override the configured root,
+create an index, infer semantic ownership, or preserve speculation.
 
-The command tables below are owned by this skill and its scripts. Any fixed
-reconciliation request is an absolute path under the operating system
-temporary directory; the request is parsed by this runtime, never passed to an
-external dependency as a raw payload.
+## 2. Immutable Operational Rules
 
-Plan handoff is path-only. The importer reads one completed six-section plan
-from the supplied path, parses its YAML frontmatter with `gray-matter`, slices
-the six sections into one validated OKF `plan` concept, and updates the KB
-indexes under the configured private-KB root. It preserves the source plan and
-returns one durable write receipt.
+- Use the configured KB root and supplied CBM indexes as authoritative. Keep
+  retrieval read-only; **Never store raw chat**, secrets, speculation, or logs.
+- Concept paths match
+  `^(<cbm-index>|shared)/<subject>/<concept>\.md$`. Every root and subject
+  directory has `index.md`; every concept has required frontmatter `type`,
+  `title`, `description`, and `tags` plus source and verification evidence.
+- Do not create a new concept when an existing matching concept can be safely
+  updated. Do not move, delete, or merge concepts during reconciliation.
+  Ambiguous ownership is a user decision.
+- Use the owning command and the required absolute temporary request-file
+  transport for writes. Resolve the correct index before writing; never invent
+  another index when the named one is missing or stale.
+- For a concept update, guard each changed Markdown source with `/md-compress`
+  `begin` and its returned `finalize`, then validate OKF structure and protected
+  content. A compression backup is outside the KB tree.
+- Atomic `approve --context` is the normal lifecycle route. Use context
+  resolution only for recovery and follow exactly the returned lifecycle action.
 
-## Fixed JSON request boundary
+## 3. Input & Context Schema
 
-Use this when a KB reconciliation or capture request must be materialized as a
-JSON file, especially when its Markdown contains backticks, dollar signs,
-quotes, or newlines:
+- **Required:** Configured private-KB root plus selected `<cbm-index>`/`shared`
+  scope and query, or an approved absolute request path; plan import takes one
+  completed six-section plan path.
+- **Optional:** One to four distinct batch queries, related-concept candidates,
+  or a guarded reconciliation packet. Duplicate normalized queries are invalid.
+- **Context:** Validated OKF metadata/index records, source evidence, CBM
+  readiness, current concept contents, ownership dispositions, and returned
+  write receipts.
+- **Unknowns:** Missing/stale index, conflicting facts, invalid metadata,
+  unavailable source evidence, unclear semantic owner, or invalid operation
+  requires a stop. Ask the user to create/refresh the named index or decide
+  ownership; do not infer.
+
+## 4. Ordered Execution Chain
+
+1. **Intake:** Resolve the configured root, selected index, request schema, and
+   ownership boundary. Retrieve context at the point it can change a decision.
+2. **Retrieve:** Use validated concept records, the combined search command,
+   or `related` to find current candidates. CBM is read-only discovery for the
+   KB; it never creates or rebuilds an index.
+3. **Decide:** For each atomic lesson, choose one explicit disposition:
+   `new-primary` when no concept owns it, `update-existing` when one does, or
+   `link-related` when another concept supplies context. One canonical owner is
+   required for reconciliation.
+4. **Write or import:** Materialize rich JSON through the fixed TypeScript
+   writer, then run the owning reconcile/import command. Validate metadata,
+   links, preconditions, and every returned receipt before applying writes.
+5. **Guard and verify:** Run `/md-compress` begin/edit/finalize for changed
+   Markdown, validate OKF and indexes, and return receipts. If evidence or
+   authority fails, preserve the existing KB and stop.
+
+### Fixed JSON request boundary
+
+For reconciliation or capture JSON containing backticks, dollar signs, quotes,
+or newlines, first run `mktemp` alone and retain the printed absolute path.
+Create the source through the approved editor, then run this exact pipe with
+the literal paths:
 
 ```text
 cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
 ```
 
-Materialize requests in two separate commands. First run `mktemp` alone and
-retain the absolute path it prints. Never guess `/tmp`, `/private/tmp`, or a
-platform-specific path because the writer checks the actual `os.tmpdir()`.
-Then pass that printed path literally as the writer's one output-path argument
-in a second command. Do not use shell variables, command substitution, or
-backtick command substitution in the writer command, and do not use a heredoc
-or shell redirection to feed the writer. Encode Markdown backticks and dollar
-signs inside JSON strings as `\\u0060` and `\\u0024`; the writer decodes those
-escapes while preserving the intended content. Invoke reconcile or capture in
-a separate command with the same literal path after the writer succeeds.
+The writer receives exactly one absolute output-path argument under the actual
+OS temporary directory, parses and formats JSON before writing, and rejects
+malformed, relative, or out-of-directory paths. Never use a shell variable,
+command substitution, heredoc, inline writer, Python, object-valued string
+payload, or `JSON.stringify(request)`. Encode Markdown backticks and dollar
+signs inside JSON as `\\u0060` and `\\u0024`.
 
-The command has exactly one argument: `<absolute-json-output-path>`. It reads
-the JSON from stdin, parses it before any write, formats it deterministically,
-and refuses malformed JSON, relative paths, or paths outside `os.tmpdir()`.
-The file-to-stdin pipe is the shell-safety boundary.
-Never pass an object to a string-only `content` field, never place backtick-rich
-JSON in a double-quoted shell argument, and do not substitute Python or an
-inline shell writer. Invoke `write-json.ts` directly and bypass the built-in
-`write` tool entirely for JSON materialization; there is no tool-call fallback.
-This writer owns only safe materialization; this skill still owns the request
-schema and reconciliation decision.
-The old `JSON.stringify(request)` fallback is prohibited. Do not use
-`JSON.stringify(request)` in any tool call.
+### Reconciliation schema and dispositions
 
-The skill identifies the boundary as string-only and selects the TypeScript
-writer with an exact command and arguments. The writer rejects before writing
-and the command remains fixed-arity and deterministic. The normal route uses
-atomic approve --context with the exact binding arguments. approve alone is
-allowed, and a returned resolve-knowledge-context action is followed exactly
-once. The parser captures every field the renderer emits and the merge forwards
-structured records rather than identity strings.
+The request is the `ReconciliationPlan` contract: required top-level
+`canonicalPath` (one operation path), `links` (possibly empty; endpoints and
+body link markers must match), and non-empty `operations`. Each operation has
+nonblank `body`, `disposition`, `evidence`, OKF `metadata`, and a valid
+`relativePath`. The runtime rejects duplicate paths, invalid create/update
+preconditions, more than one canonical owner, missing link endpoints, and
+missing body markers; it cannot decide semantic equivalence for the caller.
 
-Retrieve project, organization, team, policy, or prior-decision knowledge only
-when it materially informs the work. Capture a lesson only with observed
-symptom, cause, durable fix, and evidence. Use `/codebase-memory` only to speed
-discovery when its KB-root index is ready. After a concept update, invoke
-`/md-compress` through its `begin` and returned `finalize` actions, then validate
-OKF structure and protected content. Its temporary backup is outside the KB tree.
+The parser's typed fields remain explicit: `canonicalPath` is a `string`,
+`links` is an `array` whose `from` and `to` values are operation paths, and
+each operation's `metadata` contains `type`, `title`, `description`, and
+`tags`. A declared body link uses the exact marker `](<to-relativePath>)`.
+The writer's string-only fields include `content` and `write`; the runtime
+reads the materialized request with `readText` and the implementation contract
+is `utils/knowledge-base.ts`.
 
-Use the KB at the point it can change a decision: before research when relevant
-knowledge exists, after validation for durable results, or immediately for an
-explicit capture. Resolve the correct `<cbm-index>` or `shared` scope before
-writing. Do not create a new concept when a matching concept can be safely
-updated. A new or updated concept must include source and verification evidence
-in its body, then its parent `index.md` must list it.
+For a completed AIDX `plan`, use the plan importer rather than reconstructing
+the concept body. The configured root may be
+`~/Library/Application Support/agent-knowledge-base` or
+`${XDG_DATA_HOME:-~/.local/share}/agent-knowledge-base`. Request files use the
+actual `os.tmpdir()`; never guess `/tmp` or `/private/tmp`.
 
-## Cross-topic distillation
+The plan importer parses YAML frontmatter with `gray-matter`. A request must
+use the one exact `<absolute-json-output-path>` and the owning `write-json.ts`
+writer; an empty link list is the literal `[]`.
 
-One capture request may contain several atomic lessons. Do not turn that fact
-into one file per request or duplicate the same rule in several files. First use the
-related lookup to return candidate concepts from their titles, descriptions,
-and tags. Then make one explicit disposition for each atomic lesson:
-
-| Disposition | Use when | Required result |
-| --- | --- | --- |
-| `new-primary` | No current concept owns the rule. | Create one concept as the one canonical owner. |
-| `update-existing` | A current concept already owns the rule's subject. | Update that concept with verified, non-duplicated content. |
-| `link-related` | A separate concept supplies constraints, context, or a dependent practice. | Use bundle-relative Markdown links between the concepts; do not copy the related rule. |
-
-The semantic owner is a reviewed decision, not an inference from a directory
-name. Do not infer a taxonomy. Do not move, delete, or merge existing concepts
-during reconciliation. Ambiguous ownership is a user decision.
-
-For an approved reconciliation, build one fixed reconciliation
-request JSON file at an absolute path under the OS temporary directory with the
-TypeScript writer above, then invoke the deterministic command below. The
-request JSON must be serialized to disk as text; the runtime reads it back via
-`readText` and parses it as JSON.
-
-The request schema is the `ReconciliationPlan` interface in
-`utils/knowledge-base.ts`. All three top-level fields are REQUIRED:
-
-- `canonicalPath` (`string`): exactly one operation's `relativePath` that
-  owns the canonical rule for this reconciliation. Every reconciliation must
-  declare exactly one canonical owner; pick the operation that best owns the
-  central lesson.
-- `links` (`array`): may be empty `[]`. Each link has `from` and `to` fields
-  that MUST equal two operations' `relativePath` values, and the `from`
-  operation's `body` MUST contain the markdown link `](<to-relativePath>)`
-  (the runtime permits the bundle-relative `](<to-relativePath>)` form).
-  Omit a link rather than declare one whose source body lacks the marker.
-- `operations` (`array`, non-empty): each operation has `body` (markdown
-  string, non-blank), `disposition` (`new-primary` | `update-existing`),
-  `evidence` (non-blank string), `metadata` (object with `type`, `title`,
-  `description`, `tags` array), and `relativePath` matching
-  `^(<cbm-index>|shared)/<subject>/<concept>\.md$`.
-
-The runtime validates duplicate paths, create/update preconditions, exactly
-one canonical owner, every link's endpoints exist as operations, and every
-declared link's source body contains the markdown target token. It validates
-mechanical integrity; it cannot prove semantic equivalence or decide ownership
-for the caller.
-
-Generic request template (replace placeholders; do NOT keep angle brackets
-in the final JSON):
+The generic request shape is:
 
 ```json
 {
@@ -165,64 +146,28 @@ in the final JSON):
 }
 ```
 
-Workflow:
+The required writer pipe is:
 
-1. Compose the request object in an absolute temporary source file using the
-   approved file editor; do not place the JSON in a shell argument or heredoc.
-2. Run the exact mandatory pipe command:
-   `cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-reconciliation-request-path>`.
-   The source path and output path must be the literal paths returned by
-   standalone `mktemp` commands; never guess `/tmp`, `/private/tmp`, or use
-   shell variables or command substitution.
-3. Run the reconcile command below. The runtime re-reads the materialized
-   file from disk and validates every precondition before applying writes.
-4. On success, run `/md-compress` `begin` on every returned source path,
-   edit only the returned paths, then run the returned `finalize` action.
+```text
+cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-reconciliation-request-path>
+```
 
-| Priority | When | Required inputs | Command | Result | Next |
-| --- | --- | --- | --- | --- | --- |
-| 0 | A completed AIDX plan must be retained as durable knowledge. | One plan path | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>` | One validated OKF plan concept, updated indexes, and one write receipt. | Give the receipt to AIDX; do not construct concept bodies in AIDX. |
-| 1 | Find candidates before a distillation decision. | `<private-kb-root>`, `<query>` | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated concept candidates matching the supplied query. | Select one explicit disposition. |
-| 2 | Apply an approved multi-concept reconciliation. | `<private-kb-root>`, `<absolute-reconciliation-request-path>` | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic new-primary, update-existing, and link-related writes plus index receipts. | Start the returned Markdown guard for every changed concept. |
+The same pipe is the required reconciliation materialization:
 
-If a caller supplies a guarded reconciliation packet, honor its exact owner,
-source paths, and next action; do not begin a second compression transaction.
-Otherwise use the direct `related` and `reconcile` commands above.
+```text
+cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-reconciliation-request-path>
+```
 
-When merging an older draft, treat the current validated KB as the starting
-authority and the older draft as a candidate source. fact-check every draft-only
-claim against live implementation, current tests, or another observed evidence
-source before capture. Classify each claim as already-current,
-confirmed-and-missing, conflicted/obsolete, or unverified. For a conflict, the
-verified current fact wins; reject obsolete or unverified claims instead of
-preserving them as a chronological log. Record the source and verification
-evidence for each confirmed addition so a future refresh can repeat the check.
+The command arguments are `<private-kb-root>`, `<query>`, and
+`<absolute-reconciliation-request-path>` as applicable; the lifecycle owner
+is `reconcile`. The exact string-only writer action is
+`cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-reconciliation-request-path>`.
+
+The path contracts remain explicit:
 
 ```text
 <private-kb-root>/(<cbm-index>|shared)/<subject>/<concept>.md
 ```
-
-Use `/codebase-memory` only for read discovery of the KB root. It does not
-replace the KB indexes or authorize writing.
-
-For one KB keyword search, invoke the combined search command. It performs
-CBM discovery first, uses the shared staged `rg` fallback only when needed,
-then resolves results through validated OKF concepts. Its receipt states every
-CBM and `rg` attempt as `found`, `not-found`, `error`, or `skipped`. Read that
-receipt and do not rerun any listed command.
-
-CBM is read-only for KB search. Never create, rebuild, or replace a CBM index
-as part of retrieval, including after KB refiling. If the configured index is
-missing, stale, or not ready, use the staged `rg` fallback and ask the user to
-create or refresh the named CBM index; do not invent another index.
-
-```bash
-bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
-```
-
-For organization, team, or project practices, use only validated concept
-records. Organization and team records retain their precedence; project records
-may live under any subject:
 
 ```text
 shared/organization/<concept>.md
@@ -230,18 +175,58 @@ shared/team/<concept>.md
 <cbm-index>/<subject>/<concept>.md
 ```
 
-Use the required OKF metadata and evidence sections as the structure reference.
-The resolver rejects a matching `ALWAYS` / `NEVER` rule conflict; do not create
-placeholder organization, team, or project records.
+Do not use `rg` as a private-KB authority, and do not use `/knowledge-base` or
+`/repo-search` to bypass this skill's root/index ownership. Organization,
+team, and project records retain their `ALWAYS`/`NEVER` precedence.
 
-## Retrieval discipline
+| Operation | When to use | Command | Result |
+| --- | --- | --- | --- |
+| Import plan | A completed AIDX plan must become durable knowledge. | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>` | Validated OKF plan concept, updated indexes, and write receipt; preserve the source plan. |
+| Find related concepts | Before a distillation decision. | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated candidates; choose one explicit disposition. |
+| Reconcile | An approved multi-concept plan is complete. | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic writes and index receipts; then guard every changed concept. |
 
-Use `/knowledge-base` once in every nontrivial workflow for durable prior context and again for a verified lesson when the work produces a reusable correction. This skill owns private knowledge retrieval; it is not the repository file inventory. Use `/codebase-memory` for code, files, symbols, and call paths. Use `search-batch` for multiple independent keywords in one invocation; it rejects blank and duplicate normalized queries and runs bounded read-only work through the shared batch runner. Never run the same query twice. Every temporary request path must come from standalone `mktemp` or `os.tmpdir()` evidence, never from a guessed platform path or a placeholder.
+### Search and batch retrieval
 
-## Batch search command
+For one keyword search, use the combined command; it performs **CBM discovery
+first**, uses the staged fallback only when needed, resolves results through
+validated OKF concepts, and returns every attempt as `found`, `not-found`,
+`error`, or `skipped`:
 
-For several independent keyword searches, use one bounded command: bun agents-root/scripts/knowledge-base.ts search-batch private-kb-root kb-cbm-index query query ...
+The retrieval order is CBM discovery first, then the validated staged fallback;
+do not skip the authoritative index check.
 
-The command accepts one to four nonblank queries, rejects duplicate queries after trimming and case normalization, and uses the shared read-only batch runner. It returns one receipt per query in input order. Do not invoke the same query repeatedly or run separate commands for a batch that fits this contract.
+```bash
+bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
+```
 
-For backtick-rich request JSON, keep one OS temporary directory and use distinct files only when the state contract requires them. The writer receives one absolute path from mktemp/os.tmpdir evidence and text on stdin; if a shell heredoc is unavailable, use one bounded stdin session with the same writer and path.
+For several independent terms use `search-batch` with one to four distinct
+queries. Read the receipt and **do not rerun any listed command**. If the index
+is unavailable or stale, use the staged fallback and ask the user to refresh
+the named index; do not create another one.
+
+## 5. Output & Completion Contract
+
+Success returns validated concepts or receipts with exact root/index/source
+evidence, updated parent indexes when authorized, and protected Markdown
+validation. Plan import preserves the source and returns one durable write
+receipt. A write is complete only after all preconditions, OKF checks, link
+checks, index updates, and returned receipts pass.
+
+Failure preserves existing knowledge and names the unavailable index, evidence
+conflict, ownership ambiguity, rejected request, or compression/validation
+failure. A matching search result, draft, or successful materialization alone
+does not prove semantic correctness.
+
+## 6. Evaluation Anchors
+
+- **Canonical:** A read-only search returns validated OKF concepts, staged
+  discovery attempts, and a machine receipt; an approved reconciliation writes
+  one canonical owner and updates indexes.
+- **Boundary:** A stale index, unverified draft, raw chat, invalid metadata,
+  conflicting fact, or ambiguous owner is not used as authoritative knowledge.
+- **Challenge:** A backtick-rich multi-concept request passes through the fixed
+  writer pipe, declares exactly one canonical owner, and uses
+  `new-primary`/`update-existing`/`link-related` without duplicating rules.
+- **Independent verifier:** OKF validators, index checks, writer/parser
+  receipts, link/precondition checks, and protected-token finalization verify
+  the durable result.

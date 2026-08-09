@@ -5,100 +5,138 @@ description: Run Biome and strict TypeScript checks for explicitly selected Java
 
 # Biome TypeScript Checker
 
-Use for selected JavaScript or TypeScript files. Resolve each file to its nearest
-`package.json`. Run the shared Biome configuration at `<agents-root>/biome.jsonc`.
-For a selected TypeScript file (`.ts`, `.tsx`, `.mts`, or `.cts`), use the
-compiler installed in `<agents-root>` with `--noEmit`. For a selected JavaScript
-file (`.js`, `.jsx`, `.mjs`, or `.cjs`), run Biome only and report TypeScript
-as `not-applicable`. Do not require, suggest, or perform JavaScript-to-
-TypeScript conversion as part of static checking.
+## 1. Role & Scope
 
-For every selected JavaScript or TypeScript path, inspect only direct program
-children with Tree-sitter's concrete syntax tree. The analyzer selects the TSX
-grammar for `.jsx` and `.tsx`; the TypeScript grammar safely covers the other
-supported JavaScript and TypeScript extensions. It recognizes imports,
-interfaces, type aliases, function declarations, and exactly one-name `const`
-assignments whose initializer is a function or arrow function.
+This skill owns focused static checking for explicitly selected JavaScript and
+TypeScript paths. It reports Biome, strict TypeScript, and top-level
+declaration-order results without implementing behavior, generating tests, or
+broadening the selected paths. A JavaScript path receives Biome and an explicit
+TypeScript `not-applicable` result; a TypeScript path receives Biome and
+strict `--noEmit` checking.
 
-Interfaces and type aliases form one contiguous alphabetical block immediately
-after imports. Runtime declarations are ordered dependency-first and then
-alphabetically among independent declarations. Imports, every unrecognized or
-side-effecting top-level statement, duplicate provider, shadowed sortable name,
-syntax error, and dependency cycle are barriers: do not cross or repair them.
-When ordering is noncanonical, the checker emits an evidence-gated action
-packet. Apply only its whole-declaration reorder, rerun the checker as the
-candidate evidence, and never edit a declaration body, signature, comments,
-imports, exports, or target configuration to satisfy this check. Comment
-regions are not a rule or source of ordering metadata.
+## 2. Immutable Operational Rules
 
-## Declaration-order protocol
+- Resolve every selected path to its nearest `package.json` and use the shared
+  `<agents-root>/biome.jsonc`; do not change target configuration or
+  dependencies to obtain a green result.
+- Inspect only direct program children with Tree-sitter's concrete syntax tree.
+  `.jsx`/`.tsx` use TSX grammar; other supported extensions use TypeScript
+  grammar.
+- Treat imports, unrecognized or side-effecting top-level statements,
+  duplicate providers, shadowed names, syntax errors, and dependency cycles as
+  barriers. Do not cross or repair them.
+- If declaration order is noncanonical, apply only a returned whole-declaration
+  action packet. Never change declaration bodies, signatures, comments,
+  imports, exports, names, or configuration.
+- A failed or blocked checker is evidence to return to the owning
+  implementation/test skill. Never infer green from a partial command or a
+  passing unrelated path.
 
-The command tables below are owned by this skill and its scripts. These
-commands operate on one explicitly selected path; repeat the same complete
-command for another path rather than writing shorthand arguments.
+## 3. Input & Context Schema
 
-Use this protocol exactly in a new session. Without `--apply`, the script is an
-inspection and evidence command: it never edits a source file. It writes one JSON object with
-`checks`; each check has `path`, `status`, `detail`, and `actionPacket`. Treat
-the JSON fields as the only authority for declaration ordering.
+- **Required:** One or more selected `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`,
+  `.tsx`, `.mts`, or `.cts` paths.
+- **Optional:** A grouped path list when all paths share the intended check
+  boundary and summary mode for a concise multi-file receipt.
+- **Context:** Nearest package roots, shared Biome config, compiler installed in
+  `<agents-root>`, grammar rules, and the selected path's current source.
+- **Unknowns:** Unsupported extensions, missing paths, unresolved package roots,
+  syntax errors, barriers, cycles, or a failed action packet are explicit
+  stops. Report the exact path and diagnostic.
 
-1. Run the inspection command for every selected JavaScript or TypeScript path.
-2. For `status: "passed"`, make no declaration-order edit to that path.
-3. For `status: "failed"`, require a non-null `actionPacket`. Read every
-   `requiredActionGroups` entry. Edit only its `allowedPaths`; move whole
-   declarations into the `title` order; obey every `forbiddenActions` entry.
-   Do not change declaration bodies, signatures, comments, imports, exports,
-   names, or unrelated source. Do not introduce section-marker comments.
-4. Rerun the same command after the one candidate edit batch. A path passes
-   only when its returned `status` is `"passed"` and `actionPacket` is `null`.
-5. For `status: "blocked"`, make no ordering edit. The `detail` states the
-   duplicate name, shadowing, or dependency cycle that prevents a safe order.
-   Report that exact blocker and ask for direction; never guess an order.
-6. If `status: "failed"` has a null `actionPacket`, stop and report a checker
-   defect. Do not invent a reorder.
+## 4. Ordered Execution Chain
 
-For the global `<agents-root>` package, `bun run test:lint` runs Biome,
-declaration-order inspection for every TypeScript source, and the all-skill
-validator as three distinct checkers. It always reports all three gate results
-and fails when any fails. The Biome and declaration-order source gates always
-report both source-gate results and fail when either fails. A noncanonical or
-blocked TypeScript file fails that gate. Its healthy output is one checked-file
-summary per inspection; failures retain only failed or blocked paths and
-declaration-order action packets.
-The source-gate summary always reports both gate results. The combined source
-check fails when either fails.
-Selected JavaScript paths remain covered by the checker command above.
+1. **Intake:** Validate each path and extension, resolve its nearest package,
+   and confirm the shared config/compiler boundary.
+2. **Static checks:** Run Biome for every selected path. Run strict TypeScript
+   with `--noEmit` for `.ts`, `.tsx`, `.mts`, and `.cts`; report TypeScript as
+   `not-applicable` for JavaScript.
+3. **Declaration order:** Run the CST inspection for every selected path. For
+   `passed`, make no order edit. For `failed`, require a non-null action
+   packet, read every `requiredActionGroups` entry, and move only whole
+   declarations in the packet's `allowedPaths`. For `blocked`, report the
+   duplicate, shadowing, or cycle and make no edit.
+4. **Candidate verification:** Rerun the same complete command after one
+   permitted reorder batch. A path passes only when status is `passed` and
+   `actionPacket` is `null`.
+5. **Handoff:** Return per-path receipts and any exact diagnostics to the
+   owning skill. Do not autofix unrelated files.
 
-The caller may record the inspection JSON as baseline evidence, the candidate
-rerun as candidate evidence, and an unchanged rerun as challenge evidence.
-Record each actual output before claiming the selected path passed.
+### Commands owned by this skill
 
-Do not change a target project's configuration, manifest, or dependencies. If a
-project-specific setting is required, return the standard user-action protocol.
-Report each selected path and gate separately. A project may opt into JavaScript
-type checking through its own configuration, but this reusable checker does not
-infer or modify that configuration.
+```bash
+bun <agents-root>/scripts/biome-tsc-checker.ts <path>
+bun <agents-root>/scripts/declaration-order.ts <path>
+bun <agents-root>/scripts/declaration-order.ts --apply <path>
+bun <agents-root>/scripts/declaration-order.ts --summary <path>
+```
+
+Without `--apply`, declaration-order inspection never edits a source file and
+returns one JSON object whose checks contain `path`, `status`, `detail`, and
+`actionPacket`. `--apply` is allowed only after reviewing a failed packet and
+applies its CST-proven whole-declaration moves. Repeat the complete command
+for another selected path; do not invent shorthand arguments or section-marker
+comments.
+
+The receipt shape is the authority: `const` declarations are represented in
+`checks`; a `status: "passed"` result has no action, a `status: "failed"`
+result must include a packet with `title` and `forbiddenActions`, and a
+`status: "blocked"` result has no permitted reorder. The rerun must return
+`"passed"` before the candidate is accepted.
 
 ```bash
 bun <agents-root>/scripts/biome-tsc-checker.ts <path>
 ```
 
-To inspect the packet without running lint or type checking:
-
 ```bash
 bun <agents-root>/scripts/declaration-order.ts <path>
 ```
-
-Use the safe deterministic fixer only after reviewing a failed packet. It
-applies only CST-proven whole-declaration moves and returns the fresh receipt:
 
 ```bash
 bun <agents-root>/scripts/declaration-order.ts --apply <path>
 ```
 
-For a concise multi-file gate receipt, use summary mode. It omits passing file
-records and includes only actionable errors:
-
 ```bash
 bun <agents-root>/scripts/declaration-order.ts --summary <path>
 ```
+
+### Declaration-order contract
+
+Interfaces and type aliases form one contiguous alphabetical block immediately
+after imports. Runtime declarations are dependency-first and alphabetical
+among independent declarations. The checker does not use comment regions as
+ordering metadata. The global `<agents-root>` `bun run test:lint` gate runs
+Biome, declaration-order inspection for every TypeScript source, and the
+all-skill validator as distinct checkers; a failure in any checker fails the
+gate and must be reported separately. It always reports both gate results and
+fails when either fails. A healthy run emits one checked-file summary; failure
+output retains only failed or blocked paths and their action packets.
+
+If a packet is absent or a structural result is ambiguous, Do not invent a
+reorder. Do not add comment-defined regions or use comments as ordering
+metadata.
+Do not invent a reorder when the action packet is absent.
+
+## 5. Output & Completion Contract
+
+Success returns per-path Biome, TypeScript or `not-applicable`, and
+declaration-order results, with all applicable commands passing under shared
+rules. The JSON receipt and exit status are the proof. The global final gate,
+when selected, remains the final decision.
+
+Failure names the checker, selected path, diagnostic, barrier/cycle, or missing
+action packet. Do not claim success from a focused partial result, and do not
+modify target configuration or unrelated paths as recovery.
+
+## 6. Evaluation Anchors
+
+- **Canonical:** A selected JavaScript path reports Biome plus
+  TypeScript `not-applicable`; a selected TypeScript path reports strict
+  `--noEmit` checking.
+- **Boundary:** A barrier, cycle, duplicate, shadowed name, syntax error, or
+  action packet with no permitted reorder is reported without crossing it.
+- **Challenge:** A noncanonical source is fixed only by the returned
+  action packet's whole-declaration reorder, then the identical command proves
+  status `passed` with a null packet.
+- **Independent verifier:** Command receipts, CST analysis, and the shared
+  lint/type gate independently verify the result.

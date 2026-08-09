@@ -51,7 +51,7 @@ export const matrixVerifierIds = Object.freeze(
 );
 
 export const isMatrixVerifierId = (value: string): value is MatrixVerifierId =>
-  value in registry;
+  Object.hasOwn(registry, value);
 
 export const runIndependentVerifier = (
   matrixCase: MatrixCase,

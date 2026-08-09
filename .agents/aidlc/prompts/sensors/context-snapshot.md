@@ -25,7 +25,8 @@ path.
 ## Required behavior
 
 Ask `/knowledge-base` to resolve only concepts material to the selected change.
-Use `/codebase-memory` for repository facts. No result is a factual result: note
+Use `/repo-search` for repository facts through its repository-memory
+contract and current CBM CLI compatibility backend. No result is a factual result: note
 it and continue with observed project evidence rather than inventing a project
 relationship or a knowledge rule.
 

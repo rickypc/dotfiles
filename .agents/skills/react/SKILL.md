@@ -5,102 +5,123 @@ description: Implement and review React and React Native interfaces with shared 
 
 # React
 
+## 1. Role & Scope
+
 Use this skill when the implementation target is React or React Native. It is
-the single implementation owner for both platforms. Use
-[`/frontend-design`](../frontend-design/SKILL.md) first when the request creates
-or changes a user-facing design, and use [`/content-writer`](../content-writer/SKILL.md)
-when meaningful UI copy needs research, drafting, or validation. This skill
-consumes the accepted design and finalized content; it does not silently change
-either one.
+the single implementation owner for both platforms and delivers the smallest
+coherent accessible UI change with user-visible proof. Use `/frontend-design`
+first for a new or changed visual direction and `/content-writer` when
+meaningful UI copy needs research or validation; this skill consumes those
+approved inputs and does not silently change them.
 
-## Boundary and workflow
+## 2. Immutable Operational Rules
 
-1. Read the project instructions, existing component and data conventions, and
-   the accepted UI definition when one exists. Use `/codebase-memory` for
-   repository facts and preserve the project's routing, data, testing, and
-   platform conventions.
-2. Define the changed user-visible states before implementation: initial,
-   loading, empty, success, error, retry, disabled, stale, and interrupted
-   states where they apply. Include keyboard, focus, semantic, responsive, and
-   platform accessibility behavior.
-3. Implement the smallest coherent change. Keep state and side effects at the
-   narrowest owner, preserve public contracts, and prove the observable result
-   with the project's existing test boundary.
-4. Review the changed path for race conditions, stale work, unbounded work,
-   unsafe data sinks, accessibility regressions, and platform divergence. Use
-   browser or device proof when the project owns that capability and the
-   acceptance criteria require it.
-
-## Shared React rules
-
-- Keep render logic pure. Derive values during render instead of storing a
-  second source of truth. Use effects to synchronize with an external system,
-  not to repeat work that belongs in render or an event handler.
-- Give each state value one clear owner. Prefer local state and composition;
-  introduce shared state only for a demonstrated shared consumer. Preserve the
-  project's existing context, routing, data-fetching, cache, suspense, and
-  error-boundary conventions.
-- Give collections stable identity. Do not use an index as a key when items can
-  be inserted, removed, reordered, or filtered. Keep subscriptions, timers,
-  requests, and native resources paired with cleanup and cancellation.
-- Treat asynchronous work as a state machine. Handle pending, empty, success,
-  failure, retry, cancellation, stale responses, and repeated submission where
-  they affect the user path. Do not let an older response overwrite newer
-  intent.
-- Treat external data, HTML, URLs, storage, permissions, and authentication
-  state as untrusted at their boundary. Validate or sanitize before rendering,
-  navigating, persisting, or invoking a privileged operation.
+- Define the changed user-visible states before implementation: initial,
+  loading, empty, success, error, retry, disabled, stale, and interrupted
+  states where they apply. Give each state value one clear owner.
+- Keep render pure. Derive values during render, use effects to synchronize
+  with external systems, and keep subscriptions, timers, requests, and native
+  resources paired with cleanup and cancellation.
+- Treat asynchronous work as a state machine. Prevent stale responses from
+  overwriting newer intent and handle pending, failure, retry, cancellation,
+  stale responses, and repeated submission where relevant.
+- Treat external data, HTML, URLs, storage, permissions, and authentication as
+  untrusted at the boundary. Validate or sanitize before rendering, navigating,
+  persisting, or invoking privileged operations.
 - Prefer semantic elements and platform accessibility APIs. Provide names,
-  roles, values, labels, focus order, visible focus, keyboard or assistive
-  alternatives, and non-color feedback. Do not make a gesture or animation the
-  only way to complete an action.
-- Measure before claiming a performance improvement. Review bundle and asset
-  cost, repeated renders, expensive calculations, list or image memory,
-  unnecessary network work, layout work, and cancellation. Optimize the named
-  user path while preserving correctness and accessibility.
-- Test user-visible outcomes and important failure paths rather than component
-  internals alone. Match the project's existing unit, integration, browser, or
-  device test conventions.
+  roles, values, labels, focus order, visible focus, keyboard/assistive
+  alternatives, non-color feedback, and reduced-motion behavior.
+- Preserve accepted design/content, public contracts, project conventions, and
+  one state/side-effect owner. Stop when approval, platform behavior, or test
+  ownership is unresolved.
+- Measure before claiming performance improvement and test user-visible
+  outcomes and important failure paths rather than internals alone.
 
-## React for the web
+## 3. Input & Context Schema
 
-When the target runs in a browser, preserve semantic HTML and progressive
-interaction. Define URL and history behavior, focus restoration, form
-validation, keyboard operation, responsive layout, loading/empty/error/retry
-states, reduced-motion behavior, and safe handling of browser storage and
-external links. Use browser proof for critical accepted journeys when the
-project has a retained browser test capability.
+- **Required:** React or React Native scope, project instructions/conventions,
+  acceptance criteria, and the relevant component/data/routing boundary.
+- **Optional:** Accepted design, finalized content, browser/device proof,
+  platform constraints, transition request, existing tests, and performance
+  budget.
+- **Context:** State inventory, public contracts, data-fetch/cache/suspense and
+  error-boundary conventions, external sinks, effect lifetime, responsive or
+  native platform behavior, and existing test gate.
+- **Unknowns:** Missing design/content approval, target platform, state owner,
+  security contract, or proof boundary is an explicit stop. Ask or hand off;
+  do not invent product meaning.
 
-## React Native
+## 4. Ordered Execution Chain
 
-When the target runs on mobile, treat navigation, permissions, app lifecycle,
-network loss, local persistence, device resources, and platform divergence as
-product behavior. Define iOS and Android differences where they matter. Review
-touch targets, screen-reader labels, reading order, virtualized lists, image
-and media memory, repeated renders, native-module lifetime, deep links, secure
-storage, and release configuration. Use the project's component, device, or
-end-to-end proof rather than assuming browser behavior transfers unchanged.
+1. **Intake:** Read project instructions, existing component/data conventions,
+   accepted design/content, and acceptance criteria. Use `/repo-search`
+   for repository facts and preserve routing, testing, and platform patterns.
+   The caller-facing discovery route and repository-memory contract are owned
+   by `/repo-search`, with the current CBM CLI as the compatibility backend.
+2. **Model:** Define changed user-visible states, one owner per state value,
+   inputs/boundaries, loading/empty/error/retry/cancellation behavior, focus,
+   keyboard, semantic, responsive, or native accessibility behavior.
+3. **Implement:** Make the smallest coherent change. Keep render pure, state at
+   the narrowest owner, effects cancellable, external data guarded, and public
+   contracts stable. Preserve stable collection identity and existing project
+   context/routing/data conventions.
+4. **Review:** Check races, stale work, unbounded work, unsafe sinks,
+   accessibility regressions, platform divergence, performance cost, and
+   browser/device behavior where the project owns that proof.
+5. **Verify and hand off:** Run the project's focused tests and relevant
+   static/browser/device proof. Map results to acceptance criteria and return
+   limitations instead of hiding them.
 
-## Optional view transitions
+### Shared implementation rules
 
-Apply this section only when the user or approved design explicitly requests
-spatial transitions. First audit the existing navigation and element identity;
-do not add motion merely to decorate a state change. Use the transition
-capability supported by the project's React/runtime/browser baseline, preserve
-semantic structure and focus, provide a correct non-transition fallback, and
-respect reduced-motion preferences. Validate interrupted navigation, slow or
-failed data, back/forward behavior, unsupported environments, and the reduced-
-motion path before calling the transition complete.
+Use local state and composition by default; introduce shared state only for a
+demonstrated shared consumer. Use stable keys when collections can be inserted,
+removed, reordered, or filtered. Define URL/history, focus restoration, form
+validation, storage, and external links for web. For native, define navigation,
+permissions, lifecycle, network loss, persistence, device resources, secure
+storage, deep links, touch targets, screen-reader order, virtualized lists, and
+iOS/Android divergence where material.
 
-## Handoff checklist
+### Optional view transitions
 
-Before returning implementation, confirm:
+Apply transitions only when explicitly requested or accepted in the design.
+Audit navigation and element identity first; preserve semantics and focus,
+provide a non-transition fallback, respect reduced motion, and validate
+interrupted navigation, slow/failed data, back/forward behavior, unsupported
+environments, and reduced-motion behavior.
 
-- the accepted design and content are traceable;
-- state ownership and effect cleanup are explicit;
-- web or native platform obligations are covered;
-- loading, empty, error, retry, accessibility, and interruption behavior are
-  observable where relevant;
-- security and performance review is tied to a named path; and
-- focused tests or smoke checks match the project boundary, with limitations
-  recorded instead of hidden.
+### Testing and evidence
+
+Use the project's existing unit, integration, browser, or device conventions.
+For JavaScript/TypeScript test edits, invoke `/bun-test-generator` before
+editing and retain its behavior matrix and boundary receipt. For retained user-
+facing browser coverage, use `/playwright-test-generator`. A passing test or
+coverage number is not enough when accessibility, failure, cancellation, or
+side-effect behavior lacks observable proof.
+
+## 5. Output & Completion Contract
+
+Success returns coherent changed code, traceable accepted design/content,
+explicit state ownership, effect cleanup/cancellation, web/native obligations,
+security/performance review, and project-appropriate test proof. Completion is
+decided by the configured project gate and acceptance evidence; an internal
+component snapshot or static check alone is not proof.
+
+Failure names the exact approval, platform, state, security, accessibility,
+performance, race, test, or final-gate gap. Do not silently change approved
+design/content, claim cross-platform behavior from one platform, or hand off
+unverified code.
+
+## 6. Evaluation Anchors
+
+- **Canonical:** A component change maps user-visible states to one owner,
+  handles side effects and accessibility, and proves behavior through the
+  project's test boundary.
+- **Boundary:** Stale async work, unsafe data sinks, missing cancellation,
+  duplicated state ownership, absent approval, or missing platform proof stops
+  completion.
+- **Challenge:** The implementation must **Treat asynchronous work as a state
+  machine**, **Prefer semantic elements and platform accessibility APIs**, and
+  **Test user-visible outcomes** across failure and cancellation paths.
+- **Independent verifier:** Focused tests, static checks, browser/device proof,
+  acceptance mapping, and the project final gate independently verify closure.

@@ -11,7 +11,9 @@ define current commands, route state, or policy; those have typed owners.
 - Dynamic state is only `<agents-root>/aidlc/<cbm-index>/intents/<id>.md`.
   `aidlc/knowledge/` is committed methodology, never private KB content.
 - Intents use `gray-matter`; `/knowledge-base` owns durable private knowledge;
-  `/codebase-memory` owns code discovery; `utils/aidlc/stages.ts` owns route.
+  `/repo-search` owns caller-facing code discovery and the ported
+  repository-memory contract; the current CBM CLI is its compatibility backend;
+  `utils/aidlc/stages.ts` owns route.
 - Universal scripts and utilities replace upstream custom tools. Adapters expose
   one common packet to Claude Code, Codex, Kiro IDE, OpenCode, and VS Code.
 

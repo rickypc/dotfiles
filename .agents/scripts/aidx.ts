@@ -8,26 +8,27 @@ import {
   projectRootForPlanPath,
 } from '../utils/aidx.js';
 import { runWhenMain } from '../utils/cli.js';
+import { type BunSpawner, createBunExecutor } from '../utils/process.js';
 
 type PlanImporter = (planPath: string) => Promise<unknown>;
 
 const runtimeRoot = resolve(import.meta.dir, '..', '..');
 
 const importCompletedPlan = async (planPath: string): Promise<unknown> => {
-  const child = Bun.spawn(
-    [
-      'bun',
+  const result = await createBunExecutor(Bun.spawn as unknown as BunSpawner)({
+    args: [
       join(runtimeRoot, '.agents', 'scripts', 'knowledge-base.ts'),
       'import-plan',
       planPath,
     ],
-    { cwd: runtimeRoot, stderr: 'pipe', stdout: 'pipe' },
-  );
-  const [stdout, stderr] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ]);
-  const exitCode = await child.exited;
+    command: 'bun',
+    cwd: runtimeRoot,
+  });
+  const { exitCode, stderr, stdout } = {
+    exitCode: result.code,
+    stderr: result.stderr,
+    stdout: result.stdout,
+  };
   if (exitCode !== 0) {
     throw new Error(
       `AIDX knowledge-base plan import failed with exit code ${exitCode}: ${stderr.trim() || stdout.trim()}`,

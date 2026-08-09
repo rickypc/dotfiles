@@ -118,7 +118,7 @@ test('caps long intent filenames with a deterministic hash suffix', () => {
 test('rejects empty summaries and reports deterministic paths', () => {
   expect(() => intentIdFor('---')).toThrow('summary');
   expect(() => createAidlcIntent(HOME_ROOT, 'Bad index')).toThrow(
-    'project name returned by codebase-memory',
+    'project name returned by repo-search',
   );
   expect(() =>
     createAidlcIntent('repo', 'Relative project', { projectRoot: 'relative' }),

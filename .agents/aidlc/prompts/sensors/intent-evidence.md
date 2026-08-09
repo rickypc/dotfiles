@@ -15,7 +15,8 @@ is insufficient.
 
 ## Evidence quality
 
-Name the user instruction, project instruction, codebase-memory finding,
+Name the user instruction, project instruction, repo-search finding from its
+repository-memory contract and current CBM CLI compatibility backend,
 knowledge-base context, file/symbol, decision, or validation result that
 supports the conclusion. Mark inference and uncertainty. Do not paste private
 KB content, manufacture a source, or use a future-stage result as evidence.

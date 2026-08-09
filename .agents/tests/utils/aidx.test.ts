@@ -30,9 +30,9 @@ Execute the accepted parser refactor one step at a time.
 - Read the plan before touching source files.
 - Stop when a step is ambiguous or changes scope.
 
-# EXECUTION STEPS
-1. Inspect the current parser imports and record every direct consumer before editing the implementation.
-2. Apply the smallest compatible change and run the focused proof required by this step.
+# ORDERED EXECUTION STEPS
+1. [ ] Action: Inspect the current parser imports and record every direct consumer before editing the implementation; Target or Boundary: parser module; Source -> Target: parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.
+2. [ ] Action: Apply the smallest compatible change and run the focused proof required by this step; Target or Boundary: parser module; Source -> Target: approved design -> parser implementation; Change or Decision: apply compatible change; Dependency or Ordering: after step 1; Reason: implement approved scope; Acceptance or Proof: focused proof passes; Failure or Stop: stop on failure.
 
 # CONSTRAINTS
 - Do not invent missing requirements or edit files outside the approved scope.
@@ -131,8 +131,8 @@ test('rejects plans with missing sections or non-granular steps', () => {
   expect(() =>
     parseAidxPlan(
       validPlan.replace(
-        'Inspect the current parser imports and record every direct consumer before editing the implementation.',
-        'Inspect it.',
+        '[ ] Action: Inspect the current parser imports and record every direct consumer before editing the implementation; Target or Boundary: parser module; Source -> Target: parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.',
+        '[ ] Action: Inspect it.',
       ),
     ),
   ).toThrow('granular');
@@ -142,11 +142,17 @@ test('rejects partially structured execution steps before execution', () => {
   expect(() =>
     parseAidxPlan(
       validPlan.replace(
-        'Inspect the current parser imports and record every direct consumer before editing the implementation.',
-        'Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence.',
+        '[ ] Action: Inspect the current parser imports and record every direct consumer before editing the implementation; Target or Boundary: parser module; Source -> Target: parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.',
+        '[ ] Action: inspect; Target or Boundary: parser; Change or Decision: record; Dependency or Ordering: first; Reason: evidence.',
       ),
     ),
   ).toThrow('Acceptance or Proof');
+});
+
+test('rejects an ordered execution step without its own status checkbox', () => {
+  expect(() =>
+    parseAidxPlan(validPlan.replace('[ ] Action:', 'Action:')),
+  ).toThrow('status checkbox');
 });
 
 test('rejects missing frontmatter, unsupported metadata, and unfinished sections', () => {

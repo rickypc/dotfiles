@@ -5,7 +5,7 @@ import {
   run,
   runWhenMain,
   usage,
-} from '../../scripts/codebase-memory.js';
+} from '../../scripts/repo-search.js';
 
 test.each([
   [['list-projects'], 'list_projects'],

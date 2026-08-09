@@ -20,7 +20,9 @@ or an upstream active-space tree.
 First distinguish an intentionally skipped conditional stage from a missing
 result. A skipped stage produces no artifact and is not a defect. For a needed
 fact, use the stage's documented fallback: project instructions, verified
-codebase-memory research, validated knowledge-base context, or a focused user
+repo-search research from its repository-memory contract and current CBM CLI
+compatibility backend, validated
+knowledge-base context, or a focused user
 question. Never invent the content of a missing design or requirements record.
 
 ## New evidence and changes
