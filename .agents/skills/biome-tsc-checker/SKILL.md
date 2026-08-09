@@ -1,6 +1,7 @@
 ---
 name: biome-tsc-checker
 description: Run Biome and strict TypeScript checks for explicitly selected JavaScript or TypeScript paths.
+argument-hint: "<path> [path...]"
 ---
 
 # Biome TypeScript Checker
@@ -14,7 +15,22 @@ broadening the selected paths. A JavaScript path receives Biome and an explicit
 TypeScript `not-applicable` result; a TypeScript path receives Biome and
 strict `--noEmit` checking.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/biome-tsc-checker <path> [path...] # check selected JS/TS paths and declaration order
+```
+
+The unannotated grammar is:
+
+```text
+/biome-tsc-checker <path> [path...]
+```
+
+Required: one or more selected JavaScript or TypeScript paths. Use the command
+catalog in this skill for focused checks and declaration-order actions.
+
+## 3. Immutable Operational Rules
 
 - Resolve every selected path to its nearest `package.json` and use the shared
   `<agents-root>/biome.jsonc`; do not change target configuration or
@@ -32,7 +48,7 @@ strict `--noEmit` checking.
   implementation/test skill. Never infer green from a partial command or a
   passing unrelated path.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** One or more selected `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`,
   `.tsx`, `.mts`, or `.cts` paths.
@@ -44,7 +60,12 @@ strict `--noEmit` checking.
   syntax errors, barriers, cycles, or a failed action packet are explicit
   stops. Report the exact path and diagnostic.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+selected paths -> package/config resolution -> Biome and TypeScript checks
+               -> declaration-order check -> permitted reorder -> receipt
+```
 
 1. **Intake:** Validate each path and extension, resolve its nearest package,
    and confirm the shared config/compiler boundary.
@@ -117,7 +138,7 @@ reorder. Do not add comment-defined regions or use comments as ordering
 metadata.
 Do not invent a reorder when the action packet is absent.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns per-path Biome, TypeScript or `not-applicable`, and
 declaration-order results, with all applicable commands passing under shared
@@ -128,7 +149,7 @@ Failure names the checker, selected path, diagnostic, barrier/cycle, or missing
 action packet. Do not claim success from a focused partial result, and do not
 modify target configuration or unrelated paths as recovery.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** A selected JavaScript path reports Biome plus
   TypeScript `not-applicable`; a selected TypeScript path reports strict

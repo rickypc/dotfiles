@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import { run, runWhenMain, usage } from '../../scripts/lint.js';
+import { processExit, run, runWhenMain, usage } from '../../scripts/lint.js';
 
 test('sets a nonzero exit code after replaying every failed command diagnostic', async () => {
   const executor = mock(async ({ args }: { args: readonly string[] }) => ({
@@ -16,17 +16,26 @@ test('sets a nonzero exit code after replaying every failed command diagnostic',
   expect(setExitCode).toHaveBeenCalledWith(1);
 });
 
-test('uses the default output and nonzero process-exit path without replacing diagnostics', async () => {
+test('writes exit status through a supplied process target', () => {
+  const target: { exitCode?: number } = {};
+  processExit.setExitCode(2, target);
+  expect(target.exitCode).toBe(2);
+});
+
+test('uses the mocked process-exit boundary without replacing diagnostics', async () => {
   const executor = mock(async ({ args }: { args: readonly string[] }) => ({
     code: args[2] === 'status' ? 0 : 2,
     stderr: '',
     stdout: '',
   }));
+  const setExitCode = mock();
+  const originalSetExitCode = processExit.setExitCode;
+  processExit.setExitCode = setExitCode;
   try {
     await run([], executor, '/agents');
-    expect(process.exitCode).toBe(2);
+    expect(setExitCode).toHaveBeenCalledWith(2);
   } finally {
-    process.exitCode = undefined;
+    processExit.setExitCode = originalSetExitCode;
   }
 });
 

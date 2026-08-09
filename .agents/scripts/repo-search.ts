@@ -4,11 +4,11 @@ import type { CommandSpec } from '../utils/contracts.js';
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import { bunExecutor } from '../utils/process.js';
 import {
-  cbmCommands,
-  inspectCbm,
-  parseCbmInspectionJsonl,
-  resolveCbmProjectForRoot,
-  searchWithCbmFallback,
+  inspectRepoSearch,
+  parseRepoSearchInspectionJsonl,
+  repoSearchCommands,
+  resolveRepoSearchProjectForRoot,
+  searchWithRepoSearchFallback,
 } from '../utils/repo-search.js';
 import { commandText } from '../utils/search-fallback.js';
 
@@ -25,7 +25,7 @@ const listProjectsFor = (
   length: number,
 ): CommandSpec | undefined =>
   command === 'list-projects' && length === 1
-    ? cbmCommands.listProjects()
+    ? repoSearchCommands.listProjects()
     : undefined;
 
 const commandForSimple = (
@@ -42,16 +42,16 @@ const commandForSimple = (
     return undefined;
   }
   if (command === 'index-status' && length === 2) {
-    return cbmCommands.indexStatus(project);
+    return repoSearchCommands.indexStatus(project);
   }
   if (command === 'architecture' && length === 2) {
-    return cbmCommands.getArchitecture(project);
+    return repoSearchCommands.getArchitecture(project);
   }
   if (command === 'schema' && length === 2) {
-    return cbmCommands.getGraphSchema(project);
+    return repoSearchCommands.getGraphSchema(project);
   }
   if (command === 'snippet' && value && length === 3) {
-    return cbmCommands.getCodeSnippet(project, value);
+    return repoSearchCommands.getCodeSnippet(project, value);
   }
   return undefined;
 };
@@ -60,8 +60,8 @@ const runInspect = async (
   args: readonly string[],
   write: (message: string) => void,
   read: (path: string) => Promise<string | Buffer>,
-  resolve: typeof resolveCbmProjectForRoot,
-  inspect: typeof inspectCbm,
+  resolve: typeof resolveRepoSearchProjectForRoot,
+  inspect: typeof inspectRepoSearch,
   temporaryDirectory: string,
 ): Promise<boolean> => {
   const [command, root, requestPath] = args;
@@ -85,7 +85,7 @@ const runInspect = async (
       await inspect(
         bunExecutor,
         { index: project, root },
-        parseCbmInspectionJsonl(String(request)),
+        parseRepoSearchInspectionJsonl(String(request)),
       ),
       null,
       2,
@@ -124,7 +124,12 @@ const commandForTrace = (
   ) {
     return undefined;
   }
-  return cbmCommands.tracePath(project, value, direction, positiveLimit(depth));
+  return repoSearchCommands.tracePath(
+    project,
+    value,
+    direction,
+    positiveLimit(depth),
+  );
 };
 
 const limitedCommand = (
@@ -134,13 +139,13 @@ const limitedCommand = (
   limit: string,
 ): CommandSpec | undefined => {
   if (command === 'search-graph') {
-    return cbmCommands.searchGraph(project, value, positiveLimit(limit));
+    return repoSearchCommands.searchGraph(project, value, positiveLimit(limit));
   }
   if (command === 'search-code') {
-    return cbmCommands.searchCode(project, value, positiveLimit(limit));
+    return repoSearchCommands.searchCode(project, value, positiveLimit(limit));
   }
   return command === 'query'
-    ? cbmCommands.queryGraph(project, value, positiveLimit(limit))
+    ? repoSearchCommands.queryGraph(project, value, positiveLimit(limit))
     : undefined;
 };
 
@@ -188,18 +193,44 @@ export const commandFor = (args: readonly string[]): CommandSpec => {
 export const run = async (
   args: readonly string[],
   write: (message: string) => void = console.log,
-  search = searchWithCbmFallback,
+  search = searchWithRepoSearchFallback,
   read: (path: string) => Promise<string | Buffer> = readText.bind(
     undefined,
     nodeFileSystem,
   ),
-  resolve = resolveCbmProjectForRoot,
-  inspect = inspectCbm,
+  resolve = resolveRepoSearchProjectForRoot,
+  inspect = inspectRepoSearch,
   temporaryDirectory = tmpdir(),
 ): Promise<void> => {
   if (
     await runInspect(args, write, read, resolve, inspect, temporaryDirectory)
   ) {
+    return;
+  }
+  const [pathOnlyRoot, pathOnlyQuery] = args;
+  if (
+    pathOnlyRoot?.startsWith('/') &&
+    pathOnlyQuery?.trim() &&
+    args.length === 2
+  ) {
+    let project = '__repo_search_index_unresolved__';
+    try {
+      project = await resolve(pathOnlyRoot, bunExecutor);
+    } catch {
+      // The shared search boundary records the resolution failure and owns
+      // the staged fallback; the caller never needs to know index state.
+    }
+    write(
+      JSON.stringify(
+        await search(bunExecutor, {
+          allowedRoots: [pathOnlyRoot],
+          query: pathOnlyQuery,
+          root: { index: project, root: pathOnlyRoot },
+        }),
+        null,
+        2,
+      ),
+    );
     return;
   }
   const [command, root, project, query] = args;

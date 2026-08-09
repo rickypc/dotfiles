@@ -2,13 +2,12 @@ import { expect, mock, test } from 'bun:test';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-
-import { run, runWhenMain, usage } from '../../scripts/knowledge-base.js';
 import type {
   importPlan,
   searchKnowledgeBase,
   searchKnowledgeBaseBatch,
-} from '../../utils/knowledge-base.js';
+} from '../../scripts/knowledge-base.js';
+import { run, runWhenMain, usage } from '../../scripts/knowledge-base.js';
 
 const concept = [
   '---',
@@ -97,7 +96,7 @@ test('uses validated file search for a two-argument KB search', async () => {
   expect(search).toHaveBeenCalledWith(expect.anything(), '/kb', 'query');
 });
 
-test('searches a KB through an injected search boundary without touching CBM', async () => {
+test('searches a KB through an injected search boundary without touching repo-search', async () => {
   const write = mock();
   const search = mock(async () => [
     {
@@ -122,7 +121,7 @@ test('returns related concepts through the validated search boundary', async () 
   expect(write).toHaveBeenCalledWith('[]');
 });
 
-test('uses CBM and shared fallback for a three-argument KB discovery search', async () => {
+test('uses repo-search and shared fallback for a three-argument KB discovery search', async () => {
   const write = mock();
   const discover = mock(
     async () =>

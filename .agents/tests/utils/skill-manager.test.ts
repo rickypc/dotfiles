@@ -322,6 +322,23 @@ test('validates skill frontmatter, name, description, and instructions', async (
       '/tmp/skills/example-skill',
     ),
   ).rejects.toThrow('frontmatter is invalid');
+  await expect(
+    validateSkill(
+      {
+        readFile: mock(async () =>
+          [
+            '---',
+            'name: example-skill',
+            `description: ${'x'.repeat(1025)}`,
+            '---',
+            '',
+            '# Example Skill',
+          ].join('\n'),
+        ),
+      },
+      '/tmp/skills/example-skill',
+    ),
+  ).rejects.toThrow('at most 1024 characters');
 });
 
 test('rejects malformed rubric contracts and unauthorized matrix verifiers', async () => {

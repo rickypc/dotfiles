@@ -9,7 +9,7 @@ import {
   lockPathFor,
   resumeCompressionGuard,
   validateCompression,
-} from '../../utils/md-compress.js';
+} from '../../scripts/md-compress.js';
 
 const digest = { sha256: mock(() => 'hash') };
 

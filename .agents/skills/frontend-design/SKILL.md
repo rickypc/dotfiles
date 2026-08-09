@@ -1,6 +1,7 @@
 ---
 name: frontend-design
 description: Define or review a user-facing web UI's visual direction, interaction states, responsive behavior, and accessibility. Use when a request creates, redesigns, or visually refreshes a web interface; do not use for ordinary behavior-only changes.
+argument-hint: "<ui-brief> <affected-screens> <design-system> <acceptance-criteria>"
 ---
 
 # Frontend Design
@@ -14,7 +15,22 @@ accessible, responsive definition ready for implementation. Implementation
 belongs to its framework owner; meaningful product copy belongs to
 `/content-writer`. Use only for user-facing UI design.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria> # define or review UI direction and states
+```
+
+The unannotated grammar is:
+
+```text
+/frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria>
+```
+
+Required: UI brief, affected screens or flows, design-system constraints, and
+acceptance criteria. Use for a new, redesigned, or visually refreshed UI.
+
+## 3. Immutable Operational Rules
 
 - Start from the approved brief, real content, supplied references, audience,
   existing design system, current screen patterns, and acceptance criteria.
@@ -42,7 +58,7 @@ Keyboard behavior, responsive behavior, and accessibility before implementation
 remain required by the approved brief.
 The required sequence includes keyboard behavior, responsive behavior, and accessibility before implementation.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** UI brief, affected screens/flows, design-system constraints,
   real content, audience/product job, and acceptance criteria.
@@ -55,7 +71,12 @@ The required sequence includes keyboard behavior, responsive behavior, and acces
 - **Unknowns:** Missing purpose, constraints, success criteria, content meaning,
   or approval is an explicit stop. Ask the smallest question that resolves it.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+brief and context -> design direction -> state/accessibility definition
+                  -> critique -> user approval -> implementation handoff
+```
 
 1. **Intake:** Inspect the current screen, relevant project context, existing
    components/patterns, real content, audience, brief, design system, and
@@ -86,7 +107,7 @@ The retained browser owner is `playwright-test-generator`.
 | React or React Native component/state/effect/platform implementation | `/react` | Accepted design and finalized content are supplied. |
 | Retained browser regression tests | `/playwright-test-generator` | Design is approved and user-facing criteria need project-local coverage. |
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns an accepted visual direction, hierarchy, real-content contract,
 interaction/state inventory, responsive and accessibility behavior, reduced-
@@ -99,7 +120,7 @@ constraint, failed acceptance criterion, or absent approval. Do not substitute
 a generic aesthetic, hand off an unapproved definition, or modify code from
 this skill.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** Two or three directions are compared, one is recommended
   against the brief, and a complete definition maps states and decisions to

@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import { runStaticChecks } from '../../utils/biome-tsc-checker.js';
+import { runStaticChecks } from '../../scripts/biome-tsc-checker.js';
 
 test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   const executor = mock(

@@ -1,6 +1,7 @@
 ---
 name: content-writer
 description: Research, draft, refresh, and validate credible content with preserved quotations.
+argument-hint: "<objective> <audience> <format> <constraints> <citation-style>"
 ---
 
 # Content Writer
@@ -13,7 +14,23 @@ refresh verification, or paired SEO/GEO work. It produces a credible draft and
 evidence record; it does not invent facts, silently translate quotations, or
 replace domain approval and publication ownership.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/content-writer <objective> <audience> <format> <constraints> <citation-style> # research and draft evidence-backed content
+```
+
+The unannotated grammar is:
+
+```text
+/content-writer <objective> <audience> <format> <constraints> <citation-style>
+```
+
+Required: objective, audience, format, constraints, and citation style. Use
+this skill when claims need research, citations, quotation preservation, or
+refresh verification.
+
+## 3. Immutable Operational Rules
 
 - Research material claims first and retain a source-to-claim record. Primary
   or authoritative sources are the evidence standard; weak sources are
@@ -30,7 +47,7 @@ replace domain approval and publication ownership.
 - SEO and GEO are one paired mode: enable both or neither. Do not lower the
   evidence standard to satisfy a format, SEO, or deadline request.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** Objective, audience, format, constraints, and citation style.
 - **Optional:** New versus refresh mode, existing-content inventory, paired
@@ -43,7 +60,12 @@ replace domain approval and publication ownership.
   handling, inadequate source quality, or missing approval is `needs-input` or
   `blocked`, not an invitation to write plausible prose.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+brief -> source research -> evidence ledger -> draft -> claim verification
+      -> approval or needs-input/blocked handoff
+```
 
 1. **Intake:** Parse the brief, reader job, format, constraints, citation style,
    freshness, non-goals, and whether this is new or refresh work. In refresh
@@ -80,7 +102,7 @@ missing, conflicted/obsolete, or unverified. The verified current fact wins;
 reject obsolete and unverified claims instead of preserving a chronological
 log.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns the draft in the requested format, research ledger, claim
 matrix, citations, unchanged quotation record, and refresh change record when
@@ -92,7 +114,7 @@ the result to be exactly `ready`.
 approval, or format boundary. Fluency, citation count, or an outline is not
 proof. Never conceal unsupported claims or altered quotations.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** A brief becomes a cited audience-fit draft with a source-to-
   claim matrix and preserved quotations.

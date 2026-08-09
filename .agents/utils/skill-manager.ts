@@ -96,6 +96,8 @@ export interface SkillValidationReceipt {
   readonly status: 'valid';
 }
 
+export const MAX_SKILL_DESCRIPTION_LENGTH = 1024;
+
 const actionTitleFor = (state: WorkflowState): string => {
   if (state === 'draft') {
     return 'Define and validate the skill quality matrix';
@@ -320,9 +322,13 @@ export const initializeSkill = async (
   skillPath: string,
   description: string,
 ): Promise<SkillInitializationReceipt> => {
-  if (!skillPath.startsWith('/') || !description.trim()) {
+  if (
+    !skillPath.startsWith('/') ||
+    !description.trim() ||
+    description.length > MAX_SKILL_DESCRIPTION_LENGTH
+  ) {
     throw new Error(
-      'Skill path must be absolute and description must be nonblank.',
+      `Skill path must be absolute, description must be nonblank, and description must be at most ${MAX_SKILL_DESCRIPTION_LENGTH} characters.`,
     );
   }
   const path = resolve(skillPath);
@@ -362,10 +368,11 @@ export const validateSkill = async (
     parsed.data.name !== name ||
     typeof parsed.data.description !== 'string' ||
     !parsed.data.description.trim() ||
+    parsed.data.description.length > MAX_SKILL_DESCRIPTION_LENGTH ||
     !parsed.content.trim()
   ) {
     throw new Error(
-      `Skill SKILL.md must contain valid name, description, and instructions: ${join(path, 'SKILL.md')}`,
+      `Skill SKILL.md must contain valid name, a description of at most ${MAX_SKILL_DESCRIPTION_LENGTH} characters, and instructions: ${join(path, 'SKILL.md')}`,
     );
   }
   return {

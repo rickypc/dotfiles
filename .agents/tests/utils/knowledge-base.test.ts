@@ -18,7 +18,7 @@ import {
   searchKnowledgeBaseWithFallback,
   validateLesson,
   validateOkfMetadata,
-} from '../../utils/knowledge-base.js';
+} from '../../scripts/knowledge-base.js';
 
 test('validates KB concept paths and derives subject indexes', () => {
   expect(isKbConceptPath('shared/team/decision.md')).toBeTrue();
@@ -128,7 +128,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
   const plan = [
     '---',
     'title: Execute the parser refactor',
-    'cbm_index: workspace-example-app',
+    'repo_search_index: workspace-example-app',
     'created_at: 2026-08-07',
     'updated_at: 2026-08-07',
     'status: pending',
@@ -174,9 +174,9 @@ test('slices a six-section plan into one validated OKF concept and updates index
   );
   const receipt = await importPlan(fileSystem, '/kb', planPath);
   expect(receipt).toMatchObject({
-    cbmIndex: 'workspace-example-app',
     conceptPath: 'workspace-example-app/plans/execute-the-parser-refactor.md',
     planPath,
+    repoSearchIndex: 'workspace-example-app',
     sections: [
       'ROLE',
       'OBJECTIVE',
@@ -218,7 +218,10 @@ test('slices a six-section plan into one validated OKF concept and updates index
   );
   files.set(
     planPath,
-    plan.replace('cbm_index: workspace-example-app', 'cbm_index: ../bad'),
+    plan.replace(
+      'repo_search_index: workspace-example-app',
+      'repo_search_index: ../bad',
+    ),
   );
   await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow(
     'invalid concept path',
@@ -447,6 +450,40 @@ test('preserves optional OKF metadata and reconciles linked concepts', async () 
   await expect(
     reconcileConcepts(fileSystem, '/kb', {
       canonicalPath: 'shared/testing/playwright.md',
+      links: [
+        {
+          from: 'shared/testing/playwright.md',
+          to: 'shared/other/target.md',
+        },
+      ],
+      operations: [
+        {
+          body: 'See [target](../other/target.md).',
+          disposition: 'update-existing',
+          evidence: 'Validated.',
+          metadata,
+          relativePath: 'shared/testing/playwright.md',
+        },
+        {
+          body: 'See [playwright](../testing/playwright.md).',
+          disposition: 'new-primary',
+          evidence: 'Validated.',
+          metadata,
+          relativePath: 'shared/other/target.md',
+        },
+      ],
+    }),
+  ).resolves.toMatchObject({
+    links: [
+      {
+        from: 'shared/testing/playwright.md',
+        to: 'shared/other/target.md',
+      },
+    ],
+  });
+  await expect(
+    reconcileConcepts(fileSystem, '/kb', {
+      canonicalPath: 'shared/testing/playwright.md',
       links: [],
       operations: [],
     }),
@@ -642,7 +679,7 @@ test('searches validated KB concepts and returns an empty result when absent', a
   );
 });
 
-test('combines CBM discovery with validated KB search results', async () => {
+test('combines repo-search discovery with validated KB search results', async () => {
   const concept = renderOkfConcept(
     {
       description: 'Reusable practice.',
@@ -683,7 +720,7 @@ test('combines CBM discovery with validated KB search results', async () => {
     ),
   ).resolves.toMatchObject({
     concepts: [{ path: 'shared/practice/fixture.md' }],
-    discovery: { found: true, source: 'cbm' },
+    discovery: { found: true, source: 'repo-search' },
   });
 });
 
@@ -722,7 +759,7 @@ test('batches bounded distinct KB queries and rejects duplicates', async () => {
   ).rejects.toThrow('1-4');
 });
 
-test('starts local KB lookup while CBM discovery waits for index readiness', async () => {
+test('starts local KB lookup while repo-search discovery waits for index readiness', async () => {
   let releaseStatus:
     | ((value: { code: number; stderr: string; stdout: string }) => void)
     | undefined;

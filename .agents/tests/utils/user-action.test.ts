@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import {
   renderBrowserVerificationAction,
   renderUserAction,
-} from '../../utils/user-action.js';
+} from '../support/user-action.js';
 
 test('renders the standard user-action protocol', () => {
   expect(

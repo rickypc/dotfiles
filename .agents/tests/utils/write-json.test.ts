@@ -1,10 +1,12 @@
 import { describe, expect, mock, test } from 'bun:test';
+import { tmpdir } from 'node:os';
+import type { JsonPathApi } from '../../scripts/write-json.js';
 import type { FileSystem } from '../../utils/filesystem.js';
-import type { JsonPathApi } from '../../utils/write-json.js';
 
 mock.module('./filesystem.js', () => ({}));
-
-const { writeJson } = await import('../../utils/write-json.js');
+const { processExit, run, runCli, writeJson } = await import(
+  '../../scripts/write-json.js'
+);
 
 const pathApi: JsonPathApi = {
   isAbsolute: (value: string) => value.startsWith('/'),
@@ -43,6 +45,12 @@ const makeDependencies = (
 });
 
 describe('writeJson', () => {
+  test('writes exit status through a supplied process target', () => {
+    const target: { exitCode?: number } = {};
+    processExit.setExitCode(1, target);
+    expect(target.exitCode).toBe(1);
+  });
+
   test('writes valid JSON as a string-safe canonical document', async () => {
     const writes: string[] = [];
 
@@ -77,5 +85,38 @@ describe('writeJson', () => {
       writeJson('/var/request.json', '{}', dependencies),
     ).rejects.toThrow('inside the operating-system temporary directory');
     expect(writes).toHaveLength(0);
+  });
+
+  test('runs the stdin command boundary with injected dependencies', async () => {
+    const writes: string[] = [];
+    await run(['/tmp/request.json'], {
+      ...makeDependencies(writes),
+      readInput: async () => '{"ok":true}',
+    });
+    expect(writes).toHaveLength(1);
+  });
+
+  test('rejects an invalid command shape before reading stdin', async () => {
+    await expect(run([])).rejects.toThrow('Usage:');
+  });
+
+  test('reads the process stdin through the default command dependency', async () => {
+    await expect(run([`${tmpdir()}/coverage-probe.json`])).rejects.toThrow(
+      'JSON input is invalid',
+    );
+  });
+
+  test('reports CLI failures through the mocked process-exit boundary', async () => {
+    const setExitCode = mock();
+    const originalSetExitCode = processExit.setExitCode;
+    processExit.setExitCode = setExitCode;
+    try {
+      await runCli([], async () => {
+        throw new Error('synthetic CLI failure');
+      });
+      expect(setExitCode).toHaveBeenCalledWith(1);
+    } finally {
+      processExit.setExitCode = originalSetExitCode;
+    }
   });
 });

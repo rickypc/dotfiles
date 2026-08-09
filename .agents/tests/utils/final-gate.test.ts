@@ -20,7 +20,7 @@ import {
   finalGateReceipt,
   gateDiagnosticsFor,
   resolveFinalGate,
-} from '../../utils/final-gate.js';
+} from '../support/final-gate.js';
 
 test('uses the explicit camelCase finalGate or the default command', () => {
   expect(finalGateFor({})).toBe(defaultFinalGate);

@@ -1,233 +1,322 @@
 ---
 name: aidp
-description: "Interactively create or update a six-section YAML-frontmatter implementation plan under <project>/.agents/plans/<cbm-index>/ when requirements must be clarified and persisted before execution."
+description: "Turn a user request into one explicit six-section execution plan and hand it to /aidx."
+argument-hint: "<goal-and-concerns>"
 ---
 
-# AIDP — Plan Authoring
+# AIDP — Architect of Execution
 
-## 1. Role & Scope
+## 1. Role and scope
 
-AIDP owns requirements clarification and materialization of one implementation
-plan. It is selected when a feature, fix, refactor, or plan revision needs
-persisted execution detail. Its user-visible result is one validated plan that
-is ready for `/aidx`; AIDP never implements the plan, edits source code, or
-executes an implementation step. `/aidx` owns execution, and
-`/knowledge-base` owns importing a completed plan as durable knowledge.
+AIDP owns clarification, evidence intake, and materialization of one execution
+plan. The user request is the starting hypothesis, not a complete
+specification: it may be comprehensive or only an incomplete sentence. AIDP
+must enrich it with implementation evidence, business context, and explicit
+user decisions before it writes the plan. It does not implement source
+changes, execute the plan, or maintain a second workflow. Its handoff is one
+durable Markdown plan followed by a clickable plan link and one `/aidx` command.
 
-The plan contains exactly six body headings: `ROLE`, `OBJECTIVE`, `CORE
-DIRECTIVES`, `ORDERED EXECUTION STEPS`, `CONSTRAINTS`, and `INPUTS TO PROCESS`.
-Use [plan-authoring-contract.md](references/plan-authoring-contract.md) for
-the detailed field and evidence contract, and [template.md](template.md) for
-the physical plan template.
+### Trigger and accepted input
 
-## 2. Immutable Operational Rules
+**Trigger:** The user invokes `/aidp` with a request, partial request, or
+supporting context. AIDP accepts only that request/context; it does not accept
+a plan path or implementation arguments.
 
-- Resolve the project, local instructions, approved CBM context, and private-KB
-  context before asking plan questions; retain the generated context records.
-- Ask only questions whose answers can change scope, ownership, architecture,
-  safety, or proof. A material ambiguity is a clarification stop: do not guess
-  and leave the plan unwritten.
-- Keep authoring controls in AIDP. The materialized plan must describe the
-  implementation outcome and AIDX execution responsibility, not phrases such
-  as “AIDP only materializes,” “do not run `/aidx`,” or “planning-only.” The
-  **Plan-content firewall** must reject leaked controls before writing.
-- Preserve the six plan headings, one status checkbox on every ordered item,
-  exact target ownership, dependency order, and focused proof. Reject
-  placeholders, duplicate headings/items, unsafe paths, literal `KEEP`, and an
-  incomplete candidate.
-- Preserve an existing same-slug plan's `created_at` and retained items;
-  atomically replace only after the complete candidate validates. A failed
-  candidate leaves the existing plan unchanged.
-- Distill research into generalized patterns. Project-specific names and
-  values may remain only when the user explicitly requests that project's
-  plan; reusable plans must discard them rather than let them reach AIDX.
-- AIDP never edits source. It only materializes the plan and hands execution to
-  AIDX after the plan is complete.
-
-## 3. Input & Context Schema
-
-- **Required:** One plan request and the ordered answers for the six plan
-  sections. List sections are supplied as JSON arrays of one to five non-empty
-  strings per batch.
-- **Optional:** `--project <project-root>` when the intended project is not the
-  current working directory, supplied references, refresh evidence, or an
-  existing same-slug plan being updated.
-- **Context:** The resolved project root and `<cbm-index>`, project guidance,
-  README-first repository intake, command/entrypoint inventory, approved
-  language profile, CBM receipt, KB receipt, target map, and acceptance proof.
-- **Unknowns:** Missing scalar answers, an empty list before its minimum, an
-  unsupported language/owner, unresolved target, or ambiguous requirement is a
-  stop. Report the exact question or evidence gap instead of inventing a
-  default.
-
-Before decomposition, classify each target by observed responsibility and map
-every create, modify, test, reference, and configuration target to one owner.
-Record observed facts, inferences, decisions, rejected alternatives, and
-uncertainty separately. For a refactor request, establish behavior and
-preservation invariants, coverage gaps, scope exclusions, and the smallest
-safe increment before drafting steps.
-
-## 4. Ordered Execution Chain
-
-1. **Intake:** Derive the project root and `<cbm-index>`, read local guidance,
-   perform README-first intake, and retrieve CBM/KB context through their
-   owning wrappers. Do not make the temporary request path part of routing.
-2. **Question:** Ask scalar questions only when materially dependent. Collect
-   each list in one JSON-array batch per round, using `KEEP` only as an
-   interactive update control and never as materialized content.
-3. **Plan:** Build the target map, implementation-ready ordered steps, proof,
-   dependencies, boundaries, and the appropriate create/update/refactor or
-   research-distillation branch. Every ordered item is independently testable.
-4. **Validate and write:** Materialize the candidate in memory, run the plan
-   integrity and content-firewall checks, then atomically create or overwrite
-   the one same-slug path. Do not write a partial plan.
-5. **Handoff:** Print the absolute plan link and the exact `/aidx
-   <absolute-plan-path>` command, then stop. AIDP does not run AIDX.
-
-### Command catalog
-
-The single public materializer owns template rendering, YAML parsing,
-slugification, CBM/KB intake, validation, and atomic persistence. Select the
-operation; do not probe unsupported flags or invent a second command.
-
-| Operation | When to use | Exact invocation or action | Result and next action |
-| --- | --- | --- | --- |
-| Create a new plan | The derived `.agents/plans/<cbm-index>/<slug>.md` path does not exist. | `bun <agents-root>/scripts/aidp.ts [--project <project-root>] "<plan-request>"` | Writes one validated plan and prints its absolute path plus `/aidx`; stop without execution. |
-| Update an existing plan | The same derived slug exists and the user supplied feedback. | Use the identical command with the request needed to select that slug. | Preserve `created_at`, replace the complete candidate atomically, and leave the old plan on failure. |
-| Add, replace, remove, or reorder items | A section list must change. | Use the identical update command; there is **no separate section subcommand**. | Submit the complete desired list in JSON-array batches, using `KEEP` for retained positions and `[]` only after the complete list. |
-| Abort on unresolved requirements | A required scalar/list answer is unknown or invalid. | Stop answering and ask the focused question. | Malformed JSON, a non-array, non-string items, more than five items, or an early empty list reports the section and **batch round**, exits nonzero, and writes nothing. |
-
-Every list uses **one batch prompt**, a **JSON array**, and **at most **5**
-non-empty strings** per round; **never issue one prompt per item**. `KEEP` is
-not a plan value. Generated context entries are owned by AIDP and must not be
-duplicated during an update.
-
-### Plan integrity and research branches
-
-Each ordered step starts with its own [ ] checkbox. There is one checkbox per
-item; a legend is explanatory only and never replaces the item's marker. The
-accepted markers are `[ ]`, `[~]`, `[!]`, `[x]`, or `[-]` plus a reason, and
-each item contains its action, target, boundary, dependency, and focused proof.
-If a candidate is missing its own checkbox, reject the candidate before
-materialization.
-There is exactly one checkbox per item.
-Reject exact `KEEP`, `TBD`, `TODO`, duplicate inputs, unsafe or absolute plan
-paths, slug/index mismatches, duplicate headings/items, and vague steps.
-
-For research, use primary evidence where available and retain the generalized
-pattern, destination section, applicability reason, and proof rather than
-copying the example. Retain only generalized workflow controls; discard
-project-specific domain vocabulary so it must not reach AIDX. For refactors,
-include baseline behavior, preserve behavior, inspect test coverage, record
-rejected alternatives, and sequence the smallest safe increment. Run the
-self-review and map every objective, acceptance criterion, constraint, and
-exclusion to an item and proof; verify that dependencies are consistent.
-
-Retain the generalized pattern rather than copying the source example. Every
-target has one responsibility, a verified symbol, and an expected outcome.
-Do not use placeholders in an implementation-ready plan.
-
-Repository intake is README-first: inspect primary files and high-signal
-directories, produce a documented command inventory, and separate observed
-facts from inferred classification and ambiguity. When there is an observed
-language/framework, select only relevant shared guidance from `common.md` and
-`profiles.md`, then map proof to the project-owned final gate.
-
-The intake explicitly inspects high-signal directories and an observed
-language/framework before selecting only the relevant profile guidance.
-The observed language/framework is recorded before profile selection.
-
-### Plan-content firewall
-
-AIDP authoring controls belong in this skill. Before writing, reject any
-candidate that carries “AIDP only materializes,” “do not run `/aidx`,” “without
-implementation,” “do not mutate source,” or “planning-only” into `ROLE`,
-`OBJECTIVE`, `CORE DIRECTIVES`, `ORDERED EXECUTION STEPS`, or `CONSTRAINTS`.
-The plan must instead state the implementation scope, AIDX execution
-responsibility, ordering, and proof. The error identifies the contradiction;
-it does not silently materialize it.
-
-The materializer must reject an authoring-only control before writing it when
-the draft confuses its lane restrictions with deliverable requirements.
-
-### Compatibility details for the materializer
-
-The executable owner remains `scripts/aidp.ts`, with validation helpers in
-`utils/aidp.ts`; it reads `<agents-root>/skills/aidp/template.md` and writes
-only `.agents/plans/` beneath the selected project. There is no separate
-`validate`, `--section`, `--answers`, `--update`, `add-section`, or
-`update-section` command. A successful receipt exposes `absolutePlanPath`.
-
-Project derivation uses `<project-root>/<project-name>` and
-`<project-root>-<project-name>`. When language guidance applies, read
-`common.md` first and select evidence-backed sections from `profiles.md`.
-The runtime configuration boundary includes `.agents/package.json`,
-`biome.jsonc`, `bunfig.toml`, and `tsconfig.json`; do not mutate it as part of
-plan authoring.
-
-The canonical materializer form is:
+## 2. Usage
 
 ```text
-   bun <agents-root>/scripts/aidp.ts [--project <project-root>] [plan-request]
-   ```
-
-The unindented equivalent is:
-
-```text
-bun <agents-root>/scripts/aidp.ts [--project <project-root>] [plan-request]
+/aidp <goal-and-concerns> # turn a request into one explicit execution plan
 ```
 
-The option is also named `--project`; the update control is the literal
-`"KEEP"`, and the trigger is `/aidp`. The successful handoff is
-`/aidx <absolute-plan-path>` in an absolute-path `plaintext` block.
-`/aidx <relative-plan-path>` is not the canonical handoff. Any plan target
-that changes a skill package must name `/skill-manager` before the first skill
-edit.
+The unannotated grammar is:
 
-The canonical same-slug paths are
-`.agents/plans/<cbm-index>/<slugified-summary>.md` beneath
-`.agents/plans/<cbm-index>/`.
+```text
+/aidp <goal-and-concerns>
+```
 
-The update rules say **Add or append a section item**, **Replace one section
-item**, and **do not re-enter** generated context.
+Required:
 
-For an update, AIDP performs fresh CBM/KB context reads and does not re-enter
-generated context. The command catalog includes **Add or append a section
-item** and **Replace one section item**; retained list positions use `KEEP` and
-the complete list finishes with `[]`.
+- `<goal-and-concerns>`: the user's request and any supplied context to turn
+  into one execution plan.
 
-An existing plan update must **overwrite that same path**, **preserve
-`created_at`**, and update `updated_at`; a failed candidate leaves the
-existing plan unchanged. If any target belongs to a skill package, the plan
-must name `/skill-manager` before any skill change and require its
-validation/review proof.
+`/aidp` is an agent workflow, not a terminal command. It returns one plan path
+and the `/aidx` handoff command.
 
-The update proof must preserve `created_at`. When any target belongs to a skill
-package, require the owner before any skill change.
+## 3. Immutable Operational Rules
 
-## 5. Output & Completion Contract
+Load [the engineering planning contract](references/engineering-planning-contract.md)
+before decomposition. It supplies observed-language routing, role ownership,
+work-packet records, and UI/NFR/security/brownfield obligations without
+depending on another skill tree.
 
-Success produces exactly one absolute plan path, validated YAML frontmatter
-(`title`, `cbm_index`, `created_at`, `updated_at`, `status`), the six required
-headings, per-item status markers, target/proof detail, CBM/KB receipts, and an
-explicit `/aidx` handoff. The final result must be `created` or `updated` and
-must identify the canonical path.
+The owner file must advertise these routes directly.
 
-The integrity validator and atomic write are the completion proof. A summary,
-questionnaire response, score, or intended plan is not proof. On failure,
-report the section, batch round, exact validation reason, and whether the prior
-plan was preserved; do not edit source or run `/aidx`.
+### Minimal-plan discipline
 
-## 6. Evaluation Anchors
+Before decomposing work, question whether the requested change needs to exist
+or is already covered by the current project. When the need is speculative,
+surface that decision and do not manufacture a plan. For work that remains,
+prefer the smallest compatible change and an existing extension point, then the
+standard library, native platform capability, or an already-installed
+dependency before proposing custom code. Do not add abstractions, boilerplate,
+scaffolding, or configuration for later. Record a deliberate simplification,
+its known ceiling, and the condition that would justify expanding it.
 
-- **Canonical:** A complete brief is clarified, mapped to owned targets, and
-  materialized through `template.md` as one six-section plan with independently
-  testable ordered steps.
-- **Boundary:** Missing requirements, malformed JSON, an unsafe path, leaked
-  authoring controls, or a failed integrity check causes a clarification or
-  validation stop with no write.
-- **Challenge:** Updating an existing same-slug plan retains `created_at`,
-  replaces the same path, avoids duplicate generated inputs, and hands off only
-  the exact absolute path.
-- **Independent verifier:** The AIDP parser/integrity check, matrix assertions,
-  CBM/KB receipts, and atomic write receipt independently verify the result.
+This complete discipline is always active; AIDP has no mode selector. Never
+plan away explicitly required validation, error handling, security,
+accessibility, compatibility, or other safety and quality obligations.
+
+### Observed-language routing
+
+Read common rules first,
+then select an observed profile such as PHP, TypeScript, React, or Web/HTML/CSS;
+route relevant work through the following.
+
+### Role routing
+
+Use Product, Architect, Developer, Quality, Security,
+Design, and Delivery; and create Research record, Requirements record, Design
+record, Units record, and Delivery record before handoff. The linked contract
+contains the full obligations and migration map.
+
+The active package is self-contained. Runtime scripts and duplicated lifecycle
+machinery from the source material are not copied. See the Source migration map;
+reusable engineering
+contracts are retained in the owned reference above.
+
+Read the user's request and explicitly supplied material. Resolve the intended
+project root before choosing the plan path. Use `/repo-search` with the
+absolute project root and the request-derived query; the caller does not
+calculate or provide an index. Use `/knowledge-base` for the configured
+private-KB root and resolved project scope. Retrieve private context through
+`/knowledge-base` before asking the user anything. Record both returned receipts and
+the observed facts, evidence limits, and unresolved decisions before asking
+the user anything.
+
+### Context retrieval command options
+
+Use the owner command contracts below. Do not calculate an index, substitute a
+different search command, or treat a missing result as an answer.
+
+| Command or information | Arguments | When to use | Additional information |
+| --- | --- | --- | --- |
+| `/repo-search` path search | `<approved-root>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"`; returns repository/code evidence and one ordered receipt while hiding index selection and fallback details. |
+| `/repo-search` indexed inspection | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>` | When several independent implementation reads are needed for one decision | `bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"`; use only the owner-defined JSONL operations and preserve its receipt. |
+| `/knowledge-base` search | `<private-kb-root>` `<repo-search-index>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<repo-search-index>" "<query>"`; returns validated business-context concepts plus discovery and fallback receipts. |
+
+Repository evidence answers what exists and how the implementation is
+structured. Private knowledge answers the applicable business intent,
+constraints, terminology, ownership, and precedent. AIDP combines both with
+the request, labels conflicts and gaps, and asks the user for decisions that
+the evidence cannot establish.
+
+Use this evidence order: current user request, applicable project instructions,
+verified repository or file evidence, validated private knowledge, then clearly
+labelled assumptions. A project convention is not a universal rule, and a
+missing knowledge result is not permission to invent one. For brownfield work,
+record the current behavior, entry path, owner, consumers, data or protocol
+boundaries, existing proof, compatibility constraints, and uncertainty before
+decomposing a change.
+
+The canonical path is
+`.agents/plans/<repo-search-index>/<summary-slug-160-chars>.md`. The slug is stable,
+descriptive, and no longer than 160 characters. If a requirement could change
+scope, ownership, safety, architecture, or acceptance, stop for a focused
+clarification; do not guess and do not write a partial plan.
+
+The retired `<repo-search-index>` spelling and its historical path form
+`.agents/plans/<repo-search-index>/<summary-slug-160-chars>.md` are preserved
+only as compatibility evidence; new plans use `<repo-search-index>`.
+
+## 4. Input & Context Schema
+
+Write exactly these six numbered level-three sections, in this order. Headings must match the forms below; do not use aliases or add top-level headings:
+
+### 1. TARGET DIRECTIVES
+
+State one objective and explicit scope boundaries, exclusions, and ownership.
+
+### 2. VARIABLE DEFINITION MATRIX
+
+List every required path, value, source fragment, and dependency with its
+strict expected type and whether it is required or optional.
+
+### 3. CHRONOLOGICAL WORKFLOW
+
+Give concrete ingest-and-verify, process-and-transform, and synthesize steps.
+Each step names one target, responsibility, dependency, reason, expected
+result, preserved behavior, failure or boundary case, and focused proof. Each
+step is independently testable. For material work, decompose only after the
+requirements and design decisions are explicit; identify the smallest units,
+their dependency order, and the fact that would require re-planning.
+
+### 4. TOOL STRATEGY & FALLBACKS
+
+Name the primary method, its owner, its exact input boundary, and one concrete
+fallback for empty or failed results. Do not invent an unowned router.
+
+### 5. SYSTEMATIC VERIFICATION CHECKLIST
+
+Map checks to the objective, variables, workflow results, exclusions, and
+failure states. A null, missing, ambiguous, unsafe, or unverifiable required
+input must stop the plan.
+
+### 6. RIGID OUTPUT SCHEMA
+
+Specify the exact labels, ordering, delimiters, required values, and omission
+rules for AIDX's final response.
+
+### Plan authoring skeleton
+
+Materialize the plan with exactly this frontmatter shape before the six
+sections. Replace every placeholder with verified or user-confirmed content;
+never leave a placeholder in a candidate.
+
+```yaml
+---
+title: "<summary>"
+repo_search_index: "<repo-search-index>"
+created_at: "<YYYY-MM-DD>"
+updated_at: "<YYYY-MM-DD>"
+status: "pending"
+---
+```
+
+Author each section with these minimum contents:
+
+- **TARGET DIRECTIVES:** one objective, included ownership, and explicit
+  exclusions.
+- **VARIABLE DEFINITION MATRIX:** every required path, value, source fragment,
+  dependency, strict type, and required/optional state.
+- **CHRONOLOGICAL WORKFLOW:** independently testable ingest, process, and
+  synthesis steps. Every material requirement names its source, actor or
+  trigger, expected result, must-not constraint, failure or boundary case, and
+  proof. Every unit names its owner, dependencies, mapped requirement, and
+  completion condition.
+- **TOOL STRATEGY & FALLBACKS:** the owned primary method, exact input
+  boundary, empty or failed-result condition, and concrete fallback.
+- **SYSTEMATIC VERIFICATION CHECKLIST:** objective, variable, workflow,
+  exclusion, and failure-state checks. Missing, null, ambiguous, unsafe, or
+  unverifiable required input is a stop.
+- **RIGID OUTPUT SCHEMA:** exact final labels, order, delimiters, required
+  values, and omission rules.
+
+Keep facts, decisions, assumptions, and unknowns visibly separate throughout
+the skeleton. A complete plan is not a list of plausible tasks: it is the
+resolved evidence, decisions, ownership, dependency order, acceptance proof,
+fallbacks, and final output contract needed by AIDX.
+
+## 5. Ordered Execution Chain
+
+```text
+request -> evidence retrieval -> clarification -> plan materialization
+        -> validation -> `/aidx` handoff
+```
+
+### Hardening rules
+
+Use the retained planning controls: map every target to one owner;
+preserve dependency order; distinguish facts from assumptions; separate
+reusable patterns from project-specific examples; and make proof observable.
+If a target changes a skill package, the plan must name `/skill-manager` before
+that change and require its validation and review evidence.
+
+Do not copy old scripts, utilities, session state, or implementation-specific
+domain content into the plan. Reject placeholders, duplicate sections,
+contradictory instructions, guessed commands, and exact interactive control
+tokens as plan content. An existing same-slug plan is updated in place only
+after the complete replacement validates; a failed candidate leaves it
+unchanged.
+
+Requirements must use observable behavior: actor or trigger, expected result,
+preserved or excluded behavior, boundary or failure case, and proof. Record
+security, performance, reliability, accessibility, privacy, compatibility, and
+operational constraints when material. Prefer existing extension points over a
+new abstraction; record a material decision, rejected alternatives,
+reversibility, and migration or rollback impact. For UI work, include loading,
+empty, error, recovery, keyboard, responsive, and accessibility states only
+when the request is user-facing. For a refactor, require a baseline,
+preservation invariant, coverage gap, explicit exclusion, and smallest safe
+increment.
+
+### Ordered clarification loop
+
+AIDP follows this order for every request: intake the incomplete request;
+retrieve repository evidence through `/repo-search` and business context
+through `/knowledge-base`; build and compare the evidence set; separate facts,
+evidence limits, decisions, and unknowns; ask clarification questions; repeat
+retrieval and questioning as needed; then write the complete plan only after
+the material questions are resolved. The retrieval step is mandatory even
+when the request appears familiar or the caller supplies an index-like value.
+
+Ask one material question at a time, explain what decision it unlocks, and
+state the smallest consequence of each meaningful answer. Never fill an
+unknown with a plausible default, convention, inferred preference, or silent
+branch. If the answer changes targets, ownership, scope, behavior, safety,
+architecture, dependencies, or proof, retrieve the affected repository and
+private-knowledge context again before asking the next question. Keep asking
+focused questions until no material ambiguity remains; if the user has not
+resolved one, stop and do not write or hand off a plan. A user preference is
+not a requirement until the user decides or evidence establishes it. A
+conditional branch is either completed with evidence or skipped with a factual
+inapplicability reason; it is never a hidden prerequisite.
+
+## 6. Output & Completion Contract
+
+Materialize only after the ordered clarification loop reaches a resolved state:
+the request, repository evidence, business context, target ownership, scope,
+dependencies, acceptance behavior, exclusions, and proof strategy are clear.
+An empty or unavailable repository/knowledge result remains an explicit
+unknown and is a clarification stop when it could affect the plan.
+Validate the complete candidate before writing: six sections in order, typed
+inputs, complete targets, ordered proofs, concrete fallback, explicit stops,
+and an unambiguous output schema. Write atomically at the canonical path.
+After writing, run the standalone validator against that exact absolute path.
+Only after a zero exit status may AIDP hand off the result in this exact shape:
+
+```text
+Plan: [<absolute-plan-path>](<absolute-plan-path>)
+```
+
+```text
+/aidx <relative-or-absolute-plan-path>
+```
+
+The link must open the materialized plan, and the fenced block must contain
+only the `/aidx` command. The command path may be relative or absolute because
+AIDX canonicalizes either form. The absolute form `/aidx <absolute-plan-path>`
+is therefore valid, but the handoff must use the relative-or-absolute form
+shown above so the contract does not imply that absolute paths are required.
+Then stop.
+If validation fails, report every finding and preserve the prior plan when one
+exists; do not hand off an invalid candidate.
+
+### Standalone plan validation
+
+Before handoff, validate an existing materialized plan with the lightweight
+AIDP-only validator:
+
+```text
+bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>
+```
+
+The validator is deliberately independent of execution. It checks the exact
+five-field frontmatter, canonical plan path and index match, real dates,
+allowed status, the six headings in order, non-empty sections, unresolved
+placeholders, typed variable declarations, numbered workflow steps, required
+workflow proof fields, primary method ownership, concrete fallback, mapped
+verification coverage, and an explicit output schema. It returns one JSON
+receipt on success and every actionable finding on failure. It validates AIDP
+plans only; it does not parse, complete, import, delete, or execute plans.
+
+On failure, report the exact missing evidence or validation finding and whether
+the prior plan was preserved. Never claim a plan was written when it was not.
+
+## 7. Evaluation Anchors
+
+The skill is strong when it produces a complete six-section plan without
+implementation leakage, identifies ambiguity instead of inventing answers,
+maps targets to owners and proofs, preserves same-slug updates safely, and
+hands off one absolute path. It fails when it guesses, writes partial output,
+duplicates workflow state, hides exclusions, or leaves AIDX to rediscover
+requirements.

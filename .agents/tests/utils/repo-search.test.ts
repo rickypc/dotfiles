@@ -3,31 +3,31 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
-  assertAllowedCbmRoot,
-  assertKnownCbmProject,
-  cbmCommands,
-  cbmGraphIdentityFields,
-  cbmInspectionCommand,
-  cbmOutputHasMatches,
-  cbmProjectForRoot,
-  cbmProjectNames,
+  assertAllowedRepoSearchRoot,
+  assertKnownRepoSearchProject,
   indexIsReady,
-  inspectCbm,
-  parseCbmInspectionJsonl,
+  inspectRepoSearch,
+  parseRepoSearchInspectionJsonl,
   readWithReadyIndex,
-  resolveCbmProjectForRoot,
-  searchWithCbmFallback,
+  repoSearchCommands,
+  repoSearchGraphIdentityFields,
+  repoSearchInspectionCommand,
+  repoSearchOutputHasMatches,
+  repoSearchProjectForRoot,
+  repoSearchProjectNames,
+  resolveRepoSearchProjectForRoot,
+  searchWithRepoSearchFallback,
 } from '../../utils/repo-search.js';
 
-const HOME_ROOT = join(tmpdir(), 'cbm-home');
+const HOME_ROOT = join(tmpdir(), 'repo-search-home');
 const REPO_ROOT = join(HOME_ROOT, 'Github', 'repo');
 const APP_ROOT = join(HOME_ROOT, 'tmp-app');
 
-test('accepts only a CBM project name returned by the project list', () => {
+test('accepts only a repo-search project name returned by the project list', () => {
   const projects = '{"projects":[{"name":"home-index"},{"name":"Bento"}]}';
-  expect(cbmProjectNames(projects)).toEqual(['home-index', 'Bento']);
-  expect(() => assertKnownCbmProject('Bento', projects)).not.toThrow();
-  expect(() => assertKnownCbmProject('made-up', projects)).toThrow(
+  expect(repoSearchProjectNames(projects)).toEqual(['home-index', 'Bento']);
+  expect(() => assertKnownRepoSearchProject('Bento', projects)).not.toThrow();
+  expect(() => assertKnownRepoSearchProject('made-up', projects)).toThrow(
     'not a listed',
   );
 });
@@ -42,18 +42,21 @@ test('resolves a project only from an explicit indexed-root mapping', () => {
       },
     ],
   });
-  expect(cbmProjectForRoot(APP_ROOT, projects)).toBe('home-index');
+  expect(repoSearchProjectForRoot(APP_ROOT, projects)).toBe('home-index');
   expect(
-    cbmProjectForRoot(join(HOME_ROOT, 'Github', 'bento', 'src'), projects),
+    repoSearchProjectForRoot(
+      join(HOME_ROOT, 'Github', 'bento', 'src'),
+      projects,
+    ),
   ).toBe('home-index-Github-bento');
-  expect(() => cbmProjectForRoot('/other', projects)).toThrow(
+  expect(() => repoSearchProjectForRoot('/other', projects)).toThrow(
     'explicit indexed root',
   );
   expect(() =>
-    cbmProjectForRoot(APP_ROOT, '{"projects":[{"name":"home-index"}]}'),
+    repoSearchProjectForRoot(APP_ROOT, '{"projects":[{"name":"home-index"}]}'),
   ).toThrow('explicit indexed root');
   expect(() =>
-    cbmProjectForRoot(
+    repoSearchProjectForRoot(
       APP_ROOT,
       JSON.stringify({
         projects: [
@@ -62,8 +65,8 @@ test('resolves a project only from an explicit indexed-root mapping', () => {
         ],
       }),
     ),
-  ).toThrow('Multiple CBM projects');
-  expect(() => cbmProjectForRoot(APP_ROOT, '{')).toThrow(
+  ).toThrow('Multiple repo-search projects');
+  expect(() => repoSearchProjectForRoot(APP_ROOT, '{')).toThrow(
     'explicit indexed root',
   );
   const withExact = JSON.stringify({
@@ -72,7 +75,7 @@ test('resolves a project only from an explicit indexed-root mapping', () => {
       { name: 'tmp', repository_path: APP_ROOT },
     ],
   });
-  expect(cbmProjectForRoot(APP_ROOT, withExact)).toBe('tmp');
+  expect(repoSearchProjectForRoot(APP_ROOT, withExact)).toBe('tmp');
 });
 
 test('ignores malformed and incomplete project-list entries', () => {
@@ -80,11 +83,11 @@ test('ignores malformed and incomplete project-list entries', () => {
     '{"projects":{}}',
     '{"projects":[null, 1, {"name":""}, {"name":"repo"}]}',
   ]) {
-    expect(() => cbmProjectForRoot('/repo', output)).toThrow(
+    expect(() => repoSearchProjectForRoot('/repo', output)).toThrow(
       'explicit indexed root',
     );
   }
-  expect(() => cbmProjectForRoot('/repo', '{')).toThrow(
+  expect(() => repoSearchProjectForRoot('/repo', '{')).toThrow(
     'explicit indexed root',
   );
 });
@@ -101,11 +104,11 @@ test('resolves the index in-process from the single project-list command', async
     }),
   }));
   await expect(
-    resolveCbmProjectForRoot(join(REPO_ROOT, 'src'), execute),
+    resolveRepoSearchProjectForRoot(join(REPO_ROOT, 'src'), execute),
   ).resolves.toBe('repo');
   expect(execute).toHaveBeenCalledTimes(1);
   await expect(
-    resolveCbmProjectForRoot(HOME_ROOT, async () => ({
+    resolveRepoSearchProjectForRoot(HOME_ROOT, async () => ({
       code: 1,
       stderr: 'offline',
       stdout: '',
@@ -125,19 +128,19 @@ test('resolves the exact project identity without checking or substituting its i
     stderr: '',
     stdout: projectList,
   }));
-  await expect(resolveCbmProjectForRoot(APP_ROOT, execute)).resolves.toBe(
-    'tmp-sum-app',
-  );
+  await expect(
+    resolveRepoSearchProjectForRoot(APP_ROOT, execute),
+  ).resolves.toBe('tmp-sum-app');
   expect(execute).toHaveBeenCalledTimes(1);
 });
 
-test('builds CLI-only CBM command specifications', () => {
-  expect(cbmCommands.listProjects()).toEqual({
+test('builds CLI-only repo-search command specifications', () => {
+  expect(repoSearchCommands.listProjects()).toEqual({
     args: ['cli', 'list_projects'],
     command: 'codebase-memory-mcp',
-    environment: { CBM_LOG_LEVEL: 'error' },
+    environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
   });
-  expect(cbmCommands.indexRepository('/repo', 'repo')).toEqual({
+  expect(repoSearchCommands.indexRepository('/repo', 'repo')).toEqual({
     args: [
       'cli',
       'index_repository',
@@ -149,35 +152,39 @@ test('builds CLI-only CBM command specifications', () => {
       'full',
     ],
     command: 'codebase-memory-mcp',
-    environment: { CBM_LOG_LEVEL: 'error' },
+    environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
   });
-  expect(cbmCommands.searchGraph('repo', 'service', 5).args).toContain(
+  expect(repoSearchCommands.searchGraph('repo', 'service', 5).args).toContain(
     '--query',
   );
-  expect(cbmCommands.searchGraph('repo', 'service', 5).environment).toEqual({
-    CBM_LOG_LEVEL: 'error',
+  expect(
+    repoSearchCommands.searchGraph('repo', 'service', 5).environment,
+  ).toEqual({
+    REPO_SEARCH_LOG_LEVEL: 'error',
   });
-  expect(cbmCommands.getArchitecture('repo').args).toContain('--path');
-  expect(cbmCommands.getCodeSnippet('repo', 'a.b').args).toContain(
+  expect(repoSearchCommands.getArchitecture('repo').args).toContain('--path');
+  expect(repoSearchCommands.getCodeSnippet('repo', 'a.b').args).toContain(
     '--qualified-name',
   );
-  expect(cbmCommands.getGraphSchema('repo').args).toContain('get_graph_schema');
-  expect(cbmCommands.queryGraph('repo', 'MATCH', 3).args).toContain(
+  expect(repoSearchCommands.getGraphSchema('repo').args).toContain(
+    'get_graph_schema',
+  );
+  expect(repoSearchCommands.queryGraph('repo', 'MATCH', 3).args).toContain(
     '--max-rows',
   );
-  expect(cbmCommands.searchCode('repo', 'literal', 3).args).toContain(
+  expect(repoSearchCommands.searchCode('repo', 'literal', 3).args).toContain(
     'compact',
   );
   expect(
-    cbmCommands.searchGraphByName('repo', '.*A.*', 'Function', 3).args,
+    repoSearchCommands.searchGraphByName('repo', '.*A.*', 'Function', 3).args,
   ).toContain('--name-pattern');
-  expect(cbmCommands.tracePath('repo', 'a.b', 'inbound', 2).args).toContain(
-    'calls',
-  );
+  expect(
+    repoSearchCommands.tracePath('repo', 'a.b', 'inbound', 2).args,
+  ).toContain('calls');
 });
 
-test('parses fixed local JSONL inspection requests and renders only CBM flags', () => {
-  const operations = parseCbmInspectionJsonl(
+test('parses fixed local JSONL inspection requests and renders only repo-search flags', () => {
+  const operations = parseRepoSearchInspectionJsonl(
     [
       '{"operation":"architecture","path":""}',
       '{"operation":"search-graph","namePattern":".*inspect.*","label":"Function","limit":20}',
@@ -192,7 +199,7 @@ test('parses fixed local JSONL inspection requests and renders only CBM flags', 
   if (!searchGraph) {
     throw new Error('Expected search-graph inspection operation.');
   }
-  expect(cbmInspectionCommand('repo', searchGraph).args).toEqual([
+  expect(repoSearchInspectionCommand('repo', searchGraph).args).toEqual([
     'cli',
     'search_graph',
     '--project',
@@ -204,32 +211,36 @@ test('parses fixed local JSONL inspection requests and renders only CBM flags', 
     '--limit',
     '20',
   ]);
-  expect(() => parseCbmInspectionJsonl('')).toThrow('at least one JSONL');
-  expect(() => parseCbmInspectionJsonl('{"operation":"unknown"}')).toThrow(
-    'Unsupported',
+  expect(() => parseRepoSearchInspectionJsonl('')).toThrow(
+    'at least one JSONL',
   );
   expect(() =>
-    parseCbmInspectionJsonl(
+    parseRepoSearchInspectionJsonl('{"operation":"unknown"}'),
+  ).toThrow('Unsupported');
+  expect(() =>
+    parseRepoSearchInspectionJsonl(
       '{"operation":"trace","qualifiedName":"repo.f","direction":"both","depth":3}',
     ),
   ).toThrow('direction');
-  expect(() => parseCbmInspectionJsonl('[]')).toThrow('must be an object');
-  expect(() => parseCbmInspectionJsonl('{"operation":""}')).toThrow(
+  expect(() => parseRepoSearchInspectionJsonl('[]')).toThrow(
+    'must be an object',
+  );
+  expect(() => parseRepoSearchInspectionJsonl('{"operation":""}')).toThrow(
     'non-empty string',
   );
-  expect(() => parseCbmInspectionJsonl('{"operation":"architecture"}')).toThrow(
-    'architecture path',
-  );
   expect(() =>
-    parseCbmInspectionJsonl(
+    parseRepoSearchInspectionJsonl('{"operation":"architecture"}'),
+  ).toThrow('architecture path');
+  expect(() =>
+    parseRepoSearchInspectionJsonl(
       '{"operation":"search-code","pattern":"value","limit":0}',
     ),
   ).toThrow('positive integer');
-  expect(() => parseCbmInspectionJsonl('not-json')).toThrow('line 1');
+  expect(() => parseRepoSearchInspectionJsonl('not-json')).toThrow('line 1');
 });
 
 test('maps every declared inspection operation to one flag-based CLI specification', () => {
-  const operations = parseCbmInspectionJsonl(
+  const operations = parseRepoSearchInspectionJsonl(
     [
       '{"operation":"architecture","path":"src"}',
       '{"operation":"schema"}',
@@ -241,7 +252,7 @@ test('maps every declared inspection operation to one flag-based CLI specificati
   );
   expect(
     operations.map(
-      (operation) => cbmInspectionCommand('repo', operation).args[1],
+      (operation) => repoSearchInspectionCommand('repo', operation).args[1],
     ),
   ).toEqual([
     'get_architecture',
@@ -264,10 +275,14 @@ test('checks readiness once and concurrently returns every requested read receip
       stdout: spec.args.join(' '),
     };
   });
-  const receipt = await inspectCbm(execute, { index: 'repo', root: '/repo' }, [
-    { operation: 'architecture', path: '' },
-    { operation: 'snippet', qualifiedName: 'repo.utils.inspect' },
-  ]);
+  const receipt = await inspectRepoSearch(
+    execute,
+    { index: 'repo', root: '/repo' },
+    [
+      { operation: 'architecture', path: '' },
+      { operation: 'snippet', qualifiedName: 'repo.utils.inspect' },
+    ],
+  );
   expect(receipt).toMatchObject({
     project: 'repo',
     ready: true,
@@ -288,15 +303,17 @@ test('does not index, retry, or read declared operations when status is unavaila
     stderr: '',
     stdout: 'not ready',
   }));
-  const receipt = await inspectCbm(execute, { index: 'repo', root: '/repo' }, [
-    { operation: 'schema' },
-  ]);
+  const receipt = await inspectRepoSearch(
+    execute,
+    { index: 'repo', root: '/repo' },
+    [{ operation: 'schema' }],
+  );
   expect(receipt).toMatchObject({ ready: false });
   expect(receipt.entries).toHaveLength(1);
   expect(execute).toHaveBeenCalledTimes(1);
 });
 
-test('indexes one allowed root then retries the requested CBM read once', async () => {
+test('indexes one allowed root then retries the requested repo-search read once', async () => {
   const results = [
     { code: 0, stderr: '', stdout: 'not ready' },
     { code: 0, stderr: '', stdout: 'index complete' },
@@ -308,13 +325,13 @@ test('indexes one allowed root then retries the requested CBM read once', async 
       results.shift() ?? { code: 1, stderr: 'unexpected', stdout: '' },
     {
       allowedRoots: ['/repo', '/home', '/kb'],
-      read: (project) => cbmCommands.searchGraph(project, 'symbol', 5),
+      read: (project) => repoSearchCommands.searchGraph(project, 'symbol', 5),
       root: { index: 'repo', root: '/repo/' },
     },
   );
   expect(result).toEqual({ indexed: true, output: 'result', project: 'repo' });
-  assertAllowedCbmRoot('/home', ['/repo', '/home']);
-  expect(() => assertAllowedCbmRoot('/other', ['/repo'])).toThrow(
+  assertAllowedRepoSearchRoot('/home', ['/repo', '/home']);
+  expect(() => assertAllowedRepoSearchRoot('/other', ['/repo'])).toThrow(
     'not allowed',
   );
 });
@@ -324,7 +341,7 @@ test('reports failed indexing, readiness, and read results', async () => {
   await expect(
     readWithReadyIndex(failure, {
       allowedRoots: ['/repo'],
-      read: () => cbmCommands.listProjects(),
+      read: () => repoSearchCommands.listProjects(),
       root: { index: 'repo', root: '/repo' },
     }),
   ).rejects.toThrow('indexing');
@@ -332,7 +349,7 @@ test('reports failed indexing, readiness, and read results', async () => {
   await expect(
     readWithReadyIndex(notReady, {
       allowedRoots: ['/repo'],
-      read: () => cbmCommands.listProjects(),
+      read: () => repoSearchCommands.listProjects(),
       root: { index: 'repo', root: '/repo' },
     }),
   ).rejects.toThrow('not ready');
@@ -345,20 +362,20 @@ test('reports failed indexing, readiness, and read results', async () => {
       async () => {
         const next = readyThenFailed.shift();
         if (!next) {
-          throw new Error('Unexpected CBM command.');
+          throw new Error('Unexpected repo-search command.');
         }
         return next;
       },
       {
         allowedRoots: ['/repo'],
-        read: () => cbmCommands.listProjects(),
+        read: () => repoSearchCommands.listProjects(),
         root: { index: 'repo', root: '/repo' },
       },
     ),
   ).rejects.toThrow('read failed');
 });
 
-test('does not create a CBM index during search fallback', async () => {
+test('does not create a repo-search index during search fallback', async () => {
   const commands: string[][] = [];
   const execute = mock(async (command: { args: readonly string[] }) => {
     commands.push([...command.args]);
@@ -383,7 +400,7 @@ test('does not create a CBM index during search fallback', async () => {
   });
 
   await expect(
-    searchWithCbmFallback(execute, {
+    searchWithRepoSearchFallback(execute, {
       allowedRoots: ['/kb'],
       query: 'browser testing',
       root: { index: 'kb-index', root: '/kb' },
@@ -394,10 +411,10 @@ test('does not create a CBM index during search fallback', async () => {
   ).toBeFalse();
 });
 
-test('rejects an empty CBM fallback query before invoking the executor', async () => {
+test('rejects an empty repo-search fallback query before invoking the executor', async () => {
   const execute = mock(async () => ({ code: 0, stderr: '', stdout: '' }));
   await expect(
-    searchWithCbmFallback(execute, {
+    searchWithRepoSearchFallback(execute, {
       allowedRoots: ['/repo'],
       query: '  ',
       root: { index: 'repo', root: '/repo' },
@@ -411,11 +428,11 @@ test.each([
   ['index complete', true],
   ['not ready', false],
   ['error', false],
-] as const)('detects CBM readiness for %s', (output, expected) => {
+] as const)('detects repo-search readiness for %s', (output, expected) => {
   expect(indexIsReady(output)).toBe(expected);
 });
 
-test('uses CBM code search before staged rg when graph search has no match', async () => {
+test('uses repo-search code search before staged rg when graph search has no match', async () => {
   const foundOutputs = [
     { code: 0, stderr: '', stdout: 'ready' },
     {
@@ -424,7 +441,7 @@ test('uses CBM code search before staged rg when graph search has no match', asy
       stdout: '{"total":1,"results":[{"name":"match"}]}',
     },
   ];
-  const cbmFound = await searchWithCbmFallback(
+  const repoSearchFound = await searchWithRepoSearchFallback(
     async () => foundOutputs.shift() ?? { code: 1, stderr: '', stdout: '' },
     {
       allowedRoots: ['/repo'],
@@ -432,8 +449,8 @@ test('uses CBM code search before staged rg when graph search has no match', asy
       root: { index: 'repo', root: '/repo' },
     },
   );
-  expect(cbmFound.source).toBe('cbm');
-  expect(cbmFound.attempts.map((item) => item.status)).toEqual([
+  expect(repoSearchFound.source).toBe('repo-search');
+  expect(repoSearchFound.attempts.map((item) => item.status)).toEqual([
     'found',
     'skipped',
     'skipped',
@@ -447,7 +464,7 @@ test('uses CBM code search before staged rg when graph search has no match', asy
     { code: 1, stderr: '', stdout: '' },
     { code: 0, stderr: '', stdout: '/repo/a.ts:1:match' },
   ];
-  const fallback = await searchWithCbmFallback(
+  const fallback = await searchWithRepoSearchFallback(
     async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' },
     {
       allowedRoots: ['/repo'],
@@ -457,22 +474,25 @@ test('uses CBM code search before staged rg when graph search has no match', asy
   );
   expect(fallback).toMatchObject({ found: true, source: 'rg' });
   expect(fallback.attempts.map((item) => item.strategy)).toEqual([
-    'cbm-search-graph',
-    'cbm-search-code',
+    'repo-search-graph',
+    'repo-search-code',
     'rg-literal',
     'rg-literal-ignore-case',
     'rg-files',
   ]);
   expect(
-    cbmOutputHasMatches('{"total_results":1}\nlevel=info msg=mem.init'),
+    repoSearchOutputHasMatches('{"total_results":1}\nlevel=info msg=mem.init'),
   ).toBeTrue();
-  expect(cbmOutputHasMatches('{"total":0,"results":[]}')).toBeFalse();
+  expect(repoSearchOutputHasMatches('{"total":0,"results":[]}')).toBeFalse();
   expect(
-    cbmOutputHasMatches('{"total":1,"results":[{"name":"token"}]}', 'needle'),
+    repoSearchOutputHasMatches(
+      '{"total":1,"results":[{"name":"token"}]}',
+      'needle',
+    ),
   ).toBeFalse();
-  expect(cbmOutputHasMatches('not-json')).toBeFalse();
-  expect(cbmOutputHasMatches('{bad}')).toBeFalse();
-  const codeFound = await searchWithCbmFallback(
+  expect(repoSearchOutputHasMatches('not-json')).toBeFalse();
+  expect(repoSearchOutputHasMatches('{bad}')).toBeFalse();
+  const codeFound = await searchWithRepoSearchFallback(
     async (spec) => {
       if (spec.args.includes('index_status')) {
         return { code: 0, stderr: '', stdout: 'ready' };
@@ -493,21 +513,21 @@ test('uses CBM code search before staged rg when graph search has no match', asy
       root: { index: 'repo', root: '/repo' },
     },
   );
-  expect(codeFound).toMatchObject({ found: true, source: 'cbm' });
+  expect(codeFound).toMatchObject({ found: true, source: 'repo-search' });
   expect(codeFound.attempts.map((item) => item.strategy)).toEqual([
-    'cbm-search-graph',
-    'cbm-search-code',
+    'repo-search-graph',
+    'repo-search-code',
     'rg-literal',
     'rg-literal-ignore-case',
     'rg-files',
   ]);
-  const graphError = await searchWithCbmFallback(
+  const graphError = await searchWithRepoSearchFallback(
     async (spec) => {
       if (spec.args.includes('index_status')) {
         return { code: 0, stderr: '', stdout: 'ready' };
       }
       if (spec.args.includes('search_graph')) {
-        throw new Error('CBM graph request failed');
+        throw new Error('repo-search graph request failed');
       }
       return { code: 1, stderr: '', stdout: '' };
     },
@@ -518,10 +538,10 @@ test('uses CBM code search before staged rg when graph search has no match', asy
     },
   );
   expect(graphError.attempts[0]).toMatchObject({ status: 'error' });
-  const cbmFailure = await searchWithCbmFallback(
+  const repoSearchFailure = await searchWithRepoSearchFallback(
     async (spec) =>
       spec.args.includes('index_status')
-        ? { code: 1, stderr: 'CBM unavailable', stdout: '' }
+        ? { code: 1, stderr: 'repo-search unavailable', stdout: '' }
         : { code: 0, stderr: '', stdout: '/repo/match.ts:1:match' },
     {
       allowedRoots: ['/repo'],
@@ -529,13 +549,13 @@ test('uses CBM code search before staged rg when graph search has no match', asy
       root: { index: 'repo', root: '/repo' },
     },
   );
-  expect(cbmFailure).toMatchObject({ found: true, source: 'rg' });
-  expect(cbmFailure.attempts[0]?.status).toBe('error');
+  expect(repoSearchFailure).toMatchObject({ found: true, source: 'rg' });
+  expect(repoSearchFailure.attempts[0]?.status).toBe('error');
 });
 
-test('normalizes one padded query for CBM graph and code searches', async () => {
+test('normalizes one padded query for repo-search graph and code searches', async () => {
   const commands: string[][] = [];
-  const result = await searchWithCbmFallback(
+  const result = await searchWithRepoSearchFallback(
     async (spec) => {
       commands.push([...spec.args]);
       if (spec.args.includes('index_status')) {
@@ -573,7 +593,7 @@ test('normalizes one padded query for CBM graph and code searches', async () => 
 });
 
 test('rejects graph matches that contain the query only in unrelated metadata', async () => {
-  const result = await searchWithCbmFallback(
+  const result = await searchWithRepoSearchFallback(
     async (spec) => {
       if (spec.args.includes('index_status')) {
         return { code: 0, stderr: '', stdout: 'ready' };
@@ -603,8 +623,8 @@ test('rejects graph matches that contain the query only in unrelated metadata', 
   );
   expect(result).toMatchObject({ found: false, source: 'none' });
   expect(result.attempts.map((attempt) => attempt.strategy)).toEqual([
-    'cbm-search-graph',
-    'cbm-search-code',
+    'repo-search-graph',
+    'repo-search-code',
     'rg-literal',
     'rg-literal-ignore-case',
     'rg-files',
@@ -612,7 +632,7 @@ test('rejects graph matches that contain the query only in unrelated metadata', 
 });
 
 test('accepts graph matches in structured identity fields', async () => {
-  const result = await searchWithCbmFallback(
+  const result = await searchWithRepoSearchFallback(
     async (spec) => {
       if (spec.args.includes('index_status')) {
         return { code: 0, stderr: '', stdout: 'ready' };
@@ -632,7 +652,7 @@ test('accepts graph matches in structured identity fields', async () => {
       root: { index: 'repo', root: '/repo' },
     },
   );
-  expect(result).toMatchObject({ found: true, source: 'cbm' });
+  expect(result).toMatchObject({ found: true, source: 'repo-search' });
   expect(result.attempts.map((attempt) => attempt.status)).toEqual([
     'found',
     'skipped',
@@ -643,26 +663,26 @@ test('accepts graph matches in structured identity fields', async () => {
 });
 
 test('requires structured graph identity fields for query-aware matching', () => {
-  expect(cbmGraphIdentityFields).toEqual([
+  expect(repoSearchGraphIdentityFields).toEqual([
     'name',
     'qualified_name',
     'file_path',
     'path',
   ]);
   expect(
-    cbmOutputHasMatches(
+    repoSearchOutputHasMatches(
       '{"total":1,"results":[{"description":"needle"}]}',
       'needle',
     ),
   ).toBeFalse();
   expect(
-    cbmOutputHasMatches(
+    repoSearchOutputHasMatches(
       '{"total":1,"results":[{"qualified_name":"repo.needle"}]}',
       'needle',
     ),
   ).toBeTrue();
   expect(
-    cbmOutputHasMatches(
+    repoSearchOutputHasMatches(
       '{"total":2,"results":[null,{"path":"src/needle.ts"}]}',
       'needle',
     ),

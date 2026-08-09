@@ -1,0 +1,31 @@
+{
+  "skill_name": "skill-manager",
+  "runs_per_query": 3,
+  "pass_threshold": 0.5,
+  "splits": {
+    "train": "Use only failures from this split to revise description.",
+    "validation": "Keep fixed and hidden from revision decisions."
+  },
+  "queries": [
+    {"id":"train-01","split":"train","query":"Create a new Agent Skill for our incident-review workflow with the right SKILL.md structure and validation steps.","should_trigger":true},
+    {"id":"train-02","split":"train","query":"Please update the existing skill package so its instructions and linked references stay coherent.","should_trigger":true},
+    {"id":"train-03","split":"train","query":"Review this skill for broken links, stale guidance, and missing resources, then tell me what needs repair.","should_trigger":true},
+    {"id":"train-04","split":"train","query":"Can you optimize the description of my skill so it triggers for the right requests but not nearby tasks?","should_trigger":true},
+    {"id":"train-05","split":"train","query":"Our skill evals are too shallow. Add realistic cases, challenge cases, and evidence-based validation.","should_trigger":true},
+    {"id":"train-06","split":"train","query":"Rename this skill and update its references and callers without leaving stale paths behind.","should_trigger":true},
+    {"id":"train-07","split":"train","query":"Install the skill called spreadsheet-cleanup from the curated catalog.","should_trigger":false},
+    {"id":"train-08","split":"train","query":"Use the existing spreadsheet skill to clean `/tmp/budget.xlsx` and highlight rows under 10%.","should_trigger":false},
+    {"id":"train-09","split":"train","query":"Write a TypeScript function that validates a JSON response from our API.","should_trigger":false},
+    {"id":"train-10","split":"train","query":"Read this PDF and summarize the three recommendations for my manager.","should_trigger":false},
+    {"id":"train-11","split":"train","query":"Can you add a Playwright regression test for the checkout flow?","should_trigger":false},
+    {"id":"train-12","split":"train","query":"What is the quickest way to convert this JSON file to YAML?","should_trigger":false},
+    {"id":"validation-01","split":"validation","query":"I need a reusable skill, not a one-off answer, for reviewing database migration packages and their quality gates.","should_trigger":true},
+    {"id":"validation-02","split":"validation","query":"The skill works, but its description is vague and it keeps activating on adjacent implementation requests. Help me fix the boundary.","should_trigger":true},
+    {"id":"validation-03","split":"validation","query":"Check whether this skill package follows the frontmatter, resource layout, and progressive-disclosure rules.","should_trigger":true},
+    {"id":"validation-04","split":"validation","query":"Evaluate two versions of a skill and preserve the baseline, candidate, challenge, and validation evidence.","should_trigger":true},
+    {"id":"validation-05","split":"validation","query":"Run the existing markdown compression skill on this document and preserve its protected links.","should_trigger":false},
+    {"id":"validation-06","split":"validation","query":"Help me choose between Python and TypeScript for a small data-processing script.","should_trigger":false},
+    {"id":"validation-07","split":"validation","query":"Search our company knowledge base for the deployment runbook and summarize it.","should_trigger":false},
+    {"id":"validation-08","split":"validation","query":"Create a Jira ticket from these meeting notes and assign it to the right person.","should_trigger":false}
+  ]
+}

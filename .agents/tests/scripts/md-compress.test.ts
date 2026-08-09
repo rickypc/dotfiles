@@ -47,12 +47,10 @@ test('begins a temporary guarded transaction and returns its finalize action', a
   const { dependencies: injected, writes } = dependencies();
   const write = mock();
   await run(['begin', '/docs/plan.md'], write, injected);
-  expect(writes.get('/tmp/aidlc-md-compress/hash/plan.md.original')).toBe(
+  expect(writes.get('/tmp/md-compress/hash/plan.md.original')).toBe(
     'Original `token`.',
   );
-  expect(writes.get('/tmp/aidlc-md-compress/hash/plan.md.original.lock')).toBe(
-    '100',
-  );
+  expect(writes.get('/tmp/md-compress/hash/plan.md.original.lock')).toBe('100');
   expect(write).toHaveBeenCalledWith(
     expect.stringContaining('edit-markdown-then-finalize'),
   );
@@ -64,15 +62,12 @@ test('finalizes a guarded candidate only after token validation', async () => {
     removed,
     writes,
   } = dependencies('Candidate `token`.');
-  writes.set(
-    '/tmp/aidlc-md-compress/hash/plan.md.original',
-    'Original `token`.',
-  );
+  writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
   const write = mock();
   await run(['finalize', '/docs/plan.md'], write, injected);
   expect(removed).toEqual([
-    '/tmp/aidlc-md-compress/hash/plan.md.original',
-    '/tmp/aidlc-md-compress/hash/plan.md.original.lock',
+    '/tmp/md-compress/hash/plan.md.original',
+    '/tmp/md-compress/hash/plan.md.original.lock',
   ]);
   expect(write).toHaveBeenCalledWith(expect.stringContaining('compressed'));
 });
@@ -92,7 +87,7 @@ test('builds default dependencies from injected external boundaries', async () =
     clock,
   );
   await run(['begin', '/docs/plan.md'], mock(), defaults);
-  expect(writes.get('/tmp/aidlc-md-compress/hash/plan.md.original')).toBe(
+  expect(writes.get('/tmp/md-compress/hash/plan.md.original')).toBe(
     'Original `token`.',
   );
   expect(clock.now()).toBe(100);
@@ -101,10 +96,7 @@ test('builds default dependencies from injected external boundaries', async () =
 test('rejects invalid command shapes and lost protected tokens', async () => {
   await expect(run([])).rejects.toThrow(usage());
   const { dependencies: injected, writes } = dependencies('Candidate text.');
-  writes.set(
-    '/tmp/aidlc-md-compress/hash/plan.md.original',
-    'Original `token`.',
-  );
+  writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
   await expect(
     run(['finalize', '/docs/plan.md'], mock(), injected),
   ).rejects.toThrow('Compression lost protected Markdown tokens');

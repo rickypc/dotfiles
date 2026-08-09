@@ -1,6 +1,7 @@
 ---
 name: react
 description: Implement and review React and React Native interfaces with shared guidance for state, effects, data, accessibility, performance, platform behavior, transitions, and user-visible tests.
+argument-hint: "<react-or-react-native-scope> <approved-design> <acceptance-criteria>"
 ---
 
 # React
@@ -14,7 +15,23 @@ first for a new or changed visual direction and `/content-writer` when
 meaningful UI copy needs research or validation; this skill consumes those
 approved inputs and does not silently change them.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/react <react-or-react-native-scope> <approved-design> <acceptance-criteria> # implement and verify an approved React surface
+```
+
+The unannotated grammar is:
+
+```text
+/react <react-or-react-native-scope> <approved-design> <acceptance-criteria>
+```
+
+Required: implementation scope, approved design/content inputs when applicable,
+and acceptance criteria. Use `/frontend-design` first for changed visual
+direction.
+
+## 3. Immutable Operational Rules
 
 - Define the changed user-visible states before implementation: initial,
   loading, empty, success, error, retry, disabled, stale, and interrupted
@@ -37,7 +54,7 @@ approved inputs and does not silently change them.
 - Measure before claiming performance improvement and test user-visible
   outcomes and important failure paths rather than internals alone.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** React or React Native scope, project instructions/conventions,
   acceptance criteria, and the relevant component/data/routing boundary.
@@ -51,13 +68,18 @@ approved inputs and does not silently change them.
   security contract, or proof boundary is an explicit stop. Ask or hand off;
   do not invent product meaning.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+approved inputs -> state and boundary model -> smallest implementation
+                 -> accessibility/race review -> tests and user-visible proof
+```
 
 1. **Intake:** Read project instructions, existing component/data conventions,
    accepted design/content, and acceptance criteria. Use `/repo-search`
    for repository facts and preserve routing, testing, and platform patterns.
    The caller-facing discovery route and repository-memory contract are owned
-   by `/repo-search`, with the current CBM CLI as the compatibility backend.
+   by `/repo-search`, with the current repo-search CLI as the compatibility backend.
 2. **Model:** Define changed user-visible states, one owner per state value,
    inputs/boundaries, loading/empty/error/retry/cancellation behavior, focus,
    keyboard, semantic, responsive, or native accessibility behavior.
@@ -99,7 +121,7 @@ facing browser coverage, use `/playwright-test-generator`. A passing test or
 coverage number is not enough when accessibility, failure, cancellation, or
 side-effect behavior lacks observable proof.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns coherent changed code, traceable accepted design/content,
 explicit state ownership, effect cleanup/cancellation, web/native obligations,
@@ -112,7 +134,7 @@ performance, race, test, or final-gate gap. Do not silently change approved
 design/content, claim cross-platform behavior from one platform, or hand off
 unverified code.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** A component change maps user-visible states to one owner,
   handles side effects and accessibility, and proves behavior through the

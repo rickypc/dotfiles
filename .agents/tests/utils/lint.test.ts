@@ -5,7 +5,7 @@ import {
   lintExitCode,
   runLintCommands,
   writeLintDiagnostics,
-} from '../../utils/lint.js';
+} from '../../scripts/lint.js';
 
 test('defines the distinct lint commands under one agents root', () => {
   const commands = lintCommandsFor('/agents');

@@ -1,6 +1,7 @@
 ---
 name: playwright-test-generator
 description: Generate and retain project-local Playwright browser regression tests from accepted user-facing web criteria. Use when a web UI, browser workflow, responsive layout, or explicitly budgeted browser-performance behavior needs durable automated coverage.
+argument-hint: "<criteria> <project-root> <playwright-runner>"
 ---
 
 # Playwright Test Generator
@@ -13,7 +14,23 @@ accepted criteria into durable browser regression coverage inside the selected
 project. It does not install global dependencies, replace unit tests, or claim
 acceptance from static checks.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/playwright-test-generator <criteria> <project-root> <playwright-runner> # retain browser regression coverage
+```
+
+The unannotated grammar is:
+
+```text
+/playwright-test-generator <criteria> <project-root> <playwright-runner>
+```
+
+Required: accepted user-facing criteria, selected project root, and the
+project-declared Playwright runner. Use only for durable browser regression
+coverage.
+
+## 3. Immutable Operational Rules
 
 - Use the selected project's declared runner, browser projects, start command,
   test location, dependencies, artifact policy, and single configured final
@@ -32,7 +49,7 @@ acceptance from static checks.
   Core Web Vitals pass** from a local timing or trace result; do not invent a
   budget or threshold.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** Accepted user-facing criteria, selected project root, and the
   project-declared Playwright runner.
@@ -56,7 +73,12 @@ The approved performance branch uses a project-owned measurable budget.
 Do not claim a Core Web Vitals pass from uncontrolled evidence.
 Every invalid input has a visible rejection and recovery path.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+accepted criteria -> project/runner discovery -> coverage matrix -> real flow
+                   -> retained tests -> focused command and final gate
+```
 
 1. **Intake:** Resolve the project root and read its manifest/configuration,
    runner, test path, start command, browser projects, existing tests, and
@@ -114,7 +136,7 @@ open. Use required viewports for responsive assertions and only stable project-
 owned visual baselines. Performance is a separate branch that requires the
 approved project-owned budget and controlled conditions.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns retained project-local tests, criterion-to-test mapping,
 selected browser result, controlled-boundary assertions, traces/screenshots as
@@ -126,7 +148,7 @@ assertion, environment launch blocker, controlled-side-effect gap, or final
 gate omission. Do not create exploratory-only tests, weaken assertions, add a
 second gate, or alter global/project dependencies outside the request.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** One accepted criterion maps to one observable retained browser
   regression test with real-flow and user-visible assertions.

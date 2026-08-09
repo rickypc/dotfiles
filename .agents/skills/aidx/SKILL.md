@@ -1,170 +1,172 @@
 ---
 name: aidx
-description: "Execute a previously materialized six-section plan from a relative .agents/plans path, parsing its YAML frontmatter with gray-matter and applying the execution steps sequentially when the user explicitly requests implementation."
+description: "Read a user-supplied six-section plan path and execute its instructions deterministically."
+argument-hint: "<plan-path-relative-or-absolute>"
 ---
 
-# AIDX — Strict Plan Executor
+# AIDX — Deterministic Execution Engine
 
-## 1. Role & Scope
+## 1. Role and scope
 
-AIDX owns execution of one already-materialized plan produced by `/aidp`. It
-is selected only when the user explicitly identifies a plan for
-implementation. It applies the approved steps sequentially and closes with
-fresh proof. Planning, repository discovery, plan authoring, plan import, and
-skill-package ownership remain with `/aidp`, `/repo-search`,
-`/knowledge-base`, and `/skill-manager` respectively.
+AIDX executes one already-materialized six-section plan. It owns ordered
+execution, delegated owner routing, fresh verification, and the final output
+mapping. It does not create or rewrite plans, ask the planner's requirements
+questions, maintain a parallel state machine, or turn free-form Markdown into
+a shell script.
 
-AIDX does not create plans, ask the planner's requirements questions, retrieve
-CBM/KB context, maintain a second plan state machine, slice plan content, or
-interpret free-form plan text as shell commands. Read
-[execution-contract.md](references/execution-contract.md) for the detailed
-implementation, validation, repair, and stop-boundary contract.
+### Trigger and accepted input
 
-## 2. Immutable Operational Rules
+**Trigger:** The user invokes `/aidx` with one Markdown plan path produced by
+AIDP. AIDX accepts exactly `<plan-path-relative-or-absolute>` and no free-form
+request, plan content, or extra positional arguments.
 
-- Pass the user-supplied path unchanged to the executable parser. It must use
-  `gray-matter`, canonicalize the path, and reject traversal, missing,
-  directory, symlink-escaping, outside-tree, wrong-index, and invalid-plan
-  inputs before mutation.
-- Execute one ordered step completely before the next step in order. Preserve
-  plan scope, exclusions, ownership, and expected proof; never skip, reorder,
-  batch, or guess because a later step looks easier.
-- Review the complete plan critically before starting. Raise material
-  **questions or concerns** before touching files and return to `/aidp` when
-  scope, ownership, architecture, acceptance, or a requirement changes.
-- Use specialized skills only through the plan's explicit route and exact
-  arguments. When a step changes any skill package, execute its `/skill-manager`
-  owner step before the first skill edit.
-- Require fresh verification evidence before every status claim: run the full
-  command, read the full output and exit code, count failures, compare with the
-  expected outcome, review the changed-file diff, and check requirements and
-  exclusions. A prior receipt or another agent's report is not proof.
-- For applicable behavior changes, use RED focused tests, minimal GREEN
-  implementation, relevant existing tests, and refactor only after green. A
-  test edit is blocked until `/bun-test-generator` has supplied its matrix and
-  boundary receipt.
-
-## 3. Input & Context Schema
-
-- **Required:** A relative or absolute regular-file plan path inside
-  `.agents/plans/<cbm-index>/`. The canonical execution contract is
-  `bun <agents-root>/scripts/aidx.ts <relative-plan-path>`.
-- **Optional:** An explicit completion action after all steps and proofs pass;
-  the normal completion form is `complete <relative-plan-path>`.
-- **Context:** The parser's canonical path receipt, YAML frontmatter, exactly
-  six plan sections in order, ordered-step fields/check boxes, plan-supplied
-  evidence, project instructions, routed-owner receipts, and the configured
-  final gate.
-- **Unknowns:** Invalid frontmatter, duplicate items, placeholders, exact
-  interactive tokens such as `KEEP`, missing step proof, ambiguous scope, or
-  missing route is a stop before mutation. Do not rediscover context the plan
-  already supplies.
-
-The parser requires exactly `title`, `cbm_index`, `created_at`, `updated_at`,
-and `status` in frontmatter and the plan headings `ROLE`, `OBJECTIVE`, `CORE
-DIRECTIVES`, `ORDERED EXECUTION STEPS`, `CONSTRAINTS`, and `INPUTS TO PROCESS`.
-Each ordered item owns its status checkbox and complete action/target/boundary/
-proof contract.
-
-The parser requires the six sections in order and returns a canonicalized,
-project-relative path. It also returns a canonical project-relative path. It
-does not create plans. Never interpret the plan as a shell script; if a
-requirement changes, Stop immediately, do not guess, and return to `/aidp`.
-
-The accepted invocation is `/aidx <relative-plan-path>` or the equivalent
-absolute path, but the canonical parser receives the path unchanged:
+## 2. Usage
 
 ```text
-bun <agents-root>/scripts/aidx.ts <relative-plan-path>
+/aidx <plan-path-relative-or-absolute> # execute one materialized plan
 ```
 
-The regular-file boundary is `/.agents/plans/<cbm-index>/`; the launcher must
-not prepend `<agents-root>/.agents/plans/`. `utils/aidx.ts` owns the parser and
-the `complete` command owns the post-import cleanup. The required plan body
-includes the inline section token `CORE DIRECTIVES`.
-
-## 4. Ordered Execution Chain
-
-1. **Parse:** Invoke the parser and read its complete receipt before editing.
-   Derive the project root from the plan's own `.agents/plans/<cbm-index>/`
-   route; do not prepend a runtime-home path or independently parse Markdown.
-2. **Review:** **Review the plan critically before starting.** Present the six
-   sections and ordered steps, create the checklist from those items, and
-   resolve every material question before starting.
-3. **Execute:** Execute step 1 completely: inspect its named inputs, make only
-   the stated compatible change, and run its focused proof. Record the result,
-   then execute the **next step in order**. Never interpret the plan as a shell
-   script.
-4. **Route and verify:** Select only explicit owner routes, retain their
-   receipts, run requirements/exclusions checks, inspect the diff, and run the
-   configured final gate exactly once after the implementation batch.
-5. **Complete or stop:** On success run the path-only completion handoff. On a
-   blocker, failed proof, or scope change preserve the plan and return to
-   `/aidp` or the named owner; do not claim completion.
-
-### Delegated skill routing table
-
-| Command or information | Arguments | When to use | Additional information |
-| --- | --- | --- | --- |
-| `/skill-manager` | `<skill-manager-action> <absolute-skill-path> [matrix-and-review-inputs]` | A step changes a skill package, references, template, evals, or static assets | Run before the first edit and retain validation/review and candidate/challenge receipts. |
-| `/bun-test-generator` | `<sut-path> <all\|method-list\|method-range>` | A step adds, converts, repairs, renames, or deletes a JS/TS unit test | Invoke before editing; retain the behavior matrix, boundary validation, and SUT proof. |
-| `/playwright-test-generator` | `<criteria> <project-root> <playwright-runner>` | A step changes retained browser, UI, responsive, or browser-performance acceptance coverage | Use accepted criteria and the project's declared runner. |
-| `/biome-tsc-checker` | `<selected-js-or-ts-paths>` | A step changes approved JS/TS source or tests and names this checker | Run after the compatible edit; it does not replace the final gate. |
-| `/frontend-design` | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>` | Work creates, redesigns, or visually refreshes a user-facing interface | Run before implementation and preserve the accepted design. |
-| `/react` | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | Work implements React or React Native behavior after design/content settle | Keep design ownership with `/frontend-design` when applicable. |
-| `Named project or language skill` | `<arguments exactly as written in the plan>` | AIDP identified an observed local owner | If route or language obligation is absent, return to `/aidp`. |
-
-### Test-first and test-edit gate
-
-When tests apply, write one focused failing test for the intended missing
-behavior, confirm it fails for that behavior rather than a test error, make the
-smallest implementation, run focused and relevant existing tests, and refactor
-only after green. The minimal implementation must make the test passes result
-explicit. Expected values are independent of the implementation; test
-observable behavior and justified side effects against the real selected
-system, then run mutation checks for wrong branches and missing effects.
-
-Any step that adds, converts, repairs, renames, or deletes a JavaScript or
-TypeScript test is blocked until `/bun-test-generator` runs for the real SUT.
-Record its invocation and returned matrix before editing, then run
-`validate-boundaries`; every external module and side-effect boundary must be
-mocked while the selected SUT remains real. Passing coverage cannot substitute
-for this receipt.
-
-### Completion handoff
-
-After all implementation steps and focused proofs pass, invoke:
+The unannotated grammar is:
 
 ```text
-bun <agents-root>/scripts/aidx.ts complete <relative-plan-path>
+/aidx <plan-path-relative-or-absolute>
 ```
 
-The completion command passes only the relative path to KB `import-plan`,
-reports the importer receipt, and deletes the source plan only after successful
-import and receipt validation. It must fail without cleanup when import fails.
+Required:
 
-## 5. Output & Completion Contract
+- `<plan-path-relative-or-absolute>`: one AIDP Markdown plan path.
 
-Success includes a successful parser receipt, changed artifacts, fresh proof
-for every step, requirements and exclusions checklist, changed-file review,
-configured final-gate result, relative plan path, and the knowledge-base import
-and source-cleanup receipts. The final gate is the decision point; a status
-checkbox, summary, or intention is not proof.
+`/aidx` is an agent workflow, not a terminal command. It executes the supplied
+plan and returns mapped completion or repair evidence.
 
-Failure preserves the plan and reports the exact step, command, output, exit
-code, failed assertion, unresolved question, or owner handoff. A parse failure,
-ambiguity, failed proof, or scope change is a stop condition, not a partial
-success. Do not edit the plan from AIDX.
+## 3. Immutable Operational Rules
 
-## 6. Evaluation Anchors
+Load [the engineering execution contract](references/engineering-execution-contract.md)
+after the plan passes path preflight. It supplies language and role routing,
+work-packet evidence, specialized quality owners, and hard stop rules.
 
-- **Canonical:** A valid plan is parsed with `gray-matter`, reviewed, and
-  executed one step at a time with each focused proof recorded.
-- **Boundary:** An invalid or symlink-escaping plan, free-form command, skipped
-  step, stale status claim, missing route, or failed gate stops execution.
-- **Challenge:** A multi-step plan forces AIDX to **Execute step 1 completely**,
-  record its **focused proof**, and only then run the **next step in order**;
-  a test edit also requires the Bun generator receipt.
-- **Independent verifier:** The parser, routed-owner receipts, step proofs,
-  requirements checklist, diff review, and final-gate result independently
-  verify closure.
+The owner file must advertise these routes directly.
+
+### Minimal-implementation discipline
+
+Read the whole affected flow, including callers, consumers, boundaries, and
+existing proof, before choosing the implementation. Then stop at the first
+sufficient route: remove unnecessary work, reuse an existing helper or type,
+use the standard library, use a native platform capability, use an already-
+installed dependency, or write the smallest custom change. Do not add an
+unrequested abstraction, factory, configuration surface, boilerplate, or
+scaffolding for later. Prefer deletion when it satisfies the approved plan.
+
+This complete discipline is always active; AIDX has no mode selector. Never
+simplify away explicitly required validation, error handling, security,
+accessibility, compatibility, persistence, rollback, or other named quality
+obligations. Every non-trivial branch, loop, parser, money path, or security
+path leaves at least one focused runnable proof through the plan's verification
+contract.
+
+### Language routing
+
+Use the observed
+repository language rather than a guess, apply common rules first, and route
+PHP, TypeScript, React, or Web/HTML/CSS changes through their relevant proof
+obligations. Use the Product, Architect, Developer, Quality, Security, Design,
+and Delivery responsibilities named by the plan. Preserve work packets,
+acceptance mapping, completion proof, and limitations.
+
+The active package is self-contained. Runtime scripts and duplicated lifecycle
+machinery from the source material are not copied. See the Source migration map;
+reusable execution
+contracts are retained in the owned reference above.
+
+### Role routing during execution
+
+The plan names the applicable Product, Architect, Developer, Quality, Security,
+Design, and Delivery owner.
+
+Read the one path pasted by the user unchanged, accept either a relative or
+absolute form, then canonicalize and verify that it is a regular Markdown file
+under `.agents/plans/<repo-search-index>/`. Reject
+missing, directory, traversal, symlink-escaping, outside-tree, wrong-index,
+malformed, or duplicate-section inputs before mutation.
+
+The retired `.agents/plans/<repo-search-index>/` spelling is compatibility
+evidence only; current plans use `.agents/plans/<repo-search-index>/`.
+
+Read the entire plan. Confirm the six sections are present and ordered, every
+required variable is available, every workflow step names a target and proof,
+every fallback is concrete, and the output schema is complete. Review the plan
+critically before starting; a material concern is a stop, not permission to
+invent a repair.
+
+Build a checklist from the plan's objective, requirements, exclusions,
+dependencies, acceptance-to-proof mapping, and re-plan triggers. Distinguish
+user facts, project instructions, retrieved evidence, decisions, and
+assumptions. For brownfield work, confirm the plan states the current behavior,
+consumer or contract boundaries, preservation obligations, and existing proof.
+
+## 4. Input & Context Schema
+
+Use Section 1 as the objective and boundary. Resolve Section 2 inputs. Execute
+Section 3 in order: ingest and verify, then process and transform, then
+synthesize. Finish the named proof for one action before starting the next.
+Use Section 4 only when its stated primary path is empty or fails, and retain
+the fallback result. Run every Section 5 check after the work and map the
+result directly into Section 6.
+
+Do not skip, reorder, batch, or silently broaden steps. Route specialized work
+only through the owner explicitly named by the plan. A minor path omission may
+be resolved from unambiguous local context; a material omission, scope change,
+unsafe action, or missing owner stops execution.
+
+Implement the smallest compatible change and reuse verified extension points,
+types, conventions, configuration, and test helpers. Keep persistence,
+serialization, authorization, public types, migrations, rollback, and external
+boundaries explicit when they are affected. For UI work, preserve the named
+loading, empty, error, recovery, keyboard, responsive, and accessibility
+criteria. For NFRs, verify only the categories named by the plan, including
+performance, security, scalability, reliability, observability, privacy, or
+operational constraints as applicable.
+
+## 5. Ordered Execution Chain
+
+```text
+plan path -> preflight -> ordered plan steps -> fresh verification -> handoff
+```
+
+Do not criticize, negotiate, or pass the plan back merely because execution is
+inconvenient. Do not add an unlisted fallback or change the plan's objective.
+If a required input is null, ambiguous, unavailable, or unverifiable, stop
+before mutation and report the exact failure; do not guess. If a proof fails, preserve the
+plan and work, report the target and observed result, and do not claim success.
+
+If discovered evidence invalidates a requirement, boundary, owner, dependency,
+risk assumption, architecture, or proof strategy, stop at the named re-plan
+trigger. Preserve unaffected work and return the exact changed evidence and
+decision needed; do not silently turn a new idea into scope.
+
+## 6. Output & Completion Contract
+
+Use fresh evidence for every status claim: read complete command output and
+exit status, compare the actual result with the expected result, inspect the
+changed-target diff, check every objective and exclusion, and run all strict
+failure-state tests. For behavior changes, use the plan's test-first order:
+failing test, smallest implementation, green focused and relevant checks,
+then refactor only while green. A prior receipt, partial check, or coverage
+number is not completion proof.
+
+Map every acceptance item to evidence and record limitations. A focused test,
+smoke check, inspection, browser path, or manual observation is evidence only
+for the claim it actually covers. Run the configured project final gate once
+at the final boundary when the plan names one; a green gate cannot prove an
+unmapped acceptance item. When the plan changes JavaScript or TypeScript tests,
+follow its explicit `/bun-test-generator`, boundary-validation, and
+`/biome-tsc-checker` route before editing; when it changes retained browser
+coverage, follow its explicit `/playwright-test-generator` route.
+
+## 7. Evaluation Anchors
+
+The skill is strong when it safely reads the user-supplied path, executes every
+step in order, applies only listed fallbacks, preserves boundaries, and emits
+the exact requested schema. It fails when it guesses, edits the plan, runs
+free-form commands, skips proof, reports from stale evidence, or continues
+through a material blocker.

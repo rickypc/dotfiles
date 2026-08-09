@@ -119,7 +119,7 @@ test('recognizes typed arrow functions without comment-defined sections', () => 
       'const zebra = (): string => value;',
       'export const assertAllowed = (path: string): void => { canonicalPath(path); };',
       "const canonicalPath = (path: string): string => path.replace(/\\/$/u, '');",
-      'export const cbmOutputHasMatches = (): string => value;',
+      'export const repoSearchOutputHasMatches = (): string => value;',
     ].join('\n'),
   );
   expect(report.groups).toEqual([
@@ -131,14 +131,14 @@ test('recognizes typed arrow functions without comment-defined sections', () => 
         'zebra',
         'assertAllowed',
         'canonicalPath',
-        'cbmOutputHasMatches',
+        'repoSearchOutputHasMatches',
       ],
       desiredOrder: [
         'canonicalPath',
         'assertAllowed',
-        'cbmOutputHasMatches',
         'indexIsReady',
         'outputFor',
+        'repoSearchOutputHasMatches',
         'zebra',
         'alpha',
       ],

@@ -1,6 +1,7 @@
 ---
 name: md-compress
 description: Losslessly distill durable Markdown while preserving protected Markdown tokens and a verified backup.
+argument-hint: "begin|finalize <absolute-markdown-path>"
 ---
 
 # Markdown Compression
@@ -13,7 +14,24 @@ while preserving executable/cited tokens and a verified source. It rejects
 sensitive paths, raw private configuration, non-Markdown files, and work
 outside the current agent session.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/md-compress begin <absolute-markdown-path> # guard one Markdown source before editing
+/md-compress finalize <absolute-markdown-path> # validate protected tokens and close the guard
+```
+
+The unannotated grammar is:
+
+```text
+/md-compress begin <absolute-markdown-path>
+/md-compress finalize <absolute-markdown-path>
+```
+
+Run `begin` before editing one eligible Markdown source, edit only the returned
+source, then run the exact returned `finalize` action.
+
+## 3. Immutable Operational Rules
 
 - Begin the guard before editing and use only the returned source path and exact
   finalize action. Do not start another transaction for the same source.
@@ -25,7 +43,7 @@ outside the current agent session.
 - Stop on guard or finalization failure and retain the backup/lock for repair;
   do not manually remove temporary files.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** One absolute eligible durable Markdown path.
 - **Optional:** A caller-supplied compression-session packet that already owns
@@ -35,7 +53,12 @@ outside the current agent session.
 - **Unknowns:** Sensitive, missing, ineligible, changed-session, or externally
   modified paths are explicit stops. The source is never guessed.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+eligible source -> begin guard -> protected edit -> exact finalize
+                -> token validation -> done receipt or preserved recovery
+```
 
 1. **Intake:** Validate the absolute path and eligibility. In a direct call,
    begin the protected transaction; with a valid caller packet, honor its
@@ -54,11 +77,11 @@ outside the current agent session.
 
 ### Direct transaction contract
 
-| Priority | Context | Preconditions | Exact action | Result and next action |
-| --- | --- | --- | --- | --- |
-| 1 | Direct durable Markdown edit | One eligible absolute path and no caller packet | `bun <agents-root>/scripts/md-compress.ts begin "<absolute-markdown-path>"` | Returns source, backup/lock, and one exact `finalize` action; edit only the returned source. |
-| 2 | Between returned actions | Successful `begin` in this session | Edit only the returned source path | Do not start another transaction or change arguments; run the returned finalize. |
-| 3 | Final validation | The exact action returned by `begin` | `bun <agents-root>/scripts/md-compress.ts finalize "<absolute-markdown-path>"` | Validates protected tokens, removes temp files, and returns `done`. |
+| Command or information | Arguments | When to use | Additional information |
+| --- | --- | --- | --- |
+| `begin` | `<absolute-markdown-path>` | Direct durable Markdown edit with one eligible source and no caller packet | `bun <agents-root>/scripts/md-compress.ts begin "<absolute-markdown-path>"`; returns source, backup/lock, and one exact `finalize` action. |
+| `edit` | `<returned-source-path>` | Between the returned `begin` and `finalize` actions | Do not start another transaction or change arguments; make only the protected edit. |
+| `finalize` | `<absolute-markdown-path>` | Final validation using the exact action returned by `begin` | `bun <agents-root>/scripts/md-compress.ts finalize "<absolute-markdown-path>"`; validates protected tokens, removes temporary files, and returns `done`. |
 
 The script uses the operating system `tmpdir()` and prints the exact temporary
 paths. The backup belongs in the temporary directory, never beside the durable
@@ -78,7 +101,7 @@ bun <agents-root>/scripts/md-compress.ts finalize <markdown-path>
 The direct transaction accepts one eligible `<absolute-markdown-path>` and
 hands off to `/knowledge-base` when a durable KB record is the caller's source.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns a losslessly compressed eligible source and a `done`
 finalization receipt. Protected-token validation and the owner-managed removal
@@ -89,7 +112,7 @@ Failure names the rejected path, guard state, protected-token mismatch, or
 finalization error and preserves recovery state. Do not claim completion while
 the backup/lock remains required for repair.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** `begin` returns one source and exact `finalize`; the source is
   edited in-session and finalization returns `done` after preserving a code

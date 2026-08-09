@@ -1,44 +1,86 @@
-# Universal assistant runtime
+# Universal Assistant Runtime
 
-This portable runtime may be installed at `<project-root>/.agents` for one
-project or at `~/.agents` as a machine-wide fallback. It has the same runtime
-behavior and relative asset layout in either location. A project-local skill
-always takes precedence over the home-directory fallback.
+This policy is the shared root contract for a portable coding-assistant
+runtime. It may be installed at `<project-root>/.agents` for one project or at
+`~/.agents` as the machine-wide fallback. A project-local runtime and skill
+always take precedence over the home-directory fallback.
 
-## Instruction and configuration inheritance
+## 1. Read this first: decision order
 
-`~/.agents/AGENTS.md` is the parent policy for projects using this runtime.
-A project `AGENTS.md` is additive: it may narrow scope or strengthen a
-requirement, but it must not say that it replaces, supersedes, or omits the
-parent policy. Read the parent policy first, then apply project-specific rules;
-when wording conflicts, retain the stricter rule unless the user explicitly
-directs an exception. Every project `AGENTS.md` must state that it extends this
-parent policy near its top.
+Apply these decisions in order before acting:
 
-Tool configuration follows the same direction. A project Biome configuration
-must extend the shared `<agents-root>/biome.jsonc` and may only add stricter
-rules or narrower file scope. Bun's `bunfig.toml` has no native `extends`
-mechanism, so a project must use the shared `<agents-root>/bunfig.toml`
-directly (a symlink is preferred) or pass it explicitly with Bun's `--config`
-option; duplicating it is permitted only when the project proves it is an
-exact synchronized strengthening. Never remove shared coverage or lint/type
-gates to make a project green.
+1. Resolve the active `<agents-root>` and project root.
+2. Read the applicable parent, project, and coding-assistant policies.
+3. Classify the request as read-only analysis/review/reporting or an authorized
+   change/build request.
+4. Select the owning skill or script. Read its `argument-hint`, complete
+   `## 2. Usage`, parser/entrypoint, and any owner-specific command tables.
+5. Gather the smallest sufficient repository and private-context evidence.
+6. Confirm scope, authorization, protected-file boundaries, and the proof needed
+   to close the work.
+7. Make one compatible change batch, run focused checks, then run the configured
+   final gate once.
 
-Do not create `aidx.json` merely to repeat the default final gate. The AIDX
-default is `bun run test`; add `aidx.json` only when the project needs a
-different, explicitly justified final gate. It is a compact JSON object with an
-optional string `finalGate` property. AIDX reads it as data; it is never
-executed as a program.
+The catalog below is a quick-start aid, not an exhaustive list. A missing row
+does not mean a skill is unavailable: inspect the resolved `<agents-root>/skills/`
+directory, project-local skills, and applicable plugin/runtime skills.
 
-Resolve `<agents-root>` by walking up from the current project directory,
-looking for `.agents/`. Use the first one found; if none is found, fall back to
-`~/.agents`. `<project-root>` is always the parent of `<agents-root>`.
+## 2. Scope and authorization
 
-### Immutable `.agents` configuration boundary
+Analysis, explanation, review, diagnosis, and status requests are read-only.
+They authorize inspection and evidence collection, not implementation,
+redesign, deletion, external messages, commits, pushes, or other state changes.
+Do not infer authorization from a diagnostic request.
 
-For every resolved `<project>/.agents` directory, including the global
-`~/.agents` directory, the following files are user-owned configuration and
-policy inputs:
+A request to change or build authorizes only the named systems, files, and
+people in scope. Make the minimum compatible change, preserve unrelated user
+changes, and ask when evidence leaves a material decision unresolved. Do not
+broaden a local repair into cleanup, migration, refactoring, or external
+coordination without explicit scope.
+
+Use this evidence order:
+
+1. Current user request and explicit decisions.
+2. Applicable runtime, project, and coding-assistant policies.
+3. Verified repository/file evidence.
+4. Validated private knowledge.
+5. Clearly labelled assumptions, never hidden defaults.
+
+When a required fact is unknown, state the unknown and stop at the clarification
+or repair boundary. Never fill it with a plausible default.
+
+## 3. Workspace and instruction precedence
+
+Resolve `<agents-root>` by walking upward from the current project directory and
+selecting the first `.agents/` directory; if none exists, use `~/.agents`.
+`<project-root>` is the parent of `<agents-root>`.
+
+Instruction inheritance is additive:
+
+- `~/.agents/AGENTS.md` is the parent policy.
+- `<project-root>/AGENTS.md` may narrow scope or strengthen requirements but
+  must say that it extends the parent; it must not replace or omit it.
+- A coding-assistant-specific `AGENTS.md` follows the same additive rule.
+- Resolve a project-local skill before the global skill with the same name.
+
+Tool configuration follows the same direction. The project policy `extends`
+the shared `<agents-root>/biome.jsonc` configuration and may only strengthen rules or narrow
+file scope. Bun has no native `bunfig.toml` inheritance: use the shared
+`<agents-root>/bunfig.toml` directly, preferably through a symlink, or pass it
+explicitly with Bun's `--config`. Duplicating it requires proof that it is an
+exact synchronized strengthening.
+
+Do not create `aidx.json` merely to repeat the default `bun run test` gate. Add
+it only for a different, explicitly justified project gate. It is compact JSON
+data with an optional string `finalGate`; AIDX reads it and never executes it as
+a program.
+
+## 4. Non-negotiable safety boundaries
+
+### Protected `.agents` configuration
+
+For every resolved `<project>/.agents`, including `~/.agents`, these are
+user-owned configuration and policy inputs:
 
 ```text
 .gitignore
@@ -50,133 +92,222 @@ package.json
 tsconfig.json
 ```
 
-The assistant MUST NOT edit, create, delete, rename, move, format, autofix,
-stage, reset, or otherwise mutate any of these files. This prohibition applies
-even when a lint, type, test, build, hook, or generated-artifact failure would
-be resolved by changing one of them, and even when a broad command such as a
-formatter, linter, package tool, or generated-file tool could change one
-indirectly. Read-only inspection is allowed.
+Never edit, create, delete, rename, move, format, autofix, stage, reset, or
+indirectly mutate these files. Read-only inspection is allowed. If a requested
+solution requires one, show the exact required user action or proposed diff and
+stop. Automated writes under `<project>/.agents` must use an explicit allowlist
+that excludes these paths; never run a whole-directory write or autofix.
 
-If satisfying the user's task requires a change to one of these files, stop
-before making that change, show the exact required user action or proposed
-diff, and ask the user to make it. Do not assume approval from a request to
-fix the surrounding code. All automated writes under `<project>/.agents`
-MUST use an explicit allowlist that excludes these protected paths; never run
-a whole-directory write or autofix that could include them.
+The assistant may update this `AGENTS.md` only when the user explicitly asks
+for an instruction or guardrail change. That exception does not permit changes
+to the protected configuration files.
 
-The assistant may update this `AGENTS.md` policy only when the user explicitly
-requests an instruction or guardrail change; that exception does not permit
-changes to the protected files above.
+### Runtime and reusable-content boundaries
 
-### String-only structured payload boundary
+- MCP tools are unavailable in this runtime. Use the approved skills and their
+  caller-facing wrapper contracts.
+- Reusable guidance uses `<agents-root>`, `<project-root>`,
+  `<repo-search-index>`, and source-relative links. Never embed a concrete
+  username, home directory, machine path, or credential in shared guidance.
+- There is no universal `.agents/references` directory. Never invent or
+  hardcode one.
+- Retired workflow references are not executable routing. Use active skills,
+  current references, and current command contracts.
+- Executable scripts own their implementation by default. Put code in `utils/`
+  only for a genuinely shared production boundary with at least two consumers
+  or an explicitly owned reusable boundary such as the quality engine. Do not
+  add a global `tools/` directory or a wrapper that only relocates one helper.
+- During ordinary work, treat `.agents` as read-only except the documented
+  temporary-intent namespace and explicitly requested exact runtime-asset work.
+
+## 5. Skill routing quick start
+
+Resolve project-local skills first. For every selected skill, read frontmatter
+`argument-hint` for the compact caller/UI shape, then read its complete
+`## 2. Usage` section and any owner-specific command or information tables.
+`argument-hint` is only a hint; the Usage section and owned tables are the
+authoritative grammar and may contain alternate routes, optional arguments, or
+additional boundaries.
+
+| Skill | Quick-start input | Use when |
+| --- | --- | --- |
+| `/aidp` | `<goal-and-concerns>` | An incomplete or complete request needs evidence intake, clarification, and one explicit six-section execution plan handed to `/aidx`. |
+| `/aidx` | `<plan-path-relative-or-absolute>` | One materialized six-section plan needs deterministic execution, delegated ownership, fresh verification, and mapped completion or repair evidence. |
+| `/repo-search` | `<approved-root> <query>` | Repository, symbol, call-path, architecture, or code-text discovery is needed; read Usage for inspection routes and the complete wrapper contract. |
+| `/knowledge-base` | `<operation> <private-kb-root> <scope-or-request>` | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed. |
+| `/biome-tsc-checker` | `<path> [path...]` | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
+| `/bun-test-generator` | `<sut-path> <all\|method-list\|method-range>` | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
+| `/frontend-design` | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>` | A user-facing web UI is created, redesigned, or visually refreshed. |
+| `/react` | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | React or React Native implementation is in scope after design/content inputs are approved. |
+| `/playwright-test-generator` | `<criteria> <project-root> <playwright-runner>` | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. |
+| `/content-writer` | `<objective> <audience> <format> <constraints> <citation-style>` | Research-backed content must be drafted, refreshed, or validated. |
+| `/md-compress` | `begin\|finalize <absolute-markdown-path>` | Durable Markdown needs lossless compression with a verified temporary backup. |
+| `/skill-manager` | `<operation> [arguments]` | Any skill needs to be created, updated, reviewed, renamed, synchronized, optimized, validated, or repaired. |
+
+Skill ownership rules:
+
+- `/skill-manager` owns every skill-package lifecycle request, including
+  frontmatter, resources, matrices, prose/link review, validation, and closure.
+  Read [the owning skill](<agents-root>/skills/skill-manager/SKILL.md>). The
+  reusable path is also `<agents-root>/skills/skill-manager/SKILL.md`.
+- `/repo-search` owns caller-facing repository discovery through its wrapper;
+  do not bypass it with an alternate index or backend. Read [the owning skill](<agents-root>/skills/repo-search/SKILL.md>). The
+  reusable path is also `<agents-root>/skills/repo-search/SKILL.md`.
+- `/knowledge-base` alone owns the configured private-KB root and its lifecycle.
+  Read [the owning skill](<agents-root>/skills/knowledge-base/SKILL.md>). The
+  reusable path is also `<agents-root>/skills/knowledge-base/SKILL.md`.
+- `/bun-test-generator` owns every JavaScript/TypeScript test addition,
+  conversion, repair, rename, or deletion before the test is touched.
+- `/playwright-test-generator` owns retained browser acceptance coverage and
+  does not replace unit coverage or modify global dependencies.
+
+## 6. Evidence, discovery, and context
+
+For every nontrivial workflow, use `/knowledge-base` for durable prior context
+and lesson capture. Use `/repo-search` for repository files, symbols, call
+paths, and code text through its complete wrapper contract. Do not read whole
+files when a targeted discovery or inspection receipt answers the question;
+read policy, owner, and contract files fully when they define the boundary.
+
+Repository evidence establishes what exists and how it flows. Private knowledge
+supplies business intent, terminology, ownership, and precedent. Record facts,
+receipts, evidence limits, conflicts, and unresolved decisions before asking a
+question or making a plan.
+
+Batch independent reads and distinct checks when safe, but never run the same
+checker, command, query, or final gate concurrently. Reject duplicate
+normalized queries in every batch API. For AIDX, use one `advance-batch` request
+for consecutive prepared non-gated transitions; use an individual transition
+when the state contract requires a user gate, test receipt, repair receipt, or
+other non-batchable event.
+
+### AIDP and AIDX boundary
+
+Use AIDP for clarification, evidence intake, and one approved six-section plan:
+`Role`, `Objective`, `Core Directives`, `Execution Steps`, `Constraints`, and
+`Inputs to Process`. Use AIDX in fresh context for deterministic construction,
+delegation, verification, repair/re-plan behavior, and one final gate. AIDX
+accepts the absolute or relative plan path defined by its own Usage contract;
+do not parse or reinterpret the plan in the caller.
+
+## 7. Coding and test changes
+
+- Make the minimum change satisfying the verified behavior. Reuse existing
+  code, types, patterns, configuration, and test helpers before adding an
+  abstraction. Remove code, tests, configuration, documentation, or references
+  made dead by the change.
+- Do not remove pre-existing dead code on assumption. Report evidence and ask
+  whether to include separate cleanup.
+- Before changing shared production code, a canonical shared test, or a shared
+  mock registration, build a bounded impact map with `/repo-search`: direct
+  importers/callers, public consumers, same-process tests, compatibility risks,
+  and focused proof for each risk. If the map cannot be established, stop.
+- Never add an unbounded top-level `mock.module()` to a shared Bun suite. Bun
+  mocks can persist across test files in one process; prove compatibility for
+  every same-process consumer, or use test-local injection/an isolated boundary.
+- For every JavaScript/TypeScript test change, invoke `/bun-test-generator`
+  first, use the real SUT, mock every external boundary, run
+  `validate-boundaries`, and then use `/biome-tsc-checker` on selected paths. A
+  passing test, coverage result, or skill validation cannot substitute for the
+  required generator receipt. Do not use `mock.restore()` as proof that a
+  shared same-process mock is isolated.
+- For retained browser acceptance coverage, invoke
+  `/playwright-test-generator` with the selected project's local runner.
+
+Use a failure-first repair loop for multi-lane work: run one baseline discovery
+or validation pass, collect independent failures, apply compatible repairs as
+one batch, run focused checks, and run the final gate once. Keep a concise
+command/result/next-action ledger. Never rerun an unchanged full gate after
+each individual fix.
+
+## 8. Command, script, and structured-data contracts
+
+Before invoking any script or skill command, read its owning command catalog and
+parser/entrypoint. Bundled `scripts/` own repeated or fragile operations;
+inspect `--help` only when the owning skill does not already provide the
+contract. Verify exact arity, positional meanings, transport type
+(path, inline string, or temporary request file), and JSON schema. Validate the
+request with the owner parser before any side effect. A rejected invocation is
+a command-contract defect to repair, not evidence and not a reason to repeat
+the same malformed command.
+
+### String-only JSON boundary
 
 When a tool or script accepts a string containing JSON, pass a string, never an
-object. For any backtick-, dollar-, quote-, or newline-rich JSON that must be
+object. For backtick-, dollar-, quote-, or newline-rich JSON that must be
 written to disk, use the shared TypeScript writer:
 
 ```text
 cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
 ```
 
-This pipe form is mandatory in this runtime. Use two separate commands: first
-run `mktemp` alone and retain the absolute output path it prints; then create
-the request source file through the approved file editor and run the exact
+Run `mktemp` alone first and retain the absolute output path it prints. Create
+the request source through the approved file editor, then run the exact writer
+pipe. Do not use a heredoc, shell redirection, shell variables, command
+substitution, guessed temp path such as `/tmp` or `/private/tmp`, object-valued
+tool call, Python, or `JSON.stringify(request)` fallback. Pass JSON as string
+`content` through the writer. The writer reads stdin, validates JSON, pretty-prints
+it, and permits only an output path inside the operating system temp directory.
+After materialization succeeds, invoke the owning command separately with the
+same literal path.
+
+The exact writer command contract is preserved as:
 `cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts
-<absolute-json-output-path>` command. Do not use a heredoc, shell redirection,
-shell variables, command substitution, or backtick command substitution. Do
-not guess `/tmp`, `/private/tmp`, or a platform-specific path: the writer
-accepts only the actual operating system `os.tmpdir()`. After materialization
-succeeds, invoke the owning command separately with the same literal output
-path.
+<absolute-json-output-path>`
 
-Use exactly one absolute output-path argument; the writer reads JSON from
-stdin, validates it before writing, pretty-prints it, and permits only output
-paths inside `os.tmpdir()`. Never put backtick-rich JSON in a double-quoted
-shell argument, pass an object to a string-only `content` field, or improvise a
-Python/inline writer. For JSON file materialization, invoke `write-json.ts`
-directly through the mandatory pipe and bypass the built-in write tool; there is no
-`JSON.stringify(request)` tool-call fallback. The owning skill determines the
-`request` schema and lifecycle; the request itself still follows that owner's
-schema.
+The writer entrypoint remains `write-json.ts`; the owning skill determines the
+`request` schema and lifecycle, and the `request` itself follows that owner's
+contract.
 
-Reusable instructions and examples must use `<agents-root>`, `<project-root>`,
-`<cbm-index>`, or source-relative Markdown links. Never embed a concrete home
-directory, username, machine path, or other user-specific value in reusable
-guidance.
+### Temporary paths
 
-Retired AIDLC references are preserved here as historical evidence only and
-are not executable routing: `<agents-root>/skills/aidlc/SKILL.md`,
-`aidlc/<cbm-index>/intents/<id>.md`, `/aidlc`, `<intent-summary>`, `[--ui]`,
-`[--initial-record '<stage-outcomes-json>']`, `utils/aidlc/command-contract.ts`,
-and `start`.
+Every temporary path must be printed by standalone `mktemp` or derived from
+`os.tmpdir()` evidence. Never guess a platform temp path, reuse a placeholder,
+or create multiple temp directories for one workflow when one OS temp directory
+with distinct files is sufficient.
 
-- Use `<agents-root>/skills/skill-manager/SKILL.md` for every skill creation,
-  update, rename, synchronization, review, optimization, or repair request.
-  Skill Manager owns the deterministic scaffold, frontmatter validation,
-  prose/link review, quality matrix, and closeout; do not route skill package
-  work through another skill.
-- Use `<agents-root>/skills/repo-search/SKILL.md` for caller-facing code
-  discovery; repo-search owns the complete repository-search contract and uses
-  the installed CBM CLI backend through its wrapper. Use
-  `<agents-root>/skills/knowledge-base/SKILL.md` for private knowledge stored
-  outside the runtime at the configured private-KB root. Do not bypass either
-  owner with independent discovery calls.
-- Universal executable scripts live in `scripts/`; reusable TypeScript lives in
-  `utils/`. Do not add a global `tools/` directory or platform-specific hooks.
-- During ordinary work, treat all of `.agents` as read-only except that one
-  temporary-intent namespace. Do not edit, create, delete, or move runtime
-  assets. The user must explicitly request an exact runtime asset change; the
-  canonical boundary is in `aidlc/protocols/runtime.md`.
+## 9. Validation, gates, and closeout
 
-## Skill catalog
+After the complete implementation batch:
 
-Resolve a project-local skill before this global catalog. Invoke a skill when
-its selection rule applies; do not probe its scripts with `--help` when the
-skill already supplies the command contract.
+1. Run the focused checks for changed behavior and affected boundaries.
+2. Run the selected project final gate exactly once.
+3. If it fails, collect all compatible repairs, apply them as one repair batch,
+   and run the same final gate exactly once again.
 
-| Skill | Required input | Use when |
-| --- | --- | --- |
-| `/aidx` | `<goal-and-concerns>` or `resume <goal-id>` or `status <goal-id>` | An explicit goal needs the question, approved-plan, implementation, test, repair, lesson, and resumable AIDX lane. AIDX is LLM-triggered and does not use the AIDLC route. |
-| `/repo-search` | `<approved-root>` `<cbm-index>` `<query>` or `<approved-root>` `<inspection-request-jsonl-path>`; read its command catalog first. | Any code, symbol, call-path, architecture, or code-text discovery is needed; repo-search owns the complete repository-search command contract and uses the installed CBM CLI backend through its wrapper. |
-| `/knowledge-base` | `<private-kb-root>` plus selected catalog inputs; reconciliation uses `<absolute-request-path>`. | A private-KB decision, policy, prior lesson, capture, reconciliation, or validation of an OKF-formatted concept is needed. Do not use standalone reconciliation inside an AIDLC closeout. |
-| `/biome-tsc-checker` | `<path>` (one or more). | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks. |
-| `/bun-test-generator` | `<sut-path>` `<all \| method-list \| method-range>`. | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted. |
-| `/frontend-design` | `<ui-brief>` `<affected-screens>` `<design-system>` `<acceptance-criteria>`. | A user-facing web UI is created, redesigned, or visually refreshed. Define intentional, accessible, responsive UI behavior before implementation. |
-| `/react` | `<react-or-react-native-scope>` `<approved-design>` `<acceptance-criteria>`. | React or React Native implementation is in scope. Apply the shared implementation contract after design and finalized UI content are available. |
-| `/playwright-test-generator` | `<criteria>` `<project-root>` `<playwright-runner>`. | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests. Never use MCP, browser extensions, implicit installs, or global dependencies. |
-| `/content-writer` | `<objective>` `<audience>` `<format>` `<constraints>` `<citation-style>`. | Research-backed content must be drafted, refreshed, or validated. |
-| `/md-compress` | `begin <markdown-path>` then returned `finalize <markdown-path>`. | Durable Markdown needs lossless compression with a verified temporary backup. |
-| `/skill-manager` | `init <absolute-skill-path> <description>`, `validate <absolute-skill-path>`, or the selected review/evaluation command; read its command catalog first. | Any skill, including AIDX and legacy skills, needs to be created, updated, reviewed, renamed, synchronized, optimized, or validated. |
+The final gate is the project-approved `finalGate` in `aidx.json`, otherwise
+`.agents`'s `bun run test`, otherwise `bun run test`. All required checks in
+the selected gate must pass; a matrix score, unit subset, coverage result,
+intention, or partial green receipt never closes the work.
 
-`/knowledge-base` alone owns the private-KB root. `/repo-search` owns the
-caller-facing discovery workflow and complete repository-search command
-contract; the installed CBM CLI is invoked only through its wrapper. The
-arguments above are selection inputs, not executable grammar. Read the
-selected skill’s canonical command catalog before running a command.
+Closeout reports exact changed files, commands and results, validation/resource/
+link findings, owner receipts, limitations, and remaining follow-up. Preserve a
+resumable record when work spans turns. Capture durable lessons only when they
+are specific, verified, and owned by the knowledge base.
 
-### Repo-search command catalog
+## Appendix A: repo-search command catalog
 
 The caller-facing wrapper is:
 
 ```bash
-bun <agents-root>/scripts/repo-search.ts discover "<approved-root>" "<cbm-index>" "<query>"
+bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"
 bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"
 ```
 
 | Command or information | Arguments | When to use | Additional information |
 | --- | --- | --- | --- |
-| `list-projects` | `—` | Resolve approved roots and matching indexes | Returns the project list; select by explicit indexed root. |
-| `index-status` | `<cbm-index>` | Check readiness before a read | If not ready, follow the repo-search indexing boundary and receipt. |
-| `architecture` | `<cbm-index>` | Read indexed architecture | Returns one wrapper-owned architecture result. |
-| `schema` | `<cbm-index>` | Verify graph identity fields | Use before relying on a newly observed identity field. |
-| `snippet` | `<cbm-index>` `<qualified-name>` | Read one indexed code snippet | Use the smallest returned fragment needed for the decision. |
-| `search-graph` | `<cbm-index>` `<query>` `<positive-limit>` | Search graph nodes | A match requires normalized identity-field evidence. |
-| `search-code` | `<cbm-index>` `<literal-pattern>` `<positive-limit>` | Search indexed code text | Use after graph search or as a declared inspection operation. |
-| `query` | `<cbm-index>` `<graph-query>` `<positive-limit>` | Run a bounded graph query | Keep the query narrow and record the receipt. |
-| `trace` | `<cbm-index>` `<qualified-name>` `<inbound\|outbound>` `<positive-depth>` | Trace callers or callees | Direction is restricted to `inbound` or `outbound`. |
-| `discover` | `<approved-root>` `<cbm-index>` `<query>` | One code, symbol, call-path, architecture, or literal-text question | Returns one ordered CBM-first receipt; read every attempt and do not rerun a listed attempt. |
-| `inspect` | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>` | Several independent reads for one decision | Returns one resolved index, readiness result, and one ordered receipt per read. |
-| `inspection JSONL` | `architecture(path)`, `schema`, `search-graph(namePattern,label,limit)`, `snippet(qualifiedName)`, `trace(qualifiedName,direction,depth)`, `search-code(pattern,limit)` | Batch independent reads | Request file must be under the operating-system temporary directory. |
+| `list-projects` | `—` | Resolve approved roots and matching indexes | Select by explicit indexed root. |
+| `index-status` | `<repo-search-index>` | Check readiness before a read | Follow the indexing boundary and receipt if not ready. |
+| `architecture` | `<repo-search-index>` | Read indexed architecture | Returns one wrapper-owned result. |
+| `schema` | `<repo-search-index>` | Verify graph identity fields | Use before relying on a newly observed identity field. |
+| `snippet` | `<repo-search-index>` `<qualified-name>` | Read one indexed code snippet | Request the smallest fragment needed. |
+| `search-graph` | `<repo-search-index>` `<query>` `<positive-limit>` | Search graph nodes | A match requires normalized identity-field evidence. |
+| `search-code` | `<repo-search-index>` `<literal-pattern>` `<positive-limit>` | Search indexed code text | Use after graph search or as a declared inspection operation. |
+| `query` | `<repo-search-index>` `<graph-query>` `<positive-limit>` | Run a bounded graph query | Keep the query narrow and record the receipt. |
+| `trace` | `<repo-search-index>` `<qualified-name>` `<inbound\|outbound>` `<positive-depth>` | Trace callers or callees | Direction is restricted to `inbound` or `outbound`. |
+| `discover` | `<approved-root>` `[repo-search-index]` `<query>` | Any code, symbol, call-path, architecture, or literal-text question | Path-only works without an index; indexed form tries graph/code search, then returns one fallback receipt. |
+| `inspect` | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>` | Several independent reads for one decision | Returns one resolved index, readiness result, and ordered receipt per read. |
+| `inspection JSONL` | `architecture(path)`, `schema`, `search-graph(namePattern,label,limit)`, `snippet(qualifiedName)`, `trace(qualifiedName,direction,depth)`, `search-code(pattern,limit)` | Batch independent reads | The request file must be under the operating-system temp directory. |
 
 Inspection JSONL operations:
 
@@ -189,78 +320,7 @@ Inspection JSONL operations:
 {"operation":"search-code","pattern":"<literal-pattern>","limit":<positive-integer>}
 ```
 
-In this runtime, `OKF` means Open Knowledge Format: the Markdown/frontmatter
-record format and indexing convention used by the private KB. It describes how
-knowledge is represented, not what the knowledge is about; the knowledge-base
-skill owns that lifecycle and distinction.
-
-Private KB data is independent of the selected `<agents-root>`. The
-`/knowledge-base` skill resolves one configured central private-KB root; neither
-a project-local runtime nor the home-directory runtime may select or override
-it.
-
-## Code changes
-
-This policy applies to every code-related change, whether or not AIDLC is in
-use.
-
-- Make the minimum change that satisfies the verified requested behavior; do
-  not broaden the patch for nearby cleanup, refactoring, or style preference.
-- Reuse existing project code, types, patterns, configuration, and test helpers
-  when they fit the requested behavior. Add a new abstraction only when the
-  verified extension point cannot support it clearly.
-- Remove code, tests, configuration, documentation, and references made dead
-  by this change. Do not leave duplicate implementations, obsolete branches,
-  unreachable paths, or stale commands behind.
-- Do not remove pre-existing dead code that this change did not create or
-  replace on assumption. Report the exact evidence and ask the user whether to
-  include that separate cleanup.
-- Before changing shared production code, a canonical shared test, or a
-  shared mock registration, build a bounded impact map with
-  `/repo-search` through its complete repository-search contract and installed CBM CLI backend: direct importers and call sites, public command
-  consumers, tests loaded by the same command/process, and compatibility or
-  contamination risks. Record the affected consumers and the focused checks
-  that cover each risk before editing. If the map cannot be established from
-  repository evidence, stop before the mutation and ask for direction.
-- A shared Bun suite must never receive an unbounded top-level `mock.module()`
-  change. Bun module mocks can persist across test files in one process, so
-  identify every same-process consumer first and prove that the mock is
-  compatible with all of them. Prefer test-local dependency injection or an
-  isolated process/module boundary; do not assume `mock.restore()` or test
-  file boundaries undo module registration. If safe isolation is not proven,
-  do not change the shared harness.
-- Before invoking any script or skill command, read its owning command catalog
-  and parser/entrypoint, then verify the exact arity, positional meanings,
-  transport type (path, inline string, or temporary request file), and JSON
-  schema. Validate the request with the owning parser before a side effect.
-  Treat a rejected invocation as a command-contract defect to repair, not as
-  evidence and not as a reason to repeat the same malformed command.
-- Use a failure-first repair loop for multi-lane work: run one baseline
-  discovery/validation pass, collect all independent failures, apply compatible
-  repairs as one batch, run focused checks for that batch, and run the final
-  gate once. Keep a short command/result/next-action ledger. Never rerun the
-  full gate after each individual fix or repeat an unchanged command whose
-  contract and inputs have not changed.
-- For every JavaScript or TypeScript test addition, conversion, repair, rename,
-  or deletion, invoke `/bun-test-generator` before touching the test. Record
-  its invocation and behavior-matrix receipt, run `validate-boundaries` against
-  the real SUT and test source, mock every external boundary while keeping the
-  selected SUT real, then use `/biome-tsc-checker` for selected paths. A passing
-  test, coverage, or all-skill validation result cannot substitute for the
-  generator receipt; missing receipt evidence blocks completion. The one
-  configured final gate remains the only final decision.
-- For retained browser acceptance coverage, invoke `/playwright-test-generator`
-  instead. It uses the selected project's local Playwright runner and does not
-  replace unit coverage or modify global dependencies.
-
-## Non-negotiable execution guardrails
-
-For every nontrivial workflow, invoke `/knowledge-base` for durable prior context and lesson capture. Use `/repo-search` as the caller-facing primary authority for repository files, symbols, call paths, and code text through its complete repository-search contract and installed CBM CLI backend. Do not read whole files when a targeted discovery or inspection receipt answers the question. There is no universal `.agents/references` directory: never invent or hardcode one. Before any code edit, collect the smallest sufficient CBM/KB receipts.
-
-Batch independent reads and distinct checks when they are safe, but never run the same checker, command, query, or final gate concurrently. Reject duplicate normalized queries in every batch API. For AIDX, use one `advance-batch` request for consecutive prepared non-gated transitions; issue an individual transition only when the state contract requires a user gate, test receipt, repair receipt, or other non-batchable event.
-
-All temporary paths must be printed by a standalone `mktemp` command or derived from `os.tmpdir()` evidence. Never guess a platform temp path, reuse a placeholder path, or create multiple temp directories for one workflow when one OS temp directory and distinct files are sufficient. After a complete implementation batch, run the configured final gate exactly once. If it fails, make all compatible repairs together and run that final gate exactly once for the repair batch.
-
-## JSON materialization fallback
-
-The canonical JSON writer always receives exactly one absolute output path that was printed by standalone mktemp or proven under os.tmpdir(). Send the JSON as text through the writer stdin. If the shell heredoc form is rejected by the runtime, keep the same writer and path, open one bounded stdin session, write the JSON text, and close stdin; do not switch to an object-valued tool call, Python, a guessed path, or JSON.stringify inside the command. Use escaped Unicode for backticks and dollar signs inside JSON strings, and verify the writer receipt before the next command.
+`OKF` means Open Knowledge Format: the Markdown/frontmatter representation and
+indexing convention used by the private KB. It describes how knowledge is
+represented, not what the knowledge is about. The private-KB root is independent
+of `<agents-root>` and cannot be selected or overridden by a project runtime.

@@ -1,13 +1,76 @@
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import type { FileSystem } from '../utils/filesystem.js';
 import { nodeFileSystem, writeText } from '../utils/filesystem.js';
-import { type WriteJsonDependencies, writeJson } from '../utils/write-json.js';
+
+export interface JsonPathApi {
+  readonly isAbsolute: (path: string) => boolean;
+  readonly relative: (from: string, to: string) => string;
+  readonly resolve: (...paths: readonly string[]) => string;
+}
 
 export interface WriteJsonCliDependencies extends WriteJsonDependencies {
   readonly readInput: () => Promise<string>;
 }
 
+export interface WriteJsonDependencies {
+  readonly fileSystem: FileSystem;
+  readonly pathApi: JsonPathApi;
+  readonly temporaryRoot: string;
+  readonly writeText: (
+    fileSystem: FileSystem,
+    path: string,
+    content: string,
+  ) => Promise<void>;
+}
+
+type WriteJsonRunner = typeof run;
+
+const isWithinRoot = (
+  pathApi: JsonPathApi,
+  root: string,
+  candidate: string,
+): boolean => {
+  const relative = pathApi.relative(root, candidate);
+  return (
+    relative === '' ||
+    (!relative.startsWith('..') && !pathApi.isAbsolute(relative))
+  );
+};
+
 const readStdin = async (): Promise<string> => new Response(Bun.stdin).text();
+
+export const writeJson = async (
+  outputPath: string,
+  input: string,
+  dependencies: WriteJsonDependencies,
+): Promise<void> => {
+  const { pathApi, temporaryRoot } = dependencies;
+  if (!pathApi.isAbsolute(outputPath)) {
+    throw new Error('JSON output path must be absolute.');
+  }
+
+  const resolvedRoot = pathApi.resolve(temporaryRoot);
+  const resolvedOutput = pathApi.resolve(outputPath);
+  if (!isWithinRoot(pathApi, resolvedRoot, resolvedOutput)) {
+    throw new Error(
+      'JSON output path must be inside the operating-system temporary directory.',
+    );
+  }
+
+  let value: unknown;
+  try {
+    value = JSON.parse(input);
+  } catch {
+    throw new Error('JSON input is invalid; no file was written.');
+  }
+
+  await dependencies.writeText(
+    dependencies.fileSystem,
+    resolvedOutput,
+    `${JSON.stringify(value, null, 2)}\n`,
+  );
+};
 
 const defaultDependencies: WriteJsonCliDependencies = {
   fileSystem: nodeFileSystem,
@@ -29,9 +92,26 @@ export const run = async (
   await writeJson(args[0], await dependencies.readInput(), dependencies);
 };
 
-if (import.meta.main) {
-  run(Bun.argv.slice(2)).catch((error: unknown) => {
+const defaultWriteJsonRunner: WriteJsonRunner = run;
+
+export const processExit = {
+  setExitCode: (
+    code: number,
+    target: { exitCode?: number | string | null } = process,
+  ): void => {
+    target.exitCode = code;
+  },
+};
+
+export const runCli = async (
+  args: readonly string[],
+  runner: WriteJsonRunner = defaultWriteJsonRunner,
+  setExitCode: (code: number) => void = (code) => processExit.setExitCode(code),
+): Promise<void> => {
+  await runner(args).catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : String(error));
-    process.exitCode = 1;
+    setExitCode(1);
   });
-}
+};
+
+void (import.meta.main ? runCli(Bun.argv.slice(2)) : undefined);

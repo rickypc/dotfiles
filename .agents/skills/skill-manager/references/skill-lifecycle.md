@@ -1,8 +1,11 @@
 # Skill lifecycle method
 
 This reference is the reusable method for creating or changing any skill. It
-does not create a second router; the command catalog remains in the parent
-`SKILL.md` and the scripts remain its executable owner.
+does not create a second router; Usage in the parent `SKILL.md` owns the
+canonical invocation grammar and the scripts remain its executable owner.
+Domain-specific command or information tables may live under another owning
+section when they document a delegated route rather than a second invocation
+catalog.
 
 ## 1. Understand the request
 
@@ -10,12 +13,14 @@ Capture concrete examples of requests that should trigger the skill and
 examples that should not. Record the expected outcome, user-facing language,
 runtime location, constraints, delegated capabilities, and proof of success.
 Ask only questions whose answers change the trigger, scope, ownership, safety,
-or validation boundary.
+or validation boundary. For description work, keep a fixed mixed train/
+validation split of realistic positive and near-miss negative prompts; run each
+prompt repeatedly where supported and use only train failures to guide edits.
 
 ## 2. Inspect the package and consumers
 
 For an existing skill, read `SKILL.md`, linked references, scripts, tests,
-folder maps, and applicable runtime adapters. Inventory local consumers and
+folder maps, and applicable project or coding-assistant policies. Inventory local consumers and
 existing user changes. Separate observed behavior, requested change, inference,
 and unknowns. For a new skill, inspect neighboring skills for conventions but
 do not copy their unrelated routers or provider metadata.
@@ -43,9 +48,23 @@ consumers in the same change. The frontmatter must contain `name` matching the
 directory and a precise `description` with both the job and trigger conditions.
 
 Keep one owner for each command, information source, and completion decision.
-Use placeholders such as `<runtime-home>` and `<agents-root>` in reusable
-guidance. Materialize concrete paths only in runtime adapters or task-local
-records.
+Use placeholders such as `<project>`, `<coding-assistant>`, and `<agents-root>`
+in reusable guidance. Materialize concrete paths only in local project or
+coding-assistant policies and task-local records.
+
+Usage owns the skill's invocation grammar. When a skill documents downstream
+command options outside `Usage`, preserve the owner boundary with exactly four
+columns: `Command or information` | `Arguments` | `When to use` |
+`Additional information`. Keep one route per row and use the final column for
+receipts, fallbacks, restrictions, or owner-specific details. Reviewers must
+reject a duplicated invocation catalog but retain a necessary owner-specific
+table.
+
+Every package must expose seven top-level sections in order: Role & Scope,
+Usage, Immutable Operational Rules, Input & Context Schema, Ordered Execution
+Chain, Output & Completion Contract, and Evaluation Anchors. Usage owns the
+canonical invocation and argument contract. Ordered Execution Chain begins
+with a compact plain-text diagram, followed by the explanatory steps.
 
 ## 5. Freeze quality before judging the candidate
 
@@ -78,7 +97,8 @@ add a targeted counter before the next REFACTOR pass.
 
 Run the Skill Manager `validate` command, then `review` the skill and every
 declared static root. Check frontmatter, naming, local links, scope, maps,
-duplicate routers, stale references, and ignored runtime boundaries. Run
+duplicate invocation routers, owner-specific option-table shape, stale
+references, and ignored runtime boundaries. Run
 `/md-compress` begin/finalize for each durable Markdown file before/after prose
 editing. Run the owning project tests, type checks, and lint checks.
 
@@ -86,10 +106,13 @@ For a complex or high-risk skill, forward-test from a clean context with a
 realistic user request. Supply raw artifacts, not the intended answer. Check
 that the skill asks the right questions, uses the right owner, preserves scope,
 emits the expected artifacts, and reaches a verifiable result without leaked
-authoring context. Read every flagged output; template echoes and quoted
-counterexamples are not behavioral failures. Treat inconsistent outputs across
-replications as a wording defect requiring a tighter form, not as permission
-to add untested prose.
+authoring context. For output evals, retain with-skill and without-skill (or
+prior-version) outputs, timing/token data, assertion-level evidence, aggregate
+pass-rate and variance, and human feedback. Read every flagged output; template
+echoes and quoted counterexamples are not behavioral failures. Remove weak
+assertions and inspect always-pass, always-fail, flaky, and time/token-outlier
+cases. Treat inconsistent outputs across replications as a wording defect
+requiring a tighter form, not as permission to add untested prose.
 
 ## 7. Close out
 

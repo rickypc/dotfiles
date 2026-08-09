@@ -1,6 +1,7 @@
 ---
 name: knowledge-base
 description: Retrieve, capture, validate, and distill durable knowledge stored in the Open Knowledge Format (OKF).
+argument-hint: "<operation> <private-kb-root> <scope-or-request>"
 ---
 
 # Knowledge Base
@@ -19,12 +20,27 @@ or completed-plan import. It returns validated knowledge or deterministic
 receipts; it does not let runtime instructions override the configured root,
 create an index, infer semantic ownership, or preserve speculation.
 
-## 2. Immutable Operational Rules
+## 2. Usage
 
-- Use the configured KB root and supplied CBM indexes as authoritative. Keep
+```text
+/knowledge-base <operation> <private-kb-root> <scope-or-request> # retrieve, validate, or distill private KB knowledge
+```
+
+The unannotated grammar is:
+
+```text
+/knowledge-base <operation> <private-kb-root> <scope-or-request>
+```
+
+Required: the configured private-KB root and the operation-specific scope or
+request path. Use the command catalog for exact JSON/request-file forms.
+
+## 3. Immutable Operational Rules
+
+- Use the configured KB root and supplied repo-search indexes as authoritative. Keep
   retrieval read-only; **Never store raw chat**, secrets, speculation, or logs.
 - Concept paths match
-  `^(<cbm-index>|shared)/<subject>/<concept>\.md$`. Every root and subject
+  `^(<repo-search-index>|shared)/<subject>/<concept>\.md$`. Every root and subject
   directory has `index.md`; every concept has required frontmatter `type`,
   `title`, `description`, and `tags` plus source and verification evidence.
 - Do not create a new concept when an existing matching concept can be safely
@@ -39,14 +55,14 @@ create an index, infer semantic ownership, or preserve speculation.
 - Atomic `approve --context` is the normal lifecycle route. Use context
   resolution only for recovery and follow exactly the returned lifecycle action.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
-- **Required:** Configured private-KB root plus selected `<cbm-index>`/`shared`
+- **Required:** Configured private-KB root plus selected `<repo-search-index>`/`shared`
   scope and query, or an approved absolute request path; plan import takes one
   completed six-section plan path.
 - **Optional:** One to four distinct batch queries, related-concept candidates,
   or a guarded reconciliation packet. Duplicate normalized queries are invalid.
-- **Context:** Validated OKF metadata/index records, source evidence, CBM
+- **Context:** Validated OKF metadata/index records, source evidence, repo-search
   readiness, current concept contents, ownership dispositions, and returned
   write receipts.
 - **Unknowns:** Missing/stale index, conflicting facts, invalid metadata,
@@ -54,12 +70,17 @@ create an index, infer semantic ownership, or preserve speculation.
   requires a stop. Ask the user to create/refresh the named index or decide
   ownership; do not infer.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+root and scope -> retrieve evidence -> choose disposition -> guarded write
+                -> OKF validation -> receipt and handoff
+```
 
 1. **Intake:** Resolve the configured root, selected index, request schema, and
    ownership boundary. Retrieve context at the point it can change a decision.
 2. **Retrieve:** Use validated concept records, the combined search command,
-   or `related` to find current candidates. CBM is read-only discovery for the
+   or `related` to find current candidates. repo-search is read-only discovery for the
    KB; it never creates or rebuilds an index.
 3. **Decide:** For each atomic lesson, choose one explicit disposition:
    `new-primary` when no concept owns it, `update-existing` when one does, or
@@ -122,24 +143,24 @@ The generic request shape is:
 
 ```json
 {
-  "canonicalPath": "<cbm-index-or-shared>/<subject-a>/<concept-a>.md",
+  "canonicalPath": "<repo-search-index-or-shared>/<subject-a>/<concept-a>.md",
   "links": [
     {
-      "from": "<cbm-index-or-shared>/<subject-a>/<concept-a>.md",
-      "to": "<cbm-index-or-shared>/<subject-b>/<concept-b>.md"
+      "from": "<repo-search-index-or-shared>/<subject-a>/<concept-a>.md",
+      "to": "<repo-search-index-or-shared>/<subject-b>/<concept-b>.md"
     }
   ],
   "operations": [
     {
       "disposition": "new-primary",
-      "relativePath": "<cbm-index-or-shared>/<subject-a>/<concept-a>.md",
+      "relativePath": "<repo-search-index-or-shared>/<subject-a>/<concept-a>.md",
       "metadata": {
         "type": "<pattern|lesson|incident|reference|plan|preference|practice>",
         "title": "<concise title>",
         "description": "<one-line description for search discoverability>",
         "tags": ["<tag-one>", "<tag-two>"]
       },
-      "body": "## Context\n\n<observed-situation>\n\n## Action\n\n<durable-fix>\n\n## Evidence\n\n- Source: <factual-source-path-or-event>\n- Verification: <observed-test-command-or-state>\n- Related concept: [Related concept](<cbm-index-or-shared>/<subject-b>/<concept-b>.md).",
+      "body": "## Context\n\n<observed-situation>\n\n## Action\n\n<durable-fix>\n\n## Evidence\n\n- Source: <factual-source-path-or-event>\n- Verification: <observed-test-command-or-state>\n- Related concept: [Related concept](<repo-search-index-or-shared>/<subject-b>/<concept-b>.md).",
       "evidence": "<factual-capture-evidence-one-sentence>"
     }
   ]
@@ -166,37 +187,37 @@ is `reconcile`. The exact string-only writer action is
 The path contracts remain explicit:
 
 ```text
-<private-kb-root>/(<cbm-index>|shared)/<subject>/<concept>.md
+<private-kb-root>/(<repo-search-index>|shared)/<subject>/<concept>.md
 ```
 
 ```text
 shared/organization/<concept>.md
 shared/team/<concept>.md
-<cbm-index>/<subject>/<concept>.md
+<repo-search-index>/<subject>/<concept>.md
 ```
 
 Do not use `rg` as a private-KB authority, and do not use `/knowledge-base` or
 `/repo-search` to bypass this skill's root/index ownership. Organization,
 team, and project records retain their `ALWAYS`/`NEVER` precedence.
 
-| Operation | When to use | Command | Result |
+| Command or information | Arguments | When to use | Additional information |
 | --- | --- | --- | --- |
-| Import plan | A completed AIDX plan must become durable knowledge. | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>` | Validated OKF plan concept, updated indexes, and write receipt; preserve the source plan. |
-| Find related concepts | Before a distillation decision. | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"` | Validated candidates; choose one explicit disposition. |
-| Reconcile | An approved multi-concept plan is complete. | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"` | Deterministic writes and index receipts; then guard every changed concept. |
+| `import-plan` | `<relative-or-absolute-plan-path>` | A completed AIDX plan must become durable knowledge | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>`; preserve the source plan after the validated OKF write. |
+| `related` | `<private-kb-root> <query>` | Before a distillation decision | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"`; choose one explicit disposition. |
+| `reconcile` | `<private-kb-root> <absolute-reconciliation-request-path>` | An approved multi-concept plan is complete | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"`; then guard every changed concept. |
 
 ### Search and batch retrieval
 
-For one keyword search, use the combined command; it performs **CBM discovery
+For one keyword search, use the combined command; it performs **repo-search discovery
 first**, uses the staged fallback only when needed, resolves results through
 validated OKF concepts, and returns every attempt as `found`, `not-found`,
 `error`, or `skipped`:
 
-The retrieval order is CBM discovery first, then the validated staged fallback;
+The retrieval order is repo-search discovery first, then the validated staged fallback;
 do not skip the authoritative index check.
 
 ```bash
-bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-cbm-index>" "<query>"
+bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-repo-search-index>" "<query>"
 ```
 
 For several independent terms use `search-batch` with one to four distinct
@@ -204,7 +225,7 @@ queries. Read the receipt and **do not rerun any listed command**. If the index
 is unavailable or stale, use the staged fallback and ask the user to refresh
 the named index; do not create another one.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns validated concepts or receipts with exact root/index/source
 evidence, updated parent indexes when authorized, and protected Markdown
@@ -217,7 +238,7 @@ conflict, ownership ambiguity, rejected request, or compression/validation
 failure. A matching search result, draft, or successful materialization alone
 does not prove semantic correctness.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** A read-only search returns validated OKF concepts, staged
   discovery attempts, and a machine receipt; an approved reconciliation writes

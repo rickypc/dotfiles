@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import {
   isCodingAssistant,
   renderAdapterHandoff,
-} from '../../utils/adapters.js';
+} from '../../scripts/adapter.js';
 
 test.each(['opencode', 'codex', 'claude-code', 'kiro-ide', 'vscode'])(
   'renders a manual %s handoff',

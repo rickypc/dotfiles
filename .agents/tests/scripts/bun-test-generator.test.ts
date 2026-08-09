@@ -17,7 +17,7 @@ const validateExternalDependencyMocks = mock(
   },
 );
 
-mock.module('../utils/bun-test-generator.js', () => ({
+mock.module('../scripts/bun-test-generator.js', () => ({
   canonicalTestPathFor,
   convertJestToBun,
   renderBunTestTemplate,

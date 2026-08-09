@@ -1,6 +1,7 @@
 ---
 name: bun-test-generator
 description: Generate or convert quality-focused TypeScript Bun tests for one selected JavaScript or TypeScript SUT.
+argument-hint: "<sut-path> <all|method-list|method-range>"
 ---
 
 # Bun Test Generator
@@ -20,7 +21,22 @@ For a declared globally owned SUT, use its declared canonical source and test
 root and record that ownership exception in the matrix. Never copy or symlink
 the SUT to satisfy a path convention.
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+```text
+/bun-test-generator <sut-path> <all|method-list|method-range> # generate focused tests for the selected SUT scope
+```
+
+The unannotated grammar is:
+
+```text
+/bun-test-generator <sut-path> <all|method-list|method-range>
+```
+
+Required: one selected JavaScript or TypeScript SUT path and one test scope.
+Run this skill before editing the selected test surface.
+
+## 3. Immutable Operational Rules
 
 - Keep the selected SUT real. Mock every external boundary before exercising
   it; **Mock every one with `mock()`** and use **`mock.module()` for every
@@ -46,7 +62,7 @@ the SUT to satisfy a path convention.
   that contract. A passing test, coverage report, `/biome-tsc-checker`, or
   all-skill validation cannot substitute for this gate.
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** One SUT path and `all`, a method list, or a method range.
 - **Optional:** An existing selected Jest test for conversion and the factual
@@ -72,7 +88,12 @@ suppression comments. The accepted selector may be `<all>`; the owning command
 remains `bun-test-generator.ts`. The exact ownership guard is `do not copy or symlink`
 the SUT.
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+```text
+SUT and scope -> impact map -> behavior matrix -> isolated tests
+               -> focused checks -> final gate and evidence
+```
 
 1. **Intake:** Resolve the SUT owner, nearest package or declared shared root,
    canonical test path, selected methods, import graph, external boundaries,
@@ -102,7 +123,7 @@ test-local boundaries, or a separate process. Never assume test-file boundaries
 or `mock.restore()` remove a registered module mock.
 
 `/repo-search` owns the repository-memory contract for this impact map and
-currently uses the CBM CLI compatibility backend.
+currently uses the repo-search CLI compatibility backend.
 
 ### Shared-suite integration
 
@@ -145,7 +166,7 @@ rule remains **`mock.module()` for every imported module** other than the SUT.
 Name the production change that should make it fail, then exercise the real
 selected SUT and its observable side effects.
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 Success returns the canonical test source, frozen behavior matrix, shared
 impact receipt when applicable, boundary-validation receipt, static-check
@@ -158,7 +179,7 @@ missing contract, weak assertion, mutation gap, failed command, or path owner.
 Do not change the SUT, test location, configuration, or dependencies to make a
 receipt green.
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical:** A selected SUT receives partitioned typed tests, with the real
   implementation exercised and every external boundary mocked and asserted.

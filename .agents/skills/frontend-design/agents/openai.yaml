@@ -1,4 +1,0 @@
-interface:
-  display_name: "Frontend Design"
-  short_description: "Design deliberate accessible web interfaces"
-  default_prompt: "Use $frontend-design to define an accessible, intentional web UI direction."

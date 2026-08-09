@@ -29,7 +29,14 @@ test('builds the shared literal and file-name rg commands', () => {
   expect(rgLiteralCommand('/repo', 'Needle', true).args).toContain(
     '--ignore-case',
   );
-  expect(rgFilesCommand('/repo').args).toContain('--files');
+  expect(rgFilesCommand('/repo').args).toEqual([
+    '--files',
+    '--glob',
+    '!**/.git/**',
+    '--glob',
+    '!**/node_modules/**',
+    '/repo',
+  ]);
   expect(skippedRgAttempts('/repo', 'Needle', 'found')).toHaveLength(3);
   expect(
     commandText({

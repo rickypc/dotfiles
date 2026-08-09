@@ -8,7 +8,7 @@ import {
   validateContentBrief,
   validateContentPackage,
   validateRefreshInventory,
-} from '../../utils/content.js';
+} from '../../scripts/content-writer.js';
 
 test.each([
   ['authoritative', 'https://example.com', true],

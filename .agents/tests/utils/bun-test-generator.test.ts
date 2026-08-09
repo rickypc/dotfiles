@@ -12,7 +12,7 @@ import {
   validateBehaviorMatrix,
   validateBunTestSource,
   validateExternalDependencyMocks,
-} from '../../utils/bun-test-generator.js';
+} from '../../scripts/bun-test-generator.js';
 
 const row = (overrides = {}) => ({
   assertion: 'test.each(cases)',

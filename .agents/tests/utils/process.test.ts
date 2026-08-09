@@ -45,10 +45,10 @@ describe('process', () => {
     };
     await createBunExecutor(spawn)({
       ...spec,
-      environment: { CBM_LOG_LEVEL: 'error' },
+      environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
     });
     expect(calls[0]).toMatchObject({
-      env: { CBM_LOG_LEVEL: 'error' },
+      env: { REPO_SEARCH_LOG_LEVEL: 'error' },
     });
   });
 

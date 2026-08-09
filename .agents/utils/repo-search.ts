@@ -8,14 +8,25 @@ import {
   stagedRgSearch,
 } from './search-fallback.js';
 
-export interface CbmInspectionEntry {
+type InspectionOperationReader = (
+  record: Record<string, unknown>,
+) => RepoSearchInspectionOperation;
+
+interface ListedRepoSearchProject {
+  readonly name: string;
+  readonly roots: readonly string[];
+}
+
+export interface RepoSearchInspectionEntry {
   readonly code: number;
   readonly command: string;
-  readonly operation: CbmInspectionOperation['operation'] | 'index-status';
+  readonly operation:
+    | RepoSearchInspectionOperation['operation']
+    | 'index-status';
   readonly output: string;
 }
 
-export type CbmInspectionOperation =
+export type RepoSearchInspectionOperation =
   | { readonly operation: 'architecture'; readonly path: string }
   | { readonly operation: 'schema' }
   | {
@@ -37,82 +48,78 @@ export type CbmInspectionOperation =
       readonly pattern: string;
     };
 
-export interface CbmInspectionReceipt {
-  readonly entries: readonly CbmInspectionEntry[];
+export interface RepoSearchInspectionReceipt {
+  readonly entries: readonly RepoSearchInspectionEntry[];
   readonly project: string;
   readonly ready: boolean;
   readonly root: string;
 }
 
-export interface CbmReadRequest {
+export interface RepoSearchReadRequest {
   readonly allowedRoots: readonly string[];
   readonly read: (project: string) => CommandSpec;
-  readonly root: CbmRoot;
+  readonly root: RepoSearchRoot;
 }
 
-export interface CbmReadResult {
+export interface RepoSearchReadResult {
   readonly indexed: boolean;
   readonly output: string;
   readonly project: string;
 }
 
-export interface CbmRoot {
+export interface RepoSearchRoot {
   readonly index: string;
   readonly root: string;
 }
 
-export interface CbmSearchFallbackReceipt extends SearchFallbackReceipt {
-  readonly source: 'cbm' | 'none' | 'rg';
+export interface RepoSearchSearchFallbackReceipt extends SearchFallbackReceipt {
+  readonly source: 'repo-search' | 'none' | 'rg';
 }
 
-export interface CbmSearchFallbackRequest {
+export interface RepoSearchSearchFallbackRequest {
   readonly allowedRoots: readonly string[];
   readonly query: string;
-  readonly root: CbmRoot;
+  readonly root: RepoSearchRoot;
 }
 
-type CbmSearchStrategy = 'cbm-search-code' | 'cbm-search-graph';
+type RepoSearchSearchStrategy = 'repo-search-code' | 'repo-search-graph';
 
-type InspectionOperationReader = (
-  record: Record<string, unknown>,
-) => CbmInspectionOperation;
-
-interface ListedCbmProject {
-  readonly name: string;
-  readonly roots: readonly string[];
-}
-
-/** The CBM graph fields whose values identify a returned node or source path. */
-export const cbmGraphIdentityFields = [
+/** The repo-search graph fields whose values identify a returned node or source path. */
+export const repoSearchGraphIdentityFields = [
   'name',
   'qualified_name',
   'file_path',
   'path',
 ] as const;
 
-export const cbmCommand = (
+export const repoSearchCommand = (
   operation: string,
   args: readonly string[] = [],
 ): CommandSpec => ({
   args: ['cli', operation, ...args],
   command: 'codebase-memory-mcp',
-  environment: { CBM_LOG_LEVEL: 'error' },
+  environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
 });
 
-export const cbmCommands = {
+export const repoSearchCommands = {
   getArchitecture: (project: string, path = ''): CommandSpec =>
-    cbmCommand('get_architecture', ['--project', project, '--path', path]),
+    repoSearchCommand('get_architecture', [
+      '--project',
+      project,
+      '--path',
+      path,
+    ]),
   getCodeSnippet: (project: string, qualifiedName: string): CommandSpec =>
-    cbmCommand('get_code_snippet', [
+    repoSearchCommand('get_code_snippet', [
       '--project',
       project,
       '--qualified-name',
       qualifiedName,
     ]),
   getGraphSchema: (project: string): CommandSpec =>
-    cbmCommand('get_graph_schema', ['--project', project]),
+    repoSearchCommand('get_graph_schema', ['--project', project]),
   indexRepository: (root: string, project: string): CommandSpec =>
-    cbmCommand('index_repository', [
+    repoSearchCommand('index_repository', [
       '--repo-path',
       root,
       '--name',
@@ -121,10 +128,10 @@ export const cbmCommands = {
       'full',
     ]),
   indexStatus: (project: string): CommandSpec =>
-    cbmCommand('index_status', ['--project', project]),
-  listProjects: (): CommandSpec => cbmCommand('list_projects'),
+    repoSearchCommand('index_status', ['--project', project]),
+  listProjects: (): CommandSpec => repoSearchCommand('list_projects'),
   queryGraph: (project: string, query: string, limit: number): CommandSpec =>
-    cbmCommand('query_graph', [
+    repoSearchCommand('query_graph', [
       '--project',
       project,
       '--query',
@@ -133,7 +140,7 @@ export const cbmCommands = {
       String(limit),
     ]),
   searchCode: (project: string, pattern: string, limit: number): CommandSpec =>
-    cbmCommand('search_code', [
+    repoSearchCommand('search_code', [
       '--project',
       project,
       '--pattern',
@@ -144,7 +151,7 @@ export const cbmCommands = {
       String(limit),
     ]),
   searchGraph: (project: string, query: string, limit: number): CommandSpec =>
-    cbmCommand('search_graph', [
+    repoSearchCommand('search_graph', [
       '--project',
       project,
       '--query',
@@ -158,7 +165,7 @@ export const cbmCommands = {
     label: string,
     limit: number,
   ): CommandSpec =>
-    cbmCommand('search_graph', [
+    repoSearchCommand('search_graph', [
       '--project',
       project,
       '--name-pattern',
@@ -174,7 +181,7 @@ export const cbmCommands = {
     direction: 'inbound' | 'outbound',
     depth: number,
   ): CommandSpec =>
-    cbmCommand('trace_path', [
+    repoSearchCommand('trace_path', [
       '--project',
       project,
       '--function-name',
@@ -190,9 +197,11 @@ export const cbmCommands = {
 
 const architectureInspection = (
   record: Record<string, unknown>,
-): CbmInspectionOperation => {
+): RepoSearchInspectionOperation => {
   if (typeof record.path !== 'string') {
-    throw new Error('CBM inspection architecture path must be a string.');
+    throw new Error(
+      'repo-search inspection architecture path must be a string.',
+    );
   }
   return { operation: 'architecture', path: record.path };
 };
@@ -202,28 +211,34 @@ const isPositiveInteger = (value: unknown): value is number =>
 
 const nonEmptyString = (value: unknown, name: string): string => {
   if (typeof value !== 'string' || !value.trim()) {
-    throw new Error(`CBM inspection ${name} must be a non-empty string.`);
+    throw new Error(
+      `repo-search inspection ${name} must be a non-empty string.`,
+    );
   }
   return value;
 };
 
 const operationRecord = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('Each CBM inspection JSONL line must be an object.');
+    throw new Error(
+      'Each repo-search inspection JSONL line must be an object.',
+    );
   }
   return value as Record<string, unknown>;
 };
 
 const positiveInspectionValue = (value: unknown, name: string): number => {
   if (!isPositiveInteger(value)) {
-    throw new Error(`CBM inspection ${name} must be a positive integer.`);
+    throw new Error(
+      `repo-search inspection ${name} must be a positive integer.`,
+    );
   }
   return value;
 };
 
 const searchGraphInspection = (
   record: Record<string, unknown>,
-): CbmInspectionOperation => ({
+): RepoSearchInspectionOperation => ({
   label: nonEmptyString(record.label, 'search-graph label'),
   limit: positiveInspectionValue(record.limit, 'search-graph limit'),
   namePattern: nonEmptyString(record.namePattern, 'search-graph namePattern'),
@@ -232,18 +247,18 @@ const searchGraphInspection = (
 
 const snippetInspection = (
   record: Record<string, unknown>,
-): CbmInspectionOperation => ({
+): RepoSearchInspectionOperation => ({
   operation: 'snippet',
   qualifiedName: nonEmptyString(record.qualifiedName, 'snippet qualifiedName'),
 });
 
 const traceInspection = (
   record: Record<string, unknown>,
-): CbmInspectionOperation => {
+): RepoSearchInspectionOperation => {
   const direction = record.direction;
   if (direction !== 'inbound' && direction !== 'outbound') {
     throw new Error(
-      'CBM inspection trace direction must be inbound or outbound.',
+      'repo-search inspection trace direction must be inbound or outbound.',
     );
   }
   return {
@@ -269,43 +284,93 @@ const inspectionReaders: Readonly<Record<string, InspectionOperationReader>> = {
 
 const canonicalPath = (path: string): string => path.replace(/\/$/u, '');
 
-export const assertAllowedCbmRoot = (
+export const assertAllowedRepoSearchRoot = (
   requestedRoot: string,
   allowedRoots: readonly string[],
 ): void => {
   if (!allowedRoots.map(canonicalPath).includes(canonicalPath(requestedRoot))) {
-    throw new Error(`CBM root is not allowed: ${requestedRoot}`);
+    throw new Error(`repo-search root is not allowed: ${requestedRoot}`);
   }
 };
 
-const cbmAttempt = (
-  request: CbmSearchFallbackRequest,
-  strategy: CbmSearchStrategy,
+const inspectionEntry = async (
+  executor: CommandExecutor,
+  operation: RepoSearchInspectionEntry['operation'],
+  command: CommandSpec,
+): Promise<RepoSearchInspectionEntry> => {
+  const result = await executor(command);
+  return {
+    code: result.code,
+    command: commandText(command),
+    operation,
+    output: outputFor(result.stdout, result.stderr),
+  };
+};
+
+const inspectionOperationFor = (
+  value: unknown,
+): RepoSearchInspectionOperation => {
+  const record = operationRecord(value);
+  const operation = nonEmptyString(record.operation, 'operation');
+  const read = inspectionReaders[operation];
+  if (!read) {
+    throw new Error(
+      `Unsupported repo-search inspection operation: ${operation}`,
+    );
+  }
+  return read(record);
+};
+
+/** Parses only script-local JSONL. repo-search itself is always called with flags. */
+export const parseRepoSearchInspectionJsonl = (
+  source: string,
+): readonly RepoSearchInspectionOperation[] => {
+  const lines = source.split(/\r?\n/u).filter((line) => line.trim());
+  if (lines.length === 0) {
+    throw new Error(
+      'repo-search inspection request must contain at least one JSONL line.',
+    );
+  }
+  return lines.map((line, index) => {
+    try {
+      return inspectionOperationFor(JSON.parse(line));
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `repo-search inspection request line ${index + 1}: ${detail}`,
+      );
+    }
+  });
+};
+
+const repoSearchAttempt = (
+  request: RepoSearchSearchFallbackRequest,
+  strategy: RepoSearchSearchStrategy,
   status: SearchAttempt['status'],
   detail: string,
 ): SearchAttempt => ({
   command: commandText(
-    strategy === 'cbm-search-code'
-      ? cbmCommands.searchCode(request.root.index, request.query, 20)
-      : cbmCommands.searchGraph(request.root.index, request.query, 20),
+    strategy === 'repo-search-code'
+      ? repoSearchCommands.searchCode(request.root.index, request.query, 20)
+      : repoSearchCommands.searchGraph(request.root.index, request.query, 20),
   ),
   detail,
   status,
   strategy,
 });
 
-export const cbmInspectionCommand = (
+export const repoSearchInspectionCommand = (
   project: string,
-  operation: CbmInspectionOperation,
+  operation: RepoSearchInspectionOperation,
 ): CommandSpec => {
   if (operation.operation === 'architecture') {
-    return cbmCommands.getArchitecture(project, operation.path);
+    return repoSearchCommands.getArchitecture(project, operation.path);
   }
   if (operation.operation === 'schema') {
-    return cbmCommands.getGraphSchema(project);
+    return repoSearchCommands.getGraphSchema(project);
   }
   if (operation.operation === 'search-graph') {
-    return cbmCommands.searchGraphByName(
+    return repoSearchCommands.searchGraphByName(
       project,
       operation.namePattern,
       operation.label,
@@ -313,20 +378,59 @@ export const cbmInspectionCommand = (
     );
   }
   if (operation.operation === 'snippet') {
-    return cbmCommands.getCodeSnippet(project, operation.qualifiedName);
+    return repoSearchCommands.getCodeSnippet(project, operation.qualifiedName);
   }
   if (operation.operation === 'trace') {
-    return cbmCommands.tracePath(
+    return repoSearchCommands.tracePath(
       project,
       operation.qualifiedName,
       operation.direction,
       operation.depth,
     );
   }
-  return cbmCommands.searchCode(project, operation.pattern, operation.limit);
+  return repoSearchCommands.searchCode(
+    project,
+    operation.pattern,
+    operation.limit,
+  );
 };
 
-export const cbmOutputHasMatches = (
+/**
+ * Performs one deterministic readiness check, then concurrently executes only
+ * the caller-declared independent repo-search reads. It never indexes or retries.
+ */
+export const inspectRepoSearch = async (
+  executor: CommandExecutor,
+  root: RepoSearchRoot,
+  operations: readonly RepoSearchInspectionOperation[],
+): Promise<RepoSearchInspectionReceipt> => {
+  const status = await inspectionEntry(
+    executor,
+    'index-status',
+    repoSearchCommands.indexStatus(root.index),
+  );
+  const ready = status.code === 0 && indexIsReady(status.output);
+  if (!ready) {
+    return { entries: [status], project: root.index, ready, root: root.root };
+  }
+  const entries = await Promise.all(
+    operations.map((operation) =>
+      inspectionEntry(
+        executor,
+        operation.operation,
+        repoSearchInspectionCommand(root.index, operation),
+      ),
+    ),
+  );
+  return {
+    entries: [status, ...entries],
+    project: root.index,
+    ready,
+    root: root.root,
+  };
+};
+
+export const repoSearchOutputHasMatches = (
   output: string,
   query?: string,
 ): boolean => {
@@ -352,7 +456,7 @@ export const cbmOutputHasMatches = (
             return false;
           }
           const record = result as Record<string, unknown>;
-          return cbmGraphIdentityFields.some(
+          return repoSearchGraphIdentityFields.some(
             (field) =>
               typeof record[field] === 'string' &&
               record[field].toLowerCase().includes(expected),
@@ -370,89 +474,10 @@ export const cbmOutputHasMatches = (
   }
 };
 
-export const cbmProjectNames = (output: string): readonly string[] =>
+export const repoSearchProjectNames = (output: string): readonly string[] =>
   [...output.matchAll(/"name"\s*:\s*"([^"\\]+)"/gu)].map(
     (match) => match[1] ?? '',
   );
-
-const inspectionEntry = async (
-  executor: CommandExecutor,
-  operation: CbmInspectionEntry['operation'],
-  command: CommandSpec,
-): Promise<CbmInspectionEntry> => {
-  const result = await executor(command);
-  return {
-    code: result.code,
-    command: commandText(command),
-    operation,
-    output: outputFor(result.stdout, result.stderr),
-  };
-};
-
-/**
- * Performs one deterministic readiness check, then concurrently executes only
- * the caller-declared independent CBM reads. It never indexes or retries.
- */
-export const inspectCbm = async (
-  executor: CommandExecutor,
-  root: CbmRoot,
-  operations: readonly CbmInspectionOperation[],
-): Promise<CbmInspectionReceipt> => {
-  const status = await inspectionEntry(
-    executor,
-    'index-status',
-    cbmCommands.indexStatus(root.index),
-  );
-  const ready = status.code === 0 && indexIsReady(status.output);
-  if (!ready) {
-    return { entries: [status], project: root.index, ready, root: root.root };
-  }
-  const entries = await Promise.all(
-    operations.map((operation) =>
-      inspectionEntry(
-        executor,
-        operation.operation,
-        cbmInspectionCommand(root.index, operation),
-      ),
-    ),
-  );
-  return {
-    entries: [status, ...entries],
-    project: root.index,
-    ready,
-    root: root.root,
-  };
-};
-
-const inspectionOperationFor = (value: unknown): CbmInspectionOperation => {
-  const record = operationRecord(value);
-  const operation = nonEmptyString(record.operation, 'operation');
-  const read = inspectionReaders[operation];
-  if (!read) {
-    throw new Error(`Unsupported CBM inspection operation: ${operation}`);
-  }
-  return read(record);
-};
-
-/** Parses only script-local JSONL. CBM itself is always called with flags. */
-export const parseCbmInspectionJsonl = (
-  source: string,
-): readonly CbmInspectionOperation[] => {
-  const lines = source.split(/\r?\n/u).filter((line) => line.trim());
-  if (lines.length === 0) {
-    throw new Error(
-      'CBM inspection request must contain at least one JSONL line.',
-    );
-  }
-  return lines.map((line, index) => {
-    try {
-      return inspectionOperationFor(JSON.parse(line));
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      throw new Error(`CBM inspection request line ${index + 1}: ${detail}`);
-    }
-  });
-};
 
 const rootPropertyNames = new Set([
   'path',
@@ -465,12 +490,12 @@ const rootPropertyNames = new Set([
   'rootPath',
 ]);
 
-export const assertKnownCbmProject = (
+export const assertKnownRepoSearchProject = (
   project: string,
   listProjectsOutput: string,
 ): void => {
-  if (!cbmProjectNames(listProjectsOutput).includes(project)) {
-    throw new Error(`CBM index is not a listed project: ${project}`);
+  if (!repoSearchProjectNames(listProjectsOutput).includes(project)) {
+    throw new Error(`repo-search index is not a listed project: ${project}`);
   }
 };
 
@@ -481,7 +506,9 @@ export const indexIsReady = (output: string): boolean =>
   /\b(ready|complete|indexed)\b/iu.test(output) &&
   !/\b(not.ready|failed|error)\b/iu.test(output);
 
-const listedProjectEntries = (output: string): readonly ListedCbmProject[] => {
+const listedProjectEntries = (
+  output: string,
+): readonly ListedRepoSearchProject[] => {
   try {
     const parsed = JSON.parse(output) as { readonly projects?: unknown };
     if (!Array.isArray(parsed.projects)) {
@@ -513,11 +540,70 @@ const listedProjectEntries = (output: string): readonly ListedCbmProject[] => {
   }
 };
 
+const outputFor = (stdout: string, stderr: string): string =>
+  [stdout, stderr].filter(Boolean).join('\n');
+
+const assertExistingReadyRepoSearchIndex = async (
+  executor: CommandExecutor,
+  request: RepoSearchSearchFallbackRequest,
+): Promise<void> => {
+  const status = await executor(
+    repoSearchCommands.indexStatus(request.root.index),
+  );
+  const output = outputFor(status.stdout, status.stderr);
+  if (status.code !== 0 || !indexIsReady(output)) {
+    throw new Error(
+      `repo-search index is not ready; ask the user to create or refresh it: ${output}`,
+    );
+  }
+};
+
+export const readWithReadyIndex = async (
+  executor: CommandExecutor,
+  request: RepoSearchReadRequest,
+): Promise<RepoSearchReadResult> => {
+  assertAllowedRepoSearchRoot(request.root.root, request.allowedRoots);
+  const status = await executor(
+    repoSearchCommands.indexStatus(request.root.index),
+  );
+  let indexed = false;
+  if (!indexIsReady(outputFor(status.stdout, status.stderr))) {
+    const indexing = await executor(
+      repoSearchCommands.indexRepository(request.root.root, request.root.index),
+    );
+    if (indexing.code !== 0) {
+      throw new Error(
+        `repo-search indexing failed: ${outputFor(indexing.stdout, indexing.stderr)}`,
+      );
+    }
+    indexed = true;
+    const retriedStatus = await executor(
+      repoSearchCommands.indexStatus(request.root.index),
+    );
+    if (!indexIsReady(outputFor(retriedStatus.stdout, retriedStatus.stderr))) {
+      throw new Error(
+        `repo-search index is not ready: ${outputFor(retriedStatus.stdout, retriedStatus.stderr)}`,
+      );
+    }
+  }
+  const read = await executor(request.read(request.root.index));
+  if (read.code !== 0) {
+    throw new Error(
+      `repo-search read failed: ${outputFor(read.stdout, read.stderr)}`,
+    );
+  }
+  return {
+    indexed,
+    output: outputFor(read.stdout, read.stderr),
+    project: request.root.index,
+  };
+};
+
 /**
- * Resolves only an explicit CBM root mapping. A shared home directory is not
+ * Resolves only an explicit repo-search root mapping. A shared home directory is not
  * evidence that a child repository belongs to the home index.
  */
-export const cbmProjectForRoot = (
+export const repoSearchProjectForRoot = (
   projectRoot: string,
   projectsOutput: string,
 ): string => {
@@ -532,7 +618,7 @@ export const cbmProjectForRoot = (
   const best = candidates[0];
   if (!best) {
     throw new Error(
-      `No CBM project has an explicit indexed root for ${requestedRoot}. Index the intended project first; do not guess from parent directories or project names.`,
+      `No repo-search project has an explicit indexed root for ${requestedRoot}. Index the intended project first; do not guess from parent directories or project names.`,
     );
   }
   if (
@@ -543,100 +629,47 @@ export const cbmProjectForRoot = (
     )
   ) {
     throw new Error(
-      `Multiple CBM projects match ${requestedRoot} at the same root depth. Resolve the duplicate index mapping before starting AIDLC.`,
+      `Multiple repo-search projects match ${requestedRoot} at the same root depth. Resolve the duplicate index mapping before starting active lifecycle.`,
     );
   }
   return best.name;
 };
 
-const outputFor = (stdout: string, stderr: string): string =>
-  [stdout, stderr].filter(Boolean).join('\n');
-
-const assertExistingReadyCbmIndex = async (
-  executor: CommandExecutor,
-  request: CbmSearchFallbackRequest,
-): Promise<void> => {
-  const status = await executor(cbmCommands.indexStatus(request.root.index));
-  const output = outputFor(status.stdout, status.stderr);
-  if (status.code !== 0 || !indexIsReady(output)) {
-    throw new Error(
-      `CBM index is not ready; ask the user to create or refresh it: ${output}`,
-    );
-  }
-};
-
-export const readWithReadyIndex = async (
-  executor: CommandExecutor,
-  request: CbmReadRequest,
-): Promise<CbmReadResult> => {
-  assertAllowedCbmRoot(request.root.root, request.allowedRoots);
-  const status = await executor(cbmCommands.indexStatus(request.root.index));
-  let indexed = false;
-  if (!indexIsReady(outputFor(status.stdout, status.stderr))) {
-    const indexing = await executor(
-      cbmCommands.indexRepository(request.root.root, request.root.index),
-    );
-    if (indexing.code !== 0) {
-      throw new Error(
-        `CBM indexing failed: ${outputFor(indexing.stdout, indexing.stderr)}`,
-      );
-    }
-    indexed = true;
-    const retriedStatus = await executor(
-      cbmCommands.indexStatus(request.root.index),
-    );
-    if (!indexIsReady(outputFor(retriedStatus.stdout, retriedStatus.stderr))) {
-      throw new Error(
-        `CBM index is not ready: ${outputFor(retriedStatus.stdout, retriedStatus.stderr)}`,
-      );
-    }
-  }
-  const read = await executor(request.read(request.root.index));
-  if (read.code !== 0) {
-    throw new Error(`CBM read failed: ${outputFor(read.stdout, read.stderr)}`);
-  }
-  return {
-    indexed,
-    output: outputFor(read.stdout, read.stderr),
-    project: request.root.index,
-  };
-};
-
-export const resolveCbmProjectForRoot = async (
+export const resolveRepoSearchProjectForRoot = async (
   projectRoot: string,
   execute: CommandExecutor,
 ): Promise<string> => {
-  const projects = await execute(cbmCommands.listProjects());
+  const projects = await execute(repoSearchCommands.listProjects());
   if (projects.code !== 0) {
-    throw new Error('CBM project list is unavailable.');
+    throw new Error('repo-search project list is unavailable.');
   }
-  return cbmProjectForRoot(projectRoot, projects.stdout);
+  return repoSearchProjectForRoot(projectRoot, projects.stdout);
 };
 
-const runCbmSearch = async (
+const runRepoSearchSearch = async (
   executor: CommandExecutor,
-  request: CbmSearchFallbackRequest,
-  strategy: CbmSearchStrategy,
+  request: RepoSearchSearchFallbackRequest,
+  strategy: RepoSearchSearchStrategy,
 ): Promise<{
   readonly attempt: SearchAttempt;
   readonly matched: boolean;
   readonly output: string;
 }> => {
   const command =
-    strategy === 'cbm-search-code'
-      ? cbmCommands.searchCode(request.root.index, request.query, 20)
-      : cbmCommands.searchGraph(request.root.index, request.query, 20);
+    strategy === 'repo-search-code'
+      ? repoSearchCommands.searchCode(request.root.index, request.query, 20)
+      : repoSearchCommands.searchGraph(request.root.index, request.query, 20);
   try {
     const result = await executor(command);
     const output = outputFor(result.stdout, result.stderr);
     const matched =
       result.code === 0 &&
-      cbmOutputHasMatches(
+      repoSearchOutputHasMatches(
         output,
-        strategy === 'cbm-search-code' ? undefined : request.query,
+        strategy === 'repo-search-code' ? undefined : request.query,
       );
     return {
-      attempt: cbmAttempt(
+      attempt: repoSearchAttempt(
         request,
         strategy,
         matched ? 'found' : result.code === 0 ? 'not-found' : 'error',
@@ -648,23 +681,24 @@ const runCbmSearch = async (
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     return {
-      attempt: cbmAttempt(request, strategy, 'error', detail),
+      attempt: repoSearchAttempt(request, strategy, 'error', detail),
       matched: false,
       output: '',
     };
   }
 };
 
-const skippedCbmCodeAttempt = (
-  request: CbmSearchFallbackRequest,
+const skippedRepoSearchCodeAttempt = (
+  request: RepoSearchSearchFallbackRequest,
   detail: string,
-): SearchAttempt => cbmAttempt(request, 'cbm-search-code', 'skipped', detail);
+): SearchAttempt =>
+  repoSearchAttempt(request, 'repo-search-code', 'skipped', detail);
 
-export const searchWithCbmFallback = async (
+export const searchWithRepoSearchFallback = async (
   executor: CommandExecutor,
-  request: CbmSearchFallbackRequest,
-): Promise<CbmSearchFallbackReceipt> => {
-  assertAllowedCbmRoot(request.root.root, request.allowedRoots);
+  request: RepoSearchSearchFallbackRequest,
+): Promise<RepoSearchSearchFallbackReceipt> => {
+  assertAllowedRepoSearchRoot(request.root.root, request.allowedRoots);
   const query = request.query.trim();
   if (!query) {
     throw new Error('Search query is required.');
@@ -672,35 +706,35 @@ export const searchWithCbmFallback = async (
   const normalizedRequest =
     query === request.query ? request : { ...request, query };
   try {
-    await assertExistingReadyCbmIndex(executor, normalizedRequest);
-    const graph = await runCbmSearch(
+    await assertExistingReadyRepoSearchIndex(executor, normalizedRequest);
+    const graph = await runRepoSearchSearch(
       executor,
       normalizedRequest,
-      'cbm-search-graph',
+      'repo-search-graph',
     );
     if (graph.matched) {
       return {
         attempts: [
           graph.attempt,
-          skippedCbmCodeAttempt(
+          skippedRepoSearchCodeAttempt(
             normalizedRequest,
-            'Skipped because CBM graph search found a match.',
+            'Skipped because repo-search graph search found a match.',
           ),
           ...skippedRgAttempts(
             normalizedRequest.root.root,
             normalizedRequest.query,
-            'Skipped because CBM found a match.',
+            'Skipped because repo-search found a match.',
           ),
         ],
         found: true,
         output: graph.output,
-        source: 'cbm',
+        source: 'repo-search',
       };
     }
-    const code = await runCbmSearch(
+    const code = await runRepoSearchSearch(
       executor,
       normalizedRequest,
-      'cbm-search-code',
+      'repo-search-code',
     );
     if (code.matched) {
       return {
@@ -710,12 +744,12 @@ export const searchWithCbmFallback = async (
           ...skippedRgAttempts(
             normalizedRequest.root.root,
             normalizedRequest.query,
-            'Skipped because CBM code search found a match.',
+            'Skipped because repo-search code search found a match.',
           ),
         ],
         found: true,
         output: code.output,
-        source: 'cbm',
+        source: 'repo-search',
       };
     }
     const fallback = await stagedRgSearch(
@@ -737,15 +771,15 @@ export const searchWithCbmFallback = async (
     );
     return {
       attempts: [
-        cbmAttempt(
+        repoSearchAttempt(
           normalizedRequest,
-          'cbm-search-graph',
+          'repo-search-graph',
           'error',
           error instanceof Error ? error.message : String(error),
         ),
-        skippedCbmCodeAttempt(
+        skippedRepoSearchCodeAttempt(
           normalizedRequest,
-          'Skipped because CBM index readiness failed.',
+          'Skipped because repo-search index readiness failed.',
         ),
         ...fallback.attempts,
       ],
