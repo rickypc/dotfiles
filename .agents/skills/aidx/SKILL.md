@@ -86,12 +86,9 @@ Design, and Delivery owner.
 
 Read the one path pasted by the user unchanged, accept either a relative or
 absolute form, then canonicalize and verify that it is a regular Markdown file
-under `.agents/plans/<repo-search-index>/`. Reject
+under `<agents-root>/plans/<repo-search-index>/`. Reject
 missing, directory, traversal, symlink-escaping, outside-tree, wrong-index,
 malformed, or duplicate-section inputs before mutation.
-
-The retired `.agents/plans/<repo-search-index>/` spelling is compatibility
-evidence only; current plans use `.agents/plans/<repo-search-index>/`.
 
 Read the entire plan. Confirm the six sections are present and ordered, every
 required variable is available, every workflow step names a target and proof,
@@ -192,7 +189,12 @@ Map every acceptance item to evidence and record limitations. A focused test,
 smoke check, inspection, browser path, or manual observation is evidence only
 for the claim it actually covers. Run the configured project final gate once
 at the final boundary when the plan names one; a green gate cannot prove an
-unmapped acceptance item. When the plan changes JavaScript or TypeScript tests,
+unmapped acceptance item. If that gate returns a non-blocked action packet,
+validate it, apply its required actions through the named owner's explicit
+apply route, verify that only `allowedPaths` changed, and rerun the identical
+gate. The packet is executable repair evidence, not display-only output or a
+user handoff. Stop for a missing, blocked, ambiguous, unsafe, or unappliable
+packet; never invent a repair. When the plan changes JavaScript or TypeScript tests,
 follow its explicit `/bun-test-generator`, boundary-validation, and
 `/biome-tsc-checker` route before editing; when it changes retained browser
 coverage, follow its explicit `/playwright-test-generator` route.

@@ -74,9 +74,11 @@ selected paths -> package/config resolution -> Biome and TypeScript checks
    `not-applicable` for JavaScript.
 3. **Declaration order:** Run the CST inspection for every selected path. For
    `passed`, make no order edit. For `failed`, require a non-null action
-   packet, read every `requiredActionGroups` entry, and move only whole
-   declarations in the packet's `allowedPaths`. For `blocked`, report the
-   duplicate, shadowing, or cycle and make no edit.
+   packet, read every `requiredActionGroups` entry, and immediately apply the
+   packet through `declaration-order.ts --apply <one-allowed-path>`; move only
+   whole declarations in the packet's `allowedPaths`. The packet is an
+   executable repair instruction, not report-only output. For `blocked`, report
+   the duplicate, shadowing, or cycle and make no edit.
 4. **Candidate verification:** Rerun the same complete command after one
    permitted reorder batch. A path passes only when status is `passed` and
    `actionPacket` is `null`.
@@ -98,6 +100,10 @@ returns one JSON object whose checks contain `path`, `status`, `detail`, and
 applies its CST-proven whole-declaration moves. Repeat the complete command
 for another selected path; do not invent shorthand arguments or section-marker
 comments.
+
+The explicit `--apply` route is mandatory after a safe failed packet has been
+reviewed; the packet must be executed and the identical checker rerun. It is
+not report-only output.
 
 The receipt shape is the authority: `const` declarations are represented in
 `checks`; a `status: "passed"` result has no action, a `status: "failed"`
@@ -148,6 +154,9 @@ when selected, remains the final decision.
 Failure names the checker, selected path, diagnostic, barrier/cycle, or missing
 action packet. Do not claim success from a focused partial result, and do not
 modify target configuration or unrelated paths as recovery.
+
+For a failed declaration-order result with a safe packet, failure handling is
+not complete until the packet is applied and the identical checker is rerun.
 
 ## 7. Evaluation Anchors
 

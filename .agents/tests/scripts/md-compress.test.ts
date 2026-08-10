@@ -7,6 +7,7 @@ import {
   run,
   runWhenMain,
   usage,
+  validateCompression,
 } from '../../scripts/md-compress.js';
 
 const dependencies = (source = 'Original `token`.') => {
@@ -100,6 +101,122 @@ test('rejects invalid command shapes and lost protected tokens', async () => {
   await expect(
     run(['finalize', '/docs/plan.md'], mock(), injected),
   ).rejects.toThrow('Compression lost protected Markdown tokens');
+});
+
+test('allows explicitly authorized protected-token removal', async () => {
+  const {
+    dependencies: injected,
+    writes,
+    removed,
+  } = dependencies('Candidate text.');
+  writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
+  writes.set(
+    '/docs/removals.json',
+    JSON.stringify({
+      removals: [
+        {
+          basis: 'superseded-contract',
+          justification:
+            'The token is obsolete and the replacement contract no longer uses it.',
+          token: '`token`',
+        },
+      ],
+      sourcePath: '/docs/plan.md',
+    }),
+  );
+  await run(
+    ['finalize', '/docs/plan.md', '/docs/removals.json'],
+    mock(),
+    injected,
+  );
+  expect(removed).toHaveLength(2);
+});
+
+test('rejects an authorization manifest that does not account for every removal', async () => {
+  const { dependencies: injected, writes } = dependencies('Candidate text.');
+  writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
+  writes.set(
+    '/docs/removals.json',
+    JSON.stringify({
+      removals: [
+        {
+          basis: 'user-request',
+          justification:
+            'The token was deliberately removed by an explicit request.',
+          token: '`token`',
+        },
+      ],
+      sourcePath: '/docs/other.md',
+    }),
+  );
+  await expect(
+    run(['finalize', '/docs/plan.md', '/docs/removals.json'], mock(), injected),
+  ).rejects.toThrow('source path');
+});
+
+test('validates authorization when no protected token is removed', () => {
+  expect(() =>
+    validateCompression(
+      'Original `token`.',
+      'Original `token`.',
+      '/docs/plan.md',
+      { removals: [], sourcePath: '/docs/plan.md' },
+    ),
+  ).not.toThrow();
+});
+
+test('rejects mismatched and malformed removal authorizations', () => {
+  expect(() =>
+    validateCompression(
+      'Original `token`.',
+      'Candidate text.',
+      '/docs/plan.md',
+      { removals: [], sourcePath: '/docs/other.md' },
+    ),
+  ).toThrow('source mismatch');
+  expect(() =>
+    validateCompression(
+      'Original `token`.',
+      'Candidate text.',
+      '/docs/plan.md',
+      {
+        removals: [
+          {
+            basis: 'invalid' as 'user-request',
+            justification: 'This declaration uses an unsupported basis.',
+            token: '`token`',
+          },
+        ],
+        sourcePath: '/docs/plan.md',
+      },
+    ),
+  ).toThrow('Invalid removal authorization');
+  expect(() =>
+    validateCompression(
+      'Original `token`.',
+      'Candidate text.',
+      '/docs/plan.md',
+      { removals: [], sourcePath: '/docs/plan.md' },
+    ),
+  ).toThrow('undeclared');
+});
+
+test('rejects invalid removal authorization JSON', async () => {
+  const { dependencies: injected, writes } = dependencies();
+  writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
+  writes.set('/docs/removals.json', '{invalid');
+  await expect(
+    run(['finalize', '/docs/plan.md', '/docs/removals.json'], mock(), injected),
+  ).rejects.toThrow('valid JSON');
+});
+
+test('rejects a non-object removal authorization', async () => {
+  const { dependencies: injected, writes } = dependencies();
+  writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
+  writes.set('/docs/removals.json', 'null');
+  await expect(
+    run(['finalize', '/docs/plan.md', '/docs/removals.json'], mock(), injected),
+  ).rejects.toThrow('JSON object');
 });
 
 test.each([

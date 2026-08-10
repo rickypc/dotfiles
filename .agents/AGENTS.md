@@ -1,7 +1,7 @@
 # Universal Assistant Runtime
 
 This policy is the shared root contract for a portable coding-assistant
-runtime. It may be installed at `<project-root>/.agents` for one project or at
+runtime. The active runtime directory is `<agents-root>` for one project or
 `~/.agents` as the machine-wide fallback. A project-local runtime and skill
 always take precedence over the home-directory fallback.
 
@@ -79,7 +79,7 @@ a program.
 
 ### Protected `.agents` configuration
 
-For every resolved `<project>/.agents`, including `~/.agents`, these are
+For every resolved `<agents-root>`, including `~/.agents`, these are
 user-owned configuration and policy inputs:
 
 ```text
@@ -95,7 +95,7 @@ tsconfig.json
 Never edit, create, delete, rename, move, format, autofix, stage, reset, or
 indirectly mutate these files. Read-only inspection is allowed. If a requested
 solution requires one, show the exact required user action or proposed diff and
-stop. Automated writes under `<project>/.agents` must use an explicit allowlist
+stop. Automated writes under `<agents-root>` must use an explicit allowlist
 that excludes these paths; never run a whole-directory write or autofix.
 
 The assistant may update this `AGENTS.md` only when the user explicitly asks
@@ -217,6 +217,14 @@ or validation pass, collect independent failures, apply compatible repairs as
 one batch, run focused checks, and run the final gate once. Keep a concise
 command/result/next-action ledger. Never rerun an unchanged full gate after
 each individual fix.
+
+Final-gate action packets are executable repair instructions. When a checker
+returns a non-blocked packet with explicit `allowedPaths`, required actions,
+and forbidden actions, the owning workflow must immediately apply that packet
+through the owner's explicit apply route, verify the allowed target, and rerun
+the same gate. Never merely display, summarize, or hand off a safe packet. A
+missing, blocked, ambiguous, or unsafe packet is a hard stop; do not invent a
+repair or cross its boundaries.
 
 ## 8. Command, script, and structured-data contracts
 

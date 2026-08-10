@@ -211,6 +211,12 @@ request -> scope and owner -> persisted review state -> frozen matrix
    candidate/challenge checks and project gates, then return the changed-file
    handoff or a targeted repair packet.
 
+If a project gate emits a non-blocked action packet, execute its validated
+required action groups through the owning command's explicit apply route,
+verify its allowed paths and forbidden actions, and rerun the identical gate.
+Do not treat the packet as display-only evidence or a user handoff. A missing,
+blocked, ambiguous, or unsafe packet is a repair stop.
+
 ### Review scope, prose, and link integrity
 
 The review set is `SKILL.md`, every linked local prose asset, every

@@ -41,7 +41,7 @@ const checkPath = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/declaration-order.ts <path>; use the biome-tsc-checker command catalog for apply and summary variants.';
+  'Usage: bun <agents-root>/scripts/declaration-order.ts <path>; use --apply only to execute the emitted safe action packet for one allowed path, then rerun the identical check; use --summary for the gate summary.';
 
 export const run = async (
   args: readonly string[],

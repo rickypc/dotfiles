@@ -37,6 +37,21 @@ interface MdCompressDependencies {
   readonly temporaryRoot: string;
 }
 
+export interface RemovalAuthorization {
+  readonly removals: readonly RemovalDeclaration[];
+  readonly sourcePath: string;
+}
+
+export interface RemovalDeclaration {
+  readonly basis:
+    | 'duplicate'
+    | 'false-positive'
+    | 'superseded-contract'
+    | 'user-request';
+  readonly justification: string;
+  readonly token: string;
+}
+
 const sensitiveName = /(?:credential|secret|password|private[-_]?key|token)/i;
 const markdownTokens = /```[\s\S]*?```|https?:\/\/[^\s)]+|`[^`]+`/g;
 
@@ -116,16 +131,83 @@ export const claimCompressionLock = async (
   await writeText(fileSystem, guard.lockPath, String(clock.now()));
 };
 
+const validateRemovalAuthorization = (
+  original: string,
+  candidate: string,
+  sourcePath: string,
+  authorization: RemovalAuthorization,
+): Set<string> => {
+  if (authorization.sourcePath !== sourcePath) {
+    throw new Error(
+      `Removal authorization source mismatch: ${authorization.sourcePath}`,
+    );
+  }
+  const originalTokens = new Set(protectedTokens(original));
+  const authorized = new Set<string>();
+  const allowedBases = new Set<RemovalDeclaration['basis']>([
+    'duplicate',
+    'false-positive',
+    'superseded-contract',
+    'user-request',
+  ]);
+  for (const removal of authorization.removals) {
+    if (
+      typeof removal.token !== 'string' ||
+      typeof removal.basis !== 'string' ||
+      !allowedBases.has(removal.basis as RemovalDeclaration['basis']) ||
+      typeof removal.justification !== 'string' ||
+      !removal.token ||
+      !originalTokens.has(removal.token) ||
+      candidate.includes(removal.token) ||
+      authorized.has(removal.token) ||
+      removal.justification.trim().length < 20
+    ) {
+      throw new Error(
+        `Invalid removal authorization for protected Markdown token: ${removal.token}`,
+      );
+    }
+    authorized.add(removal.token);
+  }
+  return authorized;
+};
+
 export const validateCompression = (
   original: string,
   candidate: string,
+  sourcePath?: string,
+  authorization?: RemovalAuthorization,
 ): void => {
-  const lost = protectedTokens(original).filter(
-    (token) => !candidate.includes(token),
-  );
-  if (lost.length > 0) {
+  const lost = [
+    ...new Set(
+      protectedTokens(original).filter((token) => !candidate.includes(token)),
+    ),
+  ];
+  if (lost.length === 0) {
+    if (authorization && sourcePath) {
+      validateRemovalAuthorization(
+        original,
+        candidate,
+        sourcePath,
+        authorization,
+      );
+    }
+    return;
+  }
+  if (!authorization || !sourcePath) {
     throw new Error(
-      `Compression lost protected Markdown tokens: ${lost.join(', ')}`,
+      `Compression lost protected Markdown tokens: ${lost.join(', ')}. Provide an explicit removal authorization manifest.`,
+    );
+  }
+  const authorized = validateRemovalAuthorization(
+    original,
+    candidate,
+    sourcePath,
+    authorization,
+  );
+  const undeclared = lost.filter((token) => !authorized.has(token));
+  if (undeclared.length > 0 || authorized.size !== lost.length) {
+    throw new Error(
+      `Compression lost undeclared or mismatched protected Markdown tokens: ${undeclared.join(', ')}`,
     );
   }
 };
@@ -134,9 +216,10 @@ export const finalizeCompression = async (
   fileSystem: FileSystem,
   sourcePath: string,
   guard: CompressionGuard,
+  authorization?: RemovalAuthorization,
 ): Promise<void> => {
   const candidate = await readText(fileSystem, sourcePath);
-  validateCompression(guard.original, candidate);
+  validateCompression(guard.original, candidate, sourcePath, authorization);
   await removeFile(fileSystem, guard.backupPath);
   await removeFile(fileSystem, guard.lockPath);
 };
@@ -165,19 +248,59 @@ export const defaultDependencies = (
   clock: Clock = systemClock,
 ): MdCompressDependencies => ({ clock, digest, fileSystem, temporaryRoot });
 
+const removalAuthorizationFor = async (
+  fileSystem: FileSystem,
+  args: readonly string[],
+  sourcePath: string,
+): Promise<RemovalAuthorization | undefined> => {
+  if (args.length === 2) {
+    return undefined;
+  }
+  const authorizationPath = args[2] as string;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await readText(fileSystem, authorizationPath));
+  } catch {
+    throw new Error(
+      `Removal authorization must be valid JSON: ${authorizationPath}`,
+    );
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Removal authorization must be a JSON object.');
+  }
+  const authorization = parsed as Partial<RemovalAuthorization>;
+  if (
+    typeof authorization.sourcePath !== 'string' ||
+    authorization.sourcePath !== sourcePath ||
+    !Array.isArray(authorization.removals) ||
+    authorization.removals.length === 0
+  ) {
+    throw new Error(
+      'Removal authorization must name the source path and one or more removals.',
+    );
+  }
+  return authorization as RemovalAuthorization;
+};
+
 const sourcePathFor = (args: readonly string[]): string | undefined => {
-  const [command, sourcePath] = args;
+  const [command, sourcePath, authorizationPath] = args;
   if ((command !== 'begin' && command !== 'finalize') || !sourcePath) {
     return undefined;
   }
-  return args.length === 2 ? sourcePath : undefined;
+  if (command === 'begin') {
+    return args.length === 2 ? sourcePath : undefined;
+  }
+  return args.length === 2 || (args.length === 3 && authorizationPath)
+    ? sourcePath
+    : undefined;
 };
 
 export const usage = (): string =>
   [
-    'Usage: bun <agents-root>/scripts/md-compress.ts begin <markdown-path> | finalize <markdown-path>',
+    'Usage: bun <agents-root>/scripts/md-compress.ts begin <markdown-path> | finalize <markdown-path> [removal-authorization-json]',
     'begin writes a guarded backup and lock under tmpdir()/md-compress, then returns the exact finalize action.',
-    'After the current agent compresses the Markdown, finalize validates protected Markdown tokens and removes the temporary backup and lock.',
+    'After editing, finalize validates protected Markdown tokens and removes the temporary backup and lock.',
+    'Intentional protected-token removal requires a JSON authorization manifest naming each exact token and its justification.',
   ].join('\n');
 
 export async function run(
@@ -223,7 +346,17 @@ export async function run(
     sourcePath,
     resolvedDependencies.digest,
   );
-  await finalizeCompression(resolvedDependencies.fileSystem, sourcePath, guard);
+  const authorization = await removalAuthorizationFor(
+    resolvedDependencies.fileSystem,
+    args,
+    sourcePath,
+  );
+  await finalizeCompression(
+    resolvedDependencies.fileSystem,
+    sourcePath,
+    guard,
+    authorization,
+  );
   write(
     JSON.stringify({
       backupPath: guard.backupPath,

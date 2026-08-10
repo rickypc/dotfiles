@@ -67,7 +67,12 @@ permission to expand scope:
   criterion.
 - Record changed targets, requirement mapping, tests and outputs, limitations,
   and every uncovered criterion. Run the configured project final gate once at
-  the final boundary; it cannot prove an unmapped acceptance item.
+  the final boundary; it cannot prove an unmapped acceptance item. If a
+  checker emits a non-blocked action packet, validate it, invoke the owner's
+  explicit apply route, verify only its `allowedPaths` changed and its
+  `forbiddenActions` were respected, then rerun the identical gate. Execute the
+  packet; do not display, summarize, or hand it to the user. Missing, blocked,
+  ambiguous, or unsafe packets are stops.
 
 ## Re-plan and stop conditions
 

@@ -118,15 +118,24 @@ record the current behavior, entry path, owner, consumers, data or protocol
 boundaries, existing proof, compatibility constraints, and uncertainty before
 decomposing a change.
 
-The canonical path is
-`.agents/plans/<repo-search-index>/<summary-slug-160-chars>.md`. The slug is stable,
+Resolve the plan root from the active AIDP skill location, never from the
+repo-search index. The directory containing this `SKILL.md` is the active
+skill directory; walk upward through its `skills` directory to resolve
+`<agents-root>`, the containing `.agents` directory. The canonical plan path
+is then
+`<agents-root>/plans/<repo-search-index>/<summary-slug-160-chars>.md`.
+Treat `<repo-search-index>` as data and exactly one safe path segment inside
+that already-resolved `<agents-root>` path. Never use any token, prefix, or
+apparent repository name in the index to replace or refine `<agents-root>`.
+
+Before writing, verify that the absolute destination is below the resolved
+`<agents-root>/plans/` directory and that its index directory is exactly
+`<repo-search-index>`. If the skill location, containing `.agents` directory,
+or destination relationship cannot be established, stop instead of deriving a
+project path from the index or writing a partial plan. The slug is stable,
 descriptive, and no longer than 160 characters. If a requirement could change
 scope, ownership, safety, architecture, or acceptance, stop for a focused
 clarification; do not guess and do not write a partial plan.
-
-The retired `<repo-search-index>` spelling and its historical path form
-`.agents/plans/<repo-search-index>/<summary-slug-160-chars>.md` are preserved
-only as compatibility evidence; new plans use `<repo-search-index>`.
 
 ## 4. Input & Context Schema
 

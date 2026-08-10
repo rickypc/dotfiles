@@ -93,17 +93,6 @@ const requireTerms = (
   }
 };
 
-const sectionText = (body: string, heading: string, index: number): string => {
-  const next = AIDP_PLAN_HEADINGS[index + 1];
-  const pattern = next
-    ? new RegExp(
-        `^### ${index + 1}\\. ${heading}\\n([\\s\\S]*?)(?=^### ${index + 2}\\. ${next}\\n)`,
-        'mu',
-      )
-    : new RegExp(`^### ${index + 1}\\. ${heading}\\n([\\s\\S]*)$`, 'mu');
-  return pattern.exec(body)?.[1]?.trim() ?? '';
-};
-
 const requireWorkflowTaskItems = (
   workflow: string,
   workflowItems: readonly string[],
@@ -118,6 +107,17 @@ const requireWorkflowTaskItems = (
       'CHRONOLOGICAL WORKFLOW must contain only unchecked Markdown task items beginning `- [ ]`.',
     );
   }
+};
+
+const sectionText = (body: string, heading: string, index: number): string => {
+  const next = AIDP_PLAN_HEADINGS[index + 1];
+  const pattern = next
+    ? new RegExp(
+        `^### ${index + 1}\\. ${heading}\\n([\\s\\S]*?)(?=^### ${index + 2}\\. ${next}\\n)`,
+        'mu',
+      )
+    : new RegExp(`^### ${index + 1}\\. ${heading}\\n([\\s\\S]*)$`, 'mu');
+  return pattern.exec(body)?.[1]?.trim() ?? '';
 };
 
 export const usage = (): string =>
