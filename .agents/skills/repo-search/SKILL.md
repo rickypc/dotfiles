@@ -1,7 +1,21 @@
 ---
 name: repo-search
-description: "Deterministic repository code discovery with a complete repository-search wrapper contract, strategy-first planning, installed repo-search CLI search, staged textual fallback, evidence tracing, and structured discovery reporting."
+description: >
+  Deterministic repository and file discovery engine for codebases.
+  Executes strategy-first planning to map target boundaries before
+  filesystem reads. Primary discovery utilizes an installed repo-search
+  CLI wrapper contract for structural analysis of code, Markdown, 
+  configurations, and symbols. If CLI search fails, the system triggers
+  a staged textual fallback degrading sequentially to AST parsing, regex,
+  and literal text matching. Provides strict evidence tracing by logging
+  exact byte offsets, line numbers, call paths, and confidence scores.
+  Outputs a structured discovery report mapping system architecture.
 argument-hint: "<approved-root> <query> [query...]"
+capabilities:
+  - CLI-driven symbol, call path, and architecture mapping
+  - Multi-stage fallback (CLI -> AST -> Regex -> Literal)
+  - Strict evidence tracing with byte-offset verification
+  - Unified JSON discovery reporting for automated ingestion
 ---
 
 # Repo Search
