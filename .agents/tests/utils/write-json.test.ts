@@ -107,16 +107,41 @@ describe('writeJson', () => {
   });
 
   test('reports CLI failures through the mocked process-exit boundary', async () => {
+    const consoleError = mock();
+    const runner = mock(async () => {
+      throw new Error('synthetic CLI failure');
+    });
     const setExitCode = mock();
+    const originalConsoleError = console.error;
     const originalSetExitCode = processExit.setExitCode;
+    console.error = consoleError;
     processExit.setExitCode = setExitCode;
     try {
-      await runCli([], async () => {
-        throw new Error('synthetic CLI failure');
-      });
+      await runCli([], runner);
+      expect(consoleError).toHaveBeenCalledWith('synthetic CLI failure');
+      expect(runner).toHaveBeenCalledWith([]);
       expect(setExitCode).toHaveBeenCalledWith(1);
     } finally {
+      console.error = originalConsoleError;
       processExit.setExitCode = originalSetExitCode;
+    }
+  });
+
+  test('handles CLI help without reading stdin or writing output', async () => {
+    const consoleLog = mock();
+    const runner = mock(async () => undefined);
+    const setExitCode = mock();
+    const originalConsoleLog = console.log;
+    console.log = consoleLog;
+
+    try {
+      await runCli(['--help'], runner, setExitCode);
+
+      expect(consoleLog).toHaveBeenCalled();
+      expect(runner).not.toHaveBeenCalled();
+      expect(setExitCode).not.toHaveBeenCalled();
+    } finally {
+      console.log = originalConsoleLog;
     }
   });
 });

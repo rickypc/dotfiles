@@ -128,3 +128,82 @@ describe('process', () => {
     expect(kill).toHaveBeenCalledWith(9);
   });
 });
+
+describe('process cleanup', () => {
+  const spec = { args: ['--version'], command: 'tool' };
+  const timers = mock(
+    (callback: () => void, delayMs: number): ReturnType<typeof setTimeout> =>
+      setTimeout(callback, delayMs),
+  );
+
+  test('waits for the child exit before rejecting after a timeout', async () => {
+    let finish!: (code: number) => void;
+    let exited = false;
+    const kill = mock(() => {
+      timers(() => {
+        exited = true;
+        finish(9);
+      }, 1_050);
+    });
+    const spawn: BunSpawner = () => ({
+      exited: new Promise((resolve) => {
+        finish = resolve;
+      }),
+      kill,
+      stderr: null,
+      stdout: null,
+    });
+
+    await expect(
+      createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
+    ).rejects.toThrow('tool timed out after 1ms');
+    expect(exited).toBe(true);
+    expect(kill).toHaveBeenCalledWith(9);
+    expect(timers).toHaveBeenCalled();
+  });
+
+  test('reports a child exit failure and settles the cleanup result', async () => {
+    const exitError = new Error('exit failed');
+    const exit = mock(async (): Promise<number> => {
+      throw exitError;
+    });
+    const kill = mock();
+    const spawn: BunSpawner = () => ({
+      exited: exit(),
+      kill,
+      stderr: null,
+      stdout: null,
+    });
+
+    await expect(createBunExecutor(spawn)(spec)).rejects.toBe(exitError);
+    expect(exit).toHaveBeenCalledTimes(1);
+    expect(kill).toHaveBeenCalledWith(9);
+  });
+
+  test('preserves the timeout error when killing the child throws', async () => {
+    let finish!: (code: number) => void;
+    let exited = false;
+    const kill = mock(() => {
+      timers(() => {
+        exited = true;
+        finish(9);
+      }, 1_050);
+      throw new Error('kill failed');
+    });
+    const spawn: BunSpawner = () => ({
+      exited: new Promise((resolve) => {
+        finish = resolve;
+      }),
+      kill,
+      stderr: null,
+      stdout: null,
+    });
+
+    await expect(
+      createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
+    ).rejects.toThrow('tool timed out after 1ms');
+    expect(exited).toBe(true);
+    expect(kill).toHaveBeenCalledWith(9);
+    expect(timers).toHaveBeenCalled();
+  });
+});

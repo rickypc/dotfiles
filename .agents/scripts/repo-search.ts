@@ -1,5 +1,8 @@
 import { tmpdir } from 'node:os';
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  runWhenMain as runCliWhenMain,
+  runWhenMainWithHelp,
+} from '../utils/cli.js';
 import type { CommandSpec } from '../utils/contracts.js';
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import { bunExecutor } from '../utils/process.js';
@@ -95,7 +98,7 @@ const runInspect = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/repo-search.ts <architecture|discover|index-status|inspect|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
+  'Usage: bun <agents-root>/scripts/repo-search.ts <absolute-root> <query> [query...] | <architecture|discover|index-status|inspect|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
 
 const positiveLimit = (value: string): number => {
   const limit = Number(value);
@@ -207,11 +210,11 @@ export const run = async (
   ) {
     return;
   }
-  const [pathOnlyRoot, pathOnlyQuery] = args;
+  const [pathOnlyRoot, ...pathOnlyQueries] = args;
   if (
     pathOnlyRoot?.startsWith('/') &&
-    pathOnlyQuery?.trim() &&
-    args.length === 2
+    pathOnlyQueries.length > 0 &&
+    pathOnlyQueries.every((query) => query.trim())
   ) {
     let project = '__repo_search_index_unresolved__';
     try {
@@ -220,17 +223,16 @@ export const run = async (
       // The shared search boundary records the resolution failure and owns
       // the staged fallback; the caller never needs to know index state.
     }
-    write(
-      JSON.stringify(
-        await search(bunExecutor, {
+    const results = await Promise.all(
+      pathOnlyQueries.map((query) =>
+        search(bunExecutor, {
           allowedRoots: [pathOnlyRoot],
-          query: pathOnlyQuery,
+          query,
           root: { index: project, root: pathOnlyRoot },
         }),
-        null,
-        2,
       ),
     );
+    write(JSON.stringify(results.length === 1 ? results[0] : results, null, 2));
     return;
   }
   const [command, root, project, query] = args;
@@ -254,4 +256,4 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

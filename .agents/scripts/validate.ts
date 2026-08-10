@@ -1,4 +1,7 @@
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  runWhenMain as runCliWhenMain,
+  runWhenMainWithHelp,
+} from '../utils/cli.js';
 import type { CheckResult, CheckStatus } from '../utils/contracts.js';
 import { requirePassingChecks, summarizeChecks } from '../utils/validation.js';
 
@@ -35,4 +38,4 @@ export const run = (
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

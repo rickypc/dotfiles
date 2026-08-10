@@ -1,4 +1,7 @@
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  runWhenMain as runCliWhenMain,
+  runWhenMainWithHelp,
+} from '../utils/cli.js';
 import {
   checkImmutableAgentsConfig,
   type ImmutableAgentsConfigReceipt,
@@ -28,4 +31,4 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-await runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+await runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

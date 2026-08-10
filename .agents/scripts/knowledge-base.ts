@@ -1,7 +1,10 @@
 import { homedir } from 'node:os';
 import { basename, resolve } from 'node:path';
 import matter from 'gray-matter';
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  runWhenMain as runCliWhenMain,
+  runWhenMainWithHelp,
+} from '../utils/cli.js';
 import type { DirectoryEntry, FileSystem } from '../utils/filesystem.js';
 import { nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
 import type { CommandExecutor } from '../utils/process.js';
@@ -1007,4 +1010,4 @@ export const runWhenMain = (
   runner: typeof run,
 ): unknown => runCliWhenMain(isMain, args, runner);
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

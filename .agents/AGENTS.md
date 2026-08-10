@@ -148,14 +148,12 @@ Skill ownership rules:
 
 - `/skill-manager` owns every skill-package lifecycle request, including
   frontmatter, resources, matrices, prose/link review, validation, and closure.
-  Read [the owning skill](<agents-root>/skills/skill-manager/SKILL.md>). The
-  reusable path is also `<agents-root>/skills/skill-manager/SKILL.md`.
+  Read `<agents-root>/skills/skill-manager/SKILL.md` as the owning skill.
 - `/repo-search` owns caller-facing repository discovery through its wrapper;
-  do not bypass it with an alternate index or backend. Read [the owning skill](<agents-root>/skills/repo-search/SKILL.md>). The
-  reusable path is also `<agents-root>/skills/repo-search/SKILL.md`.
+  do not bypass it with an alternate index or backend. Read
+  `<agents-root>/skills/repo-search/SKILL.md` as the owning skill.
 - `/knowledge-base` alone owns the configured private-KB root and its lifecycle.
-  Read [the owning skill](<agents-root>/skills/knowledge-base/SKILL.md>). The
-  reusable path is also `<agents-root>/skills/knowledge-base/SKILL.md`.
+  Read `<agents-root>/skills/knowledge-base/SKILL.md` as the owning skill.
 - `/bun-test-generator` owns every JavaScript/TypeScript test addition,
   conversion, repair, rename, or deletion before the test is touched.
 - `/playwright-test-generator` owns retained browser acceptance coverage and
@@ -230,6 +228,12 @@ contract. Verify exact arity, positional meanings, transport type
 request with the owner parser before any side effect. A rejected invocation is
 a command-contract defect to repair, not evidence and not a reason to repeat
 the same malformed command.
+
+Every bundled script accepts exactly one `--help` or `-h` argument as a
+side-effect-free metadata route. It prints that script's usage contract to
+stdout, exits successfully, and performs no file, process, network, or stdin
+work. Treat this universal option as part of every script's input/output
+contract; owner tables need not repeat it in every row.
 
 ### String-only JSON boundary
 

@@ -88,6 +88,34 @@ test('accepts path-only discovery and resolves the index internally', async () =
   expect(write).toHaveBeenCalledWith(expect.stringContaining('indexed match'));
 });
 
+test('batches independent path-only queries in parallel after resolving the index once', async () => {
+  const write = mock();
+  const calls: string[] = [];
+  const search = mock(async (_executor, request) => {
+    calls.push(request.query);
+    return {
+      attempts: [],
+      found: true,
+      output: request.query,
+      source: 'repo-search' as const,
+    };
+  });
+  const resolve = mock(async () => 'resolved-project');
+
+  await run(
+    ['/repo', 'first', 'second', 'third'],
+    write,
+    search,
+    undefined,
+    resolve,
+  );
+
+  expect(resolve).toHaveBeenCalledTimes(1);
+  expect(search).toHaveBeenCalledTimes(3);
+  expect(calls).toEqual(['first', 'second', 'third']);
+  expect(JSON.parse(String(write.mock.calls[0]?.[0]))).toHaveLength(3);
+});
+
 test('keeps path-only discovery on the same receipt boundary when index resolution fails', async () => {
   const write = mock();
   const search = mock(async () => ({

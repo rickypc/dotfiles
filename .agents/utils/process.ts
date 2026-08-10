@@ -23,12 +23,6 @@ export interface SpawnedProcess {
 export const DEFAULT_COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
 export const POST_EXIT_STREAM_TIMEOUT_MS = 250;
 
-const cancel = async (
-  stream: ReadableStream<Uint8Array> | null,
-): Promise<void> => {
-  await stream?.cancel();
-};
-
 const readAfterExit = async (
   reader: ReadableStreamDefaultReader<Uint8Array>,
 ): Promise<ReaderResult | undefined> => {
@@ -111,15 +105,12 @@ export const createBunExecutor =
       ]);
       return { code, stderr, stdout };
     } catch (error: unknown) {
-      process.kill(9);
-      await Promise.race([
-        Promise.allSettled([
-          process.exited,
-          cancel(process.stderr),
-          cancel(process.stdout),
-        ]),
-        new Promise<void>((resolve) => setTimeout(resolve, 1000)),
-      ]);
+      try {
+        process.kill(9);
+      } catch {
+        // A failed kill does not prove that the child has exited.
+      }
+      await result.catch(() => undefined);
       throw error;
     } finally {
       if (timeout !== undefined) {

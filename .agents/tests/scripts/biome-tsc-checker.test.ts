@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import { run, runWhenMain } from '../../scripts/biome-tsc-checker.js';
+import { run, runWhenMain, usage } from '../../scripts/biome-tsc-checker.js';
 
 test('runs the static checker script through injected boundaries', async () => {
   const executor = mock(async () => ({ code: 0, stderr: '', stdout: 'clean' }));
@@ -18,6 +18,10 @@ test('runs the static checker script through injected boundaries', async () => {
   expect(write).toHaveBeenCalledWith(
     'biome: passed — clean\ntsc: passed — clean\ndeclaration-order: passed — /repo/file.ts: Top-level declarations are canonical.',
   );
+});
+
+test('exposes the selected-path usage contract', () => {
+  expect(usage()).toContain('<path> [path...]');
 });
 
 test('uses the default source reader when an existing selected path is provided', async () => {

@@ -1,4 +1,7 @@
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  runWhenMain as runCliWhenMain,
+  runWhenMainWithHelp,
+} from '../utils/cli.js';
 import { nodeFileSystem } from '../utils/filesystem.js';
 import {
   type SkillSuiteValidationReceipt,
@@ -28,4 +31,4 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

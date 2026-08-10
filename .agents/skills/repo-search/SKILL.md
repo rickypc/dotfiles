@@ -1,7 +1,7 @@
 ---
 name: repo-search
 description: "Deterministic repository code discovery with a complete repository-search wrapper contract, strategy-first planning, installed repo-search CLI search, staged textual fallback, evidence tracing, and structured discovery reporting."
-argument-hint: "<approved-root> <query>"
+argument-hint: "<approved-root> <query> [query...]"
 ---
 
 # Repo Search
@@ -45,14 +45,14 @@ repository discovery.
 ## 2. Usage
 
 ```text
-/repo-search <approved-root> <query> # discover repository evidence through the owned wrapper
+/repo-search <approved-root> <query> [query...] # discover one or more independent queries through the owned wrapper
 /repo-search inspect <approved-root> <absolute-jsonl-request-path> # inspect one bounded search request
 ```
 
 The unannotated grammar is:
 
 ```text
-/repo-search <approved-root> <query>
+/repo-search <approved-root> <query> [query...]
 /repo-search inspect <approved-root> <absolute-jsonl-request-path>
 ```
 
@@ -62,11 +62,10 @@ do not invoke the backend directly.
 
 ## 3. Immutable Operational Rules
 
-- **Strategy before search:** Before any repository search, emit a strategy
-  block with a Component Map, Symbol Inventory, and Heuristic Targets. Name the
-  subsystem, exact symbols or configuration keys, expected structural anchors,
-  and the reason each target is relevant. The strategy is mandatory before any
-  repository search.
+- **Strategy before search:** Before any repository search, form a compact
+  search plan covering the relevant subsystem, exact symbols or configuration
+  keys, structural anchors, and why each target matters. Keep the plan concise;
+  do not emit a ceremonial strategy block.
 - **Primary route:** After the strategy block, invoke the
   installed repo-search CLI backend through the repo-search-owned command contract as
   the primary search path. Evaluate whether returned evidence is semantically
@@ -163,11 +162,13 @@ request -> strategy -> project/index resolution -> owned CLI read
 
 1. **Intake:** Confirm the approved absolute root and question, then state the
    Component Map, Symbol Inventory, and Heuristic Targets. Resolve a matching
-   project index only when one is supplied or needed for indexed reads. Before
-   any repo-search command, read the applicable `tool-execution.md` when it exists.
+   project index only when one is supplied or needed for indexed reads.
 2. **Read:** Use one narrow `discover` request for a single question or one
-   `inspect` request for several independent reads. The wrapper performs
-   graph-first discovery and its validated fallback in the owned order.
+   `inspect` request for several independent indexed reads, or pass several
+   independent path-only queries after one approved root. The wrapper resolves
+   the index once and runs the path-only queries concurrently, returning one
+   receipt per query in input order. The wrapper performs graph-first
+   discovery and its validated fallback in the owned order.
 3. **Primary search:** Invoke the installed repo-search CLI backend first. Record the
    exact query, returned files/symbols, line ranges, search mode, and complete
    machine-readable JSON receipts. Decide whether the result is semantically
@@ -203,14 +204,18 @@ inline JSON payloads; temporary request paths come from standalone `mktemp` or
 `os.tmpdir()` evidence.
 
 ```bash
-bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"
+bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>" ["<query>" ...]
 bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"
 ```
 
-The two-argument path form is the universal route. It supports path-only
-discovery without an index and does not expose or require a project list or
-index. Its fallback is hidden-file-aware and preserves dot-directories while
-excluding only the declared ignored trees. The wrapper resolves a matching index
+The path-only form is the universal route. It supports one query or a bounded
+batch of independent queries after one approved root; use the batch form when
+several searches are needed for the same decision. It resolves the index once,
+runs the queries concurrently, and returns one receipt per query in input order.
+It supports path-only discovery without an index and does not expose or require
+a project list or index. Its fallback is hidden-file-aware and preserves
+dot-directories while excluding only the declared ignored trees. The wrapper
+resolves a matching index
 internally, attempts indexed graph/code search when available, and uses the
 same hidden-file-aware fallback when the index or backend is unavailable. The
 `discover` spelling remains a compatibility alias; callers should use the
@@ -249,45 +254,22 @@ behavior, not permission to repeat or bypass the wrapper.
 
 ## 6. Output & Completion Contract
 
-- **Success:** Return exactly these four sections and preserve their order:
+- **Success:** Return a concise result with these four fields:
 
   ```text
-  === SEARCH STRATEGY ===
-  Targets: [Component Map, Symbol Inventory, Heuristic Targets]
-  Strategy: [Why this pattern is being searched]
-  === EXECUTION TRACE ===
-  Primary Tool Status: [SUCCESS / FALLBACK_TRIGGERED]
-  Fallback Actions: [List staggered fallback queries executed, if any]
-  === SYSTEMATIC ANALYSIS ===
-  Data Flow Map: [Input -> Processing -> Output path discovered]
-  Structural Divergence: [What was discovered vs. what was expected]
-  === FINAL DISCOVERY REPORT ===
-  [Clear, raw, evidence-backed answer with exact filenames and line references]
+  Finding: [Evidence-backed answer]
+  Evidence: [Exact filenames, line references, and relevant receipts]
+  Search status: [SUCCESS / FALLBACK_TRIGGERED / EXHAUSTED]
+  Uncertainty: [Remaining limitation, or none]
   ```
 
-  The authoritative serialization below is the exact contract. Preserve its
-  headings, field labels, bracketed placeholders, and order literally:
+  Include exact filenames and line references, the primary status, every
+  fallback action or an explicit no-fallback reason, relevant data flow,
+  structural divergence when applicable, and either refinement evidence or
+  bounded exhaustion. Keep machine-readable receipts available internally
+  without expanding the user-facing format.
 
-  ```text
-  === SEARCH STRATEGY ===
-  Targets: [List symbols/paths]
-  Strategy: [Why this pattern is being searched]
-  === EXECUTION TRACE ===
-  Primary Tool Status: [SUCCESS / FALLBACK_TRIGGERED]
-  Fallback Actions: [List staggered grep queries executed, if any]
-  === SYSTEMATIC ANALYSIS ===
-  Data Flow Map: [Input -> Processing -> Output path discovered]
-  Structural Divergence: [What was discovered vs. what was expected]
-  === FINAL DISCOVERY REPORT ===
-  [Clear, raw, evidence-backed answer to the user query containing exact filenames and line references]
-  ```
-
-  The report must include exact filenames and line references, the primary
-  status, every fallback action or an explicit no-fallback reason, the data
-  flow, structural divergence, relevance, uncertainty, and either refinement
-  evidence or bounded exhaustion.
-
-- **Proof:** The strategy receipt, primary or fallback search receipts,
+- **Proof:** The compact search plan, primary or fallback search receipts,
   retrieved fragments, input-to-processing-to-output trace, reference checks,
   divergence comparison, identity evidence, snapshot limitation, and
   line-reference audit establish the result. A plausible explanation without
@@ -310,6 +292,6 @@ behavior, not permission to repeat or bypass the wrapper.
   bypass the wrapper or repeat its attempts. A zero-hit primary search triggers
   definition, proximity, and broad semantic fallback in order.
 - **Independent verifier:** Wrapper receipts, identity-field matching,
-  inspection validation, strategy markers, fallback predicates and order,
-  exact report headings, line-reference checks, and the `/skill-manager`
+  inspection validation, search-plan coverage, fallback predicates and order,
+  compact report fields, line-reference checks, and the `/skill-manager`
   frozen matrix independently verify the result.

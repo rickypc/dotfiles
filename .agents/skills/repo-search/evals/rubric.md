@@ -19,9 +19,9 @@ verifierIds:
 # Repo Search Evaluation Rubric
 
 The matrix freezes the observable contract of the Repo-Search Engine. Candidate
-checks cover the complete repository-memory port, approved root scopes,
-strategy-first ordering, the primary CLI route, each staged fallback predicate,
-evidence tracing, refinement, and the exact report shape. Challenge checks
+checks cover the complete repository-search contract, approved root scopes,
+compact search planning, the primary CLI route, each staged fallback predicate,
+evidence tracing, refinement, and the compact report shape. Challenge checks
 target likely shortcuts: guessed paths, MCP-tool substitution, fallback
 reordering, hidden uncertainty, and completion without structural evidence.
 

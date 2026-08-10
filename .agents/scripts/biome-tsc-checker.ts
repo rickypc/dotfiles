@@ -1,5 +1,8 @@
 import { resolve } from 'node:path';
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import {
+  runWhenMain as runCliWhenMain,
+  runWhenMainWithHelp,
+} from '../utils/cli.js';
 import type { CheckResult, CommandSpec } from '../utils/contracts.js';
 import { failed, normalizePaths, passed } from '../utils/contracts.js';
 import { declarationOrderCheck } from '../utils/declaration-order.js';
@@ -164,6 +167,9 @@ export const run = async (
   requirePassingChecks(results);
 };
 
+export const usage = (): string =>
+  'Usage: bun <agents-root>/scripts/biome-tsc-checker.ts <path> [path...]';
+
 export const runWhenMain = runCliWhenMain;
 
-await runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+await runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

@@ -40,6 +40,9 @@ const isWithinRoot = (
 
 const readStdin = async (): Promise<string> => new Response(Bun.stdin).text();
 
+export const usage = (): string =>
+  'Usage: bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>';
+
 export const writeJson = async (
   outputPath: string,
   input: string,
@@ -85,9 +88,7 @@ export const run = async (
   dependencies: WriteJsonCliDependencies = defaultDependencies,
 ): Promise<void> => {
   if (args.length !== 1) {
-    throw new Error(
-      'Usage: bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>',
-    );
+    throw new Error(usage());
   }
   await writeJson(args[0], await dependencies.readInput(), dependencies);
 };
@@ -108,6 +109,10 @@ export const runCli = async (
   runner: WriteJsonRunner = defaultWriteJsonRunner,
   setExitCode: (code: number) => void = (code) => processExit.setExitCode(code),
 ): Promise<void> => {
+  if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')) {
+    console.log(usage());
+    return;
+  }
   await runner(args).catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : String(error));
     setExitCode(1);
