@@ -53,8 +53,11 @@ permission to expand scope:
 
 - Read the whole plan and validate path safety, section order, typed inputs,
   targets, fallbacks, stops, and output schema before mutation.
-- Execute each workflow step sequentially and finish its named proof before
-  starting the next. Use a fallback only when the plan's primary method fails.
+- Treat the plan's `- [ ]` workflow items as the authoritative checklist.
+  Execute each item sequentially and finish its named proof before starting
+  the next; then update that same item to `- [x]`, or to `- [-]` with a factual
+  inapplicability reason. Use a fallback only when the plan's primary method
+  fails. Do not maintain a separate checklist.
 - Preserve public signatures, data formats, authorization, persistence,
   migrations, external boundaries, and rollback behavior when affected.
 - For JavaScript or TypeScript test changes, invoke `/bun-test-generator`

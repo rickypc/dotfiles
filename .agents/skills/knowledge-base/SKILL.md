@@ -202,7 +202,7 @@ team, and project records retain their `ALWAYS`/`NEVER` precedence.
 
 | Command or information | Arguments | When to use | Additional information |
 | --- | --- | --- | --- |
-| `import-plan` | `<relative-or-absolute-plan-path>` | A completed AIDX plan must become durable knowledge | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>`; preserve the source plan after the validated OKF write. |
+| `import-plan` | `<relative-or-absolute-plan-path>` | A completed AIDX plan must become durable knowledge | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>`; the importer preserves the source and returns a receipt. AIDX may remove the source afterward when its retirement rule and user scope authorize it. |
 | `related` | `<private-kb-root> <query>` | Before a distillation decision | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"`; choose one explicit disposition. |
 | `reconcile` | `<private-kb-root> <absolute-reconciliation-request-path>` | An approved multi-concept plan is complete | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"`; then guard every changed concept. |
 

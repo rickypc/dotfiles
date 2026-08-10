@@ -9,10 +9,11 @@ argument-hint: "<plan-path-relative-or-absolute>"
 ## 1. Role and scope
 
 AIDX executes one already-materialized six-section plan. It owns ordered
-execution, delegated owner routing, fresh verification, and the final output
-mapping. It does not create or rewrite plans, ask the planner's requirements
-questions, maintain a parallel state machine, or turn free-form Markdown into
-a shell script.
+execution, delegated owner routing, fresh verification, completion-state
+recording, and the final output mapping. It does not author or redesign plans,
+ask the planner's requirements questions, maintain a parallel state machine,
+or turn free-form Markdown into a shell script. It may update the executed
+plan's checklist and terminal status during mandatory closeout.
 
 ### Trigger and accepted input
 
@@ -98,8 +99,13 @@ every fallback is concrete, and the output schema is complete. Review the plan
 critically before starting; a material concern is a stop, not permission to
 invent a repair.
 
-Build a checklist from the plan's objective, requirements, exclusions,
-dependencies, acceptance-to-proof mapping, and re-plan triggers. Distinguish
+Use the plan's `CHRONOLOGICAL WORKFLOW` task items as the authoritative
+checklist. Confirm every executable step begins `- [ ]` before execution;
+reject a plan with prose-only workflow steps because there is no shared
+completion state. Update each exact item in place to `- [x]` after its named
+proof succeeds, or `- [-]` with a factual reason when the step is intentionally
+inapplicable. Do not create a separate checklist that can diverge from the
+plan. Distinguish
 user facts, project instructions, retrieved evidence, decisions, and
 assumptions. For brownfield work, confirm the plan states the current behavior,
 consumer or contract boundaries, preservation obligations, and existing proof.
@@ -143,6 +149,34 @@ If discovered evidence invalidates a requirement, boundary, owner, dependency,
 risk assumption, architecture, or proof strategy, stop at the named re-plan
 trigger. Preserve unaffected work and return the exact changed evidence and
 decision needed; do not silently turn a new idea into scope.
+
+### Completed-plan retirement
+
+After execution, AIDX must complete the plan's closeout before considering
+retirement. It must atomically update every successful workflow item to `[x]`,
+mark intentionally skipped items `[-]` with a reason, leave no `[ ]`, `[~]`, or
+`[!]` item, set frontmatter `status` to `completed`, and validate the updated
+plan at its same absolute path. A stale `pending` field is not evidence that
+execution is incomplete, but it is also not permission to infer completion:
+the current checklist, receipts, acceptance mapping, and final gate must all
+prove the terminal state. If AIDX cannot write or validate this closeout, it
+must stop and must not distill or remove the plan.
+
+Only after that closeout succeeds, classify the plan before retiring the source
+file:
+
+- **Distill then remove:** If it contains verified, reusable decisions,
+  patterns, lessons, or evidence not already held by the configured private KB,
+  run `/knowledge-base import-plan <plan-path>`, verify the returned write and
+  validation receipt, then remove the source plan.
+- **Remove only:** If it is obsolete, superseded, duplicated, or contains no
+  durable verified knowledge, record that disposition and remove the source
+  plan without importing it.
+
+Never import a pending, in-progress, blocked, or otherwise unverified plan.
+Never remove a plan selected for distillation before the KB receipt succeeds.
+The importer owns the durable write; AIDX owns the final source-plan removal
+after the receipt and the user's retirement scope are satisfied.
 
 ## 6. Output & Completion Contract
 

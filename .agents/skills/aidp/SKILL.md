@@ -146,7 +146,10 @@ strict expected type and whether it is required or optional.
 Give concrete ingest-and-verify, process-and-transform, and synthesize steps.
 Each step names one target, responsibility, dependency, reason, expected
 result, preserved behavior, failure or boundary case, and focused proof. Each
-step is independently testable. For material work, decompose only after the
+step is independently testable and MUST be written as an unchecked Markdown
+task item beginning `- [ ]`. These `[ ]` items are the execution checklist
+that AIDX must update; do not use prose-only steps or pre-mark them complete.
+For material work, decompose only after the
 requirements and design decisions are explicit; identify the smallest units,
 their dependency order, and the fact that would require re-planning.
 
@@ -189,7 +192,7 @@ Author each section with these minimum contents:
 - **VARIABLE DEFINITION MATRIX:** every required path, value, source fragment,
   dependency, strict type, and required/optional state.
 - **CHRONOLOGICAL WORKFLOW:** independently testable ingest, process, and
-  synthesis steps. Every material requirement names its source, actor or
+  synthesis steps, each as `- [ ] <step>`. Every material requirement names its source, actor or
   trigger, expected result, must-not constraint, failure or boundary case, and
   proof. Every unit names its owner, dependencies, mapped requirement, and
   completion condition.
@@ -200,6 +203,10 @@ Author each section with these minimum contents:
   unverifiable required input is a stop.
 - **RIGID OUTPUT SCHEMA:** exact final labels, order, delimiters, required
   values, and omission rules.
+
+The workflow checklist is mandatory: AIDP writes every executable step as
+`- [ ]`. AIDX owns the later transition to `- [x]` for completed work or
+`- [-]` with a factual reason for an intentionally skipped step.
 
 Keep facts, decisions, assumptions, and unknowns visibly separate throughout
 the skeleton. A complete plan is not a list of plausible tasks: it is the

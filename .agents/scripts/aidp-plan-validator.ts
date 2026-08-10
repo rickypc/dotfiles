@@ -104,6 +104,22 @@ const sectionText = (body: string, heading: string, index: number): string => {
   return pattern.exec(body)?.[1]?.trim() ?? '';
 };
 
+const requireWorkflowTaskItems = (
+  workflow: string,
+  workflowItems: readonly string[],
+  issues: string[],
+): void => {
+  const taskItems = workflow
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => /^- \[ \] \S/u.test(line));
+  if (taskItems.length !== workflowItems.length) {
+    issues.push(
+      'CHRONOLOGICAL WORKFLOW must contain only unchecked Markdown task items beginning `- [ ]`.',
+    );
+  }
+};
+
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>';
 
@@ -189,6 +205,7 @@ const validateSections = (body: string, issues: string[]) => {
   if (workflowItems.length === 0) {
     issues.push('CHRONOLOGICAL WORKFLOW must contain numbered steps.');
   }
+  requireWorkflowTaskItems(workflow, workflowItems, issues);
   workflowItems.forEach((step, index) => {
     requireTerms(
       step,

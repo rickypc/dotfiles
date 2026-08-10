@@ -27,6 +27,10 @@ Build one compact evidence set before decomposition:
 - Delivery record: sequence rationale, risks, assumptions, final gate, and
   re-plan triggers.
 
+Every executable workflow step must be authored as an unchecked Markdown task
+item (`- [ ]`). This is the shared state handed to `/aidx`; AIDP never marks a
+step complete.
+
 Before asking a clarification question, retrieve repository context through
 `/repo-search` and private context through `/knowledge-base`, then record both
 receipts and the resulting facts, limits, decisions, and unknowns. Ask one

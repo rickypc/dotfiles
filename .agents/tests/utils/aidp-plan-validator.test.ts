@@ -27,8 +27,8 @@ Objective: deliver the approved change. Scope covers the named files; exclusions
 - optional_note — type: string; optional; source: user decision.
 
 ### 3. CHRONOLOGICAL WORKFLOW
-1. Inspect the target and record the owner responsibility; Target: parser module; Dependency and ordering: first; Reason: establish the baseline; Expected result: verified current behavior and preserved invariant; Proof: focused test; Failure or boundary: stop on ambiguity.
-2. Apply the selected change; Target: parser module; Owner responsibility: implementation owner; Dependency and ordering: after step 1; Reason: satisfy the objective; Expected result: requested behavior; Preserved behavior: existing valid inputs; Proof and check: focused test; Failure or boundary: return to planning.
+- [ ] Inspect the target and record the owner responsibility; Target: parser module; Dependency and ordering: first; Reason: establish the baseline; Expected result: verified current behavior and preserved invariant; Proof: focused test; Failure or boundary: stop on ambiguity.
+- [ ] Apply the selected change; Target: parser module; Owner responsibility: implementation owner; Dependency and ordering: after step 1; Reason: satisfy the objective; Expected result: requested behavior; Preserved behavior: existing valid inputs; Proof and check: focused test; Failure or boundary: return to planning.
 
 ### 4. TOOL STRATEGY & FALLBACKS
 - Primary method: repository inspection; owner: repo-search; input: approved root and query; fallback: bounded textual search when the primary result is empty or fails.
@@ -96,6 +96,12 @@ test('rejects a workflow step that omits an independently testable proof field',
       planPath,
     ),
   ).toThrow(/step 2.*proof/u);
+});
+
+test('rejects workflow steps without unchecked task markers', () => {
+  expect(() =>
+    validateAidpPlan(validPlan.replaceAll('- [ ]', '1.'), planPath),
+  ).toThrow(/unchecked Markdown task items/u);
 });
 
 test('rejects a plan outside the canonical indexed plan route', () => {
