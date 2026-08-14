@@ -245,27 +245,46 @@ contract; owner tables need not repeat it in every row.
 
 ### String-only JSON boundary
 
-When a tool or script accepts a string containing JSON, pass a string, never an
-object. For backtick-, dollar-, quote-, or newline-rich JSON that must be
-written to disk, use the shared TypeScript writer:
+When a tool or script accepts a string containing JSON, pass a string, never
+an object. The built-in write tool schema-rejects `{`-prefixed string content
+with `Expected string, got {...}` at `["content"]` because the tool re-types
+JSON-shaped strings as objects during argument validation. Never reuse the
+editor for JSON payloads; always use the shared TypeScript writer.
 
-```text
-cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
-```
+For backtick-, dollar-, quote-, or newline-rich JSON that must be written to
+disk, the exact four-step procedure is mandatory:
 
-Run `mktemp` alone first and retain the absolute output path it prints. Create
-the request source through the approved file editor, then run the exact writer
-pipe. Do not use a heredoc, shell redirection, shell variables, command
-substitution, guessed temp path such as `/tmp` or `/private/tmp`, object-valued
-tool call, Python, or `JSON.stringify(request)` fallback. Pass JSON as string
-`content` through the writer. The writer reads stdin, validates JSON, pretty-prints
-it, and permits only an output path inside the operating system temp directory.
-After materialization succeeds, invoke the owning command separately with the
-same literal path.
+1. **Obtain the output path.** Run standalone `mktemp` alone and retain the
+   absolute path it prints. The writer rejects any output path outside
+   `os.tmpdir()` and refuses relative or guessed paths.
+2. **Build the JSON string in memory.** JSON is whitespace-insensitive; keep
+   newlines inside string bodies as literal `\n` escapes. Encode Markdown
+   backticks as `\u0060` and dollar signs as `\u0024` if they appear inside
+   string bodies.
+3. **Write the source via printf.** Pipe the literal string to a temp source
+   file with `printf '%s' '<json-string>' > <absolute-request-source-path>`.
+   Single-quoted printf avoids shell variable, heredoc, command substitution,
+   and backtick interpretation.
+4. **Materialize then invoke the owner.** Run the writer pipe:
 
-The exact writer command contract is preserved as:
-`cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts
-<absolute-json-output-path>`
+   ```text
+   cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
+   ```
+
+   The writer reads stdin, validates JSON, pretty-prints it, and writes only
+   inside the OS temp directory. After materialization succeeds, invoke the
+   owning command separately with the same literal output path. For the
+   knowledge-base skill, that command is:
+
+   ```text
+   bun <agents-root>/scripts/knowledge-base.ts reconcile <private-kb-root> <absolute-json-output-path>
+   ```
+
+Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON
+boundary: heredoc, shell redirection other than the writer pipe, shell
+variables, command substitution, inline writers, Python, object-valued tool
+calls, `JSON.stringify(request)` as a fallback, guessed temp paths such as
+`/tmp` or `/private/tmp`, and the built-in write tool for JSON payloads.
 
 The writer entrypoint remains `write-json.ts`; the owning skill determines the
 `request` schema and lifecycle, and the `request` itself follows that owner's
