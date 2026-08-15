@@ -145,6 +145,53 @@ Write exactly these six numbered level-three sections, in this order. Headings m
 
 State one objective and explicit scope boundaries, exclusions, and ownership.
 
+The singular ownership named in this block is the **human owner** (final
+decision-maker — the user who invoked AIDP). The AIDP planning skill that
+is running in the current turn is the **plan author**; the AIDX execution
+skill that consumes the materialized plan via `/aidx` is the **executor**.
+The human owner, the plan author, and the executor are three distinct
+identities. Conflating them pollutes every workflow step with redundant
+attribution. Establish them exactly once here, in TARGET DIRECTIVES,
+under an **Agent Role / Human Owner / Authority & Escalation** block.
+Do not paste `owner: AIDX` on every workflow step; the per-step field is
+`responsibility` (see the chronological-workflow paragraph below), and
+it names the executor role that consumes the plan, not the plan author.
+
+The Agent Role / Human Owner / Authority & Escalation block has this
+shape; do not invent an alternative shape, and do not omit any of the
+four sub-bullets when the plan crosses a project, brownfield, or
+cross-cutting boundary:
+
+- **Agent Role (Identity).** Name the plan author (the AIDP skill
+  running in this turn) and explicitly state that the AIDP skill does
+  NOT execute the plan; AIDP produces one durable Markdown plan and a
+  `/aidx` handoff. The executor of every workflow step is the AIDX
+  skill invoked with this plan's path.
+- **Human Owner (Final Decision-Maker).** Name the human owner (the
+  user). The human owner reviews each AIDX pass result, may veto any
+  rewrite decision, may add new learnings from prior sessions, and is
+  the only authority on scope, voice, or surface changes that affect
+  the public site.
+- **Authority & Escalation.** Enumerate the conditions under which the
+  AIDX executor escalates to the human owner. Each condition names
+  what AIDX pauses on, what it captures into the scratchpad, and the
+  question or option it surfaces. Typical conditions: a quote with a
+  fix-eligible error and no clear correction; a new citation that
+  cannot be verified; a long page that cannot be cleanly split; a
+  strict-mode build failure whose fix requires a scope decision; any
+  banned word or factual claim the canonical patterns do not cover.
+- **Configured Final Gate.** Verify the final-gate command string
+  against the project's `package.json` or `aidx.json` BEFORE writing
+  the plan; the gate is `bun run test` (the agents-root default) when
+  no project override exists, otherwise it is `aidx.json`'s
+  `finalGate`, otherwise the configured project gate. For npm-based
+  projects the equivalent is `npm run test && npm run test:e2e` (or
+  whichever string the project's `test` and `test:e2e` scripts
+  compose). Do NOT invent a plausible-looking chain such as
+  `npm run test:lint && npm run test:unit && npm run test:e2e &&
+  npm run build` — that string is wrong on most projects; verify
+  first, then name the gate.
+
 ### 2. VARIABLE DEFINITION MATRIX
 
 List every required path, value, source fragment, and dependency with its
@@ -161,6 +208,16 @@ that AIDX must update; do not use prose-only steps or pre-mark them complete.
 For material work, decompose only after the
 requirements and design decisions are explicit; identify the smallest units,
 their dependency order, and the fact that would require re-planning.
+
+The per-step responsibility field names the executor role that will
+carry out the step (typically the AIDX execution skill or a delegated
+router). It is NOT a re-statement of the singular owner established in
+TARGET DIRECTIVES. Do not paste `(owner: AIDX)` (or any other executor
+attribution) on every step — that is noise and confuses the
+plan-author / executor / human-owner split. Write the responsibility
+field only when the executor for a step deviates from the default
+AIDX executor (for example, when a step escalates to the human owner
+or delegates to a different skill).
 
 ### 4. TOOL STRATEGY & FALLBACKS
 
@@ -201,10 +258,13 @@ Author each section with these minimum contents:
 - **VARIABLE DEFINITION MATRIX:** every required path, value, source fragment,
   dependency, strict type, and required/optional state.
 - **CHRONOLOGICAL WORKFLOW:** independently testable ingest, process, and
-  synthesis steps, each as `- [ ] <step>`. Every material requirement names its source, actor or
-  trigger, expected result, must-not constraint, failure or boundary case, and
-  proof. Every unit names its owner, dependencies, mapped requirement, and
-  completion condition.
+  synthesis steps, each as `- [ ] <step>`. Every material requirement names its source, actor or trigger, expected result, must-not constraint, failure or
+  boundary case, and proof. Every unit names its responsibility (the executor
+  role that carries it out, typically AIDX), its dependencies, its mapped
+  requirement, and its completion condition. The responsibility field is
+  per-step and replaces the older per-step "owner" wording — establish the
+  singular owner (the human decision-maker) exactly once in TARGET DIRECTIVES
+  under an Agent Role / Human Owner / Authority & Escalation block.
 - **TOOL STRATEGY & FALLBACKS:** the owned primary method, exact input
   boundary, empty or failed-result condition, and concrete fallback.
 - **SYSTEMATIC VERIFICATION CHECKLIST:** objective, variable, workflow,

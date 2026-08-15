@@ -73,14 +73,14 @@
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "files.associations": {
-    "crontab": "shellscript",
     "*.inc": "php",
     "*.install": "php",
     "*.module": "php",
     "*.php": "php",
     "*.theme": "php",
     "*.ts": "typescript",
-    "*.tsx": "typescriptreact"
+    "*.tsx": "typescriptreact",
+    "crontab": "shellscript"
   },
   "files.exclude": {
     "**/.DS_Store": true,
@@ -91,9 +91,9 @@
   },
   "files.trimTrailingWhitespace": true,
   "files.watcherExclude": {
+    "**/.git/objects/**": true,
     "**/coverage/**": true,
     "**/dist/**": true,
-    "**/.git/objects/**": true,
     "**/node_modules/**": true,
     "**/vendor/**": true
   },
@@ -115,6 +115,10 @@
   "http.proxyStrictSSL": false,
   "http.proxySupport": "off",
   "js.validate.enable": false,
+  "json.schemaDownload.trustedDomains": {
+    "https://models.dev/": true,
+    "https://opencode.ai/": true
+  },
   "notebook.outline.showCodeCells": true,
   "outline.showVariables": true,
   "php.files.exclude": [
@@ -274,10 +278,10 @@
   "redhat.telemetry.enabled": false,
   "rest-client.enableTelemetry": false,
   "search.exclude": {
-    "**/coverage": true,
-    "**/dist": true,
     "**/.DS_Store": true,
     "**/.git": true,
+    "**/coverage": true,
+    "**/dist": true,
     "**/vendor": true
   },
   "security.workspace.trust.untrustedFiles": "newWindow",
