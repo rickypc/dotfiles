@@ -134,24 +134,23 @@ test('slices a six-section plan into one validated OKF concept and updates index
     'status: pending',
     '---',
     '',
-    '# ROLE',
+    '## 1. TARGET DIRECTIVES',
     'Principal developer.',
     '',
-    '# OBJECTIVE',
+    '## 2. VARIABLE DEFINITION MATRIX',
     'Deliver the parser refactor.',
     '',
-    '# CORE DIRECTIVES',
-    '- Preserve the public contract.',
-    '- Stop on ambiguity.',
+    '## 3. CHRONOLOGICAL WORKFLOW',
+    '- [ ] Action: Inspect the parser and record every direct consumer before editing; Target or Boundary: parser module; Source -> Target: current parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.',
     '',
-    '# ORDERED EXECUTION STEPS',
-    '1. [ ] Action: Inspect the parser and record every direct consumer before editing; Target or Boundary: parser module; Source -> Target: current parser -> consumer map; Change or Decision: record direct consumers; Dependency or Ordering: first; Reason: establish scope; Acceptance or Proof: consumer map; Failure or Stop: stop on ambiguity.',
-    '',
-    '# CONSTRAINTS',
+    '## 4. TOOL STRATEGY & FALLBACKS',
     '- Do not edit protected configuration.',
     '',
-    '# INPUTS TO PROCESS',
+    '## 5. SYSTEMATIC VERIFICATION CHECKLIST',
     '- The approved implementation plan.',
+    '',
+    '## 6. RIGID OUTPUT SCHEMA',
+    '- Output schema emitted in fixed order.',
     '',
   ].join('\n');
   files.set(planPath, plan);
@@ -170,7 +169,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
     },
   };
   expect(parsePlanForImport(plan).sections).toHaveProperty(
-    'ORDERED EXECUTION STEPS',
+    'CHRONOLOGICAL WORKFLOW',
   );
   const receipt = await importPlan(fileSystem, '/kb', planPath);
   expect(receipt).toMatchObject({
@@ -178,23 +177,25 @@ test('slices a six-section plan into one validated OKF concept and updates index
     planPath,
     repoSearchIndex: 'workspace-example-app',
     sections: [
-      'ROLE',
-      'OBJECTIVE',
-      'CORE DIRECTIVES',
-      'ORDERED EXECUTION STEPS',
-      'CONSTRAINTS',
-      'INPUTS TO PROCESS',
+      'TARGET DIRECTIVES',
+      'VARIABLE DEFINITION MATRIX',
+      'CHRONOLOGICAL WORKFLOW',
+      'TOOL STRATEGY & FALLBACKS',
+      'SYSTEMATIC VERIFICATION CHECKLIST',
+      'RIGID OUTPUT SCHEMA',
     ],
   });
   expect(
     files.get('/kb/workspace-example-app/plans/execute-the-parser-refactor.md'),
-  ).toContain('## INPUTS TO PROCESS');
+  ).toContain('## RIGID OUTPUT SCHEMA');
   expect(files.get('/kb/workspace-example-app/plans/index.md')).toContain(
     '[Execute the parser refactor](execute-the-parser-refactor.md)',
   );
   expect(() =>
-    parsePlanForImport(plan.replace('# CONSTRAINTS', '# BROKEN')),
-  ).toThrow('six sections');
+    parsePlanForImport(
+      plan.replace('## 5. SYSTEMATIC VERIFICATION CHECKLIST', '## 5. BROKEN'),
+    ),
+  ).toThrow('template order');
   expect(() => parsePlanForImport('no frontmatter')).toThrow('frontmatter');
   expect(() =>
     parsePlanForImport(
@@ -208,7 +209,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
   ).toThrow('title');
   expect(() =>
     parsePlanForImport(plan.replace('Principal developer.', '')),
-  ).toThrow('ROLE');
+  ).toThrow('TARGET DIRECTIVES');
   files.set(
     planPath,
     plan.replace('title: Execute the parser refactor', 'title: "!!!"'),

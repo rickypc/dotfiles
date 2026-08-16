@@ -19,26 +19,28 @@ updated_at: "2026-08-09"
 status: "pending"
 ---
 
-### 1. TARGET DIRECTIVES
+# Valid AIDP plan
+
+## 1. TARGET DIRECTIVES
 Objective: deliver the approved change. Scope covers the named files; exclusions and one owner are explicit.
 
-### 2. VARIABLE DEFINITION MATRIX
+## 2. VARIABLE DEFINITION MATRIX
 - target_path — type: absolute path; required; source: repository evidence.
 - optional_note — type: string; optional; source: user decision.
 
-### 3. CHRONOLOGICAL WORKFLOW
+## 3. CHRONOLOGICAL WORKFLOW
 - [ ] Inspect the target and record the owner responsibility; Target: parser module; Dependency and ordering: first; Reason: establish the baseline; Expected result: verified current behavior and preserved invariant; Proof: focused test; Failure or boundary: stop on ambiguity.
 - [ ] Apply the selected change; Target: parser module; Owner responsibility: implementation owner; Dependency and ordering: after step 1; Reason: satisfy the objective; Expected result: requested behavior; Preserved behavior: existing valid inputs; Proof and check: focused test; Failure or boundary: return to planning.
 
-### 4. TOOL STRATEGY & FALLBACKS
+## 4. TOOL STRATEGY & FALLBACKS
 - Primary method: repository inspection; owner: repo-search; input: approved root and query; fallback: bounded textual search when the primary result is empty or fails.
 
-### 5. SYSTEMATIC VERIFICATION CHECKLIST
+## 5. SYSTEMATIC VERIFICATION CHECKLIST
 - Check the objective and every variable input.
 - Check each workflow result and preserved behavior.
 - Check exclusions, scope, failure, and stop conditions.
 
-### 6. RIGID OUTPUT SCHEMA
+## 6. RIGID OUTPUT SCHEMA
 - Required labels are emitted in order with fixed delimiters and format.
 - Omission rules state what is omitted when optional values are absent.
 `;
@@ -79,7 +81,7 @@ test('rejects heading drift, empty sections, and unresolved placeholders', () =>
   expect(() =>
     validateAidpPlan(
       validPlan
-        .replace('### 4. TOOL STRATEGY & FALLBACKS', '### 4. TOOL STRATEGY')
+        .replace('## 4. TOOL STRATEGY & FALLBACKS', '## 4. TOOL STRATEGY')
         .replace(
           'Scope covers the named files',
           'Scope covers [the named files]',
@@ -108,6 +110,57 @@ test('rejects a plan outside the canonical indexed plan route', () => {
   expect(() => validateAidpPlan(validPlan, '/workspace/notes/plan.md')).toThrow(
     /\.agents\/plans/u,
   );
+});
+
+test('rejects a plan whose document H1 differs from the frontmatter title', () => {
+  expect(() =>
+    validateAidpPlan(
+      validPlan.replace('# Valid AIDP plan', '# Different title'),
+      planPath,
+    ),
+  ).toThrow(/H1/u);
+});
+
+test('rejects a plan with no document H1', () => {
+  expect(() =>
+    validateAidpPlan(validPlan.replace('# Valid AIDP plan\n\n', ''), planPath),
+  ).toThrow(/H1/u);
+});
+
+test('rejects an unflagged assumption phrase', () => {
+  expect(() =>
+    validateAidpPlan(
+      validPlan.replace(
+        'Reason: satisfy the objective;',
+        'Reason: likely satisfies the objective;',
+      ),
+      planPath,
+    ),
+  ).toThrow(/unflagged assumption/u);
+});
+
+test('rejects a workflow step asserting a user decision without a decision or clarified marker', () => {
+  expect(() =>
+    validateAidpPlan(
+      validPlan.replace(
+        'Reason: satisfy the objective;',
+        'Reason: the user authorized the change;',
+      ),
+      planPath,
+    ),
+  ).toThrow(/decision:|clarified:/u);
+});
+
+test('accepts a workflow step that asserts a user decision with a decision marker', () => {
+  expect(() =>
+    validateAidpPlan(
+      validPlan.replace(
+        'Reason: satisfy the objective;',
+        'Reason: decision: the user authorized the change;',
+      ),
+      planPath,
+    ),
+  ).not.toThrow();
 });
 
 test('runs the validator through its absolute-file command boundary', async () => {

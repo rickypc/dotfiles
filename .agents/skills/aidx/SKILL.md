@@ -160,20 +160,29 @@ prove the terminal state. If AIDX cannot write or validate this closeout, it
 must stop and must not distill or remove the plan.
 
 Only after that closeout succeeds, classify the plan before retiring the source
-file:
+file. Retirement is mandatory, not optional, once the closeout and the chosen
+disposition are verified:
 
-- **Distill then remove:** If it contains verified, reusable decisions,
+- **Distill then remove:** If the plan contains verified, reusable decisions,
   patterns, lessons, or evidence not already held by the configured private KB,
-  run `/knowledge-base import-plan <plan-path>`, verify the returned write and
-  validation receipt, then remove the source plan.
-- **Remove only:** If it is obsolete, superseded, duplicated, or contains no
-  durable verified knowledge, record that disposition and remove the source
-  plan without importing it.
+  invoke `/knowledge-base import-plan <plan-path> --remove-source`. The
+  `--remove-source` flag moves the source plan to `~/.Trash/` atomically after
+  the KB write and validation receipt succeed; the importer returns a
+  `retiredTo` field naming the trash destination. Never remove the source
+  yourself after the importer has already done it via the flag.
+- **Remove only:** If the plan is obsolete, superseded, duplicated, or contains
+  no durable verified knowledge, record that disposition and move the source
+  plan to `~/.Trash/` without importing it.
 
 Never import a pending, in-progress, blocked, or otherwise unverified plan.
-Never remove a plan selected for distillation before the KB receipt succeeds.
-The importer owns the durable write; AIDX owns the final source-plan removal
-after the receipt and the user's retirement scope are satisfied.
+Never pass `--remove-source` to a plan whose `status` frontmatter is not
+`completed`; the importer does not enforce completion for the flag (that is
+AIDX's job), so AIDX must verify the closeout itself first. Never remove a
+plan selected for distillation before the KB receipt succeeds; the importer
+moves the source only after its own write+receipt succeeds. The closeout
+output MUST name the exact `retiredTo` path returned by the importer (or the
+`~/.Trash/` destination for the remove-only case); a missing `retiredTo` in the
+closeout is an unfinished retirement, not a soft option.
 
 ## 6. Output & Completion Contract
 

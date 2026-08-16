@@ -14,6 +14,7 @@ import {
   type RepoSearchSearchFallbackReceipt,
   searchWithRepoSearchFallback,
 } from '../utils/repo-search.js';
+import { defaultMoveSourceToTrash } from './trash.js';
 
 type BatchSearchDependency = typeof searchKnowledgeBaseBatch;
 
@@ -141,12 +142,12 @@ const planFrontmatterFields = new Set([
 ]);
 
 const planSectionHeadings = [
-  'ROLE',
-  'OBJECTIVE',
-  'CORE DIRECTIVES',
-  'ORDERED EXECUTION STEPS',
-  'CONSTRAINTS',
-  'INPUTS TO PROCESS',
+  'TARGET DIRECTIVES',
+  'VARIABLE DEFINITION MATRIX',
+  'CHRONOLOGICAL WORKFLOW',
+  'TOOL STRATEGY & FALLBACKS',
+  'SYSTEMATIC VERIFICATION CHECKLIST',
+  'RIGID OUTPUT SCHEMA',
 ] as const;
 
 export const conceptIndexPath = (path: string): string => {
@@ -198,10 +199,11 @@ const planSection = (
   heading: string,
   nextHeading?: string,
 ): string => {
-  const end = nextHeading ? `(?=^# ${nextHeading}\\n)` : '$';
-  const match = new RegExp(`^# ${heading}\\n([\\s\\S]*?)${end}`, 'mu').exec(
-    body,
-  );
+  const end = nextHeading ? `(?=^## \\d+\\. ${nextHeading}\\n)` : '$';
+  const match = new RegExp(
+    `^## \\d+\\. ${heading}\\n([\\s\\S]*?)${end}`,
+    'mu',
+  ).exec(body);
   if (!match?.[1]?.trim()) {
     throw new Error(`Plan section is required: ${heading}.`);
   }
@@ -322,10 +324,12 @@ export const parsePlanForImport = (content: string): PlanImportDocument => {
     );
   }
   const body = parsed.content.trim();
-  const headings = [...body.matchAll(/^# (.+)$/gmu)].map((match) => match[1]);
+  const headings = [...body.matchAll(/^## \d+\. (.+)$/gmu)].map((match) =>
+    match[1].trim(),
+  );
   if (headings.join('\n') !== planSectionHeadings.join('\n')) {
     throw new Error(
-      'KB plan import requires the six sections in template order.',
+      'KB plan import requires the six H2 numbered sections in template order: ## 1. TARGET DIRECTIVES through ## 6. RIGID OUTPUT SCHEMA.',
     );
   }
   const sections = Object.fromEntries(
@@ -336,7 +340,7 @@ export const parsePlanForImport = (content: string): PlanImportDocument => {
   );
   return {
     headings: planSectionHeadings,
-    objective: sections.OBJECTIVE,
+    objective: sections['TARGET DIRECTIVES'],
     repoSearchIndex: requiredPlanField(metadata, 'repo_search_index'),
     sections,
     title: requiredPlanField(metadata, 'title'),
@@ -432,22 +436,28 @@ const runImportPlan = async (
   args: readonly string[],
   importer: typeof importPlan,
   write: (message: string) => void,
+  moveSourceToTrash: (sourcePath: string) => Promise<string>,
 ): Promise<boolean> => {
-  const [command, planPath] = args;
-  if (command !== 'import-plan' || !planPath || args.length !== 2) {
+  const [command, planPath, ...rest] = args;
+  const removeSource = rest.includes('--remove-source');
+  if (
+    command !== 'import-plan' ||
+    !planPath ||
+    rest.length > 1 ||
+    (rest.length === 1 && !removeSource)
+  ) {
     return false;
   }
-  write(
-    JSON.stringify(
-      await importer(
-        nodeFileSystem,
-        privateKnowledgeBaseRoot(),
-        resolve(process.cwd(), planPath),
-      ),
-      null,
-      2,
-    ),
+  const absolutePlanPath = resolve(process.cwd(), planPath);
+  const receipt = await importer(
+    nodeFileSystem,
+    privateKnowledgeBaseRoot(),
+    absolutePlanPath,
   );
+  const retiredTo = removeSource
+    ? await moveSourceToTrash(absolutePlanPath)
+    : undefined;
+  write(JSON.stringify({ ...receipt, retiredTo }, null, 2));
   return true;
 };
 
@@ -521,7 +531,7 @@ const stringMetadata = (data: Record<string, unknown>, key: string): string => {
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes exactly one plan path; search-batch takes one KB root, one repo-search index, and 1-4 unique queries.';
+  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search-batch takes one KB root, one repo-search index, and 1-4 unique queries.';
 
 export const validateLesson = (lesson: Lesson): void => {
   for (const [name, value] of Object.entries(lesson)) {
@@ -986,7 +996,7 @@ export const run = async (
   batchSearchFn: BatchSearchDependency = defaultBatchSearchDependency,
   importerFn: ImportDependency = defaultImportDependency,
 ): Promise<void> => {
-  if (await runImportPlan(args, importerFn, write)) {
+  if (await runImportPlan(args, importerFn, write, defaultMoveSourceToTrash)) {
     return;
   }
   if (await runCapture(args, captureFn, write)) {

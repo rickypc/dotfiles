@@ -34,6 +34,12 @@ const REQUIRED_FRONTMATTER = [
 const PLACEHOLDER =
   /(?:\[(?:the |a |brief |specific |high-level |core |guardrails |specific file)[^\]]*\]|\b(?:TBD|TODO|PLACEHOLDER|FIXME)\b|<(?:path|file|symbol|value|type|name|command|slug|absolute-[^>]+)>)/iu;
 
+const ASSUMPTION_SMELL =
+  /\b(?:assume|assumed|assuming|should probably|likely|presumably|default to|I will|we will|typical|usually|by convention)\b/iu;
+
+const ASSUMPTION_REBUTTAL =
+  /\b(?:decision|clarified|assumption|evidence|receipt|user decision|user clarified|verified|confirmed by)\b/iu;
+
 export class AidpPlanValidationError extends Error {
   readonly issues: readonly string[];
 
@@ -43,6 +49,24 @@ export class AidpPlanValidationError extends Error {
     this.issues = issues;
   }
 }
+
+const flagUnflaggedAssumption = (
+  heading: string,
+  line: string,
+  following: string,
+  issues: string[],
+): void => {
+  const smellMatch = ASSUMPTION_SMELL.exec(line);
+  if (!smellMatch) {
+    return;
+  }
+  const window = `${line}\n${following}`;
+  if (!ASSUMPTION_REBUTTAL.test(window)) {
+    issues.push(
+      `${heading} contains an unflagged assumption phrase ("${smellMatch[0]}"); every assumption must be adjacent to a decision:, clarified:, assumption:, or evidence: marker or be removed.`,
+    );
+  }
+};
 
 const itemLines = (section: string): readonly string[] =>
   section
@@ -109,19 +133,62 @@ const requireWorkflowTaskItems = (
   }
 };
 
+const scanForUnflaggedAssumptions = (
+  sections: Readonly<Record<string, string>>,
+  issues: string[],
+): void => {
+  for (const [heading, text] of Object.entries(sections)) {
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i += 1) {
+      flagUnflaggedAssumption(
+        heading,
+        lines[i],
+        `${lines[i + 1] ?? ''}\n${lines[i + 2] ?? ''}`,
+        issues,
+      );
+    }
+  }
+};
+
 const sectionText = (body: string, heading: string, index: number): string => {
   const next = AIDP_PLAN_HEADINGS[index + 1];
   const pattern = next
     ? new RegExp(
-        `^### ${index + 1}\\. ${heading}\\n([\\s\\S]*?)(?=^### ${index + 2}\\. ${next}\\n)`,
+        `^## ${index + 1}\\. ${heading}\\n([\\s\\S]*?)(?=^## ${index + 2}\\. ${next}\\n)`,
         'mu',
       )
-    : new RegExp(`^### ${index + 1}\\. ${heading}\\n([\\s\\S]*)$`, 'mu');
+    : new RegExp(`^## ${index + 1}\\. ${heading}\\n([\\s\\S]*)$`, 'mu');
   return pattern.exec(body)?.[1]?.trim() ?? '';
 };
 
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>';
+
+const validateH1MatchesTitle = (
+  body: string,
+  title: string,
+  issues: string[],
+): void => {
+  const h1Matches = [...body.matchAll(/^# (.+)$/gmu)];
+  if (h1Matches.length === 0) {
+    issues.push(
+      'Plan body must begin with exactly one H1 (# <title>) on the first line after the YAML frontmatter.',
+    );
+    return;
+  }
+  if (h1Matches.length > 1) {
+    issues.push(
+      `Plan body must contain exactly one H1; found ${h1Matches.length}.`,
+    );
+    return;
+  }
+  const h1Text = h1Matches[0][1].trim();
+  if (h1Text !== title.trim()) {
+    issues.push(
+      `Document H1 ("${h1Text}") must equal the frontmatter title ("${title.trim()}") verbatim.`,
+    );
+  }
+};
 
 const validatePlanPath = (
   planPath: string,
@@ -156,15 +223,49 @@ const validatePlanPath = (
   }
 };
 
+const validateWorkflowStep = (
+  step: string,
+  index: number,
+  issues: string[],
+): void => {
+  requireTerms(
+    step,
+    `CHRONOLOGICAL WORKFLOW step ${index + 1}`,
+    [
+      ['target', 'boundary'],
+      ['responsibility', 'owner'],
+      ['dependency', 'ordering'],
+      ['reason'],
+      ['expected', 'result'],
+      ['preserved'],
+      ['failure', 'boundary'],
+      ['proof', 'check'],
+    ],
+    issues,
+  );
+  const assertsDecision =
+    /\b(?:user decided|the user|owner confirmed|human owner|user authorized|user approved|user's decision|decision)\b/iu.test(
+      step,
+    );
+  const hasMarker = /\b(?:decision:|clarified:)/iu.test(step);
+  if (assertsDecision && !hasMarker) {
+    issues.push(
+      `CHRONOLOGICAL WORKFLOW step ${index + 1} asserts a user decision without a decision: or clarified: marker; every user-decision assertion must carry the marker.`,
+    );
+  }
+};
+
 const validateSections = (body: string, issues: string[]) => {
-  const headings = [...body.matchAll(/^### (\d+)\. (.+)$/gmu)].map(
+  const headings = [...body.matchAll(/^## (\d+)\. (.+)$/gmu)].map(
     (match) => `${match[1]}. ${match[2]}`,
   );
   const expectedHeadings = AIDP_PLAN_HEADINGS.map(
     (heading, index) => `${index + 1}. ${heading}`,
   );
   if (headings.join('\n') !== expectedHeadings.join('\n')) {
-    issues.push('Plan must contain exactly the six AIDP headings in order.');
+    issues.push(
+      'Plan must contain exactly the six AIDP H2 headings in order: ## 1. TARGET DIRECTIVES through ## 6. RIGID OUTPUT SCHEMA.',
+    );
   }
   const sections = Object.fromEntries(
     AIDP_PLAN_HEADINGS.map((heading, index) => [
@@ -207,21 +308,7 @@ const validateSections = (body: string, issues: string[]) => {
   }
   requireWorkflowTaskItems(workflow, workflowItems, issues);
   workflowItems.forEach((step, index) => {
-    requireTerms(
-      step,
-      `CHRONOLOGICAL WORKFLOW step ${index + 1}`,
-      [
-        ['target', 'boundary'],
-        ['responsibility', 'owner'],
-        ['dependency', 'ordering'],
-        ['reason'],
-        ['expected', 'result'],
-        ['preserved'],
-        ['failure', 'boundary'],
-        ['proof', 'check'],
-      ],
-      issues,
-    );
+    validateWorkflowStep(step, index, issues);
   });
   requireTerms(
     tools,
@@ -258,7 +345,7 @@ const validateSections = (body: string, issues: string[]) => {
     ],
     issues,
   );
-  return headings;
+  return { headings, sections };
 };
 
 const validDate = (value: string, label: string, issues: string[]): void => {
@@ -339,7 +426,12 @@ export const validateAidpPlan = (
     planPath,
     issues,
   );
-  const headings = validateSections(parsed.content.trim(), issues);
+  const { headings, sections } = validateSections(
+    parsed.content.trim(),
+    issues,
+  );
+  validateH1MatchesTitle(parsed.content.trim(), title, issues);
+  scanForUnflaggedAssumptions(sections, issues);
 
   if (issues.length > 0) {
     throw new AidpPlanValidationError(issues);

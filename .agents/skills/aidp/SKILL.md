@@ -137,9 +137,86 @@ descriptive, and no longer than 160 characters. If a requirement could change
 scope, ownership, safety, architecture, or acceptance, stop for a focused
 clarification; do not guess and do not write a partial plan.
 
+## No-Assumption Covenant
+
+This covenant is absolute and overrides every other instruction in this skill.
+AIDP never fills a material unknown with a plausible default, an inferred
+preference, a project convention not in evidence, a framework's "usual" shape,
+or a silent branch. A plan that contains an unflagged assumption is invalid and
+must not be handed off.
+
+### What counts as an assumption
+
+Any of the following, when the user has not explicitly decided it and verified
+evidence has not established it, is a forbidden assumption:
+
+- A scope, ownership, or boundary the user did not confirm.
+- A framework, library, command, gate string, or API shape inferred from "how
+  these projects usually work" rather than verified against the repo or
+  `package.json`.
+- A voice, tone, density target, or content rule inferred from prior sessions
+  without a returned `/knowledge-base` receipt proving it applies here.
+- A fix for a quote, citation, anchor, or doctrinal claim the canonical
+  patterns do not cover.
+- A conditional branch silently treated as completed or as an unmet
+  prerequisite.
+
+### The only allowed fill-ins
+
+The only values AIDP may write without a user decision are:
+
+- Values returned by `/repo-search` or `/knowledge-base` receipts, cited with
+  the receipt path.
+- Values the user typed in this turn or a prior turn of this session, quoted.
+- A labelled, explicit `assumption:` marker used only to *flag* an assumption
+  for the user — but a flagged assumption never satisfies a requirement; it is
+  a clarification stop, not a resolution.
+
+### Mechanical enforcement
+
+The plan author and the validator enforce this mechanically as well as in prose:
+
+- Every workflow step that asserts a user decision MUST carry a `decision:` or
+  `clarified:` marker followed by the decision text or the user's quoted
+  answer. A step asserting a decision without the marker fails validation.
+- The validator scans every section for assumption-smell phrases (`assume`,
+  `should probably`, `likely`, `presumably`, `default to`,
+  `I will`, `we will`, `typical`, `usually`, `standard`, `by convention`) and
+  fails any hit that is NOT adjacent to a `decision:`, `clarified:`,
+  `assumption:` (flag-only), or evidence-cited marker. Smell without an
+  adjacent marker is treated as an unflagged assumption.
+- A plan written while a material ambiguity remains is rejected, even if it
+  parses cleanly. The validator's no-assumption pass is structural, not
+  semantic; the skill authoring rule is stronger: **if you are unsure, you
+  ask; you never write.**
+
+### Ask order
+
+Retrieve evidence first (`/repo-search`, `/knowledge-base`), then ask one
+material question at a time. State what decision each answer unlocks and the
+smallest consequence of each answer. Do not bundle questions. Do not write the
+plan until every material question is answered and every assumption is either
+resolved by evidence or explicitly flagged as an open clarification stop that
+the user has seen. A user preference is not a requirement until the user
+decides it.
+
 ## 4. Input & Context Schema
 
-Write exactly these six numbered level-three sections, in this order. Headings must match the forms below; do not use aliases or add top-level headings:
+The plan body has exactly one level-one heading (H1) followed by exactly these
+six numbered level-two sections, in this order. A Markdown document has exactly
+one H1; the six sections are H2 under it.
+
+**The document H1 must equal the frontmatter `title` verbatim.** It is written
+as `# <title-from-frontmatter>` on the first line after the YAML frontmatter.
+The validator rejects any plan whose H1 text differs from the frontmatter
+`title` (whitespace-trimmed); the two are one fact in two surfaces and must not
+drift.
+
+**Heading level is fixed:** the six sections are written `## 1. TARGET DIRECTIVES`
+through `## 6. RIGID OUTPUT SCHEMA` (H2, numbered, the numeral then a period
+then a space then the all-caps title). Do not use H1, H3, or unnumbered forms
+for these sections; do not add other H1/H2 headings to the body. Headings must
+match the forms below; do not use aliases.
 
 ### 1. TARGET DIRECTIVES
 
@@ -237,9 +314,9 @@ rules for AIDX's final response.
 
 ### Plan authoring skeleton
 
-Materialize the plan with exactly this frontmatter shape before the six
-sections. Replace every placeholder with verified or user-confirmed content;
-never leave a placeholder in a candidate.
+Materialize the plan with exactly this frontmatter shape before the document
+H1 and the six H2 sections. Replace every placeholder with verified or
+user-confirmed content; never leave a placeholder in a candidate.
 
 ```yaml
 ---
@@ -249,6 +326,27 @@ created_at: "<YYYY-MM-DD>"
 updated_at: "<YYYY-MM-DD>"
 status: "pending"
 ---
+```
+
+The first line after the closing `---` is the document H1 and must be exactly
+`# <title>` where `<title>` is the same string as the frontmatter `title`
+field. The validator rejects H1/title mismatch.
+
+```markdown
+# <title>
+
+## 1. TARGET DIRECTIVES
+...
+## 2. VARIABLE DEFINITION MATRIX
+...
+## 3. CHRONOLOGICAL WORKFLOW
+...
+## 4. TOOL STRATEGY & FALLBACKS
+...
+## 5. SYSTEMATIC VERIFICATION CHECKLIST
+...
+## 6. RIGID OUTPUT SCHEMA
+...
 ```
 
 Author each section with these minimum contents:
@@ -325,15 +423,17 @@ retrieval and questioning as needed; then write the complete plan only after
 the material questions are resolved. The retrieval step is mandatory even
 when the request appears familiar or the caller supplies an index-like value.
 
-Ask one material question at a time, explain what decision it unlocks, and
-state the smallest consequence of each meaningful answer. Never fill an
-unknown with a plausible default, convention, inferred preference, or silent
-branch. If the answer changes targets, ownership, scope, behavior, safety,
-architecture, dependencies, or proof, retrieve the affected repository and
-private-knowledge context again before asking the next question. Keep asking
-focused questions until no material ambiguity remains; if the user has not
-resolved one, stop and do not write or hand off a plan. A user preference is
-not a requirement until the user decides or evidence establishes it. A
+The No-Assumption Covenant above governs this loop. Ask one material question
+at a time, explain what decision it unlocks, and state the smallest
+consequence of each meaningful answer. Never fill an unknown with a plausible
+default, convention, inferred preference, silent branch, or `should probably`
+— a guess phrased as a tentative sentence is still a guess and is forbidden by
+the covenant. If the answer changes targets, ownership, scope, behavior,
+safety, architecture, dependencies, or proof, retrieve the affected repository
+and private-knowledge context again before asking the next question. Keep
+asking focused questions until no material ambiguity remains; if the user has
+not resolved one, stop and do not write or hand off a plan. A user preference
+is not a requirement until the user decides or evidence establishes it. A
 conditional branch is either completed with evidence or skipped with a factual
 inapplicability reason; it is never a hidden prerequisite.
 
@@ -378,12 +478,16 @@ bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>
 
 The validator is deliberately independent of execution. It checks the exact
 five-field frontmatter, canonical plan path and index match, real dates,
-allowed status, the six headings in order, non-empty sections, unresolved
-placeholders, typed variable declarations, numbered workflow steps, required
-workflow proof fields, primary method ownership, concrete fallback, mapped
-verification coverage, and an explicit output schema. It returns one JSON
-receipt on success and every actionable finding on failure. It validates AIDP
-plans only; it does not parse, complete, import, delete, or execute plans.
+allowed status, the document H1 exactly equals the frontmatter `title`,
+the six H2 headings in order (numbered, `## N. <TITLE>`), non-empty
+sections, unresolved placeholders, typed variable declarations, numbered
+workflow steps, required workflow proof fields, a decision or clarified
+marker on every step that asserts a user decision, a no-assumption smell-phrase
+scan rejecting unflagged assumptions, primary method ownership, concrete
+fallback, mapped verification coverage, and an explicit output schema. It
+returns one JSON receipt on success and every actionable finding on failure.
+It validates AIDP plans only; it does not parse, complete, import, delete, or
+execute plans.
 
 On failure, report the exact missing evidence or validation finding and whether
 the prior plan was preserved. Never claim a plan was written when it was not.

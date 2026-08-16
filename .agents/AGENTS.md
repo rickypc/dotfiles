@@ -181,12 +181,15 @@ other non-batchable event.
 
 ### AIDP and AIDX boundary
 
-Use AIDP for clarification, evidence intake, and one approved six-section plan:
-`Role`, `Objective`, `Core Directives`, `Execution Steps`, `Constraints`, and
-`Inputs to Process`. Use AIDX in fresh context for deterministic construction,
-delegation, verification, repair/re-plan behavior, and one final gate. AIDX
-accepts the absolute or relative plan path defined by its own Usage contract;
-do not parse or reinterpret the plan in the caller.
+Use AIDP for clarification, evidence intake, and one approved six-section plan
+whose body is exactly one H1 (the frontmatter `title`) followed by the six H2
+sections in order: `## 1. TARGET DIRECTIVES`, `## 2. VARIABLE DEFINITION
+MATRIX`, `## 3. CHRONOLOGICAL WORKFLOW`, `## 4. TOOL STRATEGY & FALLBACKS`,
+`## 5. SYSTEMATIC VERIFICATION CHECKLIST`, and `## 6. RIGID OUTPUT SCHEMA`.
+Use AIDX in fresh context for deterministic construction, delegation,
+verification, repair/re-plan behavior, and one final gate. AIDX accepts the
+absolute or relative plan path defined by its own Usage contract; do not parse
+or reinterpret the plan in the caller.
 
 ## 7. Coding and test changes
 
