@@ -1,10 +1,5 @@
+// biome-ignore lint/style/noExcessiveLinesPerFile: This canonical command suite intentionally covers all CLI branches together.
 import { expect, mock, test } from 'bun:test';
-import type {
-  KnowledgeBaseSearchReceipt,
-  KnowledgeSearchResult,
-  searchKnowledgeBase,
-  searchKnowledgeBaseBatch,
-} from '../../scripts/knowledge-base.js';
 import {
   buildKbInfo,
   captureConcept,
@@ -15,18 +10,20 @@ import {
   parsePlanForImport,
   reconcileConcepts,
   renderDirectoryIndex,
-  renderOkfConcept,
   renderLessonBody,
+  renderOkfConcept,
   run,
+  runWhenMain,
   scopeIndexPath,
   searchKnowledgeBase,
   searchKnowledgeBaseBatch,
   searchKnowledgeBaseWithFallback,
   usage,
-  runWhenMain,
-  validateOkfMetadata,
   validateLesson,
+  validateOkfMetadata,
 } from '../../scripts/knowledge-base.js';
+import type { FileSystem } from '../../utils/filesystem.js';
+import type { CommandExecutor } from '../../utils/process.js';
 
 const concept = [
   '---',
@@ -38,6 +35,58 @@ const concept = [
   '',
   'Body',
 ].join('\n');
+
+const stubCapturedConcept = {
+  conceptPath: '/kb/shared/team/test.md',
+  rootIndexPath: '/kb/index.md',
+  scopeIndexPath: '/kb/shared/index.md',
+  subjectIndexPath: '/kb/shared/team/index.md',
+};
+
+const batchSearchStub: typeof searchKnowledgeBaseBatch = async () => [];
+
+const captureStub: typeof captureConcept = async () => stubCapturedConcept;
+
+const commandExecutor: CommandExecutor = async () => ({
+  code: 0,
+  stderr: '',
+  stdout: '',
+});
+
+const discoverStub: typeof searchKnowledgeBaseWithFallback = async () => ({
+  concepts: [],
+  discovery: {
+    attempts: [],
+    found: false,
+    output: '',
+    source: 'none',
+  },
+  kbInfo: { availableIndexes: [], resolvedRoot: '/kb' },
+});
+
+const importStub: typeof importPlan = async () => ({
+  concept: stubCapturedConcept,
+  conceptPath: 'shared/plans/test-plan.md',
+  planPath: '/kb/.agents/plans/plan.md',
+  repoSearchIndex: 'shared',
+  sections: [],
+});
+
+const makeFileSystem = (overrides: Partial<FileSystem> = {}): FileSystem => ({
+  mkdir: async () => undefined,
+  readdir: async () => [],
+  readFile: async () => '',
+  rm: async () => undefined,
+  writeFile: async () => undefined,
+  ...overrides,
+});
+
+const reconcileStub: typeof reconcileConcepts = async () => ({
+  concepts: [stubCapturedConcept],
+  links: [],
+});
+
+const searchStub: typeof searchKnowledgeBase = async () => [];
 
 test('conceptIndexPath renders correct index path', () => {
   expect(conceptIndexPath('shared/team/decision.md')).toBe(
@@ -86,6 +135,7 @@ test('validateOkfMetadata validates required fields', () => {
   expect(() =>
     validateOkfMetadata({
       description: 'D',
+      tags: [],
       title: '',
       type: 'note',
     }),
@@ -93,18 +143,33 @@ test('validateOkfMetadata validates required fields', () => {
 });
 
 test('renderOkfConcept renders OKF concept', () => {
-  expect(() => renderOkfConcept({ type: 'note', title: 'T', description: 'D', tags: ['t'] }, 'body')).not.toThrow();
-  expect(() => renderOkfConcept({ type: 'note', title: '', description: 'D', tags: ['t'] }, 'body')).toThrow('title');
+  expect(() =>
+    renderOkfConcept(
+      { description: 'D', tags: ['t'], title: 'T', type: 'note' },
+      'body',
+    ),
+  ).not.toThrow();
+  expect(() =>
+    renderOkfConcept(
+      { description: 'D', tags: ['t'], title: '', type: 'note' },
+      'body',
+    ),
+  ).toThrow('title');
 });
 
 test('renderOkfConcept throws for empty body', () => {
-  expect(() => renderOkfConcept({ type: 'note', title: 'T', description: 'D', tags: ['t'] }, '')).toThrow('OKF concept body is required');
+  expect(() =>
+    renderOkfConcept(
+      { description: 'D', tags: ['t'], title: 'T', type: 'note' },
+      '',
+    ),
+  ).toThrow('OKF concept body is required');
 });
 
 test('renderDirectoryIndex renders index with children', () => {
   expect(
     renderDirectoryIndex('Team', [
-      { path: 'decision.md', title: 'Decision', description: 'A decision' },
+      { description: 'A decision', path: 'decision.md', title: 'Decision' },
       { path: 'note.md', title: 'Note' },
       'simple.md',
     ]),
@@ -112,9 +177,7 @@ test('renderDirectoryIndex renders index with children', () => {
 });
 
 test('buildKbInfo returns kb info', async () => {
-  const mockFileSystem = {
-    readdir: async () => [],
-  };
+  const mockFileSystem = makeFileSystem({ readdir: async () => [] });
   const result = await buildKbInfo(mockFileSystem, 'test');
   expect(typeof result).toBe('object');
 });
@@ -134,14 +197,14 @@ test('runWhenMain exports correctly', () => {
 // Additional tests for uncovered functions
 
 test('listKbScopeIndexes returns scope indexes', async () => {
-  const mockFileSystem = {
+  const mockFileSystem = makeFileSystem({
     readdir: async () => [
-      { name: 'team', isDirectory: () => true },
-      { name: 'personal', isDirectory: () => true },
-      { name: 'shared', isDirectory: () => true },
-      { name: 'file.txt', isDirectory: () => false },
+      { isDirectory: () => true, name: 'team' },
+      { isDirectory: () => true, name: 'personal' },
+      { isDirectory: () => true, name: 'shared' },
+      { isDirectory: () => false, name: 'file.txt' },
     ],
-  };
+  });
   const result = await listKbScopeIndexes(mockFileSystem, '/kb');
   expect(result).toEqual(['personal', 'team']);
 });
@@ -266,10 +329,10 @@ test('planSlug generates valid slug', () => {
 
 test('renderLessonBody renders lesson', () => {
   const lesson = {
-    symptom: 'symptom',
     cause: 'cause',
     durableFix: 'fix',
     evidence: 'evidence',
+    symptom: 'symptom',
   };
   const body = renderLessonBody(lesson);
   expect(body).toContain('symptom');
@@ -280,20 +343,20 @@ test('renderLessonBody renders lesson', () => {
 
 test('validateLesson throws for empty fields', () => {
   const lesson = {
-    symptom: 'symptom',
     cause: 'cause',
     durableFix: 'fix',
     evidence: '',
+    symptom: 'symptom',
   };
   expect(() => validateLesson(lesson)).toThrow('Lesson evidence is required.');
 });
 
 test('renderOkfConcept with full metadata', () => {
   const metadata = {
-    type: 'note',
-    title: 'Test',
     description: 'Desc',
     tags: ['tag1', 'tag2'],
+    title: 'Test',
+    type: 'note',
   };
   const result = renderOkfConcept(metadata, 'body content');
   expect(result).toContain('type: note');
@@ -307,63 +370,46 @@ test('renderOkfConcept with full metadata', () => {
 
 test('validateLesson throws for empty fields', () => {
   const lesson = {
-    symptom: 'symptom',
     cause: 'cause',
     durableFix: 'fix',
     evidence: '',
+    symptom: 'symptom',
   };
   expect(() => validateLesson(lesson)).toThrow('Lesson evidence is required.');
 });
 
-// Mock file system for integration tests
-const createMockFileSystem = () => ({
-  readdir: async () => [],
-  readFile: async () => '',
-  writeFile: async () => undefined,
-  mkdir: async () => undefined,
-  rm: async () => undefined,
-});
-
 test('captureConcept creates concept and indexes', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async (path: string) => {
-      if (path.includes('index.md')) return '';
-      return '';
-    },
-    writeFile: async (path: string) => {
-      return undefined;
-    },
-    mkdir: async () => undefined,
-    rm: async () => undefined,
-  };
   const writeCalls: string[] = [];
   const mockFs = {
+    mkdir: async () => undefined,
     readdir: async (dir: string) => {
       if (dir === '/kb/shared/team') {
         return [
-          { name: 'decision.md', isDirectory: () => false },
-          { name: 'index.md', isDirectory: () => false },
+          { isDirectory: () => false, name: 'decision.md' },
+          { isDirectory: () => false, name: 'index.md' },
         ];
       }
       if (dir === '/kb/shared') {
-        return [{ name: 'team', isDirectory: () => true }];
+        return [{ isDirectory: () => true, name: 'team' }];
       }
       if (dir === '/kb') {
-        return [{ name: 'shared', isDirectory: () => true }];
+        return [{ isDirectory: () => true, name: 'shared' }];
       }
       return [];
     },
     readFile: async (path: string) => {
-      if (path.includes('decision.md')) return '';
-      if (path.includes('index.md')) return '';
+      if (path.includes('decision.md')) {
+        return '';
+      }
+      if (path.includes('index.md')) {
+        return '';
+      }
       return '';
     },
-    writeFile: async (path: string, content: string) => {
+    rm: async () => undefined,
+    writeFile: async (path: string, _content: string) => {
       writeCalls.push(path);
     },
-    mkdir: async () => undefined,
-    rm: async () => undefined,
   };
 
   const result = await captureConcept(
@@ -371,10 +417,10 @@ test('captureConcept creates concept and indexes', async () => {
     '/kb',
     'shared/team/decision.md',
     {
-      type: 'note',
-      title: 'Decision',
       description: 'A decision',
       tags: ['decision'],
+      title: 'Decision',
+      type: 'note',
     },
     'Body content',
     'Evidence content',
@@ -389,6 +435,7 @@ test('captureConcept creates concept and indexes', async () => {
 
 test('importPlan imports plan and returns receipt', async () => {
   const mockFs = {
+    mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async (path: string) => {
       if (path.includes('.agents/plans/test-plan.md')) {
@@ -420,34 +467,35 @@ test('importPlan imports plan and returns receipt', async () => {
       }
       return '';
     },
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
     rm: async () => undefined,
+    writeFile: async () => undefined,
   };
 
-  const result = await importPlan(mockFs, '/kb', '/kb/.agents/plans/test-plan.md');
+  const result = await importPlan(
+    mockFs,
+    '/kb',
+    '/kb/.agents/plans/test-plan.md',
+  );
   expect(result.conceptPath).toContain('shared/plans/');
   expect(result.repoSearchIndex).toBe('shared');
 });
 
 test('searchKnowledgeBase searches concepts', async () => {
-  const mockFs = {
+  const mockFs = makeFileSystem({
     readdir: async (dir: string) => {
       if (dir === '/kb') {
         return [
-          { name: 'shared', isDirectory: () => true },
-          { name: 'personal', isDirectory: () => true },
+          { isDirectory: () => true, name: 'shared' },
+          { isDirectory: () => true, name: 'personal' },
         ];
       }
       if (dir === '/kb/shared') {
-        return [
-          { name: 'team', isDirectory: () => true },
-        ];
+        return [{ isDirectory: () => true, name: 'team' }];
       }
       if (dir === '/kb/shared/team') {
         return [
-          { name: 'decision.md', isDirectory: () => false },
-          { name: 'index.md', isDirectory: () => false },
+          { isDirectory: () => false, name: 'decision.md' },
+          { isDirectory: () => false, name: 'index.md' },
         ];
       }
       return [];
@@ -467,50 +515,72 @@ test('searchKnowledgeBase searches concepts', async () => {
       }
       return '';
     },
-  };
+  });
 
-  const results = await searchKnowledgeBase(
-    mockFs,
-    '/kb',
-    'decision',
-  );
+  const results = await searchKnowledgeBase(mockFs, '/kb', 'decision');
   expect(results.length).toBeGreaterThanOrEqual(1);
   expect(results[0].title).toBe('Decision');
 });
 
 test('searchKnowledgeBase throws for empty query', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
+  const fileSystem = makeFileSystem();
   await expect(searchKnowledgeBase(fileSystem, '/kb', '')).rejects.toThrow(
     'KB search query is required.',
   );
 });
 
 test('searchKnowledgeBase throws for non-absolute path', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
-  await expect(searchKnowledgeBase(fileSystem, 'relative', 'query')).rejects.toThrow(
-    'KB root must be an absolute path.',
-  );
+  const fileSystem = makeFileSystem();
+  await expect(
+    searchKnowledgeBase(fileSystem, 'relative', 'query'),
+  ).rejects.toThrow('KB root must be an absolute path.');
 });
 
 test('run handles search command', async () => {
   const write = mock();
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
-  const mockFs = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
 
-  await run(['search', '/kb', 'query'], write, async () => []);
+  await run(['search', '/kb', 'query'], write, captureStub);
   expect(write).toHaveBeenCalled();
+});
+
+test('run handles search fallback and related commands', async () => {
+  const write = mock();
+  const search = mock(
+    async (..._args: Parameters<typeof searchKnowledgeBase>) => [],
+  );
+  const discover = mock(
+    async (..._args: Parameters<typeof searchKnowledgeBaseWithFallback>) =>
+      ({
+        concepts: [],
+        discovery: {
+          attempts: [],
+          found: false,
+          output: '',
+          source: 'none',
+        },
+        kbInfo: { availableIndexes: [], resolvedRoot: '/kb' },
+      }) as Awaited<ReturnType<typeof searchKnowledgeBaseWithFallback>>,
+  );
+
+  await run(
+    ['search', '/kb', 'index', 'query'],
+    write,
+    captureStub,
+    search,
+    discover,
+  );
+  await run(['related', '/kb', 'query'], write, captureStub, search, discover);
+
+  expect(discover).toHaveBeenCalled();
+  expect(search).toHaveBeenCalled();
+  expect(write).toHaveBeenCalledTimes(2);
+});
+
+test('run rejects malformed search command shapes', async () => {
+  await expect(run(['search', '/kb'])).rejects.toThrow(usage());
+  await expect(run(['related', '/kb', 'query', 'extra'])).rejects.toThrow(
+    usage(),
+  );
 });
 
 test('run handles search-batch command', async () => {
@@ -518,11 +588,11 @@ test('run handles search-batch command', async () => {
   await run(
     ['search-batch', '/kb', 'index', 'query1', 'query2'],
     write,
-    async () => [],
-    async () => [],
-    async () => [],
-    async () => [],
-    async () => [],
+    captureStub,
+    searchStub,
+    discoverStub,
+    reconcileStub,
+    batchSearchStub,
   );
   expect(write).toHaveBeenCalled();
 });
@@ -534,100 +604,139 @@ test('run handles capture command', async () => {
       'capture',
       '/kb',
       'shared/team/test.md',
-      JSON.stringify({ type: 'note', title: 'T', description: 'D', tags: ['t'] }),
+      JSON.stringify({
+        description: 'D',
+        tags: ['t'],
+        title: 'T',
+        type: 'note',
+      }),
       'body',
       'evidence',
     ],
     write,
-    async () => ({} as any),
+    captureStub,
   );
   expect(write).toHaveBeenCalled();
 });
 
 test('run handles capture command with invalid JSON', async () => {
   const write = mock();
-  // Test invalid JSON in metadataJson (line 427-428)
-  await run(
-    [
-      'capture',
-      '/kb',
-      'shared/team/test.md',
-      '{invalid json}',
-      'body',
-      'evidence',
-    ],
-    write,
-    async () => ({} as any),
-  );
-  expect(write).toHaveBeenCalled();
+  await expect(
+    run(
+      [
+        'capture',
+        '/kb',
+        'shared/team/test.md',
+        '{invalid json}',
+        'body',
+        'evidence',
+      ],
+      write,
+      captureStub,
+    ),
+  ).rejects.toThrow('KB capture metadata must be valid JSON.');
+  expect(write).not.toHaveBeenCalled();
 });
 
 test('run handles capture command with wrong arg count', async () => {
   const write = mock();
   // The run function throws usage error for wrong arg count
-  await expect(run(['capture', '/kb'], write, async () => ({} as any))).rejects.toThrow(usage());
+  await expect(run(['capture', '/kb'], write, captureStub)).rejects.toThrow(
+    usage(),
+  );
 });
 
 test('run handles reconcile command', async () => {
   const write = mock();
-  
+
   const { nodeFileSystem } = await import('../../utils/filesystem.js');
-  const originalReadFile = nodeFileSystem.readFile;
-  nodeFileSystem.readFile = async (path: string) => {
+  const mutableNodeFileSystem = nodeFileSystem as unknown as {
+    readFile: FileSystem['readFile'];
+  };
+  const originalReadFile = mutableNodeFileSystem.readFile;
+  mutableNodeFileSystem.readFile = async (path: string) => {
     if (path.includes('/tmp/plan.json')) {
       return JSON.stringify({
         canonicalPath: 'shared/team/test.md',
+        links: [],
         operations: [
           {
-            relativePath: 'shared/team/test.md',
-            disposition: 'new-primary',
-            metadata: { type: 'note', title: 'T', description: 'D', tags: ['t'] },
             body: 'body',
+            disposition: 'new-primary',
             evidence: 'evidence',
+            metadata: {
+              description: 'D',
+              tags: ['t'],
+              title: 'T',
+              type: 'note',
+            },
+            relativePath: 'shared/team/test.md',
           },
         ],
-        links: [],
       });
     }
-    return originalReadFile(path);
+    return originalReadFile(path, 'utf8');
   };
 
   await run(
     ['reconcile', '/kb', '/tmp/plan.json'],
     write,
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
+    captureStub,
+    searchStub,
+    discoverStub,
+    reconcileStub,
+    batchSearchStub,
+    importStub,
   );
   expect(write).toHaveBeenCalled();
-  
-  nodeFileSystem.readFile = originalReadFile;
+
+  mutableNodeFileSystem.readFile = originalReadFile;
 });
 
 test('run handles reconcile command with invalid JSON', async () => {
   const write = mock();
   const { nodeFileSystem } = await import('../../utils/filesystem.js');
-  const originalReadFile = nodeFileSystem.readFile;
-  nodeFileSystem.readFile = async (path: string) => {
+  const mutableNodeFileSystem = nodeFileSystem as unknown as {
+    readFile: FileSystem['readFile'];
+  };
+  const originalReadFile = mutableNodeFileSystem.readFile;
+  mutableNodeFileSystem.readFile = async (path: string) => {
     if (path.includes('/tmp/plan.json')) {
       return '{invalid json}';
     }
-    return originalReadFile(path);
+    return originalReadFile(path, 'utf8');
   };
 
   await expect(
-    run(['reconcile', '/kb', '/tmp/plan.json'], write, async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any))
+    run(
+      ['reconcile', '/kb', '/tmp/plan.json'],
+      write,
+      captureStub,
+      searchStub,
+      discoverStub,
+      reconcileStub,
+      batchSearchStub,
+      importStub,
+    ),
   ).rejects.toThrow('KB reconciliation request must be valid JSON.');
-  
-  nodeFileSystem.readFile = originalReadFile;
+
+  mutableNodeFileSystem.readFile = originalReadFile;
 });
 
 test('run handles reconcile command with wrong args', async () => {
   const write = mock();
-  await expect(run(['reconcile', '/kb'], write, async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any))).rejects.toThrow(usage());
+  await expect(
+    run(
+      ['reconcile', '/kb'],
+      write,
+      captureStub,
+      searchStub,
+      discoverStub,
+      reconcileStub,
+      batchSearchStub,
+      importStub,
+    ),
+  ).rejects.toThrow(usage());
 });
 
 test('run handles concept-index command', async () => {
@@ -639,115 +748,70 @@ test('run handles concept-index command', async () => {
 test('run handles concept-index command with invalid args', async () => {
   const write = mock();
   await expect(run(['concept-index'], write)).rejects.toThrow(usage());
-  await expect(run(['concept-index', 'shared/team/test.md', 'extra'], write)).rejects.toThrow(usage());
+  await expect(
+    run(['concept-index', 'shared/team/test.md', 'extra'], write),
+  ).rejects.toThrow(usage());
 });
 
 test('run handles import-plan command', async () => {
   const write = mock();
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async (path: string) => {
-      if (path.includes('.agents/plans/plan.md')) {
-        return [
-          '---',
-          'title: "Test Plan"',
-          'repo_search_index: "shared"',
-          '---',
-          '',
-          '## 1. TARGET DIRECTIVES',
-          'Objective',
-          '',
-          '## 2. VARIABLE DEFINITION MATRIX',
-          'Matrix',
-          '',
-          '## 3. CHRONOLOGICAL WORKFLOW',
-          'Workflow',
-          '',
-          '## 4. TOOL STRATEGY & FALLBACKS',
-          'Strategy',
-          '',
-          '## 5. SYSTEMATIC VERIFICATION CHECKLIST',
-          'Checklist',
-          '',
-          '## 6. RIGID OUTPUT SCHEMA',
-          'Schema',
-        ].join('\n');
-      }
-      return '';
-    },
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
-    rm: async () => undefined,
-  };
 
   await run(
     ['import-plan', '/kb/.agents/plans/plan.md'],
     write,
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
+    captureStub,
+    searchStub,
+    discoverStub,
+    reconcileStub,
+    batchSearchStub,
+    importStub,
   );
   expect(write).toHaveBeenCalled();
 });
 
 test('run handles import-plan command with --remove-source', async () => {
   const write = mock();
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async (path: string) => {
-      if (path.includes('.agents/plans/plan.md')) {
-        return [
-          '---',
-          'title: "Test Plan"',
-          'repo_search_index: "shared"',
-          '---',
-          '',
-          '## 1. TARGET DIRECTIVES',
-          'Objective',
-          '',
-          '## 2. VARIABLE DEFINITION MATRIX',
-          'Matrix',
-          '',
-          '## 3. CHRONOLOGICAL WORKFLOW',
-          'Workflow',
-          '',
-          '## 4. TOOL STRATEGY & FALLBACKS',
-          'Strategy',
-          '',
-          '## 5. SYSTEMATIC VERIFICATION CHECKLIST',
-          'Checklist',
-          '',
-          '## 6. RIGID OUTPUT SCHEMA',
-          'Schema',
-        ].join('\n');
-      }
-      return '';
-    },
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
-    rm: async () => undefined,
-  };
 
   await run(
     ['import-plan', '/kb/.agents/plans/plan.md', '--remove-source'],
     write,
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
-    async () => ({} as any),
+    captureStub,
+    searchStub,
+    discoverStub,
+    reconcileStub,
+    batchSearchStub,
+    importStub,
+    async () => '/tmp/plan.md',
   );
   expect(write).toHaveBeenCalled();
 });
 
 test('run handles import-plan command with wrong args', async () => {
   const write = mock();
-  await expect(run(['import-plan'], write, async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any))).rejects.toThrow(usage());
-  await expect(run(['import-plan', '/kb/plan.md', 'extra', 'extra2'], write, async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any), async () => ({} as any))).rejects.toThrow(usage());
+  await expect(
+    run(
+      ['import-plan'],
+      write,
+      captureStub,
+      searchStub,
+      discoverStub,
+      reconcileStub,
+      batchSearchStub,
+      importStub,
+    ),
+  ).rejects.toThrow(usage());
+  await expect(
+    run(
+      ['import-plan', '/kb/plan.md', 'extra', 'extra2'],
+      write,
+      captureStub,
+      searchStub,
+      discoverStub,
+      reconcileStub,
+      batchSearchStub,
+      importStub,
+    ),
+  ).rejects.toThrow(usage());
 });
 
 test('run handles render-index command', async () => {
@@ -768,66 +832,64 @@ test('run handles validate command', async () => {
     '',
     'Body',
   ].join('\n');
-  
+
   const { nodeFileSystem } = await import('../../utils/filesystem.js');
-  const originalReadFile = nodeFileSystem.readFile;
-  nodeFileSystem.readFile = async (path: string) => {
+  const mutableNodeFileSystem = nodeFileSystem as unknown as {
+    readFile: FileSystem['readFile'];
+  };
+  const originalReadFile = mutableNodeFileSystem.readFile;
+  mutableNodeFileSystem.readFile = async (path: string) => {
     if (path.includes('/kb/test.md')) {
-      return [
-        '---',
-        'type: "note"',
-        'title: "Test"',
-        'description: "Desc"',
-        'tags: ["tag"]',
-        '---',
-        '',
-        'Body',
-      ].join('\n');
+      return content;
     }
-    return originalReadFile(path);
+    return originalReadFile(path, 'utf8');
   };
 
-  await run(['validate', '/kb/test.md'], write, async () => ({} as any));
+  await run(['validate', '/kb/test.md'], write, captureStub);
   expect(write).toHaveBeenCalledWith('okf: passed');
-  
-  nodeFileSystem.readFile = originalReadFile;
+
+  mutableNodeFileSystem.readFile = originalReadFile;
 });
 
 test('run handles validate command with non-existent file', async () => {
   const write = mock();
   const { nodeFileSystem } = await import('../../utils/filesystem.js');
-  const originalReadFile = nodeFileSystem.readFile;
-  nodeFileSystem.readFile = async (path: string) => {
+  const mutableNodeFileSystem = nodeFileSystem as unknown as {
+    readFile: FileSystem['readFile'];
+  };
+  const originalReadFile = mutableNodeFileSystem.readFile;
+  mutableNodeFileSystem.readFile = async (path: string) => {
     if (path.includes('/kb/nonexistent.md')) {
       throw new Error('ENOENT');
     }
-    return originalReadFile(path);
+    return originalReadFile(path, 'utf8');
   };
 
   await expect(
-    run(['validate', '/kb/nonexistent.md'], write, async () => ({} as any))
+    run(['validate', '/kb/nonexistent.md'], write, captureStub),
   ).rejects.toThrow('ENOENT');
-  
-  nodeFileSystem.readFile = originalReadFile;
+
+  mutableNodeFileSystem.readFile = originalReadFile;
 });
 
 test('run throws for unknown command', async () => {
   await expect(run(['unknown'])).rejects.toThrow(usage());
 });
 
+test('runWhenMain delegates only when invoked as the main module', async () => {
+  const runner = mock(async (_args: readonly string[]) => undefined);
+
+  expect(runWhenMain(false, ['ignored'], runner)).toBeUndefined();
+  await expect(runWhenMain(true, ['arg'], runner)).resolves.toBeUndefined();
+  expect(runner).toHaveBeenCalledWith(['arg']);
+});
+
 test('searchKnowledgeBaseBatch searches multiple queries', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
-  const mockFs = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
+  const mockFs = makeFileSystem();
 
   const results = await searchKnowledgeBaseBatch(
     mockFs,
-    async () => 0 as any,
+    commandExecutor,
     '/kb',
     'index',
     ['query1', 'query2'],
@@ -838,60 +900,43 @@ test('searchKnowledgeBaseBatch searches multiple queries', async () => {
 });
 
 test('searchKnowledgeBaseBatch throws for empty queries', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
+  const fileSystem = makeFileSystem();
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, async () => 0 as any, '/kb', 'index', []),
+    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', []),
   ).rejects.toThrow('KB search-batch requires 1-4 queries.');
 });
 
 test('searchKnowledgeBaseBatch throws for too many queries', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
+  const fileSystem = makeFileSystem();
   await expect(
-    searchKnowledgeBaseBatch(
-      fileSystem,
-      async () => 0 as any,
-      '/kb',
-      'index',
-      ['q1', 'q2', 'q3', 'q4', 'q5'],
-    ),
+    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', [
+      'q1',
+      'q2',
+      'q3',
+      'q4',
+      'q5',
+    ]),
   ).rejects.toThrow('KB search-batch requires 1-4 queries.');
 });
 
 test('searchKnowledgeBaseBatch throws for duplicate queries', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
+  const fileSystem = makeFileSystem();
   await expect(
-    searchKnowledgeBaseBatch(
-      fileSystem,
-      async () => 0 as any,
-      '/kb',
-      'index',
-      ['query', 'query'],
-    ),
-  ).rejects.toThrow('KB search-batch queries must be unique after normalization.');
+    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', [
+      'query',
+      'query',
+    ]),
+  ).rejects.toThrow(
+    'KB search-batch queries must be unique after normalization.',
+  );
 });
 
 test('searchKnowledgeBaseWithFallback returns receipt', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
-  const mockFs = {
-    readdir: async () => [],
-    readFile: async () => '',
-  };
+  const mockFs = makeFileSystem();
 
   const result = await searchKnowledgeBaseWithFallback(
     mockFs,
-    async () => 0 as any,
+    commandExecutor,
     '/kb',
     'index',
     'query',
@@ -902,33 +947,26 @@ test('searchKnowledgeBaseWithFallback returns receipt', async () => {
 });
 
 test('reconcileConcepts validates and reconciles', async () => {
-  const fileSystem = {
-    readdir: async () => [],
-    readFile: async () => '',
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
-    rm: async () => undefined,
-  };
   const mockFs = {
+    mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
     rm: async () => undefined,
+    writeFile: async () => undefined,
   };
 
   const plan = {
     canonicalPath: 'shared/team/test.md',
+    links: [],
     operations: [
       {
-        relativePath: 'shared/team/test.md',
-        disposition: 'new-primary' as const,
-        metadata: { type: 'note', title: 'T', description: 'D', tags: ['t'] },
         body: 'body',
+        disposition: 'new-primary' as const,
         evidence: 'evidence',
+        metadata: { description: 'D', tags: ['t'], title: 'T', type: 'note' },
+        relativePath: 'shared/team/test.md',
       },
     ],
-    links: [],
   };
 
   const result = await reconcileConcepts(mockFs, '/kb', plan);
@@ -938,16 +976,16 @@ test('reconcileConcepts validates and reconciles', async () => {
 
 test('reconcileConcepts throws for invalid canonical path', async () => {
   const fileSystem = {
+    mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
     rm: async () => undefined,
+    writeFile: async () => undefined,
   };
   const plan = {
     canonicalPath: 'invalid/path.md',
-    operations: [],
     links: [],
+    operations: [],
   };
   await expect(reconcileConcepts(fileSystem, '/kb', plan)).rejects.toThrow(
     'Invalid KB concept path: invalid/path.md',
@@ -956,16 +994,16 @@ test('reconcileConcepts throws for invalid canonical path', async () => {
 
 test('reconcileConcepts throws for no operations', async () => {
   const fileSystem = {
+    mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
     rm: async () => undefined,
+    writeFile: async () => undefined,
   };
   const plan = {
     canonicalPath: 'shared/team/test.md',
-    operations: [],
     links: [],
+    operations: [],
   };
   await expect(reconcileConcepts(fileSystem, '/kb', plan)).rejects.toThrow(
     'KB reconciliation requires at least one operation.',
@@ -974,24 +1012,24 @@ test('reconcileConcepts throws for no operations', async () => {
 
 test('reconcileConcepts throws for missing canonical operation', async () => {
   const fileSystem = {
+    mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
-    writeFile: async () => undefined,
-    mkdir: async () => undefined,
     rm: async () => undefined,
+    writeFile: async () => undefined,
   };
   const plan = {
     canonicalPath: 'shared/team/test.md',
+    links: [],
     operations: [
       {
-        relativePath: 'shared/team/other.md',
-        disposition: 'new-primary' as const,
-        metadata: { type: 'note', title: 'T', description: 'D', tags: ['t'] },
         body: 'body',
+        disposition: 'new-primary' as const,
         evidence: 'evidence',
+        metadata: { description: 'D', tags: ['t'], title: 'T', type: 'note' },
+        relativePath: 'shared/team/other.md',
       },
     ],
-    links: [],
   };
   await expect(reconcileConcepts(fileSystem, '/kb', plan)).rejects.toThrow(
     'KB reconciliation requires exactly one canonical owner.',
@@ -1001,47 +1039,47 @@ test('reconcileConcepts throws for missing canonical operation', async () => {
 test('validateOkfMetadata validates all required fields', () => {
   expect(() =>
     validateOkfMetadata({
-      type: 'note',
-      title: 'Title',
       description: 'Desc',
       tags: ['tag'],
+      title: 'Title',
+      type: 'note',
     }),
   ).not.toThrow();
 
   expect(() =>
     validateOkfMetadata({
-      type: 'note',
-      title: '',
       description: 'Desc',
       tags: ['tag'],
+      title: '',
+      type: 'note',
     }),
   ).toThrow('title');
 
   expect(() =>
     validateOkfMetadata({
-      type: 'note',
-      title: 'Title',
       description: '',
       tags: ['tag'],
+      title: 'Title',
+      type: 'note',
     }),
   ).toThrow('description');
 
   expect(() =>
     validateOkfMetadata({
-      type: 'note',
-      title: 'Title',
       description: 'Desc',
       tags: [],
+      title: 'Title',
+      type: 'note',
     }),
   ).toThrow('tags');
 });
 
 test('renderOkfConcept renders with metadata', () => {
   const metadata = {
-    type: 'note',
-    title: 'Test',
     description: 'Desc',
     tags: ['tag1', 'tag2'],
+    title: 'Test',
+    type: 'note',
   };
   const result = renderOkfConcept(metadata, 'body content');
   expect(result).toContain('type: note');
@@ -1055,20 +1093,20 @@ test('renderOkfConcept renders with metadata', () => {
 
 test('validateLesson throws for empty fields', () => {
   const lesson = {
-    symptom: 'symptom',
     cause: 'cause',
     durableFix: 'fix',
     evidence: '',
+    symptom: 'symptom',
   };
   expect(() => validateLesson(lesson)).toThrow('Lesson evidence is required.');
 });
 
 test('renderLessonBody renders lesson', () => {
   const lesson = {
-    symptom: 'symptom',
     cause: 'cause',
     durableFix: 'fix',
     evidence: 'evidence',
+    symptom: 'symptom',
   };
   const body = renderLessonBody(lesson);
   expect(body).toContain('symptom');

@@ -67,6 +67,8 @@ export interface Lesson {
   readonly symptom: string;
 }
 
+type MoveSourceToTrashDependency = typeof defaultMoveSourceToTrash;
+
 export interface OkfMetadata {
   readonly description: string;
   readonly tags: readonly string[];
@@ -1028,8 +1030,9 @@ export const run = async (
   reconcileFn: ReconcileDependency = defaultReconcileDependency,
   batchSearchFn: BatchSearchDependency = defaultBatchSearchDependency,
   importerFn: ImportDependency = defaultImportDependency,
+  moveSourceToTrashFn: MoveSourceToTrashDependency = defaultMoveSourceToTrash,
 ): Promise<void> => {
-  if (await runImportPlan(args, importerFn, write, defaultMoveSourceToTrash)) {
+  if (await runImportPlan(args, importerFn, write, moveSourceToTrashFn)) {
     return;
   }
   if (await runCapture(args, captureFn, write)) {

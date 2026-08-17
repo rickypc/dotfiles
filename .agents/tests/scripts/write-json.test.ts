@@ -5,8 +5,17 @@ import type { JsonPathApi } from '../../scripts/write-json.js';
 import type { FileSystem } from '../../utils/filesystem.js';
 import { nodeFileSystem, writeText } from '../../utils/filesystem.js';
 
-mock.module('./filesystem.js', () => ({}));
-const { processExit, run, runCli, writeJson } = await import(
+mock.module('node:path', () => ({ default: path }));
+mock.module('../utils/filesystem.js', () => ({
+  nodeFileSystem: {
+    mkdir: async () => undefined,
+    readFile: async () => '',
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  },
+  writeText: mock(async () => undefined),
+}));
+const { processExit, readStdin, run, runCli, writeJson } = await import(
   '../../scripts/write-json.js'
 );
 
@@ -121,6 +130,25 @@ describe('writeJson', () => {
     ).rejects.toThrow('JSON input is invalid');
     expect(mockStdin).toHaveBeenCalled();
   });
+});
+
+describe('writeJson CLI', () => {
+  test('reads text from the supplied stdin body', async () => {
+    await expect(readStdin('{"ok":true}')).resolves.toBe('{"ok":true}');
+  });
+
+  test('run uses the default stdin reader before attempting a write', async () => {
+    const originalStdin = Bun.stdin;
+    const mutableBun = Bun as unknown as { stdin: typeof Bun.stdin };
+    mutableBun.stdin = '{invalid}' as unknown as typeof Bun.stdin;
+    try {
+      await expect(run([`${tmpdir()}/default-stdin.json`])).rejects.toThrow(
+        'JSON input is invalid',
+      );
+    } finally {
+      mutableBun.stdin = originalStdin;
+    }
+  });
 
   test('reports CLI failures through the mocked process-exit boundary', async () => {
     const consoleError = mock();
@@ -214,7 +242,9 @@ describe('writeJson', () => {
       console.error = originalConsoleError;
     }
   });
+});
 
+describe('writeJson values', () => {
   test('writeJson handles nested objects', async () => {
     const writes: string[] = [];
     await writeJson(
@@ -226,14 +256,12 @@ describe('writeJson', () => {
     expect(writes[0]).toContain('"b":');
     expect(writes[0]).toContain('"c": 1');
   });
+});
 
+describe('writeJson primitive values', () => {
   test('writeJson handles arrays', async () => {
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/array.json',
-      '[1,2,3]',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/array.json', '[1,2,3]', makeDependencies(writes));
     expect(writes[0]).toContain('1');
     expect(writes[0]).toContain('2');
     expect(writes[0]).toContain('3');
@@ -262,24 +290,18 @@ describe('writeJson', () => {
 
   test('writeJson handles empty object', async () => {
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/empty.json',
-      '{}',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/empty.json', '{}', makeDependencies(writes));
     expect(writes[0]).toContain('{}');
   });
 
   test('writeJson handles empty array', async () => {
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/empty-array.json',
-      '[]',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/empty-array.json', '[]', makeDependencies(writes));
     expect(writes[0]).toContain('[]');
   });
+});
 
+describe('writeJson command validation', () => {
   test('run with multiple args throws Usage error', async () => {
     await expect(run(['/tmp/a.json', '/tmp/b.json'])).rejects.toThrow('Usage:');
   });

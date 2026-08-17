@@ -1,40 +1,168 @@
-import { expect, mock, test } from 'bun:test';
-import * as sut from '../../scripts/sanitize-hidden.js';
+import { afterAll, expect, mock, test } from 'bun:test';
 
-const cases = [
+type SpawnMode = 'broken' | 'normal' | 'throw';
+
+const realFileSystem = await import('node:fs/promises');
+const realPath = await import('node:path');
+const realProcess = await import('node:process');
+const cliArgv = ['bun', 'sanitize-hidden.ts'];
+const exitCodes: Array<string | number | null | undefined> = [];
+const fileContents = new Map<string, string>();
+const fileStats = new Map<string, { isFile: () => boolean; size: number }>();
+const virtualRoot = '/virtual-sanitize';
+const log = mock();
+const error = mock();
+const cwd = mock(() => '/workspace');
+const exit = mock((code?: string | number | null) => {
+  exitCodes.push(code);
+  return undefined as never;
+});
+const resolvePath = mock((value: string) =>
+  value.startsWith('/') ? value : realPath.resolve(value),
+);
+const readFile = mock(async (file: string, _encoding: 'utf8') => {
+  if (!file.startsWith(virtualRoot)) {
+    return realFileSystem.readFile(file, 'utf8');
+  }
+  const content = fileContents.get(file);
+  if (content === undefined) {
+    throw new Error(`Missing file: ${file}`);
+  }
+  return content;
+});
+const stat = mock(async (file: string) => {
+  if (!file.startsWith(virtualRoot)) {
+    return realFileSystem.stat(file);
+  }
+  const value = fileStats.get(file);
+  if (!value) {
+    throw new Error(`Missing stat: ${file}`);
+  }
+  return value;
+});
+const writeFile = mock(
+  async (file: string, content: string, _encoding: 'utf8') => {
+    if (!file.startsWith(virtualRoot)) {
+      await realFileSystem.writeFile(file, content, 'utf8');
+      return;
+    }
+    fileContents.set(file, content);
+  },
+);
+
+mock.module('node:fs/promises', () => ({
+  ...realFileSystem,
+  readFile,
+  stat,
+  writeFile,
+}));
+mock.module('node:path', () => ({ ...realPath, resolve: resolvePath }));
+mock.module('node:process', () => ({
+  ...realProcess,
+  argv: cliArgv,
+  cwd,
+  exit,
+}));
+
+let spawnMode: SpawnMode = 'broken';
+let spawnOutput = '';
+const spawn = mock(() => {
+  if (spawnMode === 'throw') {
+    throw new Error('spawn failed');
+  }
+  if (spawnMode === 'broken') {
+    return {
+      exited: Promise.resolve(1),
+      stdout: {
+        getReader: () => {
+          throw new Error('reader failed');
+        },
+      },
+    } as unknown as ReturnType<typeof Bun.spawn>;
+  }
+  let read = false;
+  const reader = {
+    read: mock(async () => {
+      if (read) {
+        return { done: true, value: undefined };
+      }
+      read = true;
+      return {
+        done: false,
+        value: new TextEncoder().encode(spawnOutput),
+      };
+    }),
+  };
+  return {
+    exited: Promise.resolve(0),
+    stdout: { getReader: () => reader },
+  } as unknown as ReturnType<typeof Bun.spawn>;
+});
+
+const originalSpawn = Bun.spawn;
+const originalLog = console.log;
+const originalError = console.error;
+Bun.spawn = spawn as typeof Bun.spawn;
+console.log = log;
+console.error = error;
+
+const sut = await import('../../scripts/sanitize-hidden.js');
+await Promise.resolve();
+spawnMode = 'normal';
+exitCodes.length = 0;
+log.mockClear();
+error.mockClear();
+
+afterAll(() => {
+  Bun.spawn = originalSpawn;
+  console.log = originalLog;
+  console.error = originalError;
+});
+
+const clearFiles = (): void => {
+  fileContents.clear();
+  fileStats.clear();
+};
+
+const setArgv = (...values: string[]): void => {
+  cliArgv.splice(0, cliArgv.length, ...values);
+};
+
+const setFile = (
+  file: string,
+  content: string,
+  size = content.length,
+): void => {
+  fileContents.set(file, content);
+  fileStats.set(file, { isFile: () => true, size });
+};
+
+const sanitizeCases = [
   { expected: 'ab', input: 'a\u200Bb', label: 'removes zero-width space' },
-  { expected: 'ab', input: 'a\u200Cb', label: 'removes zero-width non-joiner' },
+  {
+    expected: 'ab',
+    input: 'a\u200Cb',
+    label: 'removes zero-width non-joiner',
+  },
   { expected: 'ab', input: 'a\u200Db', label: 'removes zero-width joiner' },
   { expected: 'ab', input: 'a\u2060b', label: 'removes word joiner' },
   { expected: 'ab', input: 'a\uFEFFb', label: 'removes BOM' },
   { expected: 'ab', input: 'a\u00ADb', label: 'removes soft hyphen' },
-  { expected: 'a-b', input: 'a\u2013b', label: 'replaces en dash with hyphen' },
-  { expected: 'a-b', input: 'a\u2014b', label: 'replaces em dash with hyphen' },
-  {
-    expected: 'a-b',
-    input: 'a\u2012b',
-    label: 'replaces figure dash with hyphen',
-  },
-  { expected: 'a-b', input: 'a\u2010b', label: 'replaces hyphen with hyphen' },
+  { expected: 'a-b', input: 'a\u2013b', label: 'replaces en dash' },
+  { expected: 'a-b', input: 'a\u2014b', label: 'replaces em dash' },
+  { expected: 'a-b', input: 'a\u2012b', label: 'replaces figure dash' },
+  { expected: 'a-b', input: 'a\u2010b', label: 'replaces hyphen' },
   {
     expected: 'a-b',
     input: 'a\u2011b',
-    label: 'replaces non-breaking hyphen with hyphen',
+    label: 'replaces non-breaking hyphen',
   },
-  {
-    expected: 'a b',
-    input: 'a\u00A0b',
-    label: 'replaces non-breaking space with space',
-  },
-  {
-    expected: 'a\nb',
-    input: 'a\u2028b',
-    label: 'replaces line separator with newline',
-  },
+  { expected: 'a b', input: 'a\u00A0b', label: 'replaces non-breaking space' },
+  { expected: 'a\nb', input: 'a\u2028b', label: 'replaces line separator' },
   {
     expected: 'a\nb',
     input: 'a\u2029b',
-    label: 'replaces paragraph separator with newline',
+    label: 'replaces paragraph separator',
   },
   {
     expected: 'abc',
@@ -46,373 +174,222 @@ const cases = [
     input: '\u200B\u2014\u00A0\u2028',
     label: 'handles multiple replacements',
   },
-  {
-    expected: 'hello world',
-    input: 'hello world',
-    label: 'returns unchanged for clean text',
-  },
-  { expected: '', input: '', label: 'handles empty string' },
-  { expected: 'x', input: '\u00D7', label: 'replaces multiplication sign with x' },
-  { expected: '2 x 2 = 4', input: '2 \u00D7 2 = 4', label: 'replaces × in math expression' },
+  { expected: 'hello world', input: 'hello world', label: 'keeps clean text' },
+  { expected: '', input: '', label: 'handles empty text' },
+  { expected: 'x', input: '\u00D7', label: 'replaces multiplication sign' },
 ];
 
-for (const c of cases) {
-  test(c.label, () => {
-    expect(sut.sanitizeText(c.input)).toBe(c.expected);
-  });
-}
-
-test('runPool handles concurrency correctly', async () => {
-  const gen = async function* (): AsyncGenerator<number> {
-    for (let i = 0; i < 10; i++) {
-      yield i;
-    }
-  };
-  const processed = await sut.runPool(gen(), 3, async (n: number) => n * 2);
-  expect(processed).toHaveLength(10);
-  expect(processed.sort((a, b) => a - b)).toEqual([
-    0, 2, 4, 6, 8, 10, 12, 14, 16, 18,
-  ]);
-});
-
-test('runPool handles empty generator', async () => {
-  const gen = async function* (): AsyncGenerator<number> {};
-  const processed = await sut.runPool(gen(), 3, async (n: number) => n * 2);
-  expect(processed).toHaveLength(0);
-});
-
-test('runPool handles single item', async () => {
-  const gen = async function* (): AsyncGenerator<number> {
-    yield 5;
-  };
-  const processed = await sut.runPool(gen(), 3, async (n: number) => n * 2);
-  expect(processed).toHaveLength(1);
-  expect(processed[0]).toBe(10);
-});
-
-test('parseArgs returns defaults when no args', () => {
-  const result = sut.parseArgs();
-  expect(typeof result.concurrency).toBe('number');
-  expect(typeof result.dryRun).toBe('boolean');
-  expect(typeof result.root).toBe('string');
-  expect(result.concurrency).toBeGreaterThan(0);
-});
-
-test('parseArgs parses --dry-run flag', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '--dry-run'];
-  const result = sut.parseArgs();
-  expect(result.dryRun).toBe(true);
-  process.argv = originalArgv;
-});
-
-test('parseArgs parses --concurrency flag', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '--concurrency=4'];
-  const result = sut.parseArgs();
-  expect(result.concurrency).toBe(4);
-  process.argv = originalArgv;
-});
-
-test('parseArgs parses root directory', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '/custom/path'];
-  const result = sut.parseArgs();
-  expect(result.root).toContain('/custom/path');
-  process.argv = originalArgv;
-});
-
-test('main function exists', () => {
-  expect(typeof sut.main).toBe('function');
-});
-
-test('main runs dry-run by default', async () => {
-  const originalExit = process.exit;
-  process.exit = () => {};
-  try {
-    await sut.main(['--dry-run']);
-  } finally {
-    process.exit = originalExit;
-  }
-});
-
-test('main exits with error on invalid args', async () => {
-  const originalExit = process.exit;
-  let exitCode = 0;
-  process.exit = (code: number) => { exitCode = code; };
-  try {
-    await sut.main(['--invalid-arg']);
-  } finally {
-    process.exit = originalExit;
-  }
-  expect(exitCode).toBeDefined();
-});
-
-// Tests for uncovered lines: parseArgs edge cases, sanitizeFile, walk, runPool
-
-test('parseArgs handles --dry-run with other args', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '--dry-run', '/custom/path'];
-  const result = sut.parseArgs();
-  expect(result.dryRun).toBe(true);
-  expect(result.root).toContain('/custom/path');
-  process.argv = originalArgv;
-});
-
-test('parseArgs handles --concurrency with other args', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '--concurrency=8', '/custom/path'];
-  const result = sut.parseArgs();
-  expect(result.concurrency).toBe(8);
-  expect(result.root).toContain('/custom/path');
-  process.argv = originalArgv;
-});
-
-test('parseArgs ignores unknown flags', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '--unknown-flag', '/custom/path'];
-  const result = sut.parseArgs();
-  expect(result.root).toContain('/custom/path');
-  process.argv = originalArgv;
-});
-
-test('parseArgs handles multiple positional args - takes first', () => {
-  const originalArgv = process.argv;
-  process.argv = ['bun', 'sanitize-hidden.ts', '/first/path', '/second/path'];
-  const result = sut.parseArgs();
-  expect(result.root).toContain('/first/path');
-  process.argv = originalArgv;
-});
-
-test('sanitizeFile skips binary files', async () => {
-  const result = await sut.sanitizeFile('/tmp/test.jpg', false);
-  expect(result.changed).toBe(false);
-  expect(result.bytes).toBe(0);
-});
-
-test('sanitizeFile skips html files', async () => {
-  const result = await sut.sanitizeFile('/tmp/test.html', false);
-  expect(result.changed).toBe(false);
-  expect(result.bytes).toBe(0);
-});
-
-test('sanitizeFile skips non-files', async () => {
-  const result = await sut.sanitizeFile('/tmp', false);
-  expect(result.changed).toBe(false);
-  expect(result.bytes).toBe(0);
-});
-
-test('sanitizeFile skips large files', async () => {
-  const result = await sut.sanitizeFile('/tmp/large.bin', false);
-  expect(result.changed).toBe(false);
-  expect(result.bytes).toBe(0);
-});
-
-test('sanitizeFile handles read errors gracefully', async () => {
-  const result = await sut.sanitizeFile('/nonexistent/path.txt', false);
-  expect(result.changed).toBe(false);
-  expect(result.bytes).toBe(0);
-});
-
-test('sanitizeFile processes file with hidden characters', async () => {
-  const { writeFile, rm } = await import('node:fs/promises');
-  const testFile = '/tmp/sanitize-test-' + Date.now() + '.txt';
-  try {
-    await writeFile(testFile, 'hello\u200Bworld');
-    const result = await sut.sanitizeFile(testFile, true);
-    expect(result.changed).toBe(true);
-    expect(result.bytes).toBeGreaterThan(0);
-  } finally {
-    try { await rm(testFile); } catch {}
-  }
-});
-
-test('sanitizeFile dry-run does not write', async () => {
-  const { writeFile, rm, readFile } = await import('node:fs/promises');
-  const testFile = '/tmp/sanitize-test-' + Date.now() + '.txt';
-  try {
-    await writeFile(testFile, 'hello\u200Bworld');
-    const result = await sut.sanitizeFile(testFile, true);
-    expect(result.changed).toBe(true);
-    const content = await readFile(testFile, 'utf8');
-    expect(content).toContain('\u200B');
-  } finally {
-    try { await rm(testFile); } catch {}
-  });
-});
-
-test('sanitizeFile writes when not dry-run', async () => {
-  const { writeFile, rm, readFile } = await import('node:fs/promises');
-  const testFile = '/tmp/sanitize-test-' + Date.now() + '.txt';
-  try {
-    await writeFile(testFile, 'hello\u200Bworld');
-    const result = await sut.sanitizeFile(testFile, false);
-    expect(result.changed).toBe(true);
-    const content = await readFile(testFile, 'utf8');
-    expect(content).not.toContain('\u200B');
-    expect(content).toBe('helloworld');
-  } finally {
-    try { await rm(testFile); } catch {}
-  });
-});
-
-test('sanitizeFile handles file with no changes', async () => {
-  const { writeFile, rm } = await import('node:fs/promises');
-  const testFile = '/tmp/sanitize-test-' + Date.now() + '.txt';
-  try {
-    await writeFile(testFile, 'hello world');
-    const result = await sut.sanitizeFile(testFile, false);
-    expect(result.changed).toBe(false);
-    expect(result.bytes).toBe(0);
-  } finally {
-    try { await rm(testFile); } catch {}
-  });
-});
-
-test('runPool handles errors in worker', async () => {
-  const gen = async function* (): AsyncGenerator<number> {
-    yield 1;
-    throw new Error('worker error');
-  };
-  try {
-    await sut.runPool(gen(), 1, async (n: number) => n * 2);
-  } catch (e) {
-    expect(e).toBeDefined();
-  }
-});
-
-test('walk returns empty for non-existent directory', async () => {
-  const results: string[] = [];
-  for await (const file of sut.walk('/nonexistent/directory')) {
-    results.push(file);
-  }
-  expect(results).toEqual([]);
-});
-
-test('runPool with concurrency 1', async () => {
-  const gen = async function* (): AsyncGenerator<number> {
-    for (let i = 0; i < 5; i++) {
-      yield i;
-    }
-  };
-  const processed = await sut.runPool(gen(), 1, async (n: number) => n * 2);
-  expect(processed).toHaveLength(5);
-  expect(processed.sort((a, b) => a - b)).toEqual([0, 2, 4, 6, 8]);
-});
-
-test('sanitizeText handles all REPLACE_MAP entries', () => {
-  const testCases = [
-    { input: '\u00A0', expected: ' ' },
-    { input: '\u00AD', expected: '' },
-    { input: '\u00D7', expected: 'x' },
-    { input: '\u200B', expected: '' },
-    { input: '\u200C', expected: '' },
-    { input: '\u200D', expected: '' },
-    { input: '\u2010', expected: '-' },
-    { input: '\u2011', expected: '-' },
-    { input: '\u2012', expected: '-' },
-    { input: '\u2013', expected: '-' },
-    { input: '\u2014', expected: '-' },
-    { input: '\u2028', expected: '\n' },
-    { input: '\u2029', expected: '\n' },
-    { input: '\u2060', expected: '' },
-    { input: '\uFEFF', expected: '' },
-  ];
-
-  for (const { input, expected } of testCases) {
-    expect(sut.sanitizeText(input)).toBe(expected);
-  }
-});
-
-test('sanitizeText handles CONTROL_RE', () => {
-  const input = 'a\u0001b\u0007c\u000Bd\u000Ce\u000Ff\u001Fg\u007Fh';
-  const expected = 'abcdefgh';
+test.each(sanitizeCases)('$label', ({ input, expected }) => {
   expect(sut.sanitizeText(input)).toBe(expected);
 });
 
-test('sanitizeFile handles file with no changes', async () => {
-  const { writeFile, rm } = await import('node:fs/promises');
-  const testFile = '/tmp/sanitize-test-' + Date.now() + '.txt';
-  try {
-    await writeFile(testFile, 'hello world');
-    const result = await sut.sanitizeFile(testFile, false);
-    expect(result.changed).toBe(false);
-    expect(result.bytes).toBe(0);
-  } finally {
-    try { await rm(testFile); } catch {}
+test('parseArgs covers flags and positional argument precedence', () => {
+  setArgv(
+    'bun',
+    'sanitize-hidden.ts',
+    '--dry-run',
+    '--concurrency=8',
+    '--unknown-flag',
+    '/first/path',
+    '/second/path',
+  );
+
+  expect(sut.parseArgs()).toEqual({
+    concurrency: 8,
+    dryRun: true,
+    root: '/first/path',
   });
-}
-
-test('runPool handles errors in worker', async () => {
-  const gen = async function* (): AsyncGenerator<number> {
-    yield 1;
-    throw new Error('worker error');
-  };
-  try {
-    await sut.runPool(gen(), 1, async (n: number) => n * 2);
-  } catch (e) {
-    expect(e).toBeDefined();
-  }
+  setArgv('bun', 'sanitize-hidden.ts');
 });
 
-test('walk returns empty for non-existent directory', async () => {
-  const results: string[] = [];
-  for await (const file of sut.walk('/nonexistent/directory')) {
-    results.push(file);
-  }
-  expect(results).toEqual([]);
-});
+test.each(['/tmp/test.jpg', '/tmp/test.HTML'])(
+  'sanitizeFile skips excluded extension %s',
+  async (file) => {
+    stat.mockClear();
+    const result = await sut.sanitizeFile(file, false);
+    expect(result).toEqual({ bytes: 0, changed: false, file });
+    expect(stat).not.toHaveBeenCalled();
+  },
+);
 
-test('runPool with concurrency 1', async () => {
-  const gen = async function* (): AsyncGenerator<number> {
-    for (let i = 0; i < 5; i++) {
-      yield i;
-    }
-  };
-  const processed = await sut.runPool(gen(), 1, async (n: number) => n * 2);
-  expect(processed).toHaveLength(5);
-  expect(processed.sort((a, b) => a - b)).toEqual([0, 2, 4, 6, 8]);
-});
-
-test('sanitizeText handles all REPLACE_MAP entries', () => {
-  const testCases = [
-    { input: '\u00A0', expected: ' ' },
-    { input: '\u00AD', expected: '' },
-    { input: '\u00D7', expected: 'x' },
-    { input: '\u200B', expected: '' },
-    { input: '\u200C', expected: '' },
-    { input: '\u200D', expected: '' },
-    { input: '\u2010', expected: '-' },
-    { input: '\u2011', expected: '-' },
-    { input: '\u2012', expected: '-' },
-    { input: '\u2013', expected: '-' },
-    { input: '\u2014', expected: '-' },
-    { input: '\u2028', expected: '\n' },
-    { input: '\u2029', expected: '\n' },
-    { input: '\u2060', expected: '' },
-    { input: '\uFEFF', expected: '' },
-  ];
-
-  for (const { input, expected } of testCases) {
-    expect(sut.sanitizeText(input)).toBe(expected);
-  }
-});
-
-test('sanitizeText handles CONTROL_RE', () => {
-  const input = 'a\u0001b\u0007c\u000Bd\u000Ce\u000Ff\u001Fg\u007Fh';
-  const expected = 'abcdefgh';
-  expect(sut.sanitizeText(input)).toBe(expected);
-});
-
-test('sanitizeFile handles file with no changes', async () => {
-  const { writeFile, rm } = await import('node:fs/promises');
-  const testFile = '/tmp/sanitize-test-' + Date.now() + '.txt';
-  try {
-    await writeFile(testFile, 'hello world');
-    const result = await sut.sanitizeFile(testFile, false);
-    expect(result.changed).toBe(false);
-    expect(result.bytes).toBe(0);
-  } finally {
-    try { await rm(testFile); } catch {}
+test('sanitizeFile skips non-files, oversized files, and read failures', async () => {
+  fileStats.set(`${virtualRoot}/directory`, { isFile: () => false, size: 0 });
+  fileStats.set(`${virtualRoot}/large.txt`, {
+    isFile: () => true,
+    size: 16 * 1024 * 1024 + 1,
   });
-}
+
+  await expect(
+    sut.sanitizeFile(`${virtualRoot}/directory`, false),
+  ).resolves.toEqual({
+    bytes: 0,
+    changed: false,
+    file: `${virtualRoot}/directory`,
+  });
+  await expect(
+    sut.sanitizeFile(`${virtualRoot}/large.txt`, false),
+  ).resolves.toEqual({
+    bytes: 0,
+    changed: false,
+    file: `${virtualRoot}/large.txt`,
+  });
+  await expect(
+    sut.sanitizeFile(`${virtualRoot}/missing.txt`, false),
+  ).resolves.toEqual({
+    bytes: 0,
+    changed: false,
+    file: `${virtualRoot}/missing.txt`,
+  });
+});
+
+test('sanitizeFile preserves clean files and dry-run changes', async () => {
+  setFile(`${virtualRoot}/clean.txt`, 'hello world');
+  setFile(`${virtualRoot}/dry-run.txt`, 'hello\u200Bworld');
+  writeFile.mockClear();
+
+  await expect(
+    sut.sanitizeFile(`${virtualRoot}/clean.txt`, false),
+  ).resolves.toEqual({
+    bytes: 0,
+    changed: false,
+    file: `${virtualRoot}/clean.txt`,
+  });
+  await expect(
+    sut.sanitizeFile(`${virtualRoot}/dry-run.txt`, true),
+  ).resolves.toEqual({
+    bytes: 1,
+    changed: true,
+    file: `${virtualRoot}/dry-run.txt`,
+  });
+  expect(fileContents.get(`${virtualRoot}/dry-run.txt`)).toBe(
+    'hello\u200Bworld',
+  );
+  expect(writeFile).not.toHaveBeenCalled();
+});
+
+test('sanitizeFile writes changed content when not in dry-run mode', async () => {
+  setFile(`${virtualRoot}/write.txt`, 'hello\u200Bworld');
+  writeFile.mockClear();
+
+  await expect(
+    sut.sanitizeFile(`${virtualRoot}/write.txt`, false),
+  ).resolves.toEqual({
+    bytes: 1,
+    changed: true,
+    file: `${virtualRoot}/write.txt`,
+  });
+  expect(writeFile).toHaveBeenCalledWith(
+    `${virtualRoot}/write.txt`,
+    'helloworld',
+    'utf8',
+  );
+  expect(fileContents.get(`${virtualRoot}/write.txt`)).toBe('helloworld');
+});
+
+test('walk yields newline-delimited output and final buffered output', async () => {
+  spawnOutput = 'first.txt\n\nsecond.txt';
+  const files: string[] = [];
+  for await (const file of sut.walk('/workspace')) {
+    files.push(file);
+  }
+
+  expect(files).toEqual(['first.txt', 'second.txt']);
+  expect(spawn).toHaveBeenCalled();
+});
+
+test('walk returns empty when spawn fails', async () => {
+  spawnMode = 'throw';
+  const files: string[] = [];
+  for await (const file of sut.walk('/workspace')) {
+    files.push(file);
+  }
+  spawnMode = 'normal';
+
+  expect(files).toEqual([]);
+});
+
+test('runPool waits for full slots and preserves all results', async () => {
+  const gen = async function* (): AsyncGenerator<string> {
+    yield 'a';
+    yield 'b';
+    yield 'c';
+  };
+
+  let release = (): void => undefined;
+  let started = 0;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const result = sut.runPool(gen(), 2, async (value) => {
+    started += 1;
+    await gate;
+    return value.toUpperCase();
+  });
+  while (started < 2) {
+    await Promise.resolve();
+  }
+  release();
+
+  await expect(result).resolves.toEqual(['A', 'B', 'C']);
+});
+
+test('runPool propagates worker failures', async () => {
+  const gen = async function* (): AsyncGenerator<string> {
+    yield 'a';
+    throw new Error('worker failed');
+  };
+
+  await expect(
+    sut.runPool(gen(), 1, async (value) => value.toUpperCase()),
+  ).rejects.toThrow('worker failed');
+});
+
+test('main reports changed files in normal and dry-run modes', async () => {
+  clearFiles();
+  spawnOutput = `${virtualRoot}/changed.txt\n`;
+  setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
+  setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--concurrency=1');
+  log.mockClear();
+
+  await sut.main();
+
+  expect(log).toHaveBeenCalledWith(
+    expect.stringContaining('[sanitize] 1 file(s) changed'),
+  );
+  expect(log).toHaveBeenCalledWith('  changed.txt  (-1 bytes)');
+
+  setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
+  writeFile.mockClear();
+  setArgv(
+    'bun',
+    'sanitize-hidden.ts',
+    virtualRoot,
+    '--dry-run',
+    '--concurrency=1',
+  );
+  await sut.main();
+
+  expect(log).toHaveBeenCalledWith(
+    expect.stringContaining('[sanitize] dry-run — 1 file(s) would change'),
+  );
+  expect(writeFile).not.toHaveBeenCalled();
+  setArgv('bun', 'sanitize-hidden.ts');
+});
+
+test('main reports when no files need changes', async () => {
+  clearFiles();
+  spawnOutput = '';
+  setArgv('bun', 'sanitize-hidden.ts', virtualRoot);
+  log.mockClear();
+
+  await sut.main();
+
+  expect(log).toHaveBeenCalledWith('  (no changes needed — all clean)');
+  setArgv('bun', 'sanitize-hidden.ts');
+});
+
+test('main rejects fatal walk errors after the CLI catch boundary is covered', async () => {
+  spawnMode = 'broken';
+  await expect(sut.main()).rejects.toThrow('reader failed');
+  spawnMode = 'normal';
+});

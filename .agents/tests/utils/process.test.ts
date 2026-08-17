@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { describe, expect, mock, test } from 'bun:test';
 
 import {
   type BunSpawner,
@@ -164,7 +164,7 @@ describe('process cleanup', () => {
 
     const executor = createBunExecutor(spawn);
     const promise = executor({ ...spec, timeoutMs: 1 });
-    
+
     await expect(promise).rejects.toThrow('tool timed out after 1ms');
     expect(kill).toHaveBeenCalledWith(9);
   });

@@ -38,7 +38,8 @@ const isWithinRoot = (
   );
 };
 
-const readStdin = async (): Promise<string> => new Response(Bun.stdin).text();
+export const readStdin = async (input: BodyInit = Bun.stdin): Promise<string> =>
+  new Response(input).text();
 
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>';
@@ -78,7 +79,7 @@ export const writeJson = async (
 const defaultDependencies: WriteJsonCliDependencies = {
   fileSystem: nodeFileSystem,
   pathApi: path,
-  readInput: readStdin,
+  readInput: () => readStdin(),
   temporaryRoot: tmpdir(),
   writeText,
 };

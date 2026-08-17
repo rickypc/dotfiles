@@ -44,7 +44,7 @@ import { argv, cwd, exit } from 'node:process';
 const REPLACE_MAP = {
   '\u00A0': ' ',
   '\u00AD': '',
-  '\u00D7': 'x',  // MULTIPLICATION SIGN (×) -> "x"
+  '\u00D7': 'x', // MULTIPLICATION SIGN (×) -> "x"
   '\u200B': '',
   '\u200C': '',
   '\u200D': '',
