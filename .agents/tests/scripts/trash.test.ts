@@ -1,29 +1,41 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { homedir } from 'node:os';
+import { resolve } from 'node:path';
 
 const renameMock = mock((_src: string, _dest: string) => Promise.resolve());
 const accessMock = mock((_path: string) => Promise.resolve());
-const homedirMock = mock(() => '/home/tester');
+const rmMock = mock((_path: string, _options?: { force?: boolean }) =>
+  Promise.resolve(),
+);
+const readFileMock = mock((_path: string, _encoding?: string) =>
+  Promise.resolve(''),
+);
+const writeFileMock = mock(
+  (_path: string, _content: string, _encoding?: string) => Promise.resolve(),
+);
+const mkdirMock = mock((_path: string, _options?: { recursive?: boolean }) =>
+  Promise.resolve(),
+);
 
 mock.module('node:fs/promises', () => ({
   access: accessMock,
+  mkdir: mkdirMock,
+  readFile: readFileMock,
   rename: renameMock,
-}));
-mock.module('node:os', () => ({
-  homedir: homedirMock,
+  rm: rmMock,
+  writeFile: writeFileMock,
 }));
 
 const { trashRoot, defaultMoveSourceToTrash } = await import(
   '../../scripts/trash.js'
 );
 
-describe('trashRoot', () => {
-  afterEach(() => {
-    homedirMock.mockClear();
-  });
+const testTrashRoot = resolve(homedir(), '.Trash');
+const testSource = resolve(homedir(), 'work/plan.md');
 
+describe('trashRoot', () => {
   test('returns ~/.Trash resolved from homedir', () => {
-    homedirMock.mockImplementation(() => '/home/tester');
-    expect(trashRoot()).toBe('/home/tester/.Trash');
+    expect(trashRoot()).toBe(testTrashRoot);
   });
 });
 
@@ -31,8 +43,10 @@ describe('defaultMoveSourceToTrash', () => {
   afterEach(() => {
     renameMock.mockClear();
     accessMock.mockClear();
-    homedirMock.mockClear();
-    homedirMock.mockImplementation(() => '/home/tester');
+    rmMock.mockClear();
+    readFileMock.mockClear();
+    writeFileMock.mockClear();
+    mkdirMock.mockClear();
   });
 
   test('rejects a relative source path', async () => {
@@ -42,19 +56,17 @@ describe('defaultMoveSourceToTrash', () => {
   });
 
   test('moves source to ~/.Trash/<base> on a free slot and returns the destination', async () => {
-    const source = '/home/tester/work/plan.md';
     renameMock.mockImplementation(() => Promise.resolve());
-    const dest = await defaultMoveSourceToTrash(source);
-    expect(dest).toBe('/home/tester/.Trash/plan.md');
+    const dest = await defaultMoveSourceToTrash(testSource);
+    expect(dest).toBe(resolve(testTrashRoot, 'plan.md'));
     expect(renameMock).toHaveBeenCalledTimes(1);
     expect(renameMock.mock.calls[0]).toEqual([
-      source,
-      '/home/tester/.Trash/plan.md',
+      testSource,
+      resolve(testTrashRoot, 'plan.md'),
     ]);
   });
 
   test('appends numeric suffix when the primary destination is busy', async () => {
-    const source = '/home/tester/work/plan.md';
     let first = true;
     renameMock.mockImplementation(() => {
       if (first) {
@@ -65,56 +77,53 @@ describe('defaultMoveSourceToTrash', () => {
       }
       return Promise.resolve();
     });
-    const dest = await defaultMoveSourceToTrash(source);
-    expect(dest).toBe('/home/tester/.Trash/plan.md.1');
+    const dest = await defaultMoveSourceToTrash(testSource);
+    expect(dest).toBe(resolve(testTrashRoot, 'plan.md.1'));
     expect(renameMock).toHaveBeenCalledTimes(2);
   });
 
   test('throws when all 201 destination slots are busy', async () => {
-    const source = '/home/tester/work/plan.md';
     renameMock.mockImplementation(() =>
       Promise.reject(Object.assign(new Error('EEXIST'), { code: 'EEXIST' })),
     );
-    await expect(defaultMoveSourceToTrash(source)).rejects.toThrow(
-      'Trash destination collision limit reached: /home/tester/.Trash/plan.md',
+    await expect(defaultMoveSourceToTrash(testSource)).rejects.toThrow(
+      `Trash destination collision limit reached: ${resolve(testTrashRoot, 'plan.md')}`,
     );
     expect(renameMock).toHaveBeenCalledTimes(201);
   });
 
   test('throws when the trash directory is on an unsupported filesystem', async () => {
-    const source = '/home/tester/work/plan.md';
     renameMock.mockImplementation(() =>
       Promise.reject(Object.assign(new Error('EXDEV'), { code: 'EXDEV' })),
     );
-    await expect(defaultMoveSourceToTrash(source)).rejects.toThrow(
-      'Trash directory unavailable at /home/tester/.Trash: EXDEV',
+    await expect(defaultMoveSourceToTrash(testSource)).rejects.toThrow(
+      `Trash directory unavailable at ${testTrashRoot}: EXDEV`,
     );
   });
 
   test('throws when source is gone on ENOENT', async () => {
-    const source = '/home/tester/work/plan.md';
     renameMock.mockImplementation(() =>
       Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' })),
     );
     accessMock.mockImplementation(() =>
       Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' })),
     );
-    await expect(defaultMoveSourceToTrash(source)).rejects.toThrow(
-      'Plan retirement source not found: /home/tester/work/plan.md.',
+    await expect(defaultMoveSourceToTrash(testSource)).rejects.toThrow(
+      `Plan retirement source not found: ${testSource}.`,
     );
   });
 
   test('rethrows unknown error codes without retrying', async () => {
-    const source = '/home/tester/work/plan.md';
     renameMock.mockImplementation(() =>
       Promise.reject(Object.assign(new Error('EACCES'), { code: 'EACCES' })),
     );
-    await expect(defaultMoveSourceToTrash(source)).rejects.toThrow('EACCES');
+    await expect(defaultMoveSourceToTrash(testSource)).rejects.toThrow(
+      'EACCES',
+    );
     expect(renameMock).toHaveBeenCalledTimes(1);
   });
 
   test('retries the next suffix when destination parent vanishes but source still exists', async () => {
-    const source = '/home/tester/work/plan.md';
     let first = true;
     renameMock.mockImplementation(() => {
       if (first) {
@@ -126,8 +135,8 @@ describe('defaultMoveSourceToTrash', () => {
       return Promise.resolve();
     });
     accessMock.mockImplementation(() => Promise.resolve());
-    const dest = await defaultMoveSourceToTrash(source);
-    expect(dest).toBe('/home/tester/.Trash/plan.md.1');
+    const dest = await defaultMoveSourceToTrash(testSource);
+    expect(dest).toBe(resolve(testTrashRoot, 'plan.md.1'));
     expect(accessMock).toHaveBeenCalledTimes(1);
     expect(renameMock).toHaveBeenCalledTimes(2);
   });

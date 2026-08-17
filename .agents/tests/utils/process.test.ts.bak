@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { describe, expect, mock, test } from 'bun:test';
 
 import {
   type BunSpawner,
@@ -131,6 +131,36 @@ describe('process', () => {
 
 describe('process cleanup', () => {
   const spec = { args: ['--version'], command: 'tool' };
+  const timers = mock(
+    (callback: () => void, delayMs: number): ReturnType<typeof setTimeout> =>
+      setTimeout(callback, delayMs),
+  );
+
+  test('waits for the child exit before rejecting after a timeout', async () => {
+    let finish!: (code: number) => void;
+    let exited = false;
+    const kill = mock(() => {
+      timers(() => {
+        exited = true;
+        finish(9);
+      }, 1_050);
+    });
+    const spawn: BunSpawner = () => ({
+      exited: new Promise((resolve) => {
+        finish = resolve;
+      }),
+      kill,
+      stderr: null,
+      stdout: null,
+    });
+
+    await expect(
+      createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
+    ).rejects.toThrow('tool timed out after 1ms');
+    expect(exited).toBe(true);
+    expect(kill).toHaveBeenCalledWith(9);
+    expect(timers).toHaveBeenCalled();
+  });
 
   test('reports a child exit failure and settles the cleanup result', async () => {
     const exitError = new Error('exit failed');
@@ -150,29 +180,14 @@ describe('process cleanup', () => {
     expect(kill).toHaveBeenCalledWith(9);
   });
 
-  test('kills process on timeout and cleans up timeout handle', async () => {
+  test('preserves the timeout error when killing the child throws', async () => {
     let finish!: (code: number) => void;
-    const kill = mock(() => finish(9));
-    const spawn: BunSpawner = () => ({
-      exited: new Promise((resolve) => {
-        finish = resolve;
-      }),
-      kill,
-      stderr: null,
-      stdout: null,
-    });
-
-    const executor = createBunExecutor(spawn);
-    const promise = executor({ ...spec, timeoutMs: 1 });
-    
-    await expect(promise).rejects.toThrow('tool timed out after 1ms');
-    expect(kill).toHaveBeenCalledWith(9);
-  });
-
-  test('preserves timeout error when kill throws during cleanup', async () => {
-    let finish!: (code: number) => void;
+    let exited = false;
     const kill = mock(() => {
-      finish(9);
+      timers(() => {
+        exited = true;
+        finish(9);
+      }, 1_050);
       throw new Error('kill failed');
     });
     const spawn: BunSpawner = () => ({
@@ -187,6 +202,8 @@ describe('process cleanup', () => {
     await expect(
       createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
     ).rejects.toThrow('tool timed out after 1ms');
+    expect(exited).toBe(true);
     expect(kill).toHaveBeenCalledWith(9);
+    expect(timers).toHaveBeenCalled();
   });
 });

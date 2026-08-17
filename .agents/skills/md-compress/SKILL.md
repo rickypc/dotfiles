@@ -22,10 +22,13 @@ justification.
 ```text
 /md-compress begin <absolute-markdown-path> # guard one Markdown source before editing
 /md-compress finalize <absolute-markdown-path> # validate protected tokens and close the guard
+/md-compress guard <absolute-markdown-path> # validate without editing (begin+finalize in one shot)
 ```
 
 The finalize command may additionally receive one removal-authorization JSON
-path when the edit intentionally removes protected tokens.
+path when the edit intentionally removes protected tokens. The `guard`
+command is for no-edit validation passes (e.g. after KB reconcile) — it
+runs begin+finalize in one shot and returns `{"status":"guarded"}`.
 
 The unannotated grammar is:
 
@@ -95,6 +98,7 @@ eligible source -> begin guard -> protected edit -> exact finalize
 | `begin` | `<absolute-markdown-path>` | Direct durable Markdown edit with one eligible source and no caller packet | `bun <agents-root>/scripts/md-compress.ts begin "<absolute-markdown-path>"`; returns source, backup/lock, and one exact `finalize` action. |
 | `edit` | `<returned-source-path>` | Between the returned `begin` and `finalize` actions | Do not start another transaction or change arguments; make only the protected edit. |
 | `finalize` | `<absolute-markdown-path>` | Final validation using the exact action returned by `begin` | `bun <agents-root>/scripts/md-compress.ts finalize "<absolute-markdown-path>"`; validates protected tokens, removes temporary files, and returns `done`. |
+| `guard` | `<absolute-markdown-path>` | No-edit validation after KB reconcile or similar no-change pass | `bun <agents-root>/scripts/md-compress.ts guard "<absolute-markdown-path>"`; runs begin+finalize in one shot, returns `guarded`. |
 
 The removal-authorization manifest is a JSON object with this shape:
 

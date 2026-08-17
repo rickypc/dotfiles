@@ -35,6 +35,13 @@ The unannotated grammar is:
 Required: the configured private-KB root and the operation-specific scope or
 request path. Use the command catalog for exact JSON/request-file forms.
 
+**Execution rule:** This skill is executed by running
+`bun <agents-root>/scripts/knowledge-base.ts <command> <arguments>`.
+Never read `knowledge-base.ts` source code to understand its behavior —
+run it. The `--help` flag prints the usage contract. The `search` command
+returns `kbInfo` with `resolvedRoot` and `availableIndexes` so you know
+the KB root and all scope indexes without `ls`-ing directories.
+
 ## 3. Immutable Operational Rules
 
 - Use the configured KB root and supplied repo-search indexes as authoritative. Keep
@@ -50,8 +57,8 @@ request path. Use the command catalog for exact JSON/request-file forms.
   transport for writes. Resolve the correct index before writing; never invent
   another index when the named one is missing or stale.
 - For a concept update, guard each changed Markdown source with `/md-compress`
-  `begin` and its returned `finalize`, then validate OKF structure and protected
-  content. A compression backup is outside the KB tree.
+  `guard` (no-edit validation) or `begin`/`finalize` (with edit), then validate
+  OKF structure and protected content. A compression backup is outside the KB tree.
 - Atomic `approve --context` is the normal lifecycle route. Use context
   resolution only for recovery and follow exactly the returned lifecycle action.
 
@@ -89,16 +96,18 @@ root and scope -> retrieve evidence -> choose disposition -> guarded write
 4. **Write or import:** Materialize rich JSON through the fixed TypeScript
    writer, then run the owning reconcile/import command. Validate metadata,
    links, preconditions, and every returned receipt before applying writes.
-5. **Guard and verify:** Run `/md-compress` begin/edit/finalize for changed
-   Markdown, validate OKF and indexes, and return receipts. If evidence or
-   authority fails, preserve the existing KB and stop.
+5. **Guard and verify:** Run `/md-compress` `guard` for no-edit validation, or
+   `begin`/edit/`finalize` for changed Markdown, validate OKF and indexes, and
+   return receipts. If evidence or authority fails, preserve the existing KB
+   and stop.
 
 ### Fixed JSON request boundary
 
 For reconciliation or capture JSON containing backticks, dollar signs, quotes,
-or newlines, first run `mktemp` alone and retain the printed absolute path.
-Create the source through the approved editor, then run this exact pipe with
-the literal paths:
+or newlines, follow the four-step procedure in AGENTS.md §8 "String-only JSON
+boundary". The preferred source method is a TypeScript builder script
+(`bun <builder>.ts > <source>`) that avoids shell interpretation entirely.
+After the source file is ready, run this exact pipe with the literal paths:
 
 ```text
 cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>
@@ -125,6 +134,22 @@ The parser's typed fields remain explicit: `canonicalPath` is a `string`,
 `links` is an `array` whose `from` and `to` values are operation paths, and
 each operation's `metadata` contains `type`, `title`, `description`, and
 `tags`. A declared body link uses the exact marker `](<to-relativePath>)`.
+
+**Relative link calculation:** Strip the filename from `from`, keep the
+directory prefix. Then strip the common directory prefix shared between the
+`from` directory and the `to` path. Prepend `../` for each remaining
+directory level in the `from` path after the common prefix, then append the
+remaining `to` path. Three concrete examples:
+
+- Same directory: `from` = `idx/sub/A.md`, `to` = `idx/sub/B.md`
+  → `](B.md)`
+- Adjacent subject: `from` = `idx/sub1/A.md`, `to` = `idx/sub2/B.md`
+  → `](../sub2/B.md)`
+- Two levels up: `from` = `idx/sub1/sub2/A.md`, `to` = `idx/sub3/B.md`
+  → `](../../sub3/B.md)`
+
+The `shared/` scope follows the same rule: `from` = `idx/sub/A.md`,
+`to` = `shared/team/B.md` → `](../../shared/team/B.md)`.
 The writer's string-only fields include `content` and `write`; the runtime
 reads the materialized request with `readText` and the implementation contract
 is `utils/knowledge-base.ts`.

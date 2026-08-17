@@ -37,6 +37,11 @@ type DiscoverDependency = typeof searchKnowledgeBaseWithFallback;
 
 type ImportDependency = typeof importPlan;
 
+export interface KbInfo {
+  readonly availableIndexes: readonly string[];
+  readonly resolvedRoot: string;
+}
+
 export interface KnowledgeBaseBatchSearchResult {
   readonly query: string;
   readonly receipt: KnowledgeBaseSearchReceipt;
@@ -45,6 +50,7 @@ export interface KnowledgeBaseBatchSearchResult {
 export interface KnowledgeBaseSearchReceipt {
   readonly concepts: readonly KnowledgeSearchResult[];
   readonly discovery: RepoSearchSearchFallbackReceipt;
+  readonly kbInfo: KbInfo;
 }
 
 export interface KnowledgeSearchResult {
@@ -193,6 +199,27 @@ const optionalDirectory = async (
     throw error;
   }
 };
+
+export const listKbScopeIndexes = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+): Promise<readonly string[]> => {
+  const normalizedRoot = kbRoot.replace(/\/$/u, '');
+  const entries = await optionalDirectory(fileSystem, normalizedRoot);
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .filter((name) => name !== 'shared')
+    .sort((left, right) => left.localeCompare(right));
+};
+
+export const buildKbInfo = async (
+  fileSystem: FileSystem,
+  kbRoot: string,
+): Promise<KbInfo> => ({
+  availableIndexes: await listKbScopeIndexes(fileSystem, kbRoot),
+  resolvedRoot: kbRoot.replace(/\/$/u, ''),
+});
 
 const planSection = (
   body: string,
@@ -499,7 +526,11 @@ const runSearchCommand = async (
     return false;
   }
   if (args.length === 3) {
-    write(JSON.stringify(await search(nodeFileSystem, value, first), null, 2));
+    const [concepts, kbInfo] = await Promise.all([
+      search(nodeFileSystem, value, first),
+      buildKbInfo(nodeFileSystem, value),
+    ]);
+    write(JSON.stringify({ concepts, kbInfo }, null, 2));
     return true;
   }
   if (command === 'search' && second && args.length === 4) {
@@ -806,17 +837,19 @@ export const searchKnowledgeBaseWithFallback = async (
   repoSearchIndex: string,
   query: string,
 ): Promise<KnowledgeBaseSearchReceipt> => {
-  const [concepts, discovery] = await Promise.all([
+  const [concepts, discovery, kbInfo] = await Promise.all([
     searchKnowledgeBase(fileSystem, kbRoot, query),
     searchWithRepoSearchFallback(executor, {
       allowedRoots: [kbRoot],
       query,
       root: { index: repoSearchIndex, root: kbRoot },
     }),
+    buildKbInfo(fileSystem, kbRoot),
   ]);
   return {
     concepts,
     discovery,
+    kbInfo,
   };
 };
 

@@ -196,14 +196,22 @@ number is not completion proof.
 
 Map every acceptance item to evidence and record limitations. A focused test,
 smoke check, inspection, browser path, or manual observation is evidence only
-for the claim it actually covers. Run the configured project final gate once
-at the final boundary when the plan names one; a green gate cannot prove an
-unmapped acceptance item. If that gate returns a non-blocked action packet,
-validate it, apply its required actions through the named owner's explicit
-apply route, verify that only `allowedPaths` changed, and rerun the identical
-gate. The packet is executable repair evidence, not display-only output or a
-user handoff. Stop for a missing, blocked, ambiguous, unsafe, or unappliable
-packet; never invent a repair. When the plan changes JavaScript or TypeScript tests,
+for the claim it actually covers. Run the hidden-character sanitizer over the
+working tree `bun <agents-root>/scripts/sanitize-hidden.ts .` once, immediately
+before the final gate — after every implementation and focused check, never on
+the gate itself. It strips zero-width/soft-hyphen characters, BOM, non-breaking
+space, weird dashes (to ASCII "-"), and stale control bytes from every text
+file recursively, in parallel, skipping `.git`, `build`, `coverage`,
+`node_modules`, `playwright`, and binary extensions; preview with `--dry-run`,
+run the real pass once, then re-diff so any sanitized line is part of the same
+closeout batch. Then run the configured project final gate once at the final
+boundary when the plan names one; a green gate cannot prove an unmapped
+acceptance item. If that gate returns a non-blocked action packet, validate it,
+apply its required actions through the named owner's explicit apply route,
+verify that only `allowedPaths` changed, and rerun the identical gate. The
+packet is executable repair evidence, not display-only output or a user
+handoff. Stop for a missing, blocked, ambiguous, unsafe, or unappliable packet;
+never invent a repair. When the plan changes JavaScript or TypeScript tests,
 follow its explicit `/bun-test-generator`, boundary-validation, and
 `/biome-tsc-checker` route before editing; when it changes retained browser
 coverage, follow its explicit `/playwright-test-generator` route.

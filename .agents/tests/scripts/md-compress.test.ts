@@ -73,6 +73,17 @@ test('finalizes a guarded candidate only after token validation', async () => {
   expect(write).toHaveBeenCalledWith(expect.stringContaining('compressed'));
 });
 
+test('guards a source in one shot for no-edit validation passes', async () => {
+  const { dependencies: injected, removed } = dependencies();
+  const write = mock();
+  await run(['guard', '/docs/plan.md'], write, injected);
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('guarded'));
+  expect(removed).toEqual([
+    '/tmp/md-compress/hash/plan.md.original',
+    '/tmp/md-compress/hash/plan.md.original.lock',
+  ]);
+});
+
 test('builds default dependencies from injected external boundaries', async () => {
   const { dependencies: injected, writes } = dependencies();
   const hash = {

@@ -268,6 +268,22 @@ cross-cutting boundary:
   `npm run test:lint && npm run test:unit && npm run test:e2e &&
   npm run build` — that string is wrong on most projects; verify
   first, then name the gate.
+- **Pre-gate sanitizer step (mandatory).** The CHRONOLOGICAL WORKFLOW
+  must end with one executable `- [ ]` step that runs the
+  hidden-character sanitizer over the working tree immediately before
+  the final-gate step, and never on the gate itself:
+
+  ```text
+  - [ ] Run the hidden-character sanitizer over the workspace before the final gate:
+        `bun <agents-root>/scripts/sanitize-hidden.ts .`
+        (preview with `--dry-run`; run once, then re-diff).
+  ```
+
+  This strips zero-width/soft-hyphen characters, BOM, non-breaking and weird 
+  dashes (to ASCII "-"), and stale control bytes from every text file 
+  recursively, in parallel, skipping `.git`, `build`, `coverage`, 
+  `node_modules`, `playwright`, and binary extensions. A plan that omits 
+  this step is incomplete and must not be handed off.
 
 ### 2. VARIABLE DEFINITION MATRIX
 

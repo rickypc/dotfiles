@@ -58,9 +58,22 @@ Run this skill before editing the selected test surface.
   importers, call sites, public command consumers, and every same-process test.
   **If safe isolation is not proven, stop** and ask for the missing boundary
   plan; never mutate the shared harness to make coverage green.
+- **The skill MUST ALWAYS mock every external dependency used in generated tests**, including temporary file creation, file writes, removals, process spawns, and any OS interaction.
 - If a dependency contract cannot be mocked without guessing, stop and ask for
   that contract. A passing test, coverage report, `/biome-tsc-checker`, or
   all-skill validation cannot substitute for this gate.
+
+### Anti-patterns and countermeasures
+
+See [references/lessons-learned.md](references/lessons-learned.md) for documented
+patterns that cause hanging or slow tests and their fixes:
+
+- `<pattern:hanging-stdin>` — inject stdin as mockable dependency
+- `<pattern:real-timers-in-tests>` — use fake timers with `advanceTimers()`
+- `<pattern:unmocked-external-boundaries>` — mock every boundary with `mock()`/`mock.module()`
+- `<pattern:missing-afterEach-cleanup>` — clean up timers/streams in `afterEach`
+- `<pattern:slow-test-anti-patterns>` — table of slow patterns vs fast alternatives
+- `<pattern:mock-module-rule>` — `mock.module()` for all non-SUT imports
 
 ## 4. Input & Context Schema
 
@@ -191,3 +204,7 @@ receipt green.
 - **Independent verifier:** Boundary validation, static checks, focused Bun
   tests, coverage/mutation checks, and the project gate independently verify
   the test.
+
+## References
+
+- [lessons-learned.md](references/lessons-learned.md) — Anti-patterns for hanging/slow tests and their fixes

@@ -2,14 +2,28 @@ import { expect, mock, test } from 'bun:test';
 import * as nodeChildProcess from 'node:child_process';
 import * as nodeFs from 'node:fs';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import * as nodeFsPromises from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import * as nodePath from 'node:path';
 import { join } from 'node:path';
 
 mock.module('node:child_process', () => nodeChildProcess);
 mock.module('node:fs', () => nodeFs);
-mock.module('node:fs/promises', () => nodeFsPromises);
+mock.module('node:fs/promises', () => ({
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+}));
 mock.module('node:path', () => nodePath);
 
 import {

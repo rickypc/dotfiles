@@ -10,7 +10,12 @@
     }
   },
   "files": {
-    "includes": ["**", "!!**/coverage", "!!**/node_modules"]
+    "includes": [
+      "**/*.{js,jsx,ts,tsx}",
+      "!!**/.git",
+      "!!**/coverage",
+      "!!**/node_modules"
+    ]
   },
   "formatter": {
     "indentStyle": "space",
@@ -55,5 +60,10 @@
         "useDefaultSwitchClauseLast": "error"
       }
     }
+  },
+  "vcs": {
+    "clientKind": "git",
+    "enabled": true,
+    "useIgnoreFile": true
   }
 }

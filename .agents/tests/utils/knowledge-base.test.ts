@@ -1,10 +1,12 @@
 import { expect, test } from 'bun:test';
 
 import {
+  buildKbInfo,
   captureConcept,
   conceptIndexPath,
   importPlan,
   isKbConceptPath,
+  listKbScopeIndexes,
   parseOkfConcept,
   parsePlanForImport,
   reconcileConcepts,
@@ -678,6 +680,33 @@ test('searches validated KB concepts and returns an empty result when absent', a
   await expect(searchKnowledgeBase(failing, '/kb', 'x')).rejects.toThrow(
     'directory failure',
   );
+});
+
+test('listKbScopeIndexes returns scope directories excluding shared', async () => {
+  const fileSystem = {
+    readdir: async () => [
+      { isDirectory: () => true, name: 'shared' },
+      { isDirectory: () => true, name: 'Users-rhuang' },
+      { isDirectory: () => true, name: 'Users-demo' },
+      { isDirectory: () => false, name: 'index.md' },
+    ],
+  };
+  await expect(listKbScopeIndexes(fileSystem as never, '/kb')).resolves.toEqual(
+    ['Users-demo', 'Users-rhuang'],
+  );
+});
+
+test('buildKbInfo returns resolved root and available indexes', async () => {
+  const fileSystem = {
+    readdir: async () => [
+      { isDirectory: () => true, name: 'shared' },
+      { isDirectory: () => true, name: 'idx' },
+    ],
+  };
+  await expect(buildKbInfo(fileSystem as never, '/kb/')).resolves.toEqual({
+    availableIndexes: ['idx'],
+    resolvedRoot: '/kb',
+  });
 });
 
 test('combines repo-search discovery with validated KB search results', async () => {

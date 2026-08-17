@@ -284,7 +284,10 @@ const removalAuthorizationFor = async (
 
 const sourcePathFor = (args: readonly string[]): string | undefined => {
   const [command, sourcePath, authorizationPath] = args;
-  if ((command !== 'begin' && command !== 'finalize') || !sourcePath) {
+  if (
+    (command !== 'begin' && command !== 'finalize' && command !== 'guard') ||
+    !sourcePath
+  ) {
     return undefined;
   }
   if (command === 'begin') {
@@ -297,9 +300,10 @@ const sourcePathFor = (args: readonly string[]): string | undefined => {
 
 export const usage = (): string =>
   [
-    'Usage: bun <agents-root>/scripts/md-compress.ts begin <markdown-path> | finalize <markdown-path> [removal-authorization-json]',
+    'Usage: bun <agents-root>/scripts/md-compress.ts begin <markdown-path> | finalize <markdown-path> [removal-authorization-json] | guard <markdown-path>',
     'begin writes a guarded backup and lock under tmpdir()/md-compress, then returns the exact finalize action.',
     'After editing, finalize validates protected Markdown tokens and removes the temporary backup and lock.',
+    'guard runs begin then finalize in one shot for no-edit validation passes (e.g. after KB reconcile).',
     'Intentional protected-token removal requires a JSON authorization manifest naming each exact token and its justification.',
   ].join('\n');
 
@@ -335,6 +339,26 @@ export async function run(
           action: 'edit-markdown-then-finalize',
           args: ['finalize', sourcePath],
         },
+        sourcePath,
+      }),
+    );
+    return;
+  }
+  if (args[0] === 'guard') {
+    const guard = await guardCompression(
+      resolvedDependencies.fileSystem,
+      backupRoot,
+      sourcePath,
+      resolvedDependencies.digest,
+    );
+    await finalizeCompression(
+      resolvedDependencies.fileSystem,
+      sourcePath,
+      guard,
+    );
+    write(
+      JSON.stringify({
+        next: { action: 'done', status: 'guarded' },
         sourcePath,
       }),
     );

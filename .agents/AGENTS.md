@@ -5,6 +5,13 @@ runtime. The active runtime directory is `<agents-root>` for one project or
 `~/.agents` as the machine-wide fallback. A project-local runtime and skill
 always take precedence over the home-directory fallback.
 
+### Response style
+
+Keep every response to a single response, terse, and to the point.
+Minimize output tokens while maintaining accuracy. Do not add preamble,
+postamble, filler, or tangential explanation. Prefer one-word answers.
+State the result, not what was done to achieve it.
+
 ## 1. Read this first: decision order
 
 Apply these decisions in order before acting:
@@ -246,6 +253,26 @@ stdout, exits successfully, and performs no file, process, network, or stdin
 work. Treat this universal option as part of every script's input/output
 contract; owner tables need not repeat it in every row.
 
+### File retirement (deletion is prohibited)
+
+Never delete a file with `rm`, `unlink`, `fs.rm`, `rmSync`, `fs.unlinkSync`,
+or any deletion API or shell command. Deletion is permanently prohibited
+regardless of whether the file is temporary, a backup, a stale artifact, or
+production content. Permission rules deny `rm`; do not attempt it, do not ask
+for it, and do not report it as a blocker.
+
+The only sanctioned retirement path is **move to trash**:
+
+```text
+mv <absolute-source-path> <trash-destination>
+```
+
+where `<trash-destination>` is `~/.Trash/<basename>` or, on collision,
+`~/.Trash/<basename>.<suffix>`. Use the `trash.ts` module's
+`defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for
+shell-level retirement. Never skip this rule for "trivial" temp files — the OS
+tmpdir janitor handles those, and any other file must be trashed, not deleted.
+
 ### String-only JSON boundary
 
 When a tool or script accepts a string containing JSON, pass a string, never
@@ -255,19 +282,40 @@ JSON-shaped strings as objects during argument validation. Never reuse the
 editor for JSON payloads; always use the shared TypeScript writer.
 
 For backtick-, dollar-, quote-, or newline-rich JSON that must be written to
-disk, the exact four-step procedure is mandatory:
+disk, there is exactly ONE way: the four-step procedure below. There is no
+alternative, no exception, no shortcut, and no fallback. Do not attempt any
+other method — not the editor `write` tool, not `JSON.stringify`, not a heredoc,
+not Python, not `echo`, not shell redirection, and not any ad-hoc workaround.
+If you cannot complete all four steps, STOP and tell the user what you cannot
+do; do not substitute a different method.
 
 1. **Obtain the output path.** Run standalone `mktemp` alone and retain the
    absolute path it prints. The writer rejects any output path outside
-   `os.tmpdir()` and refuses relative or guessed paths.
+   `os.tmpdir()` and refuses relative or guessed paths. Never guess `/tmp` or
+   `/private/tmp`; always use the exact path `mktemp` prints.
 2. **Build the JSON string in memory.** JSON is whitespace-insensitive; keep
    newlines inside string bodies as literal `\n` escapes. Encode Markdown
    backticks as `\u0060` and dollar signs as `\u0024` if they appear inside
    string bodies.
-3. **Write the source via printf.** Pipe the literal string to a temp source
-   file with `printf '%s' '<json-string>' > <absolute-request-source-path>`.
-   Single-quoted printf avoids shell variable, heredoc, command substitution,
-   and backtick interpretation.
+3. **Write the source file.** There are two methods, in priority order:
+
+   **Method A (preferred): TypeScript builder.** Write a small `.ts` file
+   to `os.tmpdir()` using the editor `write` tool (the content is TypeScript
+   source, not JSON, so the schema accepts it). The script builds the JSON
+   object in memory and calls `console.log(JSON.stringify(obj))`. Run it
+   with `bun` and redirect stdout to the source file. This avoids all shell
+   interpretation issues:
+
+   ```text
+   bun <absolute-builder-script-path> > <absolute-request-source-path>
+   ```
+
+   **Method B (fallback): printf for short JSON.** Only for JSON under 200
+   bytes with no special characters. Pipe the literal string to a temp file
+   with `printf '%s' '<json-string>' > <absolute-request-source-path>`.
+   Single-quoted printf avoids shell variable, heredoc, command
+   substitution, and backtick interpretation. **If printf fails or the
+   JSON is long, use Method A.**
 4. **Materialize then invoke the owner.** Run the writer pipe:
 
    ```text
@@ -287,7 +335,9 @@ Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON
 boundary: heredoc, shell redirection other than the writer pipe, shell
 variables, command substitution, inline writers, Python, object-valued tool
 calls, `JSON.stringify(request)` as a fallback, guessed temp paths such as
-`/tmp` or `/private/tmp`, and the built-in write tool for JSON payloads.
+`/tmp` or `/private/tmp`, and the built-in write tool for JSON payloads. If
+you already used one of these forbidden methods, that output is INVALID;
+discard it and redo from step 1.
 
 The writer entrypoint remains `write-json.ts`; the owning skill determines the
 `request` schema and lifecycle, and the `request` itself follows that owner's
@@ -300,13 +350,40 @@ Every temporary path must be printed by standalone `mktemp` or derived from
 or create multiple temp directories for one workflow when one OS temp directory
 with distinct files is sufficient.
 
+### Model error recovery
+
+When the model API returns "Not Found" with `isRetryable: false` and
+`nvcf-status: errored`, display the following fenced recovery prompt to the
+user instead of the raw error message:
+
+```
+Continue from where you left off.
+```
+
+The session state is persisted, so no work is lost. If the model is
+consistently down, suggest switching to a different provider/model.
+
 ## 9. Validation, gates, and closeout
 
 After the complete implementation batch:
 
 1. Run the focused checks for changed behavior and affected boundaries.
-2. Run the selected project final gate exactly once.
-3. If it fails, collect all compatible repairs, apply them as one repair batch,
+2. Run the hidden-character sanitizer over every changed file, then over the
+   workspace, before the final gate:
+
+   ```text
+   bun <agents-root>/scripts/sanitize-hidden.ts .
+   ```
+
+   This strips zero-width and soft-hyphen characters, BOM, non-breaking and
+   weird dashes to ASCII "-", and stale control bytes from every text file
+   under the working tree (recursively, in parallel, skipping `.git`, `build`,
+   `coverage`, `node_modules`, `playwright`, `*.html`, and binary extensions).
+   Run a `--dry-run` first to preview changed files; run the real pass only
+   once, immediately before the final gate. Re-diff after the run so any
+   sanitized line is part of the same closeout batch.
+3. Run the selected project final gate exactly once.
+4. If it fails, collect all compatible repairs, apply them as one repair batch,
    and run the same final gate exactly once again.
 
 The final gate is the project-approved `finalGate` in `aidx.json`, otherwise
