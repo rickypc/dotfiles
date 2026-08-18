@@ -58,6 +58,27 @@ Run this skill before editing the selected test surface.
   importers, call sites, public command consumers, and every same-process test.
   **If safe isolation is not proven, stop** and ask for the missing boundary
   plan; never mutate the shared harness to make coverage green.
+- Focused coverage is diagnostic, never completion proof. After focused tests,
+  run the configured full project gate in the same runner context. When the
+  project exposes these lanes, run `test:lint`, `test:unit`, and `test:type`
+  separately and retain one receipt for each; use the exact configured
+  equivalents when names differ. **Every lane must exit 0** with no test
+  failures, TypeScript diagnostics, or lint errors before claiming completion.
+  A focused green result is never a final handoff.
+- Coverage closure must identify the selected SUT files and report 100% of
+  the configured function/line metrics (or the project's explicit equivalent)
+  for those files. Aggregate coverage alone is insufficient. Retain the
+  selected-SUT coverage receipt alongside the full-gate receipts.
+- A top-level `mock.module()` or global mock requires same-process full-suite
+  proof, not only a focused-file pass. Built-in module mocks are especially
+  risky: prefer an injected boundary or the real platform value when possible;
+  otherwise preserve unrelated exports, restore mutable globals, and rerun
+  the full suite to catch test-ordering contamination.
+- Test doubles must remain type-safe under the strict project type check. Use
+  complete real shapes and typed stubs, never `any` or suppression comments.
+  Do not mutate readonly shared adapters to steer a test; use dependency
+  injection or a typed, test-local seam and restore it in a guaranteed cleanup
+  path.
 - **The skill MUST ALWAYS mock every external dependency used in generated tests**, including temporary file creation, file writes, removals, process spawns, and any OS interaction.
 - If a dependency contract cannot be mocked without guessing, stop and ask for
   that contract. A passing test, coverage report, `/biome-tsc-checker`, or
@@ -118,10 +139,13 @@ SUT and scope -> impact map -> behavior matrix -> isolated tests
    convert the selected Jest test. Register every dependency mock before
    dynamically importing the real SUT; do not alter the SUT or project config.
 4. **Validate and test:** Run `validate-boundaries` with source strings and the
-   exact SUT module specifier, then `/biome-tsc-checker` for the test, the
-   selected Bun coverage command, and relevant existing tests. Perform a
-   mutation check for wrong branches, arguments, side effects, defaults, and
-   malformed/boundary inputs.
+   exact SUT module specifier, then `/biome-tsc-checker` for the test. Run the
+   selected Bun coverage command and relevant focused tests, then run the
+   configured full project lanes (`test:lint`, `test:unit`, and `test:type` or
+   their exact equivalents) independently in the same runner context. Re-run
+   every affected lane after mock or fixture repairs. Perform a mutation check
+   for wrong branches, arguments, side effects, defaults, and malformed or
+   boundary inputs. Do not close on coverage alone.
 5. **Retire or hand off:** Remove a legacy Jest test only after Bun validation
    and every relevant gate passes. Return boundary, isolation, test, or gate
    failures without weakening the matrix.
@@ -183,9 +207,12 @@ selected SUT and its observable side effects.
 
 Success returns the canonical test source, frozen behavior matrix, shared
 impact receipt when applicable, boundary-validation receipt, static-check
-receipt, focused test/coverage result, and mutation-check result. The real SUT,
-explicit mock assertions, independent expected values, and configured project
-gate establish proof.
+receipt, focused test/coverage result, separate full-gate receipts for
+`test:lint`, `test:unit`, and `test:type` (or exact configured equivalents),
+and mutation-check result. The real SUT, explicit mock assertions, independent
+expected values, selected-SUT 100% coverage, and every lane exiting 0 establish
+proof. No partial receipt, aggregate coverage result, or focused green run can
+close the task.
 
 Failure names the unmocked boundary, SUT mock, unsafe shared registration,
 missing contract, weak assertion, mutation gap, failed command, or path owner.
