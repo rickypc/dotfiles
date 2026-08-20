@@ -85,12 +85,14 @@ __pycache__/
 .v8flags.*
 .venv
 .viminfo
+.vim/pack
 .vscode*
 .wget*
 .yarn*
 .zcode
 .zcompdump*
 .zsh_history
+.zsh_plugins
 .zsh_sessions
 Applications
 bin/chromedriver

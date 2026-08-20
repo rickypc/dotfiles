@@ -1,24 +1,32 @@
 [submodule ".vim/pack/plugins/start/airline"]
-	path = .vim/pack/plugins/start/airline
-	url = https://github.com/vim-airline/vim-airline.git
+  path = .vim/pack/plugins/start/airline
+  shallow = true
+  url = https://github.com/vim-airline/vim-airline.git
 [submodule ".vim/pack/plugins/start/airline-themes"]
-	path = .vim/pack/plugins/start/airline-themes
-	url = https://github.com/vim-airline/vim-airline-themes.git
+  path = .vim/pack/plugins/start/airline-themes
+  shallow = true
+  url = https://github.com/vim-airline/vim-airline-themes.git
 [submodule ".vim/pack/plugins/start/editorconfig"]
-	path = .vim/pack/plugins/start/editorconfig
-	url = https://github.com/editorconfig/editorconfig-vim.git
+  path = .vim/pack/plugins/start/editorconfig
+  shallow = true
+  url = https://github.com/editorconfig/editorconfig-vim.git
 [submodule ".vim/pack/plugins/start/fugitive"]
-	path = .vim/pack/plugins/start/fugitive
-	url = https://github.com/tpope/vim-fugitive.git
+  path = .vim/pack/plugins/start/fugitive
+  shallow = true
+  url = https://github.com/tpope/vim-fugitive.git
 [submodule ".zsh_plugins/autosuggestions"]
-	path = .zsh_plugins/autosuggestions
-	url = https://github.com/zsh-users/zsh-autosuggestions.git
+  path = .zsh_plugins/autosuggestions
+  shallow = true
+  url = https://github.com/zsh-users/zsh-autosuggestions.git
 [submodule ".zsh_plugins/completions"]
-	path = .zsh_plugins/completions
-	url = https://github.com/zsh-users/zsh-completions.git
+  path = .zsh_plugins/completions
+  shallow = true
+  url = https://github.com/zsh-users/zsh-completions.git
 [submodule ".zsh_plugins/powerlevel10k"]
-	path = .zsh_plugins/powerlevel10k
-	url = https://github.com/romkatv/powerlevel10k.git
+  path = .zsh_plugins/powerlevel10k
+  shallow = true
+  url = https://github.com/romkatv/powerlevel10k.git
 [submodule ".zsh_plugins/syntax-highlighting"]
-	path = .zsh_plugins/syntax-highlighting
-	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
+  path = .zsh_plugins/syntax-highlighting
+  shallow = true
+  url = https://github.com/zsh-users/zsh-syntax-highlighting.git

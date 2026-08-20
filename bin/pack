@@ -29,6 +29,7 @@ time rsync --archive \
   --exclude 'bin/Debug/' \
   --exclude 'bin/Release/' \
   --exclude 'build/' \
+  --exclude 'cache' \
   --exclude '.clinic' \
   --exclude 'contrib/' \
   --exclude 'core/' \
@@ -52,6 +53,7 @@ time rsync --archive \
   --exclude '*.phar' \
   --exclude 'playwright-report' \
   --exclude '__pycache__' \
+  --exclude '.ruff_cache' \
   --exclude 'scannercli' \
   --exclude 'site-packages/' \
   --exclude '.snapshots' \
@@ -62,6 +64,7 @@ time rsync --archive \
   --exclude 'test-results' \
   --exclude '*-tmp' \
   --exclude 'vendor/' \
+  --exclude '.venv' \
   --exclude '*.zip' \
   . $TMP/$SOURCE
 
