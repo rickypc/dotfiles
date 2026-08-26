@@ -21,9 +21,11 @@ verifierIds:
 The matrix freezes the observable contract of the Repo-Search Engine. Candidate
 checks cover the complete repository-search contract, approved root scopes,
 compact search planning, the primary CLI route, each staged fallback predicate,
-evidence tracing, refinement, and the compact report shape. Challenge checks
+evidence tracing, refinement, mandatory routing for all repository/file
+discovery, and the compact report shape. Challenge checks
 target likely shortcuts: guessed paths, MCP-tool substitution, fallback
-reordering, hidden uncertainty, and completion without structural evidence.
+reordering, direct shell/file discovery, hidden uncertainty, and completion
+without structural evidence.
 
 The matrix is evaluated before and after the candidate guidance with the same
 source and matrix fingerprints. RED, GREEN, and REFACTOR receipts are required;

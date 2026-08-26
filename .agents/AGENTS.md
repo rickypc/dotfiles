@@ -18,14 +18,20 @@ Apply these decisions in order before acting:
 
 1. Resolve the active `<agents-root>` and project root.
 2. Read the applicable parent, project, and coding-assistant policies.
-3. Classify the request as read-only analysis/review/reporting or an authorized
+3. Inventory applicable skills and select the smallest skill set that covers
+   the request. **If a skill might apply, use the skill; do not debate whether
+   to wing the task.** Resolve a project-local skill first, then the global
+   fallback with the same name, then an applicable installed runtime/plugin
+   skill when no project/global owner exists. If no skill matches, record that
+   result before proceeding.
+4. Classify the request as read-only analysis/review/reporting or an authorized
    change/build request.
-4. Select the owning skill or script. Read its `argument-hint`, complete
+5. Select the owning skill or script. Read its `argument-hint`, complete
    `## 2. Usage`, parser/entrypoint, and any owner-specific command tables.
-5. Gather the smallest sufficient repository and private-context evidence.
-6. Confirm scope, authorization, protected-file boundaries, and the proof needed
+6. Gather the smallest sufficient repository and private-context evidence.
+7. Confirm scope, authorization, protected-file boundaries, and the proof needed
    to close the work.
-7. Make one compatible change batch, run focused checks, then run the configured
+8. Make one compatible change batch, run focused checks, then run the configured
    final gate once.
 
 The catalog below is a quick-start aid, not an exhaustive list. A missing row
@@ -69,6 +75,13 @@ Instruction inheritance is additive:
   must say that it extends the parent; it must not replace or omit it.
 - A coding-assistant-specific `AGENTS.md` follows the same additive rule.
 - Resolve a project-local skill before the global skill with the same name.
+
+Skill use is mandatory, not discretionary. For every nontrivial request, first
+inspect the applicable skill catalogs and invoke every skill whose scope covers
+part of the request, using the minimum complete set and the precedence above.
+When applicability is uncertain, use the closest matching skill and let its
+scope/owner boundary reject the route; never silently substitute ad-hoc work.
+Do not treat a skill as optional because the task appears small or familiar.
 
 Tool configuration follows the same direction. The project policy `extends`
 the shared `<agents-root>/biome.jsonc` configuration and may only strengthen rules or narrow
@@ -129,7 +142,9 @@ to the protected configuration files.
 
 ## 5. Skill routing quick start
 
-Resolve project-local skills first. For every selected skill, read frontmatter
+Resolve project-local skills first, then the global fallback, and then an
+installed runtime/plugin skill when neither has an owner. For every selected
+skill, read frontmatter
 `argument-hint` for the compact caller/UI shape, then read its complete
 `## 2. Usage` section and any owner-specific command or information tables.
 `argument-hint` is only a hint; the Usage section and owned tables are the
@@ -169,10 +184,14 @@ Skill ownership rules:
 ## 6. Evidence, discovery, and context
 
 For every nontrivial workflow, use `/knowledge-base` for durable prior context
-and lesson capture. Use `/repo-search` for repository files, symbols, call
-paths, and code text through its complete wrapper contract. Do not read whole
-files when a targeted discovery or inspection receipt answers the question;
-read policy, owner, and contract files fully when they define the boundary.
+and lesson capture. Use `/repo-search` for **all repository/file discovery**:
+code, symbols, call paths, architecture, configuration, documentation, and
+any file literally. This is mandatory even when the target seems obvious or
+the request is small. Do not use `find`, `rg`, `grep`, globbing, directory
+dumping, or ad-hoc file reading as a substitute. Read only the smallest
+targeted fragments returned by the wrapper. The only pre-discovery reads are
+the explicitly named policy/skill owner files required to resolve routing and
+the wrapper contract itself.
 
 Repository evidence establishes what exists and how it flows. Private knowledge
 supplies business intent, terminology, ownership, and precedent. Record facts,

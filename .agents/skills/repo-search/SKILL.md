@@ -36,9 +36,10 @@ code-graph discovery contract over an approved private-KB root.
   repository-search wrapper.
 - **Objective:** Return a structurally traced, evidence-backed answer to a
   repository question without guessing paths, symbols, causes, or completion.
-- **Trigger:** Use when a request asks where code lives, how a symbol or
-  configuration flows, why an implementation behaves a certain way, which
-  repository structures support a claim, or which callers/callees form a path.
+- **Trigger:** Mandatory caller-facing route for every repository/file
+  discovery request: code, symbols, configuration, documentation, architecture,
+  call paths, or any file literally. Use it even when the path or filename
+  appears obvious; callers must not decide to skip it.
 - **Boundary:** This skill discovers and analyzes approved repository, home,
   or private-KB code-graph evidence. It does not edit source files or own
   durable private-KB records. Route implementation to the appropriate owner
@@ -88,6 +89,13 @@ do not invoke the backend directly.
   router, invoke the underlying engine directly, or bypass this skill. Never
   invoke the underlying engine directly. The command contract requires that
   callers do not use MCP tools as a substitute for the owned CLI.
+- **Mandatory route:** Once applicable policies and the owner skill contract
+  are read, all repository/file discovery goes through this skill. Do not use
+  `find`, `rg`, `grep`, shell globs, directory dumps, or direct ad-hoc reads as
+  a caller-side substitute. This includes locating a single named file. Read
+  only the smallest targeted fragments returned by the wrapper; direct reads
+  are reserved for the explicitly named policy/skill owner files needed to
+  resolve routing and this wrapper contract.
 - **Wrapper boundary:** Use only the shared repo-search wrapper, an approved
   root, the matching returned project index, documented flags, and the wrapper's
   request transport. Commands take exact flags, not inline JSON payloads. Do
