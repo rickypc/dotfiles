@@ -31,3 +31,9 @@ recipe from a discipline boundary: the recipe names focused questioning,
 alternatives, trade-offs, and a recommendation; the boundary prevents
 implementation handoff before review and approval. Do not accept attractive
 visual prose as evidence that unresolved requirements were handled.
+
+Grounded-design cases must also preserve a current-only baseline, a reusable
+design context, and explicit iteration routing: branch genuinely different
+directions, then revise the selected direction in place while preserving its
+rationale. These additions support reusable visual judgment without introducing
+a separate workflow or implementation authority.

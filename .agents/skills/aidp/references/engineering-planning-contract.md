@@ -27,6 +27,15 @@ Build one compact evidence set before decomposition:
 - Delivery record: sequence rationale, risks, assumptions, final gate, and
   re-plan triggers.
 
+When a material decision has competing paths, unclear criteria, fallback or
+adapter growth, duplicate ownership, or architecture-direction risk, add a
+conditional decision-quality pass before decomposition. Capture the
+irreducible outcome, non-negotiables, assumptions to drop, smallest sufficient
+path, escalation signal, and—when ownership is at risk—the invariant,
+canonical owner / contract, responsibility overlap, higher-level
+simplification, retirement trigger or falsifier, and verdict. This is part of
+the Design or Architect record; it is not a second workflow or approval gate.
+
 Every executable workflow step must be authored as an unchecked Markdown task
 item (`- [ ]`). This is the shared state handed to `/aidx`; AIDP never marks a
 step complete.
@@ -98,7 +107,7 @@ scope or a second workflow.
 | Role | Invoke when | Required contribution |
 |---|---|---|
 | Product | Intent or scope is incomplete. | Separate requested, preserved, constrained, assumed, and excluded behavior; make acceptance observable. |
-| Architect | Boundaries, interfaces, data ownership, compatibility, or material trade-offs change. | Smallest design, alternatives, reversibility, dependencies, NFRs, migration/rollback. |
+| Architect | Boundaries, interfaces, data ownership, compatibility, or material trade-offs change. | Smallest design, alternatives, reversibility, dependencies, NFRs, migration/rollback; add the conditional decision-quality and owner/retirement check when direction risk appears. |
 | Developer | Implementation units need definition. | Reuse conventions, map call chain/change surface, preserve public signatures, and avoid unrelated cleanup. |
 | Quality | Acceptance or final verification is at risk. | Acceptance-to-proof matrix, success/failure/boundary cases, final-gate distinction, limitations. |
 | Security | Trust, secrets, permissions, external inputs, data handling, or supply chain is in scope. | Concrete boundaries, controls, and proof; state inapplicability when evidence supports it. |

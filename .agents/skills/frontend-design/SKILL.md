@@ -54,6 +54,18 @@ acceptance criteria. Use for a new, redesigned, or visually refreshed UI.
 - Use real brand assets and iconography when they are available and required.
   Surface missing or ambiguous assets as an explicit decision; do not silently
   substitute generic marks, invented icons, or placeholder identity elements.
+- Build a reusable design context from the smallest relevant evidence: product
+  job, key journeys, current rendered baseline, shared shell and component
+  patterns, tokens, typography, motion, real brand assets, and content
+  contract. Reuse an existing context source when one exists; if it is absent,
+  define only the minimum needed for the target.
+- Capture the current baseline before direction selection. A baseline for an
+  existing target describes only what is currently rendered; never put
+  proposed changes into the baseline. Refresh only stale or affected context.
+- During iteration, branch only genuinely different directions that need
+  comparison. After a direction is selected, revise that direction in place
+  and preserve the accepted rationale; ordinary corrections do not create
+  parallel variants.
 - Define information hierarchy, default/loading/empty/error/success states,
   keyboard and focus behavior, responsive behavior, accessibility, reduced
   motion, and observable proof before implementation.
@@ -72,19 +84,17 @@ acceptance criteria. Use for a new, redesigned, or visually refreshed UI.
   default. Do not use MCP, browser extensions, or a fresh remote-guideline
   fetch.
 
-Do not use MCP, browser extensions, or a fresh remote-guideline fetch. This
-skill does not generate tests or modify project dependencies.
-Keyboard behavior, responsive behavior, and accessibility before implementation
-remain required by the approved brief.
-The required sequence includes keyboard behavior, responsive behavior, and accessibility before implementation.
+This skill does not generate tests or modify project dependencies. Keyboard
+behavior, responsive behavior, and accessibility before implementation remain
+required by the approved brief.
 
 ## 4. Input & Context Schema
 
 - **Required:** UI brief, affected screens/flows, design-system constraints,
   real content, audience/product job, and acceptance criteria.
 - **Optional:** Supplied visual references, `/content-writer` handoff,
-  implementation-owner constraints, existing pattern inventory, and browser
-  proof capability.
+  implementation-owner constraints, existing pattern inventory, reusable
+  design context or design-system record, and browser proof capability.
 - **Context:** Target routing classification, current render evidence for an
   existing target, a representative sibling and shared shell for a new target
   in an existing codebase, or product/brand context for a new UI without a
@@ -108,12 +118,17 @@ brief and context -> design direction -> state/accessibility definition
    the actual render branch and current states. For a new target, inspect a
    representative sibling, shared shell, and reusable patterns. For a
    no-codebase target, gather the product and brand context needed to define a
-   direction. Split independent screens into approved design slices.
+   direction. Build or reuse the smallest reusable design context and capture
+   the current baseline before selecting a direction. Keep baseline evidence
+   descriptive of the current UI only. Split independent screens into approved
+   design slices.
 2. **Direction:** State the screen's primary user job, propose 2-3 approaches,
    compare trade-offs, and recommend one. Use observed structure as the
    baseline for existing UI; use the closest confirmed sibling and shared
    patterns for a new page. Tie every chosen direction to the brief,
-   constraints, visual language, and user job.
+   constraints, visual language, and user job. Branch only genuinely different
+   directions that need comparison; once one is selected, revise it in place
+   and preserve the accepted rationale.
 3. **Definition:** Specify layout, type, color, spacing, hierarchy, copy,
   controls, loading/empty/error/success states, keyboard/focus behavior,
   responsive behavior, accessibility, reduced motion, real asset/icon usage,
@@ -140,11 +155,12 @@ The retained browser owner is `playwright-test-generator`.
 
 ## 6. Output & Completion Contract
 
-Success returns an accepted visual direction, hierarchy, real-content contract,
-interaction/state inventory, responsive and accessibility behavior, reduced-
-motion behavior, acceptance mapping, critique corrections, and observable
-browser proof boundary. The approval receipt plus the recorded critique prove
-the design is ready; attractive prose alone does not.
+Success returns an accepted visual direction, baseline and reusable design
+context sources, hierarchy, real-content contract, interaction/state inventory,
+responsive and accessibility behavior, reduced-motion behavior, acceptance
+mapping, critique corrections, iteration rationale, and observable browser
+proof boundary. The approval receipt plus the recorded critique prove the
+design is ready; attractive prose alone does not.
 
 Failure names the unresolved product decision, missing content/design-system
 constraint, failed acceptance criterion, or absent approval. Do not substitute
@@ -164,5 +180,8 @@ this skill.
 - **Challenge:** The design must be presented with each decision tied to an
   **acceptance criterion** and **observable browser proof**, then wait for
   **user approval** before implementation.
+- **Grounded iteration:** Existing UI starts from a current-only baseline and
+  reusable context; genuinely different directions may branch, while feedback
+  on the selected direction is revised in place with its rationale preserved.
 - **Independent verifier:** Acceptance mapping, critique record, approval
   receipt, and browser-proof boundary independently verify completion.

@@ -66,6 +66,29 @@ This complete discipline is always active; AIDP has no mode selector. Never
 plan away explicitly required validation, error handling, security,
 accessibility, compatibility, or other safety and quality obligations.
 
+### Conditional decision-quality pass
+
+For a material plan with competing paths, unclear selection criteria,
+fallback or adapter growth, duplicate ownership, or architecture-direction
+risk, run one compact decision-quality pass before decomposition. Record:
+
+```text
+First Principle: the irreducible outcome the plan must satisfy.
+Non-negotiables: constraints the plan cannot break.
+Assumptions to Drop: inherited habits or unverified preferences.
+Smallest Sufficient Path: the least-complex stable path that satisfies the outcome.
+Escalation Signal: the finding that requires a product, design, architecture, or user decision.
+```
+
+For an owner or boundary risk, extend the pass with an Architecture Integrity
+check: invariant, canonical owner / contract, responsibility overlap,
+higher-level simplification, retirement trigger / falsifier, and a verdict.
+Use this to test whether a locally convenient fallback, adapter, or duplicate
+owner belongs at a higher-level source of truth. Keep simple, clearly bounded
+work on the fast path; do not add ceremony when the pass would not change the
+decision surface. This pass is advisory and does not replace clarification,
+approval, plan validation, execution, or the configured final gate.
+
 ### Observed-language routing
 
 Read common rules first,
@@ -411,6 +434,13 @@ reusable patterns from project-specific examples; and make proof observable.
 If a target changes a skill package, the plan must name `/skill-manager` before
 that change and require its validation and review evidence.
 
+For a material directional choice, keep the decision-quality pass with the
+plan's Design record or Architect contribution rather than creating another
+workflow. A baseline-first read must establish the current owner, contract,
+source of truth, consumers, preserved behavior, and proof before alternatives
+are decomposed. If the plan adds a branch, record the retirement trigger or
+falsifier and the evidence that would return the work to baseline.
+
 Do not copy old scripts, utilities, session state, or implementation-specific
 domain content into the plan. Reject placeholders, duplicate sections,
 contradictory instructions, guessed commands, and exact interactive control
@@ -462,7 +492,9 @@ An empty or unavailable repository/knowledge result remains an explicit
 unknown and is a clarification stop when it could affect the plan.
 Validate the complete candidate before writing: six sections in order, typed
 inputs, complete targets, ordered proofs, concrete fallback, explicit stops,
-and an unambiguous output schema. Write atomically at the canonical path.
+and an unambiguous output schema. When the conditional decision-quality pass is
+triggered, include its invariant, smallest sufficient path, owner decision,
+and falsifier in the plan records. Write atomically at the canonical path.
 After writing, run the standalone validator against that exact absolute path.
 Only after a zero exit status may AIDP hand off the result in this exact shape:
 
