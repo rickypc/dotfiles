@@ -34,6 +34,26 @@ acceptance criteria. Use for a new, redesigned, or visually refreshed UI.
 
 - Start from the approved brief, real content, supplied references, audience,
   existing design system, current screen patterns, and acceptance criteria.
+- Classify the target before choosing a design route:
+  - **Existing rendered target:** inspect the branch that actually renders on
+    the target route and treat the observed UI as ground truth; do not infer
+    layout from filenames or import names.
+  - **New target in an existing codebase:** anchor the definition to a
+    representative existing page, shared shell, and reusable components; never
+    fabricate a reproduction of a page that does not exist.
+  - **New UI without a codebase:** gather product context, audience,
+    platform, brand/taste constraints, and references conversationally before
+    defining page detail.
+- Treat the approved design system as a constraint, not a suggestion. Explore
+  hierarchy, composition, density, or layout within its tokens, typography,
+  components, and iconography unless the user explicitly approves a system
+  change. If no design system exists, define the smallest usable one first.
+- Ask only high-signal questions about unresolved constraints and trade-offs;
+  do not repeat decisions already established by the brief or supplied
+  context.
+- Use real brand assets and iconography when they are available and required.
+  Surface missing or ambiguous assets as an explicit decision; do not silently
+  substitute generic marks, invented icons, or placeholder identity elements.
 - Define information hierarchy, default/loading/empty/error/success states,
   keyboard and focus behavior, responsive behavior, accessibility, reduced
   motion, and observable proof before implementation.
@@ -65,11 +85,16 @@ The required sequence includes keyboard behavior, responsive behavior, and acces
 - **Optional:** Supplied visual references, `/content-writer` handoff,
   implementation-owner constraints, existing pattern inventory, and browser
   proof capability.
-- **Context:** Current screen, hierarchy, content contract, interaction states,
-  responsive breakpoints, keyboard/focus model, accessibility requirements,
-  reduced-motion behavior, and acceptance-to-proof mapping.
+- **Context:** Target routing classification, current render evidence for an
+  existing target, a representative sibling and shared shell for a new target
+  in an existing codebase, or product/brand context for a new UI without a
+  codebase; plus hierarchy, content contract, interaction states, responsive
+  breakpoints, keyboard/focus model, accessibility requirements, reduced-motion
+  behavior, and acceptance-to-proof mapping.
 - **Unknowns:** Missing purpose, constraints, success criteria, content meaning,
-  or approval is an explicit stop. Ask the smallest question that resolves it.
+  approval, or the evidence needed for the selected target route is an explicit
+  stop. Ask the smallest question that resolves it; do not invent an existing
+  layout or claim fidelity without source evidence.
 
 ## 5. Ordered Execution Chain
 
@@ -78,16 +103,22 @@ brief and context -> design direction -> state/accessibility definition
                   -> critique -> user approval -> implementation handoff
 ```
 
-1. **Intake:** Inspect the current screen, relevant project context, existing
-   components/patterns, real content, audience, brief, design system, and
-   acceptance boundary. Split independent screens into approved design slices.
+1. **Intake:** Classify the target as existing rendered UI, a new target in an
+   existing codebase, or new UI without a codebase. For existing UI, inspect
+   the actual render branch and current states. For a new target, inspect a
+   representative sibling, shared shell, and reusable patterns. For a
+   no-codebase target, gather the product and brand context needed to define a
+   direction. Split independent screens into approved design slices.
 2. **Direction:** State the screen's primary user job, propose 2-3 approaches,
-   compare trade-offs, and recommend one. Tie every chosen direction to the
-   brief, constraints, visual language, and user job.
+   compare trade-offs, and recommend one. Use observed structure as the
+   baseline for existing UI; use the closest confirmed sibling and shared
+   patterns for a new page. Tie every chosen direction to the brief,
+   constraints, visual language, and user job.
 3. **Definition:** Specify layout, type, color, spacing, hierarchy, copy,
-   controls, loading/empty/error/success states, keyboard/focus behavior,
-   responsive behavior, accessibility, reduced motion, and browser-observable
-   proof. Use `/content-writer` for product-meaningful copy.
+  controls, loading/empty/error/success states, keyboard/focus behavior,
+  responsive behavior, accessibility, reduced motion, real asset/icon usage,
+  design-system fidelity, and browser-observable proof. Use `/content-writer`
+  for product-meaningful copy.
 4. **Critique:** present the design in reviewable sections scaled to its
    complexity; map each decision to an acceptance criterion and observable
    browser proof. Critique content, accessibility, responsive behavior,
@@ -125,6 +156,9 @@ this skill.
 - **Canonical:** Two or three directions are compared, one is recommended
   against the brief, and a complete definition maps states and decisions to
   acceptance criteria.
+- **Grounding:** Existing targets use the actual rendered branch as the
+  baseline; new targets use a representative sibling or shared pattern; a
+  no-codebase target is defined from explicit product and brand context.
 - **Boundary:** Behavior-only work, missing real content, missing accessibility
   state, unresolved purpose, or unapproved definition cannot be handed off.
 - **Challenge:** The design must be presented with each decision tied to an
