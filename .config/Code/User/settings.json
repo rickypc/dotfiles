@@ -2,6 +2,9 @@
   "[github-actions-workflow]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
   "application.shellEnvironmentResolutionTimeout": 60,
   "biome.requireConfiguration": true,
   "chat.customAgentInSubagent.enabled": true,
@@ -93,9 +96,12 @@
   "files.trimTrailingWhitespace": true,
   "files.watcherExclude": {
     "**/.git/objects/**": true,
+    "**/build/**": true,
     "**/coverage/**": true,
     "**/dist/**": true,
     "**/node_modules/**": true,
+    "**/playwright/**": true,
+    "**/supports/**": true,
     "**/vendor/**": true
   },
   "flow.showUncovered": true,
