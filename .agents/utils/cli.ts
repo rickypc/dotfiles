@@ -1,6 +1,4 @@
-export type CliRunner<Result> = (
-  values: readonly string[],
-) => Result | Promise<Result>;
+export type CliRunner<Result> = (values: readonly string[]) => Result | Promise<Result>;
 
 export type CliUsage = () => string;
 

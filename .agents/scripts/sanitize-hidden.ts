@@ -190,13 +190,7 @@ const RG_EXCLUDE_GLOBS = [
 ];
 
 export async function* walk(dir: string): AsyncGenerator<string> {
-  const args = [
-    '--files',
-    '--no-messages',
-    '--no-ignore-vcs',
-    ...RG_EXCLUDE_GLOBS,
-    dir,
-  ];
+  const args = ['--files', '--no-messages', '--no-ignore-vcs', ...RG_EXCLUDE_GLOBS, dir];
   let proc: ReturnType<typeof Bun.spawn> | null = null;
   try {
     proc = Bun.spawn(args, { stderr: 'pipe', stdout: 'pipe' });
@@ -262,9 +256,7 @@ export async function runPool<T>(
 
 export async function main(): Promise<void> {
   const { root, dryRun, concurrency } = parseArgs();
-  console.log(
-    `[sanitize] root=${root} dry-run=${dryRun} concurrency=${concurrency}`,
-  );
+  console.log(`[sanitize] root=${root} dry-run=${dryRun} concurrency=${concurrency}`);
 
   const gen = walk(root);
   const all = await runPool(gen, concurrency, (f) => sanitizeFile(f, dryRun));
@@ -279,9 +271,7 @@ export async function main(): Promise<void> {
       `\n[sanitize] dry-run — ${changed} file(s) would change, ~${totalBytes} bytes removed:`,
     );
   } else {
-    console.log(
-      `\n[sanitize] ${changed} file(s) changed, ~${totalBytes} bytes removed:`,
-    );
+    console.log(`\n[sanitize] ${changed} file(s) changed, ~${totalBytes} bytes removed:`);
   }
   for (const r of results) {
     const rel = r.file.startsWith(`${root}/`) ? r.file.slice(rootLen) : r.file;

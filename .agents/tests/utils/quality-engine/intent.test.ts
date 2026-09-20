@@ -1,9 +1,6 @@
 import { expect, test } from 'bun:test';
 
-import {
-  parseIntent,
-  renderIntent,
-} from '../../../utils/quality-engine/intent.js';
+import { parseIntent, renderIntent } from '../../../utils/quality-engine/intent.js';
 
 test('renders and parses the minimal persisted intent', () => {
   const intent = {

@@ -1,8 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-
 import Parser from 'tree-sitter';
-
 import type { CheckResult } from './contracts.js';
 import {
   type BaselineDecision,
@@ -12,20 +10,10 @@ import {
   decideCandidate,
   decideChallenge,
 } from './quality-engine/controller.js';
-import {
-  type ActionPacket,
-  createActionPacket,
-} from './quality-engine/packet.js';
-import {
-  createReceipt,
-  type EvidenceReceipt,
-} from './quality-engine/receipt.js';
+import { type ActionPacket, createActionPacket } from './quality-engine/packet.js';
+import { createReceipt, type EvidenceReceipt } from './quality-engine/receipt.js';
 
-export type DeclarationKind =
-  | 'const-function'
-  | 'function'
-  | 'interface'
-  | 'type';
+export type DeclarationKind = 'const-function' | 'function' | 'interface' | 'type';
 
 interface DeclarationNode {
   readonly item: DeclarationOrderItem;
@@ -84,6 +72,8 @@ export interface DeclarationOrderReport {
   readonly violations: readonly string[];
 }
 
+type Language = Parameters<Parser['setLanguage']>[0];
+
 interface SourceStatement {
   readonly end: number;
   readonly node: SyntaxNode;
@@ -93,8 +83,8 @@ interface SourceStatement {
 type SyntaxNode = Parser.SyntaxNode;
 
 interface TypeScriptGrammars {
-  readonly tsx: Parser.Language;
-  readonly typescript: Parser.Language;
+  readonly tsx: Language;
+  readonly typescript: Language;
 }
 
 const require = createRequire(import.meta.url);
@@ -113,23 +103,16 @@ const ancestors = (node: SyntaxNode): readonly SyntaxNode[] => {
   return result;
 };
 
-const childForField = (
-  node: SyntaxNode,
-  field: string,
-): SyntaxNode | undefined => node.childForFieldName(field) ?? undefined;
+const childForField = (node: SyntaxNode, field: string): SyntaxNode | undefined =>
+  node.childForFieldName(field) ?? undefined;
 
 const declarationNodeFor = (node: SyntaxNode): SyntaxNode =>
-  node.type === 'export_statement'
-    ? (childForField(node, 'declaration') ?? node)
-    : node;
+  node.type === 'export_statement' ? (childForField(node, 'declaration') ?? node) : node;
 
-export const declarationOrderDetail = (
-  report: DeclarationOrderReport,
-): string =>
-  [
-    ...report.violations,
-    ...report.blockers.map((blocker) => `Not reordered: ${blocker}`),
-  ].join('\n') || 'Top-level declarations are canonical.';
+export const declarationOrderDetail = (report: DeclarationOrderReport): string =>
+  [...report.violations, ...report.blockers.map((blocker) => `Not reordered: ${blocker}`)].join(
+    '\n',
+  ) || 'Top-level declarations are canonical.';
 
 export const declarationOrderResult = (
   report: DeclarationOrderReport,
@@ -204,41 +187,29 @@ export const evaluateDeclarationOrderLifecycle = ({
   };
 };
 
-const hasField = (
-  node: SyntaxNode,
-  field: string,
-  child: SyntaxNode,
-): boolean => childForField(node, field)?.id === child.id;
+const hasField = (node: SyntaxNode, field: string, child: SyntaxNode): boolean =>
+  childForField(node, field)?.id === child.id;
 
 const isBinding = (node: SyntaxNode, declaration: SyntaxNode): boolean => {
   const parent = node.parent;
-  if (
-    parent?.type === 'variable_declarator' &&
-    hasField(parent, 'name', node)
-  ) {
+  if (parent?.type === 'variable_declarator' && hasField(parent, 'name', node)) {
     return parent.id !== declaration.id;
   }
-  if (
-    parent?.type === 'function_declaration' &&
-    hasField(parent, 'name', node)
-  ) {
+  if (parent?.type === 'function_declaration' && hasField(parent, 'name', node)) {
     return parent.id !== declaration.id;
   }
-  return parent
-    ? ancestors(node).some((ancestor) => ancestor.type === 'formal_parameters')
-    : false;
+  return parent ? ancestors(node).some((ancestor) => ancestor.type === 'formal_parameters') : false;
 };
 
-const isImport = (node: SyntaxNode): boolean =>
-  node.type === 'import_statement';
+const isImport = (node: SyntaxNode): boolean => node.type === 'import_statement';
 
 const isPropertyName = (node: SyntaxNode): boolean => {
   const parent = node.parent;
   return Boolean(
-    parent &&
-      (hasField(parent, 'property', node) ||
-        hasField(parent, 'key', node) ||
-        parent.type === 'property_identifier'),
+    parent
+      && (hasField(parent, 'property', node)
+        || hasField(parent, 'key', node)
+        || parent.type === 'property_identifier'),
   );
 };
 
@@ -260,10 +231,7 @@ const isTypePosition = (node: SyntaxNode): boolean =>
     ].includes(ancestor.type),
   );
 
-const nameFor = (
-  node: SyntaxNode,
-  kind: DeclarationKind,
-): string | undefined => {
+const nameFor = (node: SyntaxNode, kind: DeclarationKind): string | undefined => {
   const declaration = declarationNodeFor(node);
   if (kind === 'const-function') {
     const declarator = declaration.namedChildren.find(
@@ -281,10 +249,7 @@ const rangeFor = (
   start: Math.min(...items.map((item) => item.start)),
 });
 
-const reorderedText = (
-  source: string,
-  group: DeclarationOrderGroup,
-): string => {
+const reorderedText = (source: string, group: DeclarationOrderGroup): string => {
   const items = new Map(group.items.map((item) => [item.name, item]));
   return group.desiredOrder
     .map((name) => {
@@ -294,22 +259,15 @@ const reorderedText = (
     .join('\n\n');
 };
 
-const replaceRange = (
-  source: string,
-  start: number,
-  end: number,
-  replacement: string,
-): string => `${source.slice(0, start)}${replacement}${source.slice(end)}`;
+const replaceRange = (source: string, start: number, end: number, replacement: string): string =>
+  `${source.slice(0, start)}${replacement}${source.slice(end)}`;
 
 const runtimeSpan = (
   declarations: readonly (DeclarationNode | undefined)[],
   start: number,
 ): { readonly entries: DeclarationNode[]; readonly nextIndex: number } => {
   let nextIndex = start;
-  while (
-    nextIndex < declarations.length &&
-    isRuntime(declarations[nextIndex]?.item)
-  ) {
+  while (nextIndex < declarations.length && isRuntime(declarations[nextIndex]?.item)) {
     nextIndex += 1;
   }
   return {
@@ -320,15 +278,10 @@ const runtimeSpan = (
   };
 };
 
-const sameOrder = (
-  currentOrder: readonly string[],
-  desiredOrder: readonly string[],
-): boolean => currentOrder.every((name, index) => name === desiredOrder[index]);
+const sameOrder = (currentOrder: readonly string[], desiredOrder: readonly string[]): boolean =>
+  currentOrder.every((name, index) => name === desiredOrder[index]);
 
-const applyRuntimeGroups = (
-  source: string,
-  groups: readonly DeclarationOrderGroup[],
-): string => {
+const applyRuntimeGroups = (source: string, groups: readonly DeclarationOrderGroup[]): string => {
   let next = source;
   for (const group of [...groups].sort(
     (left, right) => rangeFor(right.items).start - rangeFor(left.items).start,
@@ -337,12 +290,7 @@ const applyRuntimeGroups = (
       continue;
     }
     const range = rangeFor(group.items);
-    next = replaceRange(
-      next,
-      range.start,
-      range.end,
-      reorderedText(next, group),
-    );
+    next = replaceRange(next, range.start, range.end, reorderedText(next, group));
   }
   return next;
 };
@@ -353,9 +301,7 @@ const groupPacket = (
   groups: readonly DeclarationOrderGroup[],
 ): ActionPacket | undefined => {
   const failedGroups = groups.filter(
-    (group) =>
-      group.needsPlacement ||
-      !sameOrder(group.currentOrder, group.desiredOrder),
+    (group) => group.needsPlacement || !sameOrder(group.currentOrder, group.desiredOrder),
   );
   if (failedGroups.length === 0) {
     return undefined;
@@ -412,16 +358,13 @@ const typeFor = (node: SyntaxNode): DeclarationKind | undefined => {
     (child) => child.type === 'variable_declarator',
   );
   if (
-    declaration.text.trimStart().startsWith('const ') &&
-    declarator &&
-    declaration.namedChildren.length === 1 &&
-    childForField(declarator, 'name')?.type === 'identifier'
+    declaration.text.trimStart().startsWith('const ')
+    && declarator
+    && declaration.namedChildren.length === 1
+    && childForField(declarator, 'name')?.type === 'identifier'
   ) {
     const value = childForField(declarator, 'value');
-    if (
-      value?.type === 'arrow_function' ||
-      value?.type === 'function_expression'
-    ) {
+    if (value?.type === 'arrow_function' || value?.type === 'function_expression') {
       return 'const-function';
     }
   }
@@ -449,18 +392,13 @@ const typeGroupsFor = (
   declarations: readonly (DeclarationNode | undefined)[],
   firstNonImport: number,
 ): DeclarationOrderGroup[] => {
-  const allTypes = declarations.filter((entry): entry is DeclarationNode =>
-    isType(entry?.item),
-  );
+  const allTypes = declarations.filter((entry): entry is DeclarationNode => isType(entry?.item));
   if (allTypes.length === 0) {
     return [];
   }
-  const expectedTypes = declarations.slice(
-    firstNonImport,
-    firstNonImport + allTypes.length,
-  );
-  const desiredItems = [...allTypes.map(({ item }) => item)].sort(
-    (left, right) => alphabetically(left.name, right.name),
+  const expectedTypes = declarations.slice(firstNonImport, firstNonImport + allTypes.length);
+  const desiredItems = [...allTypes.map(({ item }) => item)].sort((left, right) =>
+    alphabetically(left.name, right.name),
   );
   return [
     {
@@ -470,20 +408,17 @@ const typeGroupsFor = (
       items: allTypes.map(({ item }) => item),
       kind: 'types',
       needsPlacement:
-        expectedTypes.length !== allTypes.length ||
-        !expectedTypes.every((entry) => isType(entry?.item)),
+        expectedTypes.length !== allTypes.length
+        || !expectedTypes.every((entry) => isType(entry?.item)),
     },
   ];
 };
 
-const usesTsxGrammar = (filePath: string): boolean =>
-  /\.(?:jsx|tsx)$/u.test(filePath);
+const usesTsxGrammar = (filePath: string): boolean => /\.(?:jsx|tsx)$/u.test(filePath);
 
 const parserFor = (filePath: string): Parser => {
   const parser = new Parser();
-  parser.setLanguage(
-    usesTsxGrammar(filePath) ? TypeScript.tsx : TypeScript.typescript,
-  );
+  parser.setLanguage(usesTsxGrammar(filePath) ? TypeScript.tsx : TypeScript.typescript);
   return parser;
 };
 
@@ -497,9 +432,7 @@ const sourceStatements = (
   const root = parserFor(filePath).parse(source).rootNode;
   if (root.hasError) {
     return {
-      blockers: [
-        'Source contains syntax errors; declaration order was not evaluated.',
-      ],
+      blockers: ['Source contains syntax errors; declaration order was not evaluated.'],
       statements: [],
     };
   }
@@ -522,19 +455,11 @@ const sourceStatements = (
 
 const importsEndFor = (filePath: string, source: string): number => {
   const parsed = sourceStatements(filePath, source);
-  const firstNonImport = parsed.statements.findIndex(
-    ({ node }) => !isImport(node),
-  );
-  return firstNonImport <= 0
-    ? 0
-    : (parsed.statements.at(firstNonImport - 1)?.end ?? source.length);
+  const firstNonImport = parsed.statements.findIndex(({ node }) => !isImport(node));
+  return firstNonImport <= 0 ? 0 : (parsed.statements.at(firstNonImport - 1)?.end ?? source.length);
 };
 
-const applyTypeGroup = (
-  filePath: string,
-  source: string,
-  group: DeclarationOrderGroup,
-): string => {
+const applyTypeGroup = (filePath: string, source: string, group: DeclarationOrderGroup): string => {
   const typeText = reorderedText(source, group);
   if (!group.needsPlacement) {
     const range = rangeFor(group.items);
@@ -542,9 +467,7 @@ const applyTypeGroup = (
   }
   const importsEnd = importsEndFor(filePath, source);
   let withoutTypes = source;
-  for (const item of [...group.items].sort(
-    (left, right) => right.start - left.start,
-  )) {
+  for (const item of [...group.items].sort((left, right) => right.start - left.start)) {
     withoutTypes = replaceRange(withoutTypes, item.start, item.end, '');
   }
   const before = withoutTypes.slice(0, importsEnd).trimEnd();
@@ -552,29 +475,18 @@ const applyTypeGroup = (
   return [before, typeText, after].filter(Boolean).join('\n\n');
 };
 
-const topLevelStatementSet = (
-  filePath: string,
-  source: string,
-): readonly string[] =>
+const topLevelStatementSet = (filePath: string, source: string): readonly string[] =>
   sourceStatements(filePath, source)
     .statements.map(({ end, start }) => source.slice(start, end).trim())
     .sort(alphabetically);
 
-const preservesTopLevelStatements = (
-  filePath: string,
-  before: string,
-  after: string,
-): boolean =>
-  JSON.stringify(topLevelStatementSet(filePath, before)) ===
-  JSON.stringify(topLevelStatementSet(filePath, after));
+const preservesTopLevelStatements = (filePath: string, before: string, after: string): boolean =>
+  JSON.stringify(topLevelStatementSet(filePath, before))
+  === JSON.stringify(topLevelStatementSet(filePath, after));
 
 const violationsFor = (groups: readonly DeclarationOrderGroup[]): string[] =>
   groups
-    .filter(
-      (group) =>
-        group.needsPlacement ||
-        !sameOrder(group.currentOrder, group.desiredOrder),
-    )
+    .filter((group) => group.needsPlacement || !sameOrder(group.currentOrder, group.desiredOrder))
     .map(
       (group) =>
         `${group.id} must ${group.needsPlacement ? 'be immediately after imports and ' : ''}be ${group.desiredOrder.join(', ')} (current: ${group.currentOrder.join(', ')}).`,
@@ -646,9 +558,7 @@ const dependencyOrder = (
   while (pending.size > 0) {
     const next = [...pending]
       .filter((name) =>
-        (dependencies.get(name) ?? []).every(
-          (dependency) => !pending.has(dependency),
-        ),
+        (dependencies.get(name) ?? []).every((dependency) => !pending.has(dependency)),
       )
       .sort(alphabetically)[0];
     if (!next) {
@@ -661,11 +571,7 @@ const dependencyOrder = (
   }
   return {
     items: orderedNames
-      .map(
-        (name) =>
-          declarations.find((declaration) => declaration.item.name === name)
-            ?.item,
-      )
+      .map((name) => declarations.find((declaration) => declaration.item.name === name)?.item)
       .filter((item): item is DeclarationOrderItem => item !== undefined),
   };
 };
@@ -719,8 +625,7 @@ export const inspectDeclarationOrder = (
   const blockers = [...parsed.blockers];
   const groups: DeclarationOrderGroup[] = [];
   const importEnd = parsed.statements.findIndex(({ node }) => !isImport(node));
-  const firstNonImport =
-    importEnd === -1 ? parsed.statements.length : importEnd;
+  const firstNonImport = importEnd === -1 ? parsed.statements.length : importEnd;
   groups.push(...typeGroupsFor(declarations, firstNonImport));
   const runtime = runtimeGroupsFor(declarations, firstNonImport);
   groups.push(...runtime.groups);
@@ -738,8 +643,7 @@ export const inspectDeclarationOrder = (
 export const declarationOrderCheck = (
   filePath: string,
   source: string,
-): DeclarationOrderCheckResult =>
-  declarationOrderResult(inspectDeclarationOrder(filePath, source));
+): DeclarationOrderCheckResult => declarationOrderResult(inspectDeclarationOrder(filePath, source));
 
 export const fixDeclarationOrder = (
   filePath: string,
@@ -752,9 +656,8 @@ export const fixDeclarationOrder = (
   }
   const typeGroup = baseline.groups.find((group) => group.kind === 'types');
   const afterTypes =
-    typeGroup &&
-    (typeGroup.needsPlacement ||
-      !sameOrder(typeGroup.currentOrder, typeGroup.desiredOrder))
+    typeGroup
+    && (typeGroup.needsPlacement || !sameOrder(typeGroup.currentOrder, typeGroup.desiredOrder))
       ? applyTypeGroup(filePath, source, typeGroup)
       : source;
   const afterTypeReport = inspectDeclarationOrder(filePath, afterTypes);

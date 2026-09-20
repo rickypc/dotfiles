@@ -1,16 +1,6 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
-import {
-  type FileSystem,
-  nodeFileSystem,
-  readText,
-} from '../utils/filesystem.js';
-import {
-  fingerprint,
-  renderActionPacket,
-} from '../utils/quality-engine/packet.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import { type FileSystem, nodeFileSystem, readText } from '../utils/filesystem.js';
+import { fingerprint, renderActionPacket } from '../utils/quality-engine/packet.js';
 import type { WorkflowState } from '../utils/quality-engine/state.js';
 import {
   createSkillManagerPacket,
@@ -43,10 +33,10 @@ const batchPairsFor = (
 }[] => {
   const pairs = args.slice(3);
   if (
-    !args[1] ||
-    (args[2] !== 'baseline' && args[2] !== 'candidate') ||
-    pairs.length === 0 ||
-    pairs.length % 2 !== 0
+    !args[1]
+    || (args[2] !== 'baseline' && args[2] !== 'candidate')
+    || pairs.length === 0
+    || pairs.length % 2 !== 0
   ) {
     throw new Error(usage());
   }
@@ -57,10 +47,10 @@ const batchPairsFor = (
   if (
     parsed.some(
       ({ matrixPath, targetSkillPath }) =>
-        !matrixPath.startsWith('/') ||
-        !matrixPath.endsWith('.jsonl') ||
-        !targetSkillPath.startsWith('/') ||
-        !targetSkillPath.endsWith('/SKILL.md'),
+        !matrixPath.startsWith('/')
+        || !matrixPath.endsWith('.jsonl')
+        || !targetSkillPath.startsWith('/')
+        || !targetSkillPath.endsWith('/SKILL.md'),
     )
   ) {
     throw new Error(
@@ -93,35 +83,25 @@ const runInit = async (
   if (args.length !== 3 || !args[1]?.startsWith('/') || !args[2]) {
     throw new Error(usage());
   }
-  write(
-    JSON.stringify(
-      await initializeSkill(fileSystem, args[1], args[2]),
-      null,
-      2,
-    ),
-  );
+  write(JSON.stringify(await initializeSkill(fileSystem, args[1], args[2]), null, 2));
 };
 
-const runPacket = (
-  args: readonly string[],
-  write: (message: string) => void,
-): void => {
+const runPacket = (args: readonly string[], write: (message: string) => void): void => {
   const [, reviewId, state, targetSkillPath, failedAssertionIds] = args;
   if (
-    args[0] !== 'packet' ||
-    !reviewId ||
-    !state ||
-    !targetSkillPath ||
-    args.length < 4 ||
-    args.length > 5
+    args[0] !== 'packet'
+    || !reviewId
+    || !state
+    || !targetSkillPath
+    || args.length < 4
+    || args.length > 5
   ) {
     throw new Error(usage());
   }
   write(
     renderActionPacket(
       createSkillManagerPacket({
-        failedAssertionIds:
-          failedAssertionIds?.split(',').filter(Boolean) ?? [],
+        failedAssertionIds: failedAssertionIds?.split(',').filter(Boolean) ?? [],
         reviewId,
         state: state as WorkflowState,
         targetSkillPath,
@@ -190,11 +170,7 @@ export const run = async (
     );
     write(
       JSON.stringify(
-        evaluateSkillManagerBatch(
-          first ?? '',
-          second as 'baseline' | 'candidate',
-          sources,
-        ),
+        evaluateSkillManagerBatch(first ?? '', second as 'baseline' | 'candidate', sources),
         null,
         2,
       ),
@@ -205,10 +181,7 @@ export const run = async (
     if (!first || !second || !third || fourth || args.length !== 4) {
       throw new Error(usage());
     }
-    const [matrixContent, sourceContent] = await Promise.all([
-      read(second),
-      read(third),
-    ]);
+    const [matrixContent, sourceContent] = await Promise.all([read(second), read(third)]);
     const matrixJsonl = String(matrixContent);
     const sourceText = String(sourceContent);
     const receipt = evaluateSkillMatrix(

@@ -1,7 +1,4 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 
 export interface ClaimSource {
   readonly author: string;
@@ -70,11 +67,11 @@ const admissible = new Set<SourceClass>([
 const hasHttpsUrl = (url: string): boolean => /^https:\/\/.+/u.test(url);
 
 export const canSupportClaim = (source: ClaimSource): boolean =>
-  admissible.has(source.sourceClass) &&
-  hasHttpsUrl(source.url) &&
-  Boolean(source.author.trim()) &&
-  Boolean(source.publisher.trim()) &&
-  Boolean(source.date.trim());
+  admissible.has(source.sourceClass)
+  && hasHttpsUrl(source.url)
+  && Boolean(source.author.trim())
+  && Boolean(source.publisher.trim())
+  && Boolean(source.date.trim());
 
 export const renderQuotation = (quotation: Quotation): string => {
   if (!quotation.original) {
@@ -93,20 +90,14 @@ export const renderQuotation = (quotation: Quotation): string => {
 export const requiresQuotationClarification = (
   quotation: Quotation,
   audienceNeedsTransliteration: boolean | undefined,
-): boolean =>
-  Boolean(quotation.translation) && audienceNeedsTransliteration === undefined;
+): boolean => Boolean(quotation.translation) && audienceNeedsTransliteration === undefined;
 
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/content-writer.ts <outline|validate-draft|validate-source> <json>';
 
 export const validateClaimSources = (sources: readonly ClaimSource[]): void => {
-  if (
-    sources.length === 0 ||
-    sources.some((source) => !canSupportClaim(source))
-  ) {
-    throw new Error(
-      'Every material claim needs an admissible, attributable source.',
-    );
+  if (sources.length === 0 || sources.some((source) => !canSupportClaim(source))) {
+    throw new Error('Every material claim needs an admissible, attributable source.');
   }
 };
 
@@ -163,9 +154,7 @@ export const validateContentPackage = (content: ContentPackage): void => {
   if (!content.draft.trim() || content.claims.length === 0) {
     throw new Error('Content package needs a draft and material claims.');
   }
-  const sources = new Map(
-    content.sources.map((source) => [source.url, source]),
-  );
+  const sources = new Map(content.sources.map((source) => [source.url, source]));
   for (const claim of content.claims) {
     validateContentClaim(content, sources, claim);
   }

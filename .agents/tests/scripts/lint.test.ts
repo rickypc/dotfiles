@@ -45,9 +45,7 @@ test('throws before lint commands when a protected file has worktree changes', a
     stderr: '',
     stdout: args[2] === 'status' ? ' M biome.jsonc\n' : '',
   }));
-  await expect(run([], executor, '/agents')).rejects.toThrow(
-    'stop and ask the user',
-  );
+  await expect(run([], executor, '/agents')).rejects.toThrow('stop and ask the user');
   expect(executor).toHaveBeenCalledTimes(1);
 });
 

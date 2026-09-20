@@ -31,7 +31,7 @@ test('rejects duplicate or empty task IDs', async () => {
       { id: 'same', mode: 'exclusive', run: async () => 'b' },
     ]),
   ).rejects.toThrow('unique');
-  await expect(
-    runBatched([{ id: '', mode: 'read-only', run: async () => 'a' }]),
-  ).rejects.toThrow('unique');
+  await expect(runBatched([{ id: '', mode: 'read-only', run: async () => 'a' }])).rejects.toThrow(
+    'unique',
+  );
 });

@@ -21,9 +21,7 @@ const validateTasks = <T>(tasks: readonly BatchTask<T>[]): void => {
   }
 };
 
-export const runBatched = async <T>(
-  tasks: readonly BatchTask<T>[],
-): Promise<BatchResult<T>[]> => {
+export const runBatched = async <T>(tasks: readonly BatchTask<T>[]): Promise<BatchResult<T>[]> => {
   validateTasks(tasks);
   const readOnly = tasks.filter((task) => task.mode === 'read-only');
   const exclusive = tasks.filter((task) => task.mode === 'exclusive');

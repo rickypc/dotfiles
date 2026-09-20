@@ -1,10 +1,7 @@
 import { homedir } from 'node:os';
 import { basename, resolve } from 'node:path';
 import matter from 'gray-matter';
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import type { DirectoryEntry, FileSystem } from '../utils/filesystem.js';
 import { nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
 import type { CommandExecutor } from '../utils/process.js';
@@ -95,10 +92,7 @@ export interface PlanImportReceipt {
 
 type ReconcileDependency = typeof reconcileConcepts;
 
-export type ReconciliationDisposition =
-  | 'link-related'
-  | 'new-primary'
-  | 'update-existing';
+export type ReconciliationDisposition = 'link-related' | 'new-primary' | 'update-existing';
 
 export interface ReconciliationLink {
   readonly from: string;
@@ -131,15 +125,9 @@ export const maxKnowledgeBaseBatchSize = 4;
 const conceptPath =
   /^(?:shared|[A-Za-z0-9][A-Za-z0-9._-]*)\/[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*\.md$/u;
 
-export const isKbConceptPath = (path: string): boolean =>
-  conceptPath.test(path);
+export const isKbConceptPath = (path: string): boolean => conceptPath.test(path);
 
-const requiredFields: readonly (keyof OkfMetadata)[] = [
-  'type',
-  'title',
-  'description',
-  'tags',
-];
+const requiredFields: readonly (keyof OkfMetadata)[] = ['type', 'title', 'description', 'tags'];
 
 const planFrontmatterFields = new Set([
   'title',
@@ -167,18 +155,14 @@ export const conceptIndexPath = (path: string): string => {
 };
 
 const importBody = (document: PlanImportDocument): string =>
-  document.headings
-    .map((heading) => `## ${heading}\n\n${document.sections[heading]}`)
-    .join('\n\n');
+  document.headings.map((heading) => `## ${heading}\n\n${document.sections[heading]}`).join('\n\n');
 
 const indexChildren = (content: string): readonly DirectoryIndexEntry[] =>
-  [...content.matchAll(/^- \[([^\]]+)\]\(([^)]+)\)(?:\s+-\s(.*))?$/gmu)].map(
-    (match) => ({
-      description: match[3]?.trim() || undefined,
-      path: match[2],
-      title: match[1],
-    }),
-  );
+  [...content.matchAll(/^- \[([^\]]+)\]\(([^)]+)\)(?:\s+-\s(.*))?$/gmu)].map((match) => ({
+    description: match[3]?.trim() || undefined,
+    path: match[2],
+    title: match[1],
+  }));
 
 const optionalDirectory = async (
   fileSystem: FileSystem,
@@ -190,12 +174,7 @@ const optionalDirectory = async (
   try {
     return await fileSystem.readdir(path, { withFileTypes: true });
   } catch (error) {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 'ENOENT'
-    ) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') {
       return [];
     }
     throw error;
@@ -215,24 +194,14 @@ export const listKbScopeIndexes = async (
     .sort((left, right) => left.localeCompare(right));
 };
 
-export const buildKbInfo = async (
-  fileSystem: FileSystem,
-  kbRoot: string,
-): Promise<KbInfo> => ({
+export const buildKbInfo = async (fileSystem: FileSystem, kbRoot: string): Promise<KbInfo> => ({
   availableIndexes: await listKbScopeIndexes(fileSystem, kbRoot),
   resolvedRoot: kbRoot.replace(/\/$/u, ''),
 });
 
-const planSection = (
-  body: string,
-  heading: string,
-  nextHeading?: string,
-): string => {
+const planSection = (body: string, heading: string, nextHeading?: string): string => {
   const end = nextHeading ? `(?=^## \\d+\\. ${nextHeading}\\n)` : '$';
-  const match = new RegExp(
-    `^## \\d+\\. ${heading}\\n([\\s\\S]*?)${end}`,
-    'mu',
-  ).exec(body);
+  const match = new RegExp(`^## \\d+\\. ${heading}\\n([\\s\\S]*?)${end}`, 'mu').exec(body);
   if (!match?.[1]?.trim()) {
     throw new Error(`Plan section is required: ${heading}.`);
   }
@@ -263,12 +232,7 @@ const readOptionalText = async (
   try {
     return await readText(fileSystem, path);
   } catch (error) {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 'ENOENT'
-    ) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') {
       return undefined;
     }
     throw error;
@@ -280,9 +244,9 @@ const relativeLinkPath = (from: string, to: string): string => {
   const targetParts = to.split('/');
   let commonLength = 0;
   while (
-    commonLength < fromDirectory.length &&
-    commonLength < targetParts.length - 1 &&
-    fromDirectory[commonLength] === targetParts[commonLength]
+    commonLength < fromDirectory.length
+    && commonLength < targetParts.length - 1
+    && fromDirectory[commonLength] === targetParts[commonLength]
   ) {
     commonLength += 1;
   }
@@ -292,8 +256,7 @@ const relativeLinkPath = (from: string, to: string): string => {
   ].join('/');
 };
 
-const linkTarget = (from: string, to: string): string =>
-  `](${relativeLinkPath(from, to)})`;
+const linkTarget = (from: string, to: string): string => `](${relativeLinkPath(from, to)})`;
 
 export const renderDirectoryIndex = (
   title: string,
@@ -321,16 +284,9 @@ const mergedDirectoryIndex = (
   existing: string | undefined,
   title: string,
   child: DirectoryIndexEntry | string,
-): string =>
-  renderDirectoryIndex(title, [
-    ...(existing ? indexChildren(existing) : []),
-    child,
-  ]);
+): string => renderDirectoryIndex(title, [...(existing ? indexChildren(existing) : []), child]);
 
-const requiredPlanField = (
-  data: Record<string, unknown>,
-  field: string,
-): string => {
+const requiredPlanField = (data: Record<string, unknown>, field: string): string => {
   const value = data[field];
   if (typeof value !== 'string' || !value.trim()) {
     throw new Error(`Plan frontmatter field is required: ${field}.`);
@@ -344,18 +300,12 @@ export const parsePlanForImport = (content: string): PlanImportDocument => {
   }
   const parsed = matter(content);
   const metadata = parsed.data as Record<string, unknown>;
-  const unsupported = Object.keys(metadata).filter(
-    (field) => !planFrontmatterFields.has(field),
-  );
+  const unsupported = Object.keys(metadata).filter((field) => !planFrontmatterFields.has(field));
   if (unsupported.length > 0) {
-    throw new Error(
-      `Plan frontmatter has unsupported field(s): ${unsupported.join(', ')}.`,
-    );
+    throw new Error(`Plan frontmatter has unsupported field(s): ${unsupported.join(', ')}.`);
   }
   const body = parsed.content.trim();
-  const headings = [...body.matchAll(/^## \d+\. (.+)$/gmu)].map((match) =>
-    match[1].trim(),
-  );
+  const headings = [...body.matchAll(/^## \d+\. (.+)$/gmu)].map((match) => match[1].trim());
   if (headings.join('\n') !== planSectionHeadings.join('\n')) {
     throw new Error(
       'KB plan import requires the six H2 numbered sections in template order: ## 1. TARGET DIRECTIVES through ## 6. RIGID OUTPUT SCHEMA.',
@@ -382,23 +332,12 @@ const runBatchSearchCommand = async (
   write: (message: string) => void,
 ): Promise<boolean> => {
   const [command, value, repoSearchIndex, ...queries] = args;
-  if (
-    command !== 'search-batch' ||
-    !value ||
-    !repoSearchIndex ||
-    queries.length === 0
-  ) {
+  if (command !== 'search-batch' || !value || !repoSearchIndex || queries.length === 0) {
     return false;
   }
   write(
     JSON.stringify(
-      await batchSearch(
-        nodeFileSystem,
-        bunExecutor,
-        value,
-        repoSearchIndex,
-        queries,
-      ),
+      await batchSearch(nodeFileSystem, bunExecutor, value, repoSearchIndex, queries),
       null,
       2,
     ),
@@ -413,13 +352,13 @@ const runCapture = async (
 ): Promise<boolean> => {
   const [command, kbRoot, relativePath, metadataJson, body, evidence] = args;
   if (
-    command !== 'capture' ||
-    !kbRoot ||
-    !relativePath ||
-    !metadataJson ||
-    !body ||
-    !evidence ||
-    args.length !== 6
+    command !== 'capture'
+    || !kbRoot
+    || !relativePath
+    || !metadataJson
+    || !body
+    || !evidence
+    || args.length !== 6
   ) {
     return false;
   }
@@ -430,31 +369,14 @@ const runCapture = async (
     throw new Error('KB capture metadata must be valid JSON.');
   }
   write(
-    JSON.stringify(
-      await capture(
-        nodeFileSystem,
-        kbRoot,
-        relativePath,
-        metadata,
-        body,
-        evidence,
-      ),
-    ),
+    JSON.stringify(await capture(nodeFileSystem, kbRoot, relativePath, metadata, body, evidence)),
   );
   return true;
 };
 
-const runConceptIndex = (
-  args: readonly string[],
-  write: (message: string) => void,
-): boolean => {
+const runConceptIndex = (args: readonly string[], write: (message: string) => void): boolean => {
   const [command, value] = args;
-  if (
-    command !== 'concept-index' ||
-    !value ||
-    args.length !== 2 ||
-    !isKbConceptPath(value)
-  ) {
+  if (command !== 'concept-index' || !value || args.length !== 2 || !isKbConceptPath(value)) {
     return false;
   }
   write(conceptIndexPath(value));
@@ -470,22 +392,16 @@ const runImportPlan = async (
   const [command, planPath, ...rest] = args;
   const removeSource = rest.includes('--remove-source');
   if (
-    command !== 'import-plan' ||
-    !planPath ||
-    rest.length > 1 ||
-    (rest.length === 1 && !removeSource)
+    command !== 'import-plan'
+    || !planPath
+    || rest.length > 1
+    || (rest.length === 1 && !removeSource)
   ) {
     return false;
   }
   const absolutePlanPath = resolve(process.cwd(), planPath);
-  const receipt = await importer(
-    nodeFileSystem,
-    privateKnowledgeBaseRoot(),
-    absolutePlanPath,
-  );
-  const retiredTo = removeSource
-    ? await moveSourceToTrash(absolutePlanPath)
-    : undefined;
+  const receipt = await importer(nodeFileSystem, privateKnowledgeBaseRoot(), absolutePlanPath);
+  const retiredTo = removeSource ? await moveSourceToTrash(absolutePlanPath) : undefined;
   write(JSON.stringify({ ...receipt, retiredTo }, null, 2));
   return true;
 };
@@ -497,19 +413,17 @@ const runReconcile = async (
 ): Promise<boolean> => {
   const [command, kbRoot, requestPath] = args;
   if (
-    command !== 'reconcile' ||
-    !kbRoot ||
-    !requestPath ||
-    !requestPath.startsWith('/') ||
-    args.length !== 3
+    command !== 'reconcile'
+    || !kbRoot
+    || !requestPath
+    || !requestPath.startsWith('/')
+    || args.length !== 3
   ) {
     return false;
   }
   let plan: ReconciliationPlan;
   try {
-    plan = JSON.parse(
-      await readText(nodeFileSystem, requestPath),
-    ) as ReconciliationPlan;
+    plan = JSON.parse(await readText(nodeFileSystem, requestPath)) as ReconciliationPlan;
   } catch {
     throw new Error('KB reconciliation request must be valid JSON.');
   }
@@ -537,11 +451,7 @@ const runSearchCommand = async (
   }
   if (command === 'search' && second && args.length === 4) {
     write(
-      JSON.stringify(
-        await discover(nodeFileSystem, bunExecutor, value, first, second),
-        null,
-        2,
-      ),
+      JSON.stringify(await discover(nodeFileSystem, bunExecutor, value, first, second), null, 2),
     );
     return true;
   }
@@ -590,8 +500,8 @@ export const validateOkfMetadata = (metadata: OkfMetadata): void => {
   for (const field of requiredFields) {
     const value = metadata[field];
     if (
-      (typeof value === 'string' && !value.trim()) ||
-      (Array.isArray(value) && value.length === 0)
+      (typeof value === 'string' && !value.trim())
+      || (Array.isArray(value) && value.length === 0)
     ) {
       throw new Error(`OKF metadata field is required: ${field}`);
     }
@@ -604,10 +514,7 @@ export const parseOkfConcept = (content: string): OkfMetadata => {
     throw new Error('OKF concept frontmatter is required.');
   }
   const tagsValue = parsed.data.tags;
-  if (
-    !Array.isArray(tagsValue) ||
-    tagsValue.some((tag) => typeof tag !== 'string')
-  ) {
+  if (!Array.isArray(tagsValue) || tagsValue.some((tag) => typeof tag !== 'string')) {
     throw new Error('OKF metadata field is required: tags');
   }
   const metadata: OkfMetadata = {
@@ -621,10 +528,7 @@ export const parseOkfConcept = (content: string): OkfMetadata => {
   return metadata;
 };
 
-export const renderOkfConcept = (
-  metadata: OkfMetadata,
-  body: string,
-): string => {
+export const renderOkfConcept = (metadata: OkfMetadata, body: string): string => {
   validateOkfMetadata(metadata);
   if (!body.trim()) {
     throw new Error('OKF concept body is required.');
@@ -640,10 +544,7 @@ export const renderCapturedConcept = (
   if (!evidence.trim()) {
     throw new Error('KB capture evidence is required.');
   }
-  return renderOkfConcept(
-    metadata,
-    `${body.trim()}\n\n## Evidence\n\n${evidence.trim()}`,
-  );
+  return renderOkfConcept(metadata, `${body.trim()}\n\n## Evidence\n\n${evidence.trim()}`);
 };
 
 export const captureConcept = async (
@@ -666,18 +567,13 @@ export const captureConcept = async (
   const subjectIndexFilePath = `${root}/${conceptIndexPath(relativePath)}`;
   const scopeIndexFilePath = `${root}/${scopeIndexPath(relativePath)}`;
   const rootIndexFilePath = `${root}/index.md`;
-  const [existingSubjectIndex, existingScopeIndex, existingRootIndex] =
-    await Promise.all([
-      readOptionalText(fileSystem, subjectIndexFilePath),
-      readOptionalText(fileSystem, scopeIndexFilePath),
-      readOptionalText(fileSystem, rootIndexFilePath),
-    ]);
+  const [existingSubjectIndex, existingScopeIndex, existingRootIndex] = await Promise.all([
+    readOptionalText(fileSystem, subjectIndexFilePath),
+    readOptionalText(fileSystem, scopeIndexFilePath),
+    readOptionalText(fileSystem, rootIndexFilePath),
+  ]);
   await Promise.all([
-    writeText(
-      fileSystem,
-      conceptFilePath,
-      renderCapturedConcept(metadata, evidence, body),
-    ),
+    writeText(fileSystem, conceptFilePath, renderCapturedConcept(metadata, evidence, body)),
     writeText(
       fileSystem,
       subjectIndexFilePath,
@@ -695,11 +591,7 @@ export const captureConcept = async (
     writeText(
       fileSystem,
       rootIndexFilePath,
-      mergedDirectoryIndex(
-        existingRootIndex,
-        'Knowledge Base',
-        `${scope}/index.md`,
-      ),
+      mergedDirectoryIndex(existingRootIndex, 'Knowledge Base', `${scope}/index.md`),
     ),
   ]);
   return {
@@ -724,14 +616,9 @@ export const importPlan = async (
   const document = parsePlanForImport(await readText(fileSystem, planPath));
   const conceptPath = `${document.repoSearchIndex}/plans/${planSlug(document.title)}.md`;
   if (!isKbConceptPath(conceptPath)) {
-    throw new Error(
-      `KB plan import produced an invalid concept path: ${conceptPath}`,
-    );
+    throw new Error(`KB plan import produced an invalid concept path: ${conceptPath}`);
   }
-  const description = document.objective
-    .split(/\r?\n/u)[0]
-    .trim()
-    .slice(0, 240);
+  const description = document.objective.split(/\r?\n/u)[0].trim().slice(0, 240);
   const sourceLabel = planPath.startsWith('/') ? basename(planPath) : planPath;
   const concept = await captureConcept(
     fileSystem,
@@ -814,9 +701,7 @@ export const searchKnowledgeBase = async (
   };
   const walk = async (directory: string): Promise<void> => {
     const entries = await optionalDirectory(fileSystem, directory);
-    for (const entry of [...entries].sort((left, right) =>
-      left.name.localeCompare(right.name),
-    )) {
+    for (const entry of [...entries].sort((left, right) => left.name.localeCompare(right.name))) {
       const path = `${directory}/${entry.name}`;
       if (entry.isDirectory()) {
         await walk(path);
@@ -863,39 +748,23 @@ export const searchKnowledgeBaseBatch = async (
   queries: readonly string[],
 ): Promise<readonly KnowledgeBaseBatchSearchResult[]> => {
   if (queries.length === 0 || queries.length > maxKnowledgeBaseBatchSize) {
-    throw new Error(
-      `KB search-batch requires 1-${maxKnowledgeBaseBatchSize} queries.`,
-    );
+    throw new Error(`KB search-batch requires 1-${maxKnowledgeBaseBatchSize} queries.`);
   }
-  const normalized = queries.map((query) =>
-    query.trim().toLocaleLowerCase('en-US'),
-  );
+  const normalized = queries.map((query) => query.trim().toLocaleLowerCase('en-US'));
   if (normalized.some((query) => !query)) {
     throw new Error('KB search-batch queries must be nonblank.');
   }
   if (new Set(normalized).size !== normalized.length) {
-    throw new Error(
-      'KB search-batch queries must be unique after normalization.',
-    );
+    throw new Error('KB search-batch queries must be unique after normalization.');
   }
-  const tasks: BatchTask<KnowledgeBaseSearchReceipt>[] = queries.map(
-    (query, index) => ({
-      id: `query-${index}`,
-      mode: 'read-only',
-      run: () =>
-        searchKnowledgeBaseWithFallback(
-          fileSystem,
-          executor,
-          kbRoot,
-          repoSearchIndex,
-          query,
-        ),
-    }),
-  );
+  const tasks: BatchTask<KnowledgeBaseSearchReceipt>[] = queries.map((query, index) => ({
+    id: `query-${index}`,
+    mode: 'read-only',
+    run: () =>
+      searchKnowledgeBaseWithFallback(fileSystem, executor, kbRoot, repoSearchIndex, query),
+  }));
   const receipts = await runBatched(tasks);
-  const receiptById = new Map(
-    receipts.map((result) => [result.id, result.value]),
-  );
+  const receiptById = new Map(receipts.map((result) => [result.id, result.value]));
   return queries.map((query, index) => ({
     query,
     receipt: receiptById.get(`query-${index}`) as KnowledgeBaseSearchReceipt,
@@ -910,9 +779,8 @@ const validateReconciliationHeader = (plan: ReconciliationPlan): void => {
     throw new Error('KB reconciliation requires at least one operation.');
   }
   if (
-    plan.operations.filter(
-      (operation) => operation.relativePath === plan.canonicalPath,
-    ).length !== 1
+    plan.operations.filter((operation) => operation.relativePath === plan.canonicalPath).length
+    !== 1
   ) {
     throw new Error('KB reconciliation requires exactly one canonical owner.');
   }
@@ -926,13 +794,9 @@ const validateReconciliationLinks = (
     if (!paths.has(link.from) || !paths.has(link.to)) {
       throw new Error('KB reconciliation links must connect planned concepts.');
     }
-    const source = plan.operations.find(
-      (operation) => operation.relativePath === link.from,
-    );
+    const source = plan.operations.find((operation) => operation.relativePath === link.from);
     if (!source?.body.includes(linkTarget(link.from, link.to))) {
-      throw new Error(
-        `KB reconciliation is missing declared link: ${link.from} -> ${link.to}`,
-      );
+      throw new Error(`KB reconciliation is missing declared link: ${link.from} -> ${link.to}`);
     }
   }
 };
@@ -943,10 +807,7 @@ const validateReconciliationOperation = async (
   operation: ReconciliationOperation,
   paths: Set<string>,
 ): Promise<void> => {
-  if (
-    !isKbConceptPath(operation.relativePath) ||
-    paths.has(operation.relativePath)
-  ) {
+  if (!isKbConceptPath(operation.relativePath) || paths.has(operation.relativePath)) {
     throw new Error(
       `KB reconciliation has an invalid or duplicate path: ${operation.relativePath}`,
     );
@@ -954,23 +815,17 @@ const validateReconciliationOperation = async (
   paths.add(operation.relativePath);
   validateOkfMetadata(operation.metadata);
   if (!operation.body.trim() || !operation.evidence.trim()) {
-    throw new Error(
-      `KB reconciliation requires body and evidence: ${operation.relativePath}`,
-    );
+    throw new Error(`KB reconciliation requires body and evidence: ${operation.relativePath}`);
   }
   const existing = await readOptionalText(
     fileSystem,
     `${kbRoot.replace(/\/$/u, '')}/${operation.relativePath}`,
   );
   if (operation.disposition === 'new-primary' && existing) {
-    throw new Error(
-      `KB reconciliation new-primary already exists: ${operation.relativePath}`,
-    );
+    throw new Error(`KB reconciliation new-primary already exists: ${operation.relativePath}`);
   }
   if (operation.disposition !== 'new-primary' && !existing) {
-    throw new Error(
-      `KB reconciliation requires an existing concept: ${operation.relativePath}`,
-    );
+    throw new Error(`KB reconciliation requires an existing concept: ${operation.relativePath}`);
   }
 };
 
@@ -1014,11 +869,9 @@ export const reconcileConcepts = async (
 
 const defaultCaptureDependency: CaptureDependency = captureConcept;
 const defaultSearchDependency: SearchDependency = searchKnowledgeBase;
-const defaultDiscoverDependency: DiscoverDependency =
-  searchKnowledgeBaseWithFallback;
+const defaultDiscoverDependency: DiscoverDependency = searchKnowledgeBaseWithFallback;
 const defaultReconcileDependency: ReconcileDependency = reconcileConcepts;
-const defaultBatchSearchDependency: BatchSearchDependency =
-  searchKnowledgeBaseBatch;
+const defaultBatchSearchDependency: BatchSearchDependency = searchKnowledgeBaseBatch;
 const defaultImportDependency: ImportDependency = importPlan;
 
 export const run = async (

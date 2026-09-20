@@ -8,9 +8,7 @@ import {
   stagedRgSearch,
 } from './search-fallback.js';
 
-type InspectionOperationReader = (
-  record: Record<string, unknown>,
-) => RepoSearchInspectionOperation;
+type InspectionOperationReader = (record: Record<string, unknown>) => RepoSearchInspectionOperation;
 
 interface ListedRepoSearchProject {
   readonly name: string;
@@ -20,9 +18,7 @@ interface ListedRepoSearchProject {
 export interface RepoSearchInspectionEntry {
   readonly code: number;
   readonly command: string;
-  readonly operation:
-    | RepoSearchInspectionOperation['operation']
-    | 'index-status';
+  readonly operation: RepoSearchInspectionOperation['operation'] | 'index-status';
   readonly output: string;
 }
 
@@ -103,12 +99,7 @@ export const repoSearchCommand = (
 
 export const repoSearchCommands = {
   getArchitecture: (project: string, path = ''): CommandSpec =>
-    repoSearchCommand('get_architecture', [
-      '--project',
-      project,
-      '--path',
-      path,
-    ]),
+    repoSearchCommand('get_architecture', ['--project', project, '--path', path]),
   getCodeSnippet: (project: string, qualifiedName: string): CommandSpec =>
     repoSearchCommand('get_code_snippet', [
       '--project',
@@ -195,13 +186,9 @@ export const repoSearchCommands = {
     ]),
 };
 
-const architectureInspection = (
-  record: Record<string, unknown>,
-): RepoSearchInspectionOperation => {
+const architectureInspection = (record: Record<string, unknown>): RepoSearchInspectionOperation => {
   if (typeof record.path !== 'string') {
-    throw new Error(
-      'repo-search inspection architecture path must be a string.',
-    );
+    throw new Error('repo-search inspection architecture path must be a string.');
   }
   return { operation: 'architecture', path: record.path };
 };
@@ -211,55 +198,41 @@ const isPositiveInteger = (value: unknown): value is number =>
 
 const nonEmptyString = (value: unknown, name: string): string => {
   if (typeof value !== 'string' || !value.trim()) {
-    throw new Error(
-      `repo-search inspection ${name} must be a non-empty string.`,
-    );
+    throw new Error(`repo-search inspection ${name} must be a non-empty string.`);
   }
   return value;
 };
 
 const operationRecord = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(
-      'Each repo-search inspection JSONL line must be an object.',
-    );
+    throw new Error('Each repo-search inspection JSONL line must be an object.');
   }
   return value as Record<string, unknown>;
 };
 
 const positiveInspectionValue = (value: unknown, name: string): number => {
   if (!isPositiveInteger(value)) {
-    throw new Error(
-      `repo-search inspection ${name} must be a positive integer.`,
-    );
+    throw new Error(`repo-search inspection ${name} must be a positive integer.`);
   }
   return value;
 };
 
-const searchGraphInspection = (
-  record: Record<string, unknown>,
-): RepoSearchInspectionOperation => ({
+const searchGraphInspection = (record: Record<string, unknown>): RepoSearchInspectionOperation => ({
   label: nonEmptyString(record.label, 'search-graph label'),
   limit: positiveInspectionValue(record.limit, 'search-graph limit'),
   namePattern: nonEmptyString(record.namePattern, 'search-graph namePattern'),
   operation: 'search-graph',
 });
 
-const snippetInspection = (
-  record: Record<string, unknown>,
-): RepoSearchInspectionOperation => ({
+const snippetInspection = (record: Record<string, unknown>): RepoSearchInspectionOperation => ({
   operation: 'snippet',
   qualifiedName: nonEmptyString(record.qualifiedName, 'snippet qualifiedName'),
 });
 
-const traceInspection = (
-  record: Record<string, unknown>,
-): RepoSearchInspectionOperation => {
+const traceInspection = (record: Record<string, unknown>): RepoSearchInspectionOperation => {
   const direction = record.direction;
   if (direction !== 'inbound' && direction !== 'outbound') {
-    throw new Error(
-      'repo-search inspection trace direction must be inbound or outbound.',
-    );
+    throw new Error('repo-search inspection trace direction must be inbound or outbound.');
   }
   return {
     depth: positiveInspectionValue(record.depth, 'trace depth'),
@@ -307,16 +280,12 @@ const inspectionEntry = async (
   };
 };
 
-const inspectionOperationFor = (
-  value: unknown,
-): RepoSearchInspectionOperation => {
+const inspectionOperationFor = (value: unknown): RepoSearchInspectionOperation => {
   const record = operationRecord(value);
   const operation = nonEmptyString(record.operation, 'operation');
   const read = inspectionReaders[operation];
   if (!read) {
-    throw new Error(
-      `Unsupported repo-search inspection operation: ${operation}`,
-    );
+    throw new Error(`Unsupported repo-search inspection operation: ${operation}`);
   }
   return read(record);
 };
@@ -327,18 +296,14 @@ export const parseRepoSearchInspectionJsonl = (
 ): readonly RepoSearchInspectionOperation[] => {
   const lines = source.split(/\r?\n/u).filter((line) => line.trim());
   if (lines.length === 0) {
-    throw new Error(
-      'repo-search inspection request must contain at least one JSONL line.',
-    );
+    throw new Error('repo-search inspection request must contain at least one JSONL line.');
   }
   return lines.map((line, index) => {
     try {
       return inspectionOperationFor(JSON.parse(line));
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
-      throw new Error(
-        `repo-search inspection request line ${index + 1}: ${detail}`,
-      );
+      throw new Error(`repo-search inspection request line ${index + 1}: ${detail}`);
     }
   });
 };
@@ -388,11 +353,7 @@ export const repoSearchInspectionCommand = (
       operation.depth,
     );
   }
-  return repoSearchCommands.searchCode(
-    project,
-    operation.pattern,
-    operation.limit,
-  );
+  return repoSearchCommands.searchCode(project, operation.pattern, operation.limit);
 };
 
 /**
@@ -430,10 +391,7 @@ export const inspectRepoSearch = async (
   };
 };
 
-export const repoSearchOutputHasMatches = (
-  output: string,
-  query?: string,
-): boolean => {
+export const repoSearchOutputHasMatches = (output: string, query?: string): boolean => {
   const json = output
     .split('\n')
     .map((line) => line.trim())
@@ -450,24 +408,23 @@ export const repoSearchOutputHasMatches = (
     if (query?.trim()) {
       const expected = query.trim().toLowerCase();
       return (
-        Array.isArray(value.results) &&
-        value.results.some((result) => {
+        Array.isArray(value.results)
+        && value.results.some((result) => {
           if (!result || typeof result !== 'object' || Array.isArray(result)) {
             return false;
           }
           const record = result as Record<string, unknown>;
           return repoSearchGraphIdentityFields.some(
             (field) =>
-              typeof record[field] === 'string' &&
-              record[field].toLowerCase().includes(expected),
+              typeof record[field] === 'string' && record[field].toLowerCase().includes(expected),
           );
         })
       );
     }
     return (
-      (Array.isArray(value.results) && value.results.length > 0) ||
-      (typeof value.total === 'number' && value.total > 0) ||
-      (typeof value.total_results === 'number' && value.total_results > 0)
+      (Array.isArray(value.results) && value.results.length > 0)
+      || (typeof value.total === 'number' && value.total > 0)
+      || (typeof value.total_results === 'number' && value.total_results > 0)
     );
   } catch {
     return false;
@@ -475,9 +432,7 @@ export const repoSearchOutputHasMatches = (
 };
 
 export const repoSearchProjectNames = (output: string): readonly string[] =>
-  [...output.matchAll(/"name"\s*:\s*"([^"\\]+)"/gu)].map(
-    (match) => match[1] ?? '',
-  );
+  [...output.matchAll(/"name"\s*:\s*"([^"\\]+)"/gu)].map((match) => match[1] ?? '');
 
 const rootPropertyNames = new Set([
   'path',
@@ -490,10 +445,7 @@ const rootPropertyNames = new Set([
   'rootPath',
 ]);
 
-export const assertKnownRepoSearchProject = (
-  project: string,
-  listProjectsOutput: string,
-): void => {
+export const assertKnownRepoSearchProject = (project: string, listProjectsOutput: string): void => {
   if (!repoSearchProjectNames(listProjectsOutput).includes(project)) {
     throw new Error(`repo-search index is not a listed project: ${project}`);
   }
@@ -503,12 +455,9 @@ const containsPath = (parent: string, child: string): boolean =>
   child === parent || child.startsWith(`${parent}/`);
 
 export const indexIsReady = (output: string): boolean =>
-  /\b(ready|complete|indexed)\b/iu.test(output) &&
-  !/\b(not.ready|failed|error)\b/iu.test(output);
+  /\b(ready|complete|indexed)\b/iu.test(output) && !/\b(not.ready|failed|error)\b/iu.test(output);
 
-const listedProjectEntries = (
-  output: string,
-): readonly ListedRepoSearchProject[] => {
+const listedProjectEntries = (output: string): readonly ListedRepoSearchProject[] => {
   try {
     const parsed = JSON.parse(output) as { readonly projects?: unknown };
     if (!Array.isArray(parsed.projects)) {
@@ -526,9 +475,7 @@ const listedProjectEntries = (
         {
           name: record.name,
           roots: Object.entries(record).flatMap(([key, value]) =>
-            rootPropertyNames.has(key) &&
-            typeof value === 'string' &&
-            value.startsWith('/')
+            rootPropertyNames.has(key) && typeof value === 'string' && value.startsWith('/')
               ? [canonicalPath(value)]
               : [],
           ),
@@ -547,9 +494,7 @@ const assertExistingReadyRepoSearchIndex = async (
   executor: CommandExecutor,
   request: RepoSearchSearchFallbackRequest,
 ): Promise<void> => {
-  const status = await executor(
-    repoSearchCommands.indexStatus(request.root.index),
-  );
+  const status = await executor(repoSearchCommands.indexStatus(request.root.index));
   const output = outputFor(status.stdout, status.stderr);
   if (status.code !== 0 || !indexIsReady(output)) {
     throw new Error(
@@ -563,9 +508,7 @@ export const readWithReadyIndex = async (
   request: RepoSearchReadRequest,
 ): Promise<RepoSearchReadResult> => {
   assertAllowedRepoSearchRoot(request.root.root, request.allowedRoots);
-  const status = await executor(
-    repoSearchCommands.indexStatus(request.root.index),
-  );
+  const status = await executor(repoSearchCommands.indexStatus(request.root.index));
   let indexed = false;
   if (!indexIsReady(outputFor(status.stdout, status.stderr))) {
     const indexing = await executor(
@@ -577,9 +520,7 @@ export const readWithReadyIndex = async (
       );
     }
     indexed = true;
-    const retriedStatus = await executor(
-      repoSearchCommands.indexStatus(request.root.index),
-    );
+    const retriedStatus = await executor(repoSearchCommands.indexStatus(request.root.index));
     if (!indexIsReady(outputFor(retriedStatus.stdout, retriedStatus.stderr))) {
       throw new Error(
         `repo-search index is not ready: ${outputFor(retriedStatus.stdout, retriedStatus.stderr)}`,
@@ -588,9 +529,7 @@ export const readWithReadyIndex = async (
   }
   const read = await executor(request.read(request.root.index));
   if (read.code !== 0) {
-    throw new Error(
-      `repo-search read failed: ${outputFor(read.stdout, read.stderr)}`,
-    );
+    throw new Error(`repo-search read failed: ${outputFor(read.stdout, read.stderr)}`);
   }
   return {
     indexed,
@@ -603,10 +542,7 @@ export const readWithReadyIndex = async (
  * Resolves only an explicit repo-search root mapping. A shared home directory is not
  * evidence that a child repository belongs to the home index.
  */
-export const repoSearchProjectForRoot = (
-  projectRoot: string,
-  projectsOutput: string,
-): string => {
+export const repoSearchProjectForRoot = (projectRoot: string, projectsOutput: string): string => {
   const requestedRoot = canonicalPath(projectRoot);
   const candidates = listedProjectEntries(projectsOutput)
     .flatMap((project) =>
@@ -623,9 +559,7 @@ export const repoSearchProjectForRoot = (
   }
   if (
     candidates.some(
-      (candidate) =>
-        candidate.root.length === best.root.length &&
-        candidate.name !== best.name,
+      (candidate) => candidate.root.length === best.root.length && candidate.name !== best.name,
     )
   ) {
     throw new Error(
@@ -663,8 +597,8 @@ const runRepoSearchSearch = async (
     const result = await executor(command);
     const output = outputFor(result.stdout, result.stderr);
     const matched =
-      result.code === 0 &&
-      repoSearchOutputHasMatches(
+      result.code === 0
+      && repoSearchOutputHasMatches(
         output,
         strategy === 'repo-search-code' ? undefined : request.query,
       );
@@ -691,8 +625,7 @@ const runRepoSearchSearch = async (
 const skippedRepoSearchCodeAttempt = (
   request: RepoSearchSearchFallbackRequest,
   detail: string,
-): SearchAttempt =>
-  repoSearchAttempt(request, 'repo-search-code', 'skipped', detail);
+): SearchAttempt => repoSearchAttempt(request, 'repo-search-code', 'skipped', detail);
 
 export const searchWithRepoSearchFallback = async (
   executor: CommandExecutor,
@@ -703,15 +636,10 @@ export const searchWithRepoSearchFallback = async (
   if (!query) {
     throw new Error('Search query is required.');
   }
-  const normalizedRequest =
-    query === request.query ? request : { ...request, query };
+  const normalizedRequest = query === request.query ? request : { ...request, query };
   try {
     await assertExistingReadyRepoSearchIndex(executor, normalizedRequest);
-    const graph = await runRepoSearchSearch(
-      executor,
-      normalizedRequest,
-      'repo-search-graph',
-    );
+    const graph = await runRepoSearchSearch(executor, normalizedRequest, 'repo-search-graph');
     if (graph.matched) {
       return {
         attempts: [
@@ -731,11 +659,7 @@ export const searchWithRepoSearchFallback = async (
         source: 'repo-search',
       };
     }
-    const code = await runRepoSearchSearch(
-      executor,
-      normalizedRequest,
-      'repo-search-code',
-    );
+    const code = await runRepoSearchSearch(executor, normalizedRequest, 'repo-search-code');
     if (code.matched) {
       return {
         attempts: [

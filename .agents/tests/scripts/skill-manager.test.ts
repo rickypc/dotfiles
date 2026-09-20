@@ -4,11 +4,7 @@ import { run, runWhenMain, usage } from '../../scripts/skill-manager.js';
 
 test('renders a deterministic action packet without executing it', async () => {
   const write = mock();
-  await run(
-    ['packet', 'improve-skill', 'draft', '/skill.md'],
-    undefined,
-    write,
-  );
+  await run(['packet', 'improve-skill', 'draft', '/skill.md'], undefined, write);
   expect(write.mock.calls[0]?.[0]).toContain('"nextPhase": "baseline"');
 });
 
@@ -41,20 +37,14 @@ test('evaluates a matrix in one deterministic script phase', async () => {
       visibility: 'challenge',
     }),
   ].join('\n');
-  const read = mock(async (path: string) =>
-    path === '/matrix' ? matrix : 'required',
-  );
+  const read = mock(async (path: string) => (path === '/matrix' ? matrix : 'required'));
   const write = mock();
   await run(['evaluate', 'candidate', '/matrix', '/target'], read, write);
   expect(write).toHaveBeenCalledWith(expect.stringContaining('passed'));
   await run(['evaluate', 'baseline', '/matrix', '/target'], read, write);
   await run(['evaluate', 'challenge', '/matrix', '/target'], read, write);
-  await expect(run(['evaluate', 'candidate', '/matrix'])).rejects.toThrow(
-    usage(),
-  );
-  await expect(
-    run(['evaluate', 'invalid', '/matrix', '/target'], read),
-  ).rejects.toThrow(usage());
+  await expect(run(['evaluate', 'candidate', '/matrix'])).rejects.toThrow(usage());
+  await expect(run(['evaluate', 'invalid', '/matrix', '/target'], read)).rejects.toThrow(usage());
 });
 
 test('batches independent matrix and skill-file pairs into one receipt', async () => {
@@ -67,9 +57,7 @@ test('batches independent matrix and skill-file pairs into one receipt', async (
     scenario: 's',
     visibility: 'candidate',
   });
-  const read = mock(async (path: string) =>
-    path.endsWith('.jsonl') ? matrix : 'required',
-  );
+  const read = mock(async (path: string) => (path.endsWith('.jsonl') ? matrix : 'required'));
   const write = mock();
   await run(
     [
@@ -85,15 +73,11 @@ test('batches independent matrix and skill-file pairs into one receipt', async (
     write,
   );
   expect(read).toHaveBeenCalledTimes(4);
-  expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('"phase": "candidate"'),
-  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"phase": "candidate"'));
   await expect(
     run(['batch', 'intent', 'baseline', '/matrix.jsonl', '/skills/a'], read),
   ).rejects.toThrow('ending in /SKILL.md');
-  await expect(run(['batch', 'intent', 'baseline'], read)).rejects.toThrow(
-    usage(),
-  );
+  await expect(run(['batch', 'intent', 'baseline'], read)).rejects.toThrow(usage());
 });
 
 test('reviews absolute static roots through the Skill Manager integrity receipt', async () => {
@@ -118,12 +102,7 @@ test('reviews absolute static roots through the Skill Manager integrity receipt'
     rm: mock(async () => undefined),
     writeFile: mock(async () => undefined),
   };
-  await run(
-    ['review', '/tmp/.agents/skills/demo'],
-    undefined,
-    write,
-    fileSystem,
-  );
+  await run(['review', '/tmp/.agents/skills/demo'], undefined, write, fileSystem);
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"prosePaths"'));
   await expect(run(['review', 'relative-root'])).rejects.toThrow(usage());
 });
@@ -134,27 +113,13 @@ test('validates a selected skill through the public command', async () => {
     mkdir: mock(async () => undefined),
     readdir: mock(async () => []),
     readFile: mock(async () =>
-      [
-        '---',
-        'name: demo',
-        'description: Demonstrate validation.',
-        '---',
-        '',
-        '# Demo',
-      ].join('\n'),
+      ['---', 'name: demo', 'description: Demonstrate validation.', '---', '', '# Demo'].join('\n'),
     ),
     rm: mock(async () => undefined),
     writeFile: mock(async () => undefined),
   };
-  await run(
-    ['validate', '/tmp/.agents/skills/demo'],
-    undefined,
-    write,
-    fileSystem,
-  );
-  expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('"status": "valid"'),
-  );
+  await run(['validate', '/tmp/.agents/skills/demo'], undefined, write, fileSystem);
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"status": "valid"'));
   await expect(run(['validate', 'relative-root'])).rejects.toThrow(usage());
 });
 
@@ -185,10 +150,6 @@ test('initializes a selected skill through the public command', async () => {
     write,
     fileSystem,
   );
-  expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('"status": "created"'),
-  );
-  expect(files.get('/tmp/.agents/skills/public-demo/SKILL.md')).toContain(
-    'name: public-demo',
-  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"status": "created"'));
+  expect(files.get('/tmp/.agents/skills/public-demo/SKILL.md')).toContain('name: public-demo');
 });

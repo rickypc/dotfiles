@@ -34,9 +34,7 @@ test('orders types after imports and runtime declarations by dependency then nam
   ]);
   expect(report.packet).toEqual(
     expect.objectContaining({
-      forbiddenActions: expect.arrayContaining([
-        expect.stringContaining('declaration body'),
-      ]),
+      forbiddenActions: expect.arrayContaining([expect.stringContaining('declaration body')]),
       requiredActionGroups: [
         expect.objectContaining({ id: 'types-after-imports' }),
         expect.objectContaining({ id: 'runtime-1' }),
@@ -44,9 +42,7 @@ test('orders types after imports and runtime declarations by dependency then nam
       state: 'candidate_requested',
     }),
   );
-  expect(
-    declarationOrderCheck('/repo/example.ts', 'function alpha() {}'),
-  ).toEqual({
+  expect(declarationOrderCheck('/repo/example.ts', 'function alpha() {}')).toEqual({
     detail: 'Top-level declarations are canonical.',
     name: 'declaration-order',
     status: 'passed',
@@ -65,9 +61,7 @@ test('makes type placement actionable and reports runtime dependency uncertainty
       'function beta() { alpha(beta); }',
     ].join('\n'),
   );
-  expect(report.blockers).toEqual([
-    'Runtime declaration alpha shadows sortable names: beta.',
-  ]);
+  expect(report.blockers).toEqual(['Runtime declaration alpha shadows sortable names: beta.']);
   expect(report.packet).toEqual(
     expect.objectContaining({
       requiredActionGroups: [
@@ -95,10 +89,7 @@ test('makes type placement actionable and reports runtime dependency uncertainty
     }),
   );
   expect(
-    declarationOrderCheck(
-      '/repo/blocked.ts',
-      'function zebra() {}\nfunction alpha() {}',
-    ),
+    declarationOrderCheck('/repo/blocked.ts', 'function zebra() {}\nfunction alpha() {}'),
   ).toEqual(
     expect.objectContaining({
       detail: expect.stringContaining('runtime-1 must be alpha, zebra'),
@@ -164,13 +155,9 @@ test('parses TSX, preserves comments as source trivia, and blocks syntax errors'
       'const alpha = () => <span />;',
     ].join('\n'),
   );
-  expect(tsx.groups[0]).toEqual(
-    expect.objectContaining({ desiredOrder: ['alpha', 'beta'] }),
-  );
+  expect(tsx.groups[0]).toEqual(expect.objectContaining({ desiredOrder: ['alpha', 'beta'] }));
   expect(tsx.groups[0]?.items[0]?.start).toBe(0);
-  expect(
-    inspectDeclarationOrder('/repo/broken.ts', 'const = ;').blockers,
-  ).toEqual([
+  expect(inspectDeclarationOrder('/repo/broken.ts', 'const = ;').blockers).toEqual([
     'Source contains syntax errors; declaration order was not evaluated.',
   ]);
   expect(
@@ -193,9 +180,7 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
   ].join('\n');
   const fixed = fixDeclarationOrder('/repo/fix.ts', source);
   expect(fixed.changed).toBe(true);
-  expect(fixed.report).toEqual(
-    expect.objectContaining({ blockers: [], violations: [] }),
-  );
+  expect(fixed.report).toEqual(expect.objectContaining({ blockers: [], violations: [] }));
   expect(fixed.source).toContain('// Beta docs\ntype Beta = string;');
   expect(fixed.source.indexOf('interface Alpha')).toBeLessThan(
     fixed.source.indexOf('const runtime'),
@@ -211,9 +196,7 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
       '/repo/types.ts',
       "import { value } from './value.js';\ntype Zebra = typeof value;\ninterface Alpha {}",
     ).source,
-  ).toBe(
-    "import { value } from './value.js';\ninterface Alpha {}\n\ntype Zebra = typeof value;",
-  );
+  ).toBe("import { value } from './value.js';\ninterface Alpha {}\n\ntype Zebra = typeof value;");
   expect(
     fixDeclarationOrder(
       '/repo/no-import.ts',
@@ -240,15 +223,11 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
       'const boundary = 1;',
     ].join('\n'),
   );
-  expect(scriptLike.report).toEqual(
-    expect.objectContaining({ blockers: [], violations: [] }),
-  );
+  expect(scriptLike.report).toEqual(expect.objectContaining({ blockers: [], violations: [] }));
   expect(scriptLike.source).toContain(
     "export const usage = (): string => 'Usage';\n\nexport const run = (): string => usage();",
   );
-  expect(scriptLike.source).toContain(
-    'interface Entry { readonly name: string }',
-  );
+  expect(scriptLike.source).toContain('interface Entry { readonly name: string }');
   expect(
     fixDeclarationOrder(
       '/repo/blocked.ts',
@@ -257,8 +236,7 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
   ).toEqual(
     expect.objectContaining({
       changed: false,
-      source:
-        'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
+      source: 'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
     }),
   );
 });
@@ -281,9 +259,7 @@ test('does not reorder dependency cycles or declarations separated by barriers',
     '/repo/separated.ts',
     'function zebra() {}\nexport const value = 1;\nfunction alpha() {}',
   );
-  expect(cycle.blockers).toEqual([
-    'Runtime declaration dependencies contain a cycle.',
-  ]);
+  expect(cycle.blockers).toEqual(['Runtime declaration dependencies contain a cycle.']);
   expect(
     declarationOrderCheck(
       '/repo/cycle.ts',
@@ -303,9 +279,7 @@ test('does not reorder duplicate runtime declaration names', () => {
     '/repo/duplicate.ts',
     'function alpha() {}\nfunction alpha() {}',
   );
-  expect(report.blockers).toEqual([
-    'Runtime declarations have duplicate names.',
-  ]);
+  expect(report.blockers).toEqual(['Runtime declarations have duplicate names.']);
 });
 
 test('ignores comments and escaped strings while detecting local shadowing', () => {
@@ -322,9 +296,7 @@ test('ignores comments and escaped strings while detecting local shadowing', () 
       'function beta() {}',
     ].join('\n'),
   );
-  expect(report.blockers).toEqual([
-    'Runtime declaration alpha shadows sortable names: beta.',
-  ]);
+  expect(report.blockers).toEqual(['Runtime declaration alpha shadows sortable names: beta.']);
 });
 
 test('detects nested function declarations that shadow sortable names', () => {
@@ -335,9 +307,7 @@ test('detects nested function declarations that shadow sortable names', () => {
       'function beta() { return 2; }',
     ].join('\n'),
   );
-  expect(report.blockers).toEqual([
-    'Runtime declaration alpha shadows sortable names: beta.',
-  ]);
+  expect(report.blockers).toEqual(['Runtime declaration alpha shadows sortable names: beta.']);
 });
 
 test('ignores declarations without a sortable name', () => {

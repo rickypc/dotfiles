@@ -1,9 +1,6 @@
 import { expect, test } from 'bun:test';
 
-import {
-  isCodingAssistant,
-  renderAdapterHandoff,
-} from '../../scripts/adapter.js';
+import { isCodingAssistant, renderAdapterHandoff } from '../../scripts/adapter.js';
 
 test.each(['opencode', 'codex', 'claude-code', 'kiro-ide', 'vscode'])(
   'renders a manual %s handoff',
@@ -15,16 +12,12 @@ test.each(['opencode', 'codex', 'claude-code', 'kiro-ide', 'vscode'])(
 
 test('limits native Kiro IDE instructions to the Kiro adapter', () => {
   expect(renderAdapterHandoff('kiro-ide', '/agents')).toContain('.kiro assets');
-  expect(renderAdapterHandoff('codex', '/agents')).not.toContain(
-    '.kiro assets',
-  );
+  expect(renderAdapterHandoff('codex', '/agents')).not.toContain('.kiro assets');
 });
 
 test('uses the Kiro-compatible universal boundary for VS Code', () => {
   expect(renderAdapterHandoff('vscode', '/agents')).toContain('VS Code');
-  expect(renderAdapterHandoff('vscode', '/agents')).toContain(
-    'same as Kiro IDE',
-  );
+  expect(renderAdapterHandoff('vscode', '/agents')).toContain('same as Kiro IDE');
 });
 
 test('rejects unknown adapter names through the type guard', () => {

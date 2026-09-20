@@ -45,9 +45,7 @@ export const finalGateReceipt = (
   diagnostics: readonly string[] = [],
 ): string => {
   const status = `final gate: ${gate} ${exitCode === 0 ? 'passed' : 'failed'} (exit ${exitCode})`;
-  return diagnostics.length > 0
-    ? `${status}; diagnostics: ${diagnostics.join(' | ')}`
-    : status;
+  return diagnostics.length ? `${status}; diagnostics: ${diagnostics.join(' | ')}` : status;
 };
 
 export const gateDiagnosticsFor = (output: string): readonly string[] =>
@@ -55,9 +53,7 @@ export const gateDiagnosticsFor = (output: string): readonly string[] =>
     .split('\n')
     .map((line) => line.trim())
     .filter((line) =>
-      /(?:error|fail(?:ed|ure)?|exception|coverage|exited with code|no tests)/iu.test(
-        line,
-      ),
+      /(?:error|fail(?:ed|ure)?|exception|coverage|exited with code|no tests)/iu.test(line),
     )
     .slice(-8);
 
@@ -71,9 +67,7 @@ export const executeFinalGate = (
     stdio: 'pipe',
   });
   const exitCode = result.status ?? 1;
-  const output = [result.stdout?.toString(), result.stderr?.toString()]
-    .filter(Boolean)
-    .join('\n');
+  const output = [result.stdout?.toString(), result.stderr?.toString()].filter(Boolean).join('\n');
   const diagnostics = gateDiagnosticsFor(output);
   return {
     diagnostics,
@@ -94,20 +88,17 @@ const loadJsonConfig = async (configPath: string): Promise<FinalGateConfig> => {
   }
   const value = parsed;
   if (
-    typeof value !== 'object' ||
-    value === null ||
-    Array.isArray(value) ||
-    ('finalGate' in value &&
-      typeof (value as { finalGate?: unknown }).finalGate !== 'string')
+    typeof value !== 'object'
+    || value === null
+    || Array.isArray(value)
+    || ('finalGate' in value && typeof (value as { finalGate?: unknown }).finalGate !== 'string')
   ) {
     throw configError('file must contain an object with a string finalGate.');
   }
   return value as FinalGateConfig;
 };
 
-export const resolveFinalGate = async (
-  projectRoot: string,
-): Promise<ResolvedFinalGate> => {
+export const resolveFinalGate = async (projectRoot: string): Promise<ResolvedFinalGate> => {
   if (!projectRoot.startsWith('/')) {
     throw configError('requires an absolute project root.');
   }

@@ -4,13 +4,7 @@ import { runStaticChecks } from '../../scripts/biome-tsc-checker.js';
 
 test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   const executor = mock(
-    async ({
-      command,
-    }: {
-      args: readonly string[];
-      command: string;
-      cwd?: string;
-    }) =>
+    async ({ command }: { args: readonly string[]; command: string; cwd?: string }) =>
       command.endsWith('/biome')
         ? { code: 0, stderr: '', stdout: 'clean' }
         : { code: 1, stderr: 'type error', stdout: '' },
@@ -38,20 +32,14 @@ test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   expect(executor.mock.calls[1]?.[0].cwd).toBe('/agents');
   expect(executor.mock.calls[0]?.[0].args).toContain('--config-path');
   expect(executor.mock.calls[1]?.[0].args).toContain('--ignoreConfig');
-  expect(executor.mock.calls[1]?.[0].args).toContain(
-    '/agents/node_modules/@types',
-  );
+  expect(executor.mock.calls[1]?.[0].args).toContain('/agents/node_modules/@types');
 });
 
 test('runs independent Biome, declaration-order, and TypeScript checks together', async () => {
-  let releaseBiome:
-    | ((value: { code: number; stderr: string; stdout: string }) => void)
-    | undefined;
-  const biome = new Promise<{ code: number; stderr: string; stdout: string }>(
-    (resolve) => {
-      releaseBiome = resolve;
-    },
-  );
+  let releaseBiome: ((value: { code: number; stderr: string; stdout: string }) => void) | undefined;
+  const biome = new Promise<{ code: number; stderr: string; stdout: string }>((resolve) => {
+    releaseBiome = resolve;
+  });
   let typeCheckStarted = false;
   let sourceReadStarted = false;
   const executor = mock(async ({ command }: { command: string }) => {
@@ -172,8 +160,7 @@ test('blocks the declaration-order gate when a safe order cannot be proven', asy
   const results = await runStaticChecks(
     executor,
     { agentsRoot: '/agents', paths: ['/repo/file.ts'] },
-    async () =>
-      'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
+    async () => 'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
   );
   expect(results[2]).toEqual(
     expect.objectContaining({

@@ -25,10 +25,7 @@ test('runs the validator through its injected boundary and keeps the command con
   const validate = mock(async () => receipt);
   const write = mock();
   await run([], '/tmp/.agents', write, validate);
-  expect(validate).toHaveBeenCalledWith(
-    expect.anything(),
-    '/tmp/.agents/skills',
-  );
+  expect(validate).toHaveBeenCalledWith(expect.anything(), '/tmp/.agents/skills');
   expect(write).toHaveBeenCalledWith(validReceiptLine(receipt));
   expect(() => run(['unexpected'])).toThrow(usage());
 });

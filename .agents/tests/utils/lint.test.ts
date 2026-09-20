@@ -9,35 +9,21 @@ import {
 
 test('defines the distinct lint commands under one agents root', () => {
   const commands = lintCommandsFor('/agents');
-  expect(commands.map(({ name }) => name)).toEqual([
-    'biome',
-    'declaration-order',
-    'skills',
-  ]);
+  expect(commands.map(({ name }) => name)).toEqual(['biome', 'declaration-order', 'skills']);
   expect(commands.every(({ spec }) => spec.cwd === '/agents')).toBe(true);
-  expect(commands[1]?.spec.args.join(' ')).toContain(
-    '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}',
-  );
-  expect(commands[2]?.spec.args.join(' ')).toContain(
-    'scripts/validate-skills.ts',
-  );
+  expect(commands[1]?.spec.args.join(' ')).toContain('*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}');
+  expect(commands[2]?.spec.args.join(' ')).toContain('scripts/validate-skills.ts');
 });
 
 test('runs distinct lint commands together and preserves every command result', async () => {
-  let releaseBiome:
-    | ((value: { code: number; stderr: string; stdout: string }) => void)
-    | undefined;
-  const biome = new Promise<{ code: number; stderr: string; stdout: string }>(
-    (resolve) => {
-      releaseBiome = resolve;
-    },
-  );
+  let releaseBiome: ((value: { code: number; stderr: string; stdout: string }) => void) | undefined;
+  const biome = new Promise<{ code: number; stderr: string; stdout: string }>((resolve) => {
+    releaseBiome = resolve;
+  });
   let started = 0;
   const executor = mock(async ({ args }: { args: readonly string[] }) => {
     started += 1;
-    return args.join(' ').includes('biome')
-      ? biome
-      : { code: 0, stderr: '', stdout: `${started}` };
+    return args.join(' ').includes('biome') ? biome : { code: 0, stderr: '', stdout: `${started}` };
   });
   const receipts = runLintCommands(executor, '/agents');
   expect(started).toBe(3);

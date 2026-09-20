@@ -45,16 +45,12 @@ export const decideBaseline = (receipt: EvidenceReceipt): BaselineDecision => {
     : { nextState: 'blocked', nextStep: 'block' };
 };
 
-export const decideCandidate = (
-  input: CandidateDecisionInput,
-): CandidateDecision => {
+export const decideCandidate = (input: CandidateDecisionInput): CandidateDecision => {
   if (input.attempt < 1 || input.attemptBudget < input.attempt) {
     throw new Error('Candidate attempt is outside its approved budget.');
   }
   if (input.receipt.matrixFingerprint !== input.matrixFingerprint) {
-    throw new Error(
-      'Candidate receipt matrix fingerprint does not match the frozen matrix.',
-    );
+    throw new Error('Candidate receipt matrix fingerprint does not match the frozen matrix.');
   }
   if (input.receipt.sourceFingerprint === input.baselineSourceFingerprint) {
     throw new Error('Candidate source must differ from the baseline source.');
@@ -72,24 +68,19 @@ export const decideCandidate = (
     };
   }
   return {
-    nextState: transition(
-      transition(input.state, 'candidate_failed_retry'),
-      'candidate_requested',
-    ),
+    nextState: transition(transition(input.state, 'candidate_failed_retry'), 'candidate_requested'),
     nextStep: 'repair',
   };
 };
 
-export const decideChallenge = (
-  input: ChallengeDecisionInput,
-): ChallengeDecision => {
+export const decideChallenge = (input: ChallengeDecisionInput): ChallengeDecision => {
   const { receipt } = input;
   if (receipt.state !== 'challenge_checked') {
     throw new Error('A challenge decision requires a challenge receipt.');
   }
   if (
-    receipt.matrixFingerprint !== input.expectedMatrixFingerprint ||
-    receipt.sourceFingerprint !== input.expectedSourceFingerprint
+    receipt.matrixFingerprint !== input.expectedMatrixFingerprint
+    || receipt.sourceFingerprint !== input.expectedSourceFingerprint
   ) {
     throw new Error('Challenge receipt does not match the candidate evidence.');
   }

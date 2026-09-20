@@ -25,9 +25,7 @@ import {
 test('validates KB concept paths and derives subject indexes', () => {
   expect(isKbConceptPath('shared/team/decision.md')).toBeTrue();
   expect(isKbConceptPath('repo/index.md')).toBeFalse();
-  expect(conceptIndexPath('repo/subject/concept.md')).toBe(
-    'repo/subject/index.md',
-  );
+  expect(conceptIndexPath('repo/subject/concept.md')).toBe('repo/subject/index.md');
   expect(scopeIndexPath('repo/subject/concept.md')).toBe('repo/index.md');
   expect(() => scopeIndexPath('../secret.md')).toThrow('Invalid KB');
   expect(() => conceptIndexPath('../secret.md')).toThrow('Invalid KB');
@@ -72,18 +70,10 @@ test('captures a concept and updates both deterministic indexes', async () => {
     'Body.',
     'Observed evidence.',
   );
-  expect(writes.get('/kb/shared/agent/index.md')).toContain(
-    '[T](lesson.md) - d',
-  );
-  expect(writes.get('/kb/shared/index.md')).toContain(
-    '[agent/index](agent/index.md)',
-  );
-  expect(writes.get('/kb/index.md')).toContain(
-    '[shared/index](shared/index.md)',
-  );
-  expect(writes.get('/kb/shared/agent/lesson.md')).toContain(
-    'Observed evidence.',
-  );
+  expect(writes.get('/kb/shared/agent/index.md')).toContain('[T](lesson.md) - d');
+  expect(writes.get('/kb/shared/index.md')).toContain('[agent/index](agent/index.md)');
+  expect(writes.get('/kb/index.md')).toContain('[shared/index](shared/index.md)');
+  expect(writes.get('/kb/shared/agent/lesson.md')).toContain('Observed evidence.');
   await expect(
     captureConcept(
       fileSystem,
@@ -95,14 +85,7 @@ test('captures a concept and updates both deterministic indexes', async () => {
     ),
   ).rejects.toThrow('absolute');
   await expect(
-    captureConcept(
-      fileSystem,
-      '/kb',
-      '../agent/lesson.md',
-      metadata,
-      'Body.',
-      'Evidence.',
-    ),
+    captureConcept(fileSystem, '/kb', '../agent/lesson.md', metadata, 'Body.', 'Evidence.'),
   ).rejects.toThrow('Invalid KB');
   const failingFileSystem = {
     ...fileSystem,
@@ -122,11 +105,9 @@ test('captures a concept and updates both deterministic indexes', async () => {
   ).rejects.toThrow('read failure');
 });
 
-// biome-ignore lint/complexity/noExcessiveLinesPerFunction: The importer contract is covered as one transactional scenario.
 test('slices a six-section plan into one validated OKF concept and updates indexes', async () => {
   const files = new Map<string, string>();
-  const planPath =
-    '/workspace/example-app/.agents/plans/workspace-example-app/execute-plan.md';
+  const planPath = '/workspace/example-app/.agents/plans/workspace-example-app/execute-plan.md';
   const plan = [
     '---',
     'title: Execute the parser refactor',
@@ -170,9 +151,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
       files.set(path, content);
     },
   };
-  expect(parsePlanForImport(plan).sections).toHaveProperty(
-    'CHRONOLOGICAL WORKFLOW',
-  );
+  expect(parsePlanForImport(plan).sections).toHaveProperty('CHRONOLOGICAL WORKFLOW');
   const receipt = await importPlan(fileSystem, '/kb', planPath);
   expect(receipt).toMatchObject({
     conceptPath: 'workspace-example-app/plans/execute-the-parser-refactor.md',
@@ -187,54 +166,36 @@ test('slices a six-section plan into one validated OKF concept and updates index
       'RIGID OUTPUT SCHEMA',
     ],
   });
-  expect(
-    files.get('/kb/workspace-example-app/plans/execute-the-parser-refactor.md'),
-  ).toContain('## RIGID OUTPUT SCHEMA');
+  expect(files.get('/kb/workspace-example-app/plans/execute-the-parser-refactor.md')).toContain(
+    '## RIGID OUTPUT SCHEMA',
+  );
   expect(files.get('/kb/workspace-example-app/plans/index.md')).toContain(
     '[Execute the parser refactor](execute-the-parser-refactor.md)',
   );
   expect(() =>
-    parsePlanForImport(
-      plan.replace('## 5. SYSTEMATIC VERIFICATION CHECKLIST', '## 5. BROKEN'),
-    ),
+    parsePlanForImport(plan.replace('## 5. SYSTEMATIC VERIFICATION CHECKLIST', '## 5. BROKEN')),
   ).toThrow('template order');
   expect(() => parsePlanForImport('no frontmatter')).toThrow('frontmatter');
   expect(() =>
-    parsePlanForImport(
-      plan.replace('status: pending', 'extra: true\nstatus: pending'),
-    ),
+    parsePlanForImport(plan.replace('status: pending', 'extra: true\nstatus: pending')),
   ).toThrow('unsupported');
   expect(() =>
-    parsePlanForImport(
-      plan.replace('title: Execute the parser refactor', 'title:'),
-    ),
+    parsePlanForImport(plan.replace('title: Execute the parser refactor', 'title:')),
   ).toThrow('title');
-  expect(() =>
-    parsePlanForImport(plan.replace('Principal developer.', '')),
-  ).toThrow('TARGET DIRECTIVES');
+  expect(() => parsePlanForImport(plan.replace('Principal developer.', ''))).toThrow(
+    'TARGET DIRECTIVES',
+  );
+  files.set(planPath, plan.replace('title: Execute the parser refactor', 'title: "!!!"'));
+  await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow('letters or numbers');
   files.set(
     planPath,
-    plan.replace('title: Execute the parser refactor', 'title: "!!!"'),
+    plan.replace('repo_search_index: workspace-example-app', 'repo_search_index: ../bad'),
   );
-  await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow(
-    'letters or numbers',
+  await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow('invalid concept path');
+  await expect(importPlan(fileSystem, 'relative', planPath)).rejects.toThrow('absolute');
+  await expect(importPlan(fileSystem, '/kb', '/workspace/example-app/plan.md')).rejects.toThrow(
+    '.agents/plans',
   );
-  files.set(
-    planPath,
-    plan.replace(
-      'repo_search_index: workspace-example-app',
-      'repo_search_index: ../bad',
-    ),
-  );
-  await expect(importPlan(fileSystem, '/kb', planPath)).rejects.toThrow(
-    'invalid concept path',
-  );
-  await expect(importPlan(fileSystem, 'relative', planPath)).rejects.toThrow(
-    'absolute',
-  );
-  await expect(
-    importPlan(fileSystem, '/kb', '/workspace/example-app/plan.md'),
-  ).rejects.toThrow('.agents/plans');
 });
 
 test('preserves description-suffixed index entries across subsequent captures', async () => {
@@ -283,12 +244,8 @@ test('preserves description-suffixed index entries across subsequent captures', 
     'Observed evidence.',
   );
   const subjectIndex = writes.get('/kb/shared/agent/index.md') ?? '';
-  expect(subjectIndex).toContain(
-    '[First](first.md) - first concept description',
-  );
-  expect(subjectIndex).toContain(
-    '[Second](second.md) - second concept description',
-  );
+  expect(subjectIndex).toContain('[First](first.md) - first concept description');
+  expect(subjectIndex).toContain('[Second](second.md) - second concept description');
 });
 
 test('requires every OKF metadata field', () => {
@@ -322,18 +279,12 @@ test('renders and parses OKF concepts, indexes, and observed lessons', () => {
   expect(() => renderOkfConcept(metadata, '')).toThrow('body');
   expect(() => parseOkfConcept('---\ntype: "note"\n---\n')).toThrow('tags');
   expect(() => parseOkfConcept('no frontmatter')).toThrow('frontmatter');
-  expect(renderDirectoryIndex('Subject', ['b.md', 'a.md', 'a.md'])).toContain(
-    '[a](a.md)',
-  );
+  expect(renderDirectoryIndex('Subject', ['b.md', 'a.md', 'a.md'])).toContain('[a](a.md)');
   expect(() => renderDirectoryIndex('', [])).toThrow('title');
   const lesson = { cause: 'c', durableFix: 'f', evidence: 'e', symptom: 's' };
   expect(renderLessonBody(lesson)).toContain('Durable fix');
-  expect(renderCapturedConcept(metadata, 'Evidence.', 'Body.')).toContain(
-    '## Evidence',
-  );
-  expect(() => renderCapturedConcept(metadata, '', 'Body.')).toThrow(
-    'evidence',
-  );
+  expect(renderCapturedConcept(metadata, 'Evidence.', 'Body.')).toContain('## Evidence');
+  expect(() => renderCapturedConcept(metadata, '', 'Body.')).toThrow('evidence');
   expect(() => validateLesson({ ...lesson, cause: '' })).toThrow('cause');
 });
 
@@ -360,14 +311,10 @@ test('parses YAML metadata and rejects invalid tag metadata', () => {
     type: 'note',
   });
   expect(() =>
-    parseOkfConcept(
-      '---\ntags: team\ntype: note\ntitle: T\ndescription: D\n---\n',
-    ),
+    parseOkfConcept('---\ntags: team\ntype: note\ntitle: T\ndescription: D\n---\n'),
   ).toThrow('tags');
   expect(() =>
-    parseOkfConcept(
-      '---\ntags: [team]\ntype: note\ntitle: T\ndescription: 1\n---\n',
-    ),
+    parseOkfConcept('---\ntags: [team]\ntype: note\ntitle: T\ndescription: 1\n---\n'),
   ).toThrow('description');
 });
 
@@ -379,9 +326,9 @@ test('preserves optional OKF metadata and reconciles linked concepts', async () 
     title: 'Playwright testing',
     type: 'practice',
   };
-  expect(
-    parseOkfConcept(renderOkfConcept(metadata, 'Body.')).generated,
-  ).toEqual(metadata.generated);
+  expect(parseOkfConcept(renderOkfConcept(metadata, 'Body.')).generated).toEqual(
+    metadata.generated,
+  );
   const files = new Map<string, string>();
   files.set(
     '/kb/shared/testing/strategy.md',
@@ -501,14 +448,8 @@ test('rejects unsafe reconciliation plans', async () => {
     title: 'Strategy',
     type: 'practice',
   };
-  files.set(
-    '/kb/shared/testing/strategy.md',
-    renderOkfConcept(metadata, 'Existing rules.'),
-  );
-  files.set(
-    '/kb/shared/testing/playwright.md',
-    renderOkfConcept(metadata, 'Existing rules.'),
-  );
+  files.set('/kb/shared/testing/strategy.md', renderOkfConcept(metadata, 'Existing rules.'));
+  files.set('/kb/shared/testing/playwright.md', renderOkfConcept(metadata, 'Existing rules.'));
   const fileSystem = {
     mkdir: async () => undefined,
     readFile: async (path: string) => {
@@ -642,9 +583,7 @@ test('searches validated KB concepts and returns an empty result when absent', a
     rm: async () => undefined,
     writeFile: async () => undefined,
   };
-  await expect(
-    searchKnowledgeBase(fileSystem, '/kb', 'verified'),
-  ).resolves.toEqual([
+  await expect(searchKnowledgeBase(fileSystem, '/kb', 'verified')).resolves.toEqual([
     {
       description: 'Reusable test practice.',
       path: 'shared/practice/fixture.md',
@@ -652,15 +591,9 @@ test('searches validated KB concepts and returns an empty result when absent', a
       type: 'practice',
     },
   ]);
-  await expect(
-    searchKnowledgeBase(fileSystem, '/kb', 'missing'),
-  ).resolves.toEqual([]);
-  await expect(
-    searchKnowledgeBase(fileSystem, 'relative', 'x'),
-  ).rejects.toThrow('absolute');
-  await expect(searchKnowledgeBase(fileSystem, '/kb', ' ')).rejects.toThrow(
-    'query',
-  );
+  await expect(searchKnowledgeBase(fileSystem, '/kb', 'missing')).resolves.toEqual([]);
+  await expect(searchKnowledgeBase(fileSystem, 'relative', 'x')).rejects.toThrow('absolute');
+  await expect(searchKnowledgeBase(fileSystem, '/kb', ' ')).rejects.toThrow('query');
   await expect(
     searchKnowledgeBase({ ...fileSystem, readdir: undefined }, '/kb', 'x'),
   ).rejects.toThrow('directory listing');
@@ -677,9 +610,7 @@ test('searches validated KB concepts and returns an empty result when absent', a
       throw new Error('directory failure');
     },
   };
-  await expect(searchKnowledgeBase(failing, '/kb', 'x')).rejects.toThrow(
-    'directory failure',
-  );
+  await expect(searchKnowledgeBase(failing, '/kb', 'x')).rejects.toThrow('directory failure');
 });
 
 test('listKbScopeIndexes returns scope directories excluding shared', async () => {
@@ -691,9 +622,10 @@ test('listKbScopeIndexes returns scope directories excluding shared', async () =
       { isDirectory: () => false, name: 'index.md' },
     ],
   };
-  await expect(listKbScopeIndexes(fileSystem as never, '/kb')).resolves.toEqual(
-    ['Users-demo', 'Users-rhuang'],
-  );
+  await expect(listKbScopeIndexes(fileSystem as never, '/kb')).resolves.toEqual([
+    'Users-demo',
+    'Users-rhuang',
+  ]);
 });
 
 test('buildKbInfo returns resolved root and available indexes', async () => {
@@ -727,8 +659,7 @@ test('combines repo-search discovery with validated KB search results', async ()
         : path === '/kb/shared'
           ? [{ isDirectory: () => true, name: 'practice' }]
           : [{ isDirectory: () => false, name: 'fixture.md' }],
-    readFile: async (path: string) =>
-      path.endsWith('fixture.md') ? concept : '',
+    readFile: async (path: string) => (path.endsWith('fixture.md') ? concept : ''),
     rm: async () => undefined,
     writeFile: async () => undefined,
   };
@@ -770,22 +701,13 @@ test('batches bounded distinct KB queries and rejects duplicates', async () => {
     ]),
   ).resolves.toHaveLength(2);
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', [
-      'Verifier',
-      ' verifier ',
-    ]),
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['Verifier', ' verifier ']),
   ).rejects.toThrow('unique');
   await expect(
     searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['']),
   ).rejects.toThrow('nonblank');
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', [
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-    ]),
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['a', 'b', 'c', 'd', 'e']),
   ).rejects.toThrow('1-4');
 });
 
@@ -793,11 +715,9 @@ test('starts local KB lookup while repo-search discovery waits for index readine
   let releaseStatus:
     | ((value: { code: number; stderr: string; stdout: string }) => void)
     | undefined;
-  const status = new Promise<{ code: number; stderr: string; stdout: string }>(
-    (resolve) => {
-      releaseStatus = resolve;
-    },
-  );
+  const status = new Promise<{ code: number; stderr: string; stdout: string }>((resolve) => {
+    releaseStatus = resolve;
+  });
   let localLookupStarted = false;
   const fileSystem = {
     mkdir: async () => undefined,

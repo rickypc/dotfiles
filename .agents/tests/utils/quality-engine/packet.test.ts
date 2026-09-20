@@ -32,18 +32,14 @@ test('creates a stable packet fingerprint and renders JSON', () => {
 });
 
 test('rejects incomplete packet identities and groups', () => {
-  expect(() => createActionPacket({ ...input, intentId: ' ' })).toThrow(
-    'identity',
+  expect(() => createActionPacket({ ...input, intentId: ' ' })).toThrow('identity');
+  expect(() => createActionPacket({ ...input, requiredActionGroups: [] })).toThrow(
+    'At least one action group',
   );
-  expect(() =>
-    createActionPacket({ ...input, requiredActionGroups: [] }),
-  ).toThrow('At least one action group');
   expect(() =>
     createActionPacket({
       ...input,
-      requiredActionGroups: [
-        { ...actionGroup, id: '', requiredAssertionIds: [] },
-      ],
+      requiredActionGroups: [{ ...actionGroup, id: '', requiredAssertionIds: [] }],
     }),
   ).toThrow('Action group');
 });

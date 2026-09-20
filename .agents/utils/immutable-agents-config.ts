@@ -40,19 +40,15 @@ const gitStatusSpecFor = (agentsRoot: string): CommandSpec => ({
   cwd: agentsRoot,
 });
 
-const hasWorktreeMutation = (line: string): boolean =>
-  line.length >= 2 && line[1] !== ' ';
+const hasWorktreeMutation = (line: string): boolean => line.length >= 2 && line[1] !== ' ';
 
 const passedReceipt = (): ImmutableAgentsConfigReceipt => ({
-  detail:
-    'immutable-agents-config: passed — protected files match the Git index.',
+  detail: 'immutable-agents-config: passed — protected files match the Git index.',
   paths: [],
   status: 'passed',
 });
 
-const resultFailure = (
-  result: CommandResult,
-): ImmutableAgentsConfigReceipt | undefined => {
+const resultFailure = (result: CommandResult): ImmutableAgentsConfigReceipt | undefined => {
   if (result.code === 0) {
     return undefined;
   }

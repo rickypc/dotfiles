@@ -1,8 +1,5 @@
 import { resolve } from 'node:path';
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import type { CheckResult, CommandSpec } from '../utils/contracts.js';
 import { failed, normalizePaths, passed } from '../utils/contracts.js';
 import { declarationOrderCheck } from '../utils/declaration-order.js';
@@ -17,11 +14,7 @@ export interface StaticCheckRequest {
   readonly paths: readonly string[];
 }
 
-const command = (
-  executable: string,
-  args: readonly string[],
-  cwd: string,
-): CommandSpec => ({
+const command = (executable: string, args: readonly string[], cwd: string): CommandSpec => ({
   args,
   command: executable,
   cwd,
@@ -60,18 +53,14 @@ const declarationOrderResult = async (
   }
   if (nonPassing.some(({ result }) => result.status === 'blocked')) {
     return {
-      detail: nonPassing
-        .map(({ path, result }) => `${path}: ${result.detail}`)
-        .join('\n'),
+      detail: nonPassing.map(({ path, result }) => `${path}: ${result.detail}`).join('\n'),
       name: 'declaration-order',
       status: 'blocked',
     };
   }
   return failed(
     'declaration-order',
-    nonPassing
-      .map(({ path, result }) => `${path}: ${result.detail}`)
-      .join('\n'),
+    nonPassing.map(({ path, result }) => `${path}: ${result.detail}`).join('\n'),
   );
 };
 
@@ -115,22 +104,15 @@ export const runStaticChecks = async (
             request.agentsRoot,
           ),
         );
-  const [biomeCommandResult, declarationOrder, typeCheckResult] =
-    await Promise.all([
-      biome,
-      declarationOrderResult(sourcePaths, read),
-      typeCheck ?? Promise.resolve(undefined),
-    ]);
+  const [biomeCommandResult, declarationOrder, typeCheckResult] = await Promise.all([
+    biome,
+    declarationOrderResult(sourcePaths, read),
+    typeCheck ?? Promise.resolve(undefined),
+  ]);
   const biomeResult =
     biomeCommandResult.code === 0
-      ? passed(
-          'biome',
-          detail(biomeCommandResult.stdout, biomeCommandResult.stderr),
-        )
-      : failed(
-          'biome',
-          detail(biomeCommandResult.stdout, biomeCommandResult.stderr),
-        );
+      ? passed('biome', detail(biomeCommandResult.stdout, biomeCommandResult.stderr))
+      : failed('biome', detail(biomeCommandResult.stdout, biomeCommandResult.stderr));
   if (typeScriptPaths.length === 0) {
     return [
       biomeResult,
@@ -146,10 +128,7 @@ export const runStaticChecks = async (
     biomeResult,
     typeCheckResult?.code === 0
       ? passed('tsc', detail(typeCheckResult.stdout, typeCheckResult.stderr))
-      : failed(
-          'tsc',
-          detail(typeCheckResult?.stdout ?? '', typeCheckResult?.stderr ?? ''),
-        ),
+      : failed('tsc', detail(typeCheckResult?.stdout ?? '', typeCheckResult?.stderr ?? '')),
     declarationOrder,
   ];
 };

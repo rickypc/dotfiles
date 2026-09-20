@@ -1,14 +1,6 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 
-export type CodingAssistant =
-  | 'claude-code'
-  | 'codex'
-  | 'kiro-ide'
-  | 'opencode'
-  | 'vscode';
+export type CodingAssistant = 'claude-code' | 'codex' | 'kiro-ide' | 'opencode' | 'vscode';
 
 const assistantLabels: Readonly<Record<CodingAssistant, string>> = {
   'claude-code': 'Claude Code',
@@ -21,19 +13,14 @@ const assistantLabels: Readonly<Record<CodingAssistant, string>> = {
 export const isCodingAssistant = (value: string): value is CodingAssistant =>
   value in assistantLabels;
 
-export const renderAdapterHandoff = (
-  assistant: CodingAssistant,
-  agentsRoot: string,
-): string =>
+export const renderAdapterHandoff = (assistant: CodingAssistant, agentsRoot: string): string =>
   [
     `# ${assistantLabels[assistant]} universal-agent handoff`,
     '',
     `Load universal skills, prompts, role cards, scripts, and utilities from ${agentsRoot}.`,
     'Do not copy, install, symlink, or modify assistant-native configuration.',
     ...(assistant === 'kiro-ide'
-      ? [
-          'Use this handoff in the active Kiro IDE session; do not create native .kiro assets.',
-        ]
+      ? ['Use this handoff in the active Kiro IDE session; do not create native .kiro assets.']
       : assistant === 'vscode'
         ? [
             'Use this handoff in the active VS Code session; its universal runtime boundary is the same as Kiro IDE.',
@@ -53,12 +40,7 @@ export const run = (
   write: (message: string) => void = console.log,
 ): void => {
   const [assistant, agentsRoot] = args;
-  if (
-    !assistant ||
-    !agentsRoot ||
-    args.length !== 2 ||
-    !isCodingAssistant(assistant)
-  ) {
+  if (!assistant || !agentsRoot || args.length !== 2 || !isCodingAssistant(assistant)) {
     throw new Error(usage());
   }
   write(renderAdapterHandoff(assistant, agentsRoot));

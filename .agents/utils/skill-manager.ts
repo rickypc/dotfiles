@@ -9,22 +9,11 @@ import {
   matrixFingerprintFor,
   validateMatrix,
 } from './quality-engine/matrix.js';
-import {
-  type ActionPacket,
-  createActionPacket,
-  fingerprint,
-} from './quality-engine/packet.js';
+import { type ActionPacket, createActionPacket, fingerprint } from './quality-engine/packet.js';
 import type { EvidenceReceipt } from './quality-engine/receipt.js';
-import {
-  createReceipt,
-  failedCheckNames,
-  receiptPasses,
-} from './quality-engine/receipt.js';
+import { createReceipt, failedCheckNames, receiptPasses } from './quality-engine/receipt.js';
 import type { WorkflowState } from './quality-engine/state.js';
-import {
-  isMatrixVerifierId,
-  runIndependentVerifier,
-} from './quality-engine/verifier.js';
+import { isMatrixVerifierId, runIndependentVerifier } from './quality-engine/verifier.js';
 
 export interface SkillInitializationReceipt {
   readonly description: string;
@@ -117,15 +106,10 @@ const agentsRootFor = (path: string): string | undefined => {
   return path.endsWith('/.agents') ? path : undefined;
 };
 
-export const createSkillManagerPacket = (
-  input: SkillManagerPacketInput,
-): ActionPacket => {
-  const assertionIds =
-    input.state === 'draft' ? ['matrix-definition'] : input.failedAssertionIds;
+export const createSkillManagerPacket = (input: SkillManagerPacketInput): ActionPacket => {
+  const assertionIds = input.state === 'draft' ? ['matrix-definition'] : input.failedAssertionIds;
   if (assertionIds.length === 0) {
-    throw new Error(
-      'At least one failed assertion is required for a candidate packet.',
-    );
+    throw new Error('At least one failed assertion is required for a candidate packet.');
   }
   return createActionPacket({
     forbiddenActions: [
@@ -160,9 +144,7 @@ export const evaluateSkillMatrix = (
   return createReceipt({
     checks: [
       ...evaluateMatrix(selectedCases, evidence),
-      ...selectedCases.map((matrixCase) =>
-        runIndependentVerifier(matrixCase, evidence),
-      ),
+      ...selectedCases.map((matrixCase) => runIndependentVerifier(matrixCase, evidence)),
     ],
     matrixFingerprint: matrixFingerprintFor(cases),
     sourceFingerprint,
@@ -171,13 +153,10 @@ export const evaluateSkillMatrix = (
 };
 
 const failedAssertionIdsFor = (receipt: EvidenceReceipt): string[] => [
-  ...new Set(
-    failedCheckNames(receipt).map((name) => name.split(':', 1)[0] ?? name),
-  ),
+  ...new Set(failedCheckNames(receipt).map((name) => name.split(':', 1)[0] ?? name)),
 ];
 
-const isExternalTarget = (target: string): boolean =>
-  /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(target);
+const isExternalTarget = (target: string): boolean => /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(target);
 
 const expectedRubricFields = new Set([
   'assertions',
@@ -196,18 +175,16 @@ export const parseSkillRubric = (content: string): SkillRubricContract => {
   const requiredVisibility = data.requiredVisibility;
   const verifierIds = data.verifierIds;
   if (
-    data.schemaVersion !== 1 ||
-    typeof data.minimumPassRate !== 'number' ||
-    data.minimumPassRate !== 1 ||
-    !Array.isArray(requiredCaseFields) ||
-    !requiredCaseFields.every((value) => typeof value === 'string') ||
-    !Array.isArray(requiredVisibility) ||
-    !requiredVisibility.every((value) => typeof value === 'string') ||
-    !Array.isArray(verifierIds) ||
-    !verifierIds.every(
-      (value) => typeof value === 'string' && isMatrixVerifierId(value),
-    ) ||
-    !parsed.content.trim()
+    data.schemaVersion !== 1
+    || typeof data.minimumPassRate !== 'number'
+    || data.minimumPassRate !== 1
+    || !Array.isArray(requiredCaseFields)
+    || !requiredCaseFields.every((value) => typeof value === 'string')
+    || !Array.isArray(requiredVisibility)
+    || !requiredVisibility.every((value) => typeof value === 'string')
+    || !Array.isArray(verifierIds)
+    || !verifierIds.every((value) => typeof value === 'string' && isMatrixVerifierId(value))
+    || !parsed.content.trim()
   ) {
     throw new Error(
       'Evaluation rubric requires schemaVersion 1, minimumPassRate 1, executable verifier IDs, and prose.',
@@ -215,10 +192,10 @@ export const parseSkillRubric = (content: string): SkillRubricContract => {
   }
   const fields = requiredCaseFields as string[];
   if (
-    fields.length !== expectedRubricFields.size ||
-    fields.some((field) => !expectedRubricFields.has(field)) ||
-    !requiredVisibility.includes('candidate') ||
-    !requiredVisibility.includes('challenge')
+    fields.length !== expectedRubricFields.size
+    || fields.some((field) => !expectedRubricFields.has(field))
+    || !requiredVisibility.includes('candidate')
+    || !requiredVisibility.includes('challenge')
   ) {
     throw new Error(
       'Evaluation rubric must require every matrix field and both visibility values.',
@@ -237,14 +214,8 @@ const validateRubricForMatrix = (
   rubric: SkillRubricContract,
   matrix: readonly MatrixCase[],
 ): void => {
-  if (
-    !matrix.every((matrixCase) =>
-      rubric.verifierIds.includes(matrixCase.independentVerifier),
-    )
-  ) {
-    throw new Error(
-      'Evaluation rubric does not authorize every matrix verifier.',
-    );
+  if (!matrix.every((matrixCase) => rubric.verifierIds.includes(matrixCase.independentVerifier))) {
+    throw new Error('Evaluation rubric does not authorize every matrix verifier.');
   }
 };
 
@@ -253,9 +224,7 @@ const skillNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const skillNameFor = (skillPath: string): string => {
   const name = basename(resolve(skillPath));
   if (!skillNamePattern.test(name)) {
-    throw new Error(
-      'Skill directory names must use lowercase letters, digits, and hyphens.',
-    );
+    throw new Error('Skill directory names must use lowercase letters, digits, and hyphens.');
   }
   return name;
 };
@@ -323,9 +292,9 @@ export const initializeSkill = async (
   description: string,
 ): Promise<SkillInitializationReceipt> => {
   if (
-    !skillPath.startsWith('/') ||
-    !description.trim() ||
-    description.length > MAX_SKILL_DESCRIPTION_LENGTH
+    !skillPath.startsWith('/')
+    || !description.trim()
+    || description.length > MAX_SKILL_DESCRIPTION_LENGTH
   ) {
     throw new Error(
       `Skill path must be absolute, description must be nonblank, and description must be at most ${MAX_SKILL_DESCRIPTION_LENGTH} characters.`,
@@ -338,11 +307,7 @@ export const initializeSkill = async (
     throw new Error(`Skill already exists: ${skillFile}`);
   }
   await fileSystem.mkdir(path, { recursive: true });
-  await fileSystem.writeFile(
-    skillFile,
-    skillSourceFor(name, description),
-    'utf8',
-  );
+  await fileSystem.writeFile(skillFile, skillSourceFor(name, description), 'utf8');
   return { description, name, path, status: 'created' };
 };
 
@@ -359,17 +324,15 @@ export const validateSkill = async (
   try {
     parsed = matter(await fileSystem.readFile(join(path, 'SKILL.md'), 'utf8'));
   } catch {
-    throw new Error(
-      `Skill SKILL.md frontmatter is invalid: ${join(path, 'SKILL.md')}`,
-    );
+    throw new Error(`Skill SKILL.md frontmatter is invalid: ${join(path, 'SKILL.md')}`);
   }
   if (
-    typeof parsed.data.name !== 'string' ||
-    parsed.data.name !== name ||
-    typeof parsed.data.description !== 'string' ||
-    !parsed.data.description.trim() ||
-    parsed.data.description.length > MAX_SKILL_DESCRIPTION_LENGTH ||
-    !parsed.content.trim()
+    typeof parsed.data.name !== 'string'
+    || parsed.data.name !== name
+    || typeof parsed.data.description !== 'string'
+    || !parsed.data.description.trim()
+    || parsed.data.description.length > MAX_SKILL_DESCRIPTION_LENGTH
+    || !parsed.content.trim()
   ) {
     throw new Error(
       `Skill SKILL.md must contain valid name, a description of at most ${MAX_SKILL_DESCRIPTION_LENGTH} characters, and instructions: ${join(path, 'SKILL.md')}`,
@@ -388,8 +351,7 @@ const proseExtensions = new Set(['.md', '.txt', '.yaml', '.yml']);
 const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
-const isProsePath = (path: string): boolean =>
-  proseExtensions.has(extname(path));
+const isProsePath = (path: string): boolean => proseExtensions.has(extname(path));
 
 const isWithin = (path: string, root: string): boolean =>
   path === root || path.startsWith(`${root}/`);
@@ -397,14 +359,10 @@ const isWithin = (path: string, root: string): boolean =>
 export const localMarkdownLinkTargets = (source: string): readonly string[] => {
   const prose = source.replace(/```[\s\S]*?```/g, '');
   const targets: string[] = [];
-  for (const match of prose.matchAll(
-    /!?\[[^\]]*\]\((?:<([^>]+)>|([^\s)]+))(?:\s+[^)]*)?\)/g,
-  )) {
+  for (const match of prose.matchAll(/!?\[[^\]]*\]\((?:<([^>]+)>|([^\s)]+))(?:\s+[^)]*)?\)/g)) {
     targets.push(match[1] ?? match[2] ?? '');
   }
-  for (const match of prose.matchAll(
-    /^\s*\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm,
-  )) {
+  for (const match of prose.matchAll(/^\s*\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm)) {
     targets.push(match[1] ?? match[2] ?? '');
   }
   return targets.filter(Boolean);
@@ -431,9 +389,7 @@ const patternMatches = (pattern: string, candidate: string): boolean => {
     .replaceAll('**', '<<<double-star>>>')
     .replaceAll('*', '[^/]*')
     .replaceAll('<<<double-star>>>', '.*');
-  return new RegExp(`^${escaped}${directoryPattern ? '(?:/.*)?' : '$'}`).test(
-    candidate,
-  );
+  return new RegExp(`^${escaped}${directoryPattern ? '(?:/.*)?' : '$'}`).test(candidate);
 };
 
 export const ignoredByAgentsGitignore = (
@@ -493,9 +449,7 @@ const skillMatrixPaths = async (
   }
   const rubricPath = join(evalsPath, 'rubric.md');
   if (!(await readOptional(fileSystem, rubricPath))?.trim()) {
-    throw new Error(
-      `Skill is missing a nonblank evaluation rubric: ${rubricPath}`,
-    );
+    throw new Error(`Skill is missing a nonblank evaluation rubric: ${rubricPath}`);
   }
   return matrixPaths;
 };
@@ -509,15 +463,12 @@ const validateSkillEvaluations = async (
   const sourceFingerprint = fingerprint(sourceText);
   const matrixPaths = await skillMatrixPaths(fileSystem, skillPath);
   const rubric = parseSkillRubric(
-    (await readOptional(fileSystem, join(skillPath, 'evals', 'rubric.md'))) ??
-      '',
+    (await readOptional(fileSystem, join(skillPath, 'evals', 'rubric.md'))) ?? '',
   );
   let candidateCount = 0;
   let challengeCount = 0;
   for (const matrixPath of matrixPaths) {
-    const matrix = parseMatrixJsonl(
-      await fileSystem.readFile(matrixPath, 'utf8'),
-    );
+    const matrix = parseMatrixJsonl(await fileSystem.readFile(matrixPath, 'utf8'));
     validateRubricForMatrix(rubric, matrix);
     const matrixCandidateCount = matrix.filter(
       ({ visibility }) => visibility === 'candidate',
@@ -601,17 +552,13 @@ export const validateAllSkills = async (
   if (prose.findings.length > 0) {
     throw new Error(
       `Skill prose review failed: ${prose.findings
-        .map(
-          ({ sourcePath, targetPath, kind }) =>
-            `${kind}: ${sourcePath} -> ${targetPath}`,
-        )
+        .map(({ sourcePath, targetPath, kind }) => `${kind}: ${sourcePath} -> ${targetPath}`)
         .join('; ')}`,
     );
   }
   return {
     matrixCount: results.reduce(
-      (count, result) =>
-        count + (result.status === 'fulfilled' ? result.value.matrixCount : 0),
+      (count, result) => count + (result.status === 'fulfilled' ? result.value.matrixCount : 0),
       0,
     ),
     prose,
@@ -631,11 +578,7 @@ const proseReview = {
   ): Promise<void> => {
     const agentsRoot = agentsRootFor(path);
     const gitignore = agentsRoot ? gitignores.get(agentsRoot) : undefined;
-    if (
-      agentsRoot &&
-      gitignore &&
-      ignoredByAgentsGitignore(agentsRoot, path, gitignore)
-    ) {
+    if (agentsRoot && gitignore && ignoredByAgentsGitignore(agentsRoot, path, gitignore)) {
       ignoredPaths.add(path);
       return;
     }
@@ -688,9 +631,7 @@ const proseReview = {
     const missing = (await readOptional(fileSystem, targetPath)) === undefined;
     return {
       checked: true,
-      ...(missing
-        ? { finding: { kind: 'missing-local-link', sourcePath, targetPath } }
-        : {}),
+      ...(missing ? { finding: { kind: 'missing-local-link', sourcePath, targetPath } } : {}),
     };
   },
   findings: async (
@@ -704,17 +645,12 @@ const proseReview = {
     const results = await Promise.all(
       [...prosePaths]
         .filter((sourcePath) => extname(sourcePath) === '.md')
-        .map((sourcePath) =>
-          proseReview.sourceFindings(fileSystem, sourcePath, reviewedRoots),
-        ),
+        .map((sourcePath) => proseReview.sourceFindings(fileSystem, sourcePath, reviewedRoots)),
     );
     const linkResults = results.flat();
     return {
-      checkedLocalLinkTargets: linkResults.filter(({ checked }) => checked)
-        .length,
-      findings: linkResults.flatMap(({ finding }) =>
-        finding ? [finding] : [],
-      ),
+      checkedLocalLinkTargets: linkResults.filter(({ checked }) => checked).length,
+      findings: linkResults.flatMap(({ finding }) => (finding ? [finding] : [])),
     };
   },
   sourceFindings: async (
@@ -767,28 +703,21 @@ export const evaluateSkillManagerBatch = (
     throw new Error('At least one skill matrix and target pair is required.');
   }
   const candidates = targets.map((target) => ({
-    candidate: receiptFor(
-      target,
-      phase === 'baseline' ? 'baseline_recorded' : 'candidate_checked',
-    ),
+    candidate: receiptFor(target, phase === 'baseline' ? 'baseline_recorded' : 'candidate_checked'),
     target,
   }));
-  const allCandidatesPass = candidates.every(({ candidate }) =>
-    receiptPasses(candidate),
-  );
+  const allCandidatesPass = candidates.every(({ candidate }) => receiptPasses(candidate));
   return {
     phase,
     results: candidates.map(({ candidate, target }) => {
       const challenge =
-        phase === 'candidate' &&
-        allCandidatesPass &&
-        target.matrix.some(({ visibility }) => visibility === 'challenge')
+        phase === 'candidate'
+        && allCandidatesPass
+        && target.matrix.some(({ visibility }) => visibility === 'challenge')
           ? receiptFor(target, 'challenge_checked')
           : undefined;
       const repair =
-        phase === 'candidate'
-          ? repairFor(reviewId, target, challenge ?? candidate)
-          : undefined;
+        phase === 'candidate' ? repairFor(reviewId, target, challenge ?? candidate) : undefined;
       return {
         candidate,
         ...(challenge ? { challenge } : {}),
@@ -817,10 +746,7 @@ export const reviewSkillProse = async (
     if (!agentsRoot) {
       continue;
     }
-    const content = await readOptional(
-      fileSystem,
-      join(agentsRoot, '.gitignore'),
-    );
+    const content = await readOptional(fileSystem, join(agentsRoot, '.gitignore'));
     if (content !== undefined) {
       gitignores.set(agentsRoot, content);
     }
@@ -829,21 +755,10 @@ export const reviewSkillProse = async (
   const prosePaths = new Set<string>();
   await Promise.all(
     reviewedRoots.map((root) =>
-      proseReview.collect(
-        fileSystem,
-        readdir,
-        root,
-        gitignores,
-        ignoredPaths,
-        prosePaths,
-      ),
+      proseReview.collect(fileSystem, readdir, root, gitignores, ignoredPaths, prosePaths),
     ),
   );
-  const linkReceipt = await proseReview.findings(
-    fileSystem,
-    prosePaths,
-    reviewedRoots,
-  );
+  const linkReceipt = await proseReview.findings(fileSystem, prosePaths, reviewedRoots);
   return {
     ...linkReceipt,
     findings: [...linkReceipt.findings].sort((left, right) =>

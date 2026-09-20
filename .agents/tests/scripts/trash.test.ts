@@ -4,18 +4,12 @@ import { resolve } from 'node:path';
 
 const renameMock = mock((_src: string, _dest: string) => Promise.resolve());
 const accessMock = mock((_path: string) => Promise.resolve());
-const rmMock = mock((_path: string, _options?: { force?: boolean }) =>
+const rmMock = mock((_path: string, _options?: { force?: boolean }) => Promise.resolve());
+const readFileMock = mock((_path: string, _encoding?: string) => Promise.resolve(''));
+const writeFileMock = mock((_path: string, _content: string, _encoding?: string) =>
   Promise.resolve(),
 );
-const readFileMock = mock((_path: string, _encoding?: string) =>
-  Promise.resolve(''),
-);
-const writeFileMock = mock(
-  (_path: string, _content: string, _encoding?: string) => Promise.resolve(),
-);
-const mkdirMock = mock((_path: string, _options?: { recursive?: boolean }) =>
-  Promise.resolve(),
-);
+const mkdirMock = mock((_path: string, _options?: { recursive?: boolean }) => Promise.resolve());
 
 mock.module('node:fs/promises', () => ({
   access: accessMock,
@@ -26,9 +20,7 @@ mock.module('node:fs/promises', () => ({
   writeFile: writeFileMock,
 }));
 
-const { trashRoot, defaultMoveSourceToTrash } = await import(
-  '../../scripts/trash.js'
-);
+const { trashRoot, defaultMoveSourceToTrash } = await import('../../scripts/trash.js');
 
 const testTrashRoot = resolve(homedir(), '.Trash');
 const testSource = resolve(homedir(), 'work/plan.md');
@@ -60,10 +52,7 @@ describe('defaultMoveSourceToTrash', () => {
     const dest = await defaultMoveSourceToTrash(testSource);
     expect(dest).toBe(resolve(testTrashRoot, 'plan.md'));
     expect(renameMock).toHaveBeenCalledTimes(1);
-    expect(renameMock.mock.calls[0]).toEqual([
-      testSource,
-      resolve(testTrashRoot, 'plan.md'),
-    ]);
+    expect(renameMock.mock.calls[0]).toEqual([testSource, resolve(testTrashRoot, 'plan.md')]);
   });
 
   test('appends numeric suffix when the primary destination is busy', async () => {
@@ -71,9 +60,7 @@ describe('defaultMoveSourceToTrash', () => {
     renameMock.mockImplementation(() => {
       if (first) {
         first = false;
-        return Promise.reject(
-          Object.assign(new Error('EEXIST'), { code: 'EEXIST' }),
-        );
+        return Promise.reject(Object.assign(new Error('EEXIST'), { code: 'EEXIST' }));
       }
       return Promise.resolve();
     });
@@ -117,9 +104,7 @@ describe('defaultMoveSourceToTrash', () => {
     renameMock.mockImplementation(() =>
       Promise.reject(Object.assign(new Error('EACCES'), { code: 'EACCES' })),
     );
-    await expect(defaultMoveSourceToTrash(testSource)).rejects.toThrow(
-      'EACCES',
-    );
+    await expect(defaultMoveSourceToTrash(testSource)).rejects.toThrow('EACCES');
     expect(renameMock).toHaveBeenCalledTimes(1);
   });
 
@@ -128,9 +113,7 @@ describe('defaultMoveSourceToTrash', () => {
     renameMock.mockImplementation(() => {
       if (first) {
         first = false;
-        return Promise.reject(
-          Object.assign(new Error('ENOENT'), { code: 'ENOENT' }),
-        );
+        return Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
       }
       return Promise.resolve();
     });

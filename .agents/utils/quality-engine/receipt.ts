@@ -7,12 +7,7 @@ export interface EvidenceReceipt {
   readonly state: string;
 }
 
-const checkStatuses = new Set<CheckStatus>([
-  'passed',
-  'failed',
-  'not-applicable',
-  'blocked',
-]);
+const checkStatuses = new Set<CheckStatus>(['passed', 'failed', 'not-applicable', 'blocked']);
 
 export const failedCheckNames = (receipt: EvidenceReceipt): string[] =>
   receipt.checks
@@ -20,12 +15,9 @@ export const failedCheckNames = (receipt: EvidenceReceipt): string[] =>
     .map((check) => check.name);
 
 export const receiptPasses = (receipt: EvidenceReceipt): boolean =>
-  receipt.checks.every(
-    (check) => check.status === 'passed' || check.status === 'not-applicable',
-  );
+  receipt.checks.every((check) => check.status === 'passed' || check.status === 'not-applicable');
 
-export const renderReceipt = (receipt: EvidenceReceipt): string =>
-  JSON.stringify(receipt, null, 2);
+export const renderReceipt = (receipt: EvidenceReceipt): string => JSON.stringify(receipt, null, 2);
 
 const validateReceiptChecks = (checks: readonly CheckResult[]): void => {
   const names = new Set<string>();
@@ -45,13 +37,11 @@ const validateReceiptChecks = (checks: readonly CheckResult[]): void => {
 
 export const createReceipt = (receipt: EvidenceReceipt): EvidenceReceipt => {
   if (
-    !receipt.matrixFingerprint.trim() ||
-    !receipt.sourceFingerprint.trim() ||
-    !receipt.state.trim()
+    !receipt.matrixFingerprint.trim()
+    || !receipt.sourceFingerprint.trim()
+    || !receipt.state.trim()
   ) {
-    throw new Error(
-      'Receipt matrix fingerprint, source fingerprint, and state are required.',
-    );
+    throw new Error('Receipt matrix fingerprint, source fingerprint, and state are required.');
   }
   if (receipt.checks.length === 0) {
     throw new Error('Receipt requires at least one check.');

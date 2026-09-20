@@ -4,16 +4,11 @@ import { failed, normalizePaths, passed } from '../../utils/contracts.js';
 
 describe('contracts', () => {
   test('normalizes, deduplicates, and preserves supplied path order', () => {
-    expect(normalizePaths([' /one ', '/two', '/one', ''])).toEqual([
-      '/one',
-      '/two',
-    ]);
+    expect(normalizePaths([' /one ', '/two', '/one', ''])).toEqual(['/one', '/two']);
   });
 
   test('rejects an empty normalized path list', () => {
-    expect(() => normalizePaths(['', ' '])).toThrow(
-      'At least one path is required.',
-    );
+    expect(() => normalizePaths(['', ' '])).toThrow('At least one path is required.');
   });
 
   test('creates passed and failed check results', () => {

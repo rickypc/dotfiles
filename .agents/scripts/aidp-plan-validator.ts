@@ -1,10 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
 import matter from 'gray-matter';
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 
 export interface AidpPlanValidationReceipt {
   readonly headings: readonly string[];
@@ -74,11 +71,7 @@ const itemLines = (section: string): readonly string[] =>
     .map((line) => line.trim())
     .filter((line) => /^[-*+]\s+|^\d+[.)]\s+|^\|[^|]/u.test(line));
 
-const nonEmptyString = (
-  value: unknown,
-  label: string,
-  issues: string[],
-): string => {
+const nonEmptyString = (value: unknown, label: string, issues: string[]): string => {
   if (typeof value !== 'string' || !value.trim()) {
     issues.push(`${label} must be a non-empty string.`);
     return '';
@@ -109,9 +102,7 @@ const requireTerms = (
   issues: string[],
 ): void => {
   for (const group of alternatives) {
-    if (
-      !group.some((term) => new RegExp(`\\b${term}\\b`, 'iu').test(section))
-    ) {
+    if (!group.some((term) => new RegExp(`\\b${term}\\b`, 'iu').test(section))) {
       issues.push(`${heading} must state ${group.join(' or ')}.`);
     }
   }
@@ -164,11 +155,7 @@ const sectionText = (body: string, heading: string, index: number): string => {
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>';
 
-const validateH1MatchesTitle = (
-  body: string,
-  title: string,
-  issues: string[],
-): void => {
+const validateH1MatchesTitle = (body: string, title: string, issues: string[]): void => {
   const h1Matches = [...body.matchAll(/^# (.+)$/gmu)];
   if (h1Matches.length === 0) {
     issues.push(
@@ -177,9 +164,7 @@ const validateH1MatchesTitle = (
     return;
   }
   if (h1Matches.length > 1) {
-    issues.push(
-      `Plan body must contain exactly one H1; found ${h1Matches.length}.`,
-    );
+    issues.push(`Plan body must contain exactly one H1; found ${h1Matches.length}.`);
     return;
   }
   const h1Text = h1Matches[0][1].trim();
@@ -190,11 +175,7 @@ const validateH1MatchesTitle = (
   }
 };
 
-const validatePlanPath = (
-  planPath: string,
-  expectedIndex: string,
-  issues: string[],
-): void => {
+const validatePlanPath = (planPath: string, expectedIndex: string, issues: string[]): void => {
   const canonical = resolve(planPath);
   const marker = '/.agents/plans/';
   const markerIndex = canonical.lastIndexOf(marker);
@@ -213,21 +194,12 @@ const validatePlanPath = (
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(expectedIndex)) {
     issues.push('repo_search_index must be one safe path segment.');
   }
-  if (
-    basename(canonical) !== route.at(-1) ||
-    dirname(canonical).endsWith('/.agents/plans')
-  ) {
-    issues.push(
-      'Plan path must identify one named plan file inside its index directory.',
-    );
+  if (basename(canonical) !== route.at(-1) || dirname(canonical).endsWith('/.agents/plans')) {
+    issues.push('Plan path must identify one named plan file inside its index directory.');
   }
 };
 
-const validateWorkflowStep = (
-  step: string,
-  index: number,
-  issues: string[],
-): void => {
+const validateWorkflowStep = (step: string, index: number, issues: string[]): void => {
   requireTerms(
     step,
     `CHRONOLOGICAL WORKFLOW step ${index + 1}`,
@@ -259,19 +231,14 @@ const validateSections = (body: string, issues: string[]) => {
   const headings = [...body.matchAll(/^## (\d+)\. (.+)$/gmu)].map(
     (match) => `${match[1]}. ${match[2]}`,
   );
-  const expectedHeadings = AIDP_PLAN_HEADINGS.map(
-    (heading, index) => `${index + 1}. ${heading}`,
-  );
+  const expectedHeadings = AIDP_PLAN_HEADINGS.map((heading, index) => `${index + 1}. ${heading}`);
   if (headings.join('\n') !== expectedHeadings.join('\n')) {
     issues.push(
       'Plan must contain exactly the six AIDP H2 headings in order: ## 1. TARGET DIRECTIVES through ## 6. RIGID OUTPUT SCHEMA.',
     );
   }
   const sections = Object.fromEntries(
-    AIDP_PLAN_HEADINGS.map((heading, index) => [
-      heading,
-      sectionText(body, heading, index),
-    ]),
+    AIDP_PLAN_HEADINGS.map((heading, index) => [heading, sectionText(body, heading, index)]),
   );
   const target = requireSection(sections, AIDP_PLAN_HEADINGS[0], issues);
   const variables = requireSection(sections, AIDP_PLAN_HEADINGS[1], issues);
@@ -283,25 +250,13 @@ const validateSections = (body: string, issues: string[]) => {
   requireTerms(
     target,
     AIDP_PLAN_HEADINGS[0],
-    [
-      ['objective'],
-      ['scope'],
-      ['exclude', 'exclusion', 'exclusions'],
-      ['owner'],
-    ],
+    [['objective'], ['scope'], ['exclude', 'exclusion', 'exclusions'], ['owner']],
     issues,
   );
   if (itemLines(variables).length < 1) {
-    issues.push(
-      'VARIABLE DEFINITION MATRIX must contain at least one item or table row.',
-    );
+    issues.push('VARIABLE DEFINITION MATRIX must contain at least one item or table row.');
   }
-  requireTerms(
-    variables,
-    AIDP_PLAN_HEADINGS[1],
-    [['type'], ['required', 'optional']],
-    issues,
-  );
+  requireTerms(variables, AIDP_PLAN_HEADINGS[1], [['type'], ['required', 'optional']], issues);
   const workflowItems = itemLines(workflow);
   if (workflowItems.length === 0) {
     issues.push('CHRONOLOGICAL WORKFLOW must contain numbered steps.');
@@ -317,9 +272,7 @@ const validateSections = (body: string, issues: string[]) => {
     issues,
   );
   if (itemLines(verification).length < 1) {
-    issues.push(
-      'SYSTEMATIC VERIFICATION CHECKLIST must contain at least one check.',
-    );
+    issues.push('SYSTEMATIC VERIFICATION CHECKLIST must contain at least one check.');
   }
   requireTerms(
     verification,
@@ -336,13 +289,7 @@ const validateSections = (body: string, issues: string[]) => {
   requireTerms(
     output,
     AIDP_PLAN_HEADINGS[5],
-    [
-      ['label', 'labels'],
-      ['order'],
-      ['delimiter', 'format'],
-      ['required'],
-      ['omit', 'omission'],
-    ],
+    [['label', 'labels'], ['order'], ['delimiter', 'format'], ['required'], ['omit', 'omission']],
     issues,
   );
   return { headings, sections };
@@ -354,10 +301,7 @@ const validDate = (value: string, label: string, issues: string[]): void => {
     return;
   }
   const date = new Date(`${value}T00:00:00Z`);
-  if (
-    Number.isNaN(date.valueOf()) ||
-    date.toISOString().slice(0, 10) !== value
-  ) {
+  if (Number.isNaN(date.valueOf()) || date.toISOString().slice(0, 10) !== value) {
     issues.push(`${label} must be a real calendar date.`);
   }
 };
@@ -370,19 +314,13 @@ const validateFrontmatter = (
   const metadata = parsed.data as Record<string, unknown>;
   const keys = Object.keys(metadata);
   if (
-    keys.length !== REQUIRED_FRONTMATTER.length ||
-    REQUIRED_FRONTMATTER.some((field) => !keys.includes(field))
+    keys.length !== REQUIRED_FRONTMATTER.length
+    || REQUIRED_FRONTMATTER.some((field) => !keys.includes(field))
   ) {
-    issues.push(
-      `Frontmatter must contain exactly: ${REQUIRED_FRONTMATTER.join(', ')}.`,
-    );
+    issues.push(`Frontmatter must contain exactly: ${REQUIRED_FRONTMATTER.join(', ')}.`);
   }
   const title = nonEmptyString(metadata.title, 'title', issues);
-  const repoSearchIndex = nonEmptyString(
-    metadata.repo_search_index,
-    'repo_search_index',
-    issues,
-  );
+  const repoSearchIndex = nonEmptyString(metadata.repo_search_index, 'repo_search_index', issues);
   const createdAt = nonEmptyString(metadata.created_at, 'created_at', issues);
   const updatedAt = nonEmptyString(metadata.updated_at, 'updated_at', issues);
   const status = nonEmptyString(metadata.status, 'status', issues);
@@ -392,13 +330,8 @@ const validateFrontmatter = (
   if (updatedAt) {
     validDate(updatedAt, 'updated_at', issues);
   }
-  if (
-    status &&
-    !/^(?:draft|pending|blocked|in-progress|completed?)$/iu.test(status)
-  ) {
-    issues.push(
-      'status must be draft, pending, blocked, in-progress, complete, or completed.',
-    );
+  if (status && !/^(?:draft|pending|blocked|in-progress|completed?)$/iu.test(status)) {
+    issues.push('status must be draft, pending, blocked, in-progress, complete, or completed.');
   }
   if (title && PLACEHOLDER.test(title)) {
     issues.push('title contains an unresolved placeholder.');
@@ -409,10 +342,7 @@ const validateFrontmatter = (
   return { repoSearchIndex, title };
 };
 
-export const validateAidpPlan = (
-  content: string,
-  planPath?: string,
-): AidpPlanValidationReceipt => {
+export const validateAidpPlan = (content: string, planPath?: string): AidpPlanValidationReceipt => {
   const issues: string[] = [];
   let parsed: ReturnType<typeof matter>;
   try {
@@ -421,15 +351,8 @@ export const validateAidpPlan = (
     throw new AidpPlanValidationError(['Plan frontmatter must be valid YAML.']);
   }
 
-  const { repoSearchIndex, title } = validateFrontmatter(
-    parsed,
-    planPath,
-    issues,
-  );
-  const { headings, sections } = validateSections(
-    parsed.content.trim(),
-    issues,
-  );
+  const { repoSearchIndex, title } = validateFrontmatter(parsed, planPath, issues);
+  const { headings, sections } = validateSections(parsed.content.trim(), issues);
   validateH1MatchesTitle(parsed.content.trim(), title, issues);
   scanForUnflaggedAssumptions(sections, issues);
 

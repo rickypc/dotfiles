@@ -47,9 +47,7 @@ test('creates a matrix-definition packet from the draft state', () => {
     targetSkillPath: '/skills/example',
   });
   expect(packet.nextPhase).toBe('baseline');
-  expect(packet.requiredActionGroups[0]?.requiredAssertionIds).toEqual([
-    'matrix-definition',
-  ]);
+  expect(packet.requiredActionGroups[0]?.requiredAssertionIds).toEqual(['matrix-definition']);
 });
 
 test('requires failed assertions and rejects a state without an action', () => {
@@ -190,9 +188,9 @@ test('returns one targeted repair packet and suppresses challenges when a candid
     },
   ]);
   expect(results.results[0]?.challenge).toBeUndefined();
-  expect(
-    results.results[0]?.repair?.requiredActionGroups[0]?.requiredAssertionIds,
-  ).toEqual(['candidate']);
+  expect(results.results[0]?.repair?.requiredActionGroups[0]?.requiredAssertionIds).toEqual([
+    'candidate',
+  ]);
 });
 
 test('records baseline receipts without issuing a challenge or repair packet', () => {
@@ -259,21 +257,15 @@ test('scaffolds a new skill without overwriting an existing skill', async () => 
   expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain(
     'description: "Handle example work."',
   );
-  expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain(
-    '## 1. Role & Scope',
+  expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain('## 1. Role & Scope');
+  await expect(initializeSkill(fileSystem, 'relative-skill', 'A description.')).rejects.toThrow(
+    'must be absolute',
+  );
+  await expect(initializeSkill(fileSystem, '/tmp/skills/empty-description', '  ')).rejects.toThrow(
+    'must be absolute',
   );
   await expect(
-    initializeSkill(fileSystem, 'relative-skill', 'A description.'),
-  ).rejects.toThrow('must be absolute');
-  await expect(
-    initializeSkill(fileSystem, '/tmp/skills/empty-description', '  '),
-  ).rejects.toThrow('must be absolute');
-  await expect(
-    initializeSkill(
-      fileSystem,
-      '/tmp/skills/example-skill',
-      'A replacement description.',
-    ),
+    initializeSkill(fileSystem, '/tmp/skills/example-skill', 'A replacement description.'),
   ).rejects.toThrow('Skill already exists');
 });
 
@@ -292,20 +284,16 @@ test('validates skill frontmatter, name, description, and instructions', async (
       ].join('\n'),
     ),
   };
-  await expect(
-    validateSkill(fileSystem, '/tmp/skills/example-skill'),
-  ).resolves.toEqual({
+  await expect(validateSkill(fileSystem, '/tmp/skills/example-skill')).resolves.toEqual({
     description: 'Handle example work.',
     name: 'example-skill',
     path: '/tmp/skills/example-skill',
     status: 'valid',
   });
-  await expect(
-    validateSkill(fileSystem, '/tmp/skills/ExampleSkill'),
-  ).rejects.toThrow('lowercase letters');
-  await expect(validateSkill(fileSystem, 'relative-skill')).rejects.toThrow(
-    'must be absolute',
+  await expect(validateSkill(fileSystem, '/tmp/skills/ExampleSkill')).rejects.toThrow(
+    'lowercase letters',
   );
+  await expect(validateSkill(fileSystem, 'relative-skill')).rejects.toThrow('must be absolute');
   await expect(
     validateSkill(
       { readFile: mock(async () => '# Missing frontmatter') },
@@ -343,9 +331,7 @@ test('validates skill frontmatter, name, description, and instructions', async (
 
 test('rejects malformed rubric contracts and unauthorized matrix verifiers', async () => {
   expect(() =>
-    parseSkillRubric(
-      validRubric.replace('schemaVersion: 1', 'schemaVersion: 2'),
-    ),
+    parseSkillRubric(validRubric.replace('schemaVersion: 1', 'schemaVersion: 2')),
   ).toThrow('schemaVersion 1');
   expect(() =>
     parseSkillRubric(
@@ -397,16 +383,9 @@ test('validates every skill matrix, rubric, and prose link under one skills root
   const files = new Map<string, string>([
     [
       '/tmp/.agents/skills/demo/SKILL.md',
-      [
-        '---',
-        'name: demo',
-        'description: Demo skill.',
-        '---',
-        '',
-        '# Demo',
-        '',
-        'contract',
-      ].join('\n'),
+      ['---', 'name: demo', 'description: Demo skill.', '---', '', '# Demo', '', 'contract'].join(
+        '\n',
+      ),
     ],
     ['/tmp/.agents/skills/demo/evals/cases.jsonl', matrix],
     ['/tmp/.agents/skills/demo/evals/rubric.md', validRubric],
@@ -430,9 +409,7 @@ test('validates every skill matrix, rubric, and prose link under one skills root
       return content;
     },
   };
-  await expect(
-    validateAllSkills(fileSystem, '/tmp/.agents/skills'),
-  ).resolves.toEqual(
+  await expect(validateAllSkills(fileSystem, '/tmp/.agents/skills')).resolves.toEqual(
     expect.objectContaining({
       matrixCount: 1,
       skillCount: 1,
@@ -468,30 +445,18 @@ const matrixRowFor = (visibility: 'candidate' | 'challenge'): string =>
     visibility,
   });
 
-const fullSkillMatrix = [
-  matrixRowFor('candidate'),
-  matrixRowFor('challenge'),
-].join('\n');
+const fullSkillMatrix = [matrixRowFor('candidate'), matrixRowFor('challenge')].join('\n');
 
 const allSkillsFileSystemFor = (options: AllSkillsFixtureOptions = {}) => {
   const evalFiles = options.evalFiles ?? ['cases.jsonl', 'rubric.md'];
   const skills = options.skills ?? ['demo'];
   const files = new Map<string, string>([
     ['/tmp/.agents/skills/demo/SKILL.md', options.source ?? demoSkillSource],
-    [
-      '/tmp/.agents/skills/demo/evals/cases.jsonl',
-      options.matrix ?? fullSkillMatrix,
-    ],
-    [
-      '/tmp/.agents/skills/demo/evals/other.jsonl',
-      options.matrix ?? fullSkillMatrix,
-    ],
+    ['/tmp/.agents/skills/demo/evals/cases.jsonl', options.matrix ?? fullSkillMatrix],
+    ['/tmp/.agents/skills/demo/evals/other.jsonl', options.matrix ?? fullSkillMatrix],
   ]);
   if (options.rubric !== null) {
-    files.set(
-      '/tmp/.agents/skills/demo/evals/rubric.md',
-      options.rubric ?? validRubric,
-    );
+    files.set('/tmp/.agents/skills/demo/evals/rubric.md', options.rubric ?? validRubric);
   }
   const directories: Record<string, readonly string[]> = {
     '/tmp/.agents/skills': skills,
@@ -516,10 +481,7 @@ const allSkillsFileSystemFor = (options: AllSkillsFixtureOptions = {}) => {
 
 test('reports every deterministic all-skill validation boundary', async () => {
   await expect(
-    validateAllSkills(
-      allSkillsFileSystemFor({ evalFiles: [] }),
-      '/tmp/.agents/skills',
-    ),
+    validateAllSkills(allSkillsFileSystemFor({ evalFiles: [] }), '/tmp/.agents/skills'),
   ).rejects.toThrow('no evaluation matrix');
   await expect(
     validateAllSkills(
@@ -562,19 +524,13 @@ test('reports every deterministic all-skill validation boundary', async () => {
     ),
   ).rejects.toThrow('Skill prose review failed');
   await expect(
-    validateAllSkills(
-      allSkillsFileSystemFor({ skills: [] }),
-      '/tmp/.agents/skills',
-    ),
+    validateAllSkills(allSkillsFileSystemFor({ skills: [] }), '/tmp/.agents/skills'),
   ).rejects.toThrow('No skills found');
+  await expect(validateAllSkills(allSkillsFileSystemFor(), 'relative-skills')).rejects.toThrow(
+    'absolute skills root',
+  );
   await expect(
-    validateAllSkills(allSkillsFileSystemFor(), 'relative-skills'),
-  ).rejects.toThrow('absolute skills root');
-  await expect(
-    validateAllSkills(
-      { readFile: async () => demoSkillSource },
-      '/tmp/.agents/skills',
-    ),
+    validateAllSkills({ readFile: async () => demoSkillSource }, '/tmp/.agents/skills'),
   ).rejects.toThrow('absolute skills root and directory listing');
   let directoryReads = 0;
   await expect(
@@ -633,20 +589,11 @@ test('parses prose-only local links and honors the runtime ignore boundary', asy
   ]);
   const skillSource = files['/tmp/.agents/skills/demo/SKILL.md'] ?? '';
   const gitignore = files['/tmp/.agents/.gitignore'] ?? '';
-  expect(localMarkdownLinkTargets(skillSource)).toEqual([
-    './guide.md',
-    '../../outside.md',
-  ]);
+  expect(localMarkdownLinkTargets(skillSource)).toEqual(['./guide.md', '../../outside.md']);
   expect(
-    ignoredByAgentsGitignore(
-      '/tmp/.agents',
-      '/tmp/.agents/skills/aidx/sessions',
-      gitignore,
-    ),
+    ignoredByAgentsGitignore('/tmp/.agents', '/tmp/.agents/skills/aidx/sessions', gitignore),
   ).toBe(true);
-  expect(receipt.prosePaths).not.toContain(
-    '/tmp/.agents/skills/aidx/sessions/goal.md',
-  );
+  expect(receipt.prosePaths).not.toContain('/tmp/.agents/skills/aidx/sessions/goal.md');
   expect(receipt.checkedLocalLinkTargets).toBe(2);
   expect(receipt.findings).toEqual([
     {
@@ -686,10 +633,7 @@ test('reports missing reference links and rejects invalid prose-review roots', a
       return content;
     },
   };
-  const receipt = await reviewSkillProse(fileSystem, [
-    '/tmp/.agents/skills/demo',
-    '/tmp/project',
-  ]);
+  const receipt = await reviewSkillProse(fileSystem, ['/tmp/.agents/skills/demo', '/tmp/project']);
   expect(receipt.checkedLocalLinkTargets).toBe(2);
   expect(receipt.findings).toEqual([
     {
@@ -703,13 +647,9 @@ test('reports missing reference links and rejects invalid prose-review roots', a
       targetPath: '/tmp/.agents/skills/demo/missing.md',
     },
   ]);
-  await expect(reviewSkillProse(fileSystem, [])).rejects.toThrow(
-    'at least one absolute root',
-  );
+  await expect(reviewSkillProse(fileSystem, [])).rejects.toThrow('at least one absolute root');
   await expect(
-    reviewSkillProse({ readFile: fileSystem.readFile }, [
-      '/tmp/.agents/skills/demo',
-    ]),
+    reviewSkillProse({ readFile: fileSystem.readFile }, ['/tmp/.agents/skills/demo']),
   ).rejects.toThrow('directory listing support');
 });
 
@@ -723,7 +663,7 @@ test('skips directory entries whose names have non-prose extensions', async () =
     },
     readFile: async () => '# ignored',
   };
-  await expect(
-    reviewSkillProse(fileSystem, ['/tmp/.agents/skills/demo']),
-  ).resolves.toMatchObject({ prosePaths: [] });
+  await expect(reviewSkillProse(fileSystem, ['/tmp/.agents/skills/demo'])).resolves.toMatchObject({
+    prosePaths: [],
+  });
 });

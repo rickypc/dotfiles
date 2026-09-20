@@ -9,13 +9,11 @@ const validateBunTestSource = mock((source: string) => {
     throw new Error('bun:test');
   }
 });
-const validateExternalDependencyMocks = mock(
-  (sutSource: string, testSource: string) => {
-    if (!sutSource || !testSource) {
-      throw new Error('sutSource and testSource');
-    }
-  },
-);
+const validateExternalDependencyMocks = mock((sutSource: string, testSource: string) => {
+  if (!sutSource || !testSource) {
+    throw new Error('sutSource and testSource');
+  }
+});
 
 mock.module('../scripts/bun-test-generator.js', () => ({
   canonicalTestPathFor,
@@ -37,21 +35,13 @@ mock.module('../utils/cli.js', () => ({
   },
 }));
 
-const { run, runWhenMain, usage } = await import(
-  '../../scripts/bun-test-generator.js'
-);
+const { run, runWhenMain, usage } = await import('../../scripts/bun-test-generator.js');
 
 test('renders canonical test paths and validates Bun test sources', () => {
   const write = mock();
   run(['test-path', '/repo', '/repo/source.ts'], write);
   run(['canonical-path', '/repo/source.ts', '/repo/package.json'], write);
-  run(
-    [
-      'validate-source',
-      'import { test } from "bun:test"; test("x", () => {});',
-    ],
-    write,
-  );
+  run(['validate-source', 'import { test } from "bun:test"; test("x", () => {});'], write);
   run(
     [
       'validate-boundaries',
@@ -79,10 +69,7 @@ test('renders canonical test paths and validates Bun test sources', () => {
     write,
   );
   run(
-    [
-      'convert-jest',
-      "import { jest, test } from '@jest/globals'; test('x', () => jest.fn());",
-    ],
+    ['convert-jest', "import { jest, test } from '@jest/globals'; test('x', () => jest.fn());"],
     write,
   );
   expect(write.mock.calls).toEqual([

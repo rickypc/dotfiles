@@ -22,10 +22,7 @@ const frontmatter = (intent: WorkflowIntent): string =>
     })
     .trimEnd();
 
-const integerMetadata = (
-  data: Record<string, unknown>,
-  name: string,
-): number => {
+const integerMetadata = (data: Record<string, unknown>, name: string): number => {
   const value = data[name];
   if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
     throw new Error('Intent frontmatter is invalid.');
@@ -36,10 +33,7 @@ const integerMetadata = (
 export const renderIntent = (intent: WorkflowIntent): string =>
   `${frontmatter(intent)}\n\n# ${intent.intentId}\n`;
 
-const stringMetadata = (
-  data: Record<string, unknown>,
-  name: string,
-): string => {
+const stringMetadata = (data: Record<string, unknown>, name: string): string => {
   const value = data[name];
   if (typeof value !== 'string' || !value.trim()) {
     throw new Error('Intent frontmatter is invalid.');

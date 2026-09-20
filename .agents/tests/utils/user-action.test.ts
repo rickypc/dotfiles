@@ -1,9 +1,6 @@
 import { expect, test } from 'bun:test';
 
-import {
-  renderBrowserVerificationAction,
-  renderUserAction,
-} from '../support/user-action.js';
+import { renderBrowserVerificationAction, renderUserAction } from '../support/user-action.js';
 
 test('renders the standard user-action protocol', () => {
   expect(
@@ -27,10 +24,8 @@ test('renders an exact file URL for browser verification', () => {
       'The total is shown.',
     ),
   ).toContain('file:///tmp/browser%20fixture/index.html');
-  expect(() =>
-    renderBrowserVerificationAction('relative/index.html', 'open', 'shown'),
-  ).toThrow('absolute');
-  expect(() =>
-    renderBrowserVerificationAction('/tmp/page.txt', 'open', 'shown'),
-  ).toThrow('HTML');
+  expect(() => renderBrowserVerificationAction('relative/index.html', 'open', 'shown')).toThrow(
+    'absolute',
+  );
+  expect(() => renderBrowserVerificationAction('/tmp/page.txt', 'open', 'shown')).toThrow('HTML');
 });

@@ -14,19 +14,9 @@ export interface FileSystem {
     path: string,
     options: { readonly withFileTypes: true },
   ) => Promise<readonly DirectoryEntry[]>;
-  readonly readFile: (
-    path: string,
-    encoding: BufferEncoding,
-  ) => Promise<string>;
-  readonly rm: (
-    path: string,
-    options: { readonly force: true },
-  ) => Promise<void>;
-  readonly writeFile: (
-    path: string,
-    content: string,
-    encoding: BufferEncoding,
-  ) => Promise<void>;
+  readonly readFile: (path: string, encoding: BufferEncoding) => Promise<string>;
+  readonly rm: (path: string, options: { readonly force: true }) => Promise<void>;
+  readonly writeFile: (path: string, content: string, encoding: BufferEncoding) => Promise<void>;
 }
 
 export interface NodeFileSystemOperations {
@@ -37,9 +27,7 @@ export interface NodeFileSystemOperations {
   readonly writeFile: FileSystem['writeFile'];
 }
 
-export const createNodeFileSystem = (
-  operations: NodeFileSystemOperations,
-): FileSystem => ({
+export const createNodeFileSystem = (operations: NodeFileSystemOperations): FileSystem => ({
   mkdir: operations.mkdir,
   readdir: operations.readDirectory,
   readFile: operations.readFile,
@@ -66,15 +54,10 @@ export const parentDirectory = (path: string): string => {
   return path.slice(0, separator);
 };
 
-export const readText = async (
-  fileSystem: FileSystem,
-  path: string,
-): Promise<string> => fileSystem.readFile(path, 'utf8');
+export const readText = async (fileSystem: FileSystem, path: string): Promise<string> =>
+  fileSystem.readFile(path, 'utf8');
 
-export const removeFile = async (
-  fileSystem: FileSystem,
-  path: string,
-): Promise<void> => {
+export const removeFile = async (fileSystem: FileSystem, path: string): Promise<void> => {
   await fileSystem.rm(path, { force: true });
 };
 

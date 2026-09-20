@@ -27,9 +27,7 @@ export const failed = (name: string, detail: string): CheckResult => ({
 });
 
 export const normalizePaths = (paths: readonly string[]): string[] => {
-  const normalized = [
-    ...new Set(paths.map((path) => path.trim()).filter(Boolean)),
-  ];
+  const normalized = [...new Set(paths.map((path) => path.trim()).filter(Boolean))];
   if (normalized.length === 0) {
     throw new Error('At least one path is required.');
   }

@@ -1,7 +1,4 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import { normalizePaths } from '../utils/contracts.js';
 import {
   declarationOrderDetail,
@@ -11,9 +8,7 @@ import {
 } from '../utils/declaration-order.js';
 
 interface DeclarationOrderScriptCheck {
-  readonly actionPacket: NonNullable<
-    ReturnType<typeof inspectDeclarationOrder>['packet']
-  > | null;
+  readonly actionPacket: NonNullable<ReturnType<typeof inspectDeclarationOrder>['packet']> | null;
   readonly detail: string;
   readonly path: string;
   readonly status: 'blocked' | 'failed' | 'passed';
@@ -79,9 +74,7 @@ export const run = async (
     throw new Error('Declaration ordering requires the emitted action packet.');
   }
   if (nonPassing.some((check) => check.status === 'blocked')) {
-    throw new Error(
-      'Declaration ordering is blocked by the reported dependency.',
-    );
+    throw new Error('Declaration ordering is blocked by the reported dependency.');
   }
 };
 

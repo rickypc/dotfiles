@@ -9,9 +9,7 @@ export type BunSpawner = (options: {
 }) => SpawnedProcess;
 
 export type CommandExecutor = (spec: CommandSpec) => Promise<CommandResult>;
-type ReaderResult = Awaited<
-  ReturnType<ReadableStreamDefaultReader<Uint8Array>['read']>
->;
+type ReaderResult = Awaited<ReturnType<ReadableStreamDefaultReader<Uint8Array>['read']>>;
 
 export interface SpawnedProcess {
   readonly exited: Promise<number>;
@@ -31,10 +29,7 @@ const readAfterExit = async (
     return await Promise.race([
       reader.read(),
       new Promise<undefined>((resolve) => {
-        timeout = setTimeout(
-          () => resolve(undefined),
-          POST_EXIT_STREAM_TIMEOUT_MS,
-        );
+        timeout = setTimeout(() => resolve(undefined), POST_EXIT_STREAM_TIMEOUT_MS);
       }),
     ]);
   } finally {
@@ -44,9 +39,7 @@ const readAfterExit = async (
   }
 };
 
-const decodeAfterExit = async (
-  stream: ReadableStream<Uint8Array> | null,
-): Promise<string> => {
+const decodeAfterExit = async (stream: ReadableStream<Uint8Array> | null): Promise<string> => {
   if (stream === null) {
     return '';
   }
@@ -119,14 +112,9 @@ export const createBunExecutor =
     }
   };
 
-export const bunExecutor = createBunExecutor(
-  Bun.spawn as unknown as BunSpawner,
-);
+export const bunExecutor = createBunExecutor(Bun.spawn as unknown as BunSpawner);
 
-export const requireSuccess = (
-  spec: CommandSpec,
-  result: CommandResult,
-): CommandResult => {
+export const requireSuccess = (spec: CommandSpec, result: CommandResult): CommandResult => {
   if (result.code !== 0) {
     const rendered = [result.stdout, result.stderr].filter(Boolean).join('\n');
     throw new Error(

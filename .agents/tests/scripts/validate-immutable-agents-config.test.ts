@@ -11,14 +11,12 @@ const checkImmutableAgentsConfig = mock(
     const result = await executor({});
     return result.stdout
       ? {
-          detail:
-            'Protected .agents configuration has worktree changes. Stop and ask the user.',
+          detail: 'Protected .agents configuration has worktree changes. Stop and ask the user.',
           paths: ['.agents/biome.jsonc'],
           status: 'failed' as const,
         }
       : {
-          detail:
-            'immutable-agents-config: passed — protected files match the Git index.',
+          detail: 'immutable-agents-config: passed — protected files match the Git index.',
           paths: [],
           status: 'passed' as const,
         };
@@ -63,9 +61,7 @@ test('throws before the final gate can continue on a worktree mutation', async (
     stderr: '',
     stdout: ' M .agents/biome.jsonc\n',
   }));
-  await expect(run([], executor, '/agents', write)).rejects.toThrow(
-    'stop and ask the user',
-  );
+  await expect(run([], executor, '/agents', write)).rejects.toThrow('stop and ask the user');
   expect(write).toHaveBeenCalledWith(expect.stringContaining('Protected'));
 });
 

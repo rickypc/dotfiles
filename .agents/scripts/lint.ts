@@ -1,7 +1,4 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import type { CommandResult, CommandSpec } from '../utils/contracts.js';
 import { checkImmutableAgentsConfig } from '../utils/immutable-agents-config.js';
 import type { CommandExecutor } from '../utils/process.js';
@@ -58,10 +55,7 @@ export const runLintCommands = async (
 export const usage = (): string => 'Usage: bun <agents-root>/scripts/lint.ts';
 
 export const processExit = {
-  setExitCode: (
-    code: number,
-    target: { exitCode?: number | string | null } = process,
-  ): void => {
+  setExitCode: (code: number, target: { exitCode?: number | string | null } = process): void => {
     target.exitCode = code;
   },
 };
@@ -86,10 +80,7 @@ export const run = async (
   if (args.length !== 0) {
     throw new Error(usage());
   }
-  const immutableConfigReceipt = await checkImmutableAgentsConfig(
-    executor,
-    agentsRoot,
-  );
+  const immutableConfigReceipt = await checkImmutableAgentsConfig(executor, agentsRoot);
   if (immutableConfigReceipt.status === 'failed') {
     throw new Error(immutableConfigReceipt.detail);
   }

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import {
   type FileSystem,
   nodeFileSystem,
@@ -43,11 +44,7 @@ export interface RemovalAuthorization {
 }
 
 export interface RemovalDeclaration {
-  readonly basis:
-    | 'duplicate'
-    | 'false-positive'
-    | 'superseded-contract'
-    | 'user-request';
+  readonly basis: 'duplicate' | 'false-positive' | 'superseded-contract' | 'user-request';
   readonly justification: string;
   readonly token: string;
 }
@@ -64,12 +61,14 @@ export const assertCompressiblePath = (sourcePath: string): void => {
   }
 };
 
-export const backupPathFor = (
-  backupRoot: string,
-  sourcePath: string,
-  digest: Digest,
-): string =>
+export const backupPathFor = (backupRoot: string, sourcePath: string, digest: Digest): string =>
   `${backupRoot}/${digest.sha256(sourcePath)}/${sourcePath.split('/').at(-1)}.original`;
+
+export const clockFor = (now: () => number): Clock => ({ now });
+
+export const digestFor = (hash: HashFactory): Digest => ({
+  sha256: (value) => hash('sha256').update(value).digest('hex'),
+});
 
 export const lockPathFor = (backupPath: string): string => `${backupPath}.lock`;
 
@@ -86,8 +85,7 @@ export const guardCompression = async (
   return { backupPath, lockPath: lockPathFor(backupPath), original };
 };
 
-const protectedTokens = (content: string): string[] =>
-  content.match(markdownTokens) ?? [];
+const protectedTokens = (content: string): string[] => content.match(markdownTokens) ?? [];
 
 export const resumeCompressionGuard = async (
   fileSystem: FileSystem,
@@ -103,6 +101,9 @@ export const resumeCompressionGuard = async (
     original: await readText(fileSystem, backupPath),
   };
 };
+
+const temporaryBackupRootFor = (temporaryRoot: string): string =>
+  join(temporaryRoot, 'md-compress');
 
 const timestampFrom = (content: string): number => Number(content.trim());
 
@@ -121,10 +122,7 @@ export const claimCompressionLock = async (
       throw new Error(`Compression is already in progress: ${guard.lockPath}`);
     }
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.startsWith('Compression is already')
-    ) {
+    if (error instanceof Error && error.message.startsWith('Compression is already')) {
       throw error;
     }
   }
@@ -138,9 +136,7 @@ const validateRemovalAuthorization = (
   authorization: RemovalAuthorization,
 ): Set<string> => {
   if (authorization.sourcePath !== sourcePath) {
-    throw new Error(
-      `Removal authorization source mismatch: ${authorization.sourcePath}`,
-    );
+    throw new Error(`Removal authorization source mismatch: ${authorization.sourcePath}`);
   }
   const originalTokens = new Set(protectedTokens(original));
   const authorized = new Set<string>();
@@ -152,15 +148,15 @@ const validateRemovalAuthorization = (
   ]);
   for (const removal of authorization.removals) {
     if (
-      typeof removal.token !== 'string' ||
-      typeof removal.basis !== 'string' ||
-      !allowedBases.has(removal.basis as RemovalDeclaration['basis']) ||
-      typeof removal.justification !== 'string' ||
-      !removal.token ||
-      !originalTokens.has(removal.token) ||
-      candidate.includes(removal.token) ||
-      authorized.has(removal.token) ||
-      removal.justification.trim().length < 20
+      typeof removal.token !== 'string'
+      || typeof removal.basis !== 'string'
+      || !allowedBases.has(removal.basis as RemovalDeclaration['basis'])
+      || typeof removal.justification !== 'string'
+      || !removal.token
+      || !originalTokens.has(removal.token)
+      || candidate.includes(removal.token)
+      || authorized.has(removal.token)
+      || removal.justification.trim().length < 20
     ) {
       throw new Error(
         `Invalid removal authorization for protected Markdown token: ${removal.token}`,
@@ -178,18 +174,11 @@ export const validateCompression = (
   authorization?: RemovalAuthorization,
 ): void => {
   const lost = [
-    ...new Set(
-      protectedTokens(original).filter((token) => !candidate.includes(token)),
-    ),
+    ...new Set(protectedTokens(original).filter((token) => !candidate.includes(token))),
   ];
   if (lost.length === 0) {
     if (authorization && sourcePath) {
-      validateRemovalAuthorization(
-        original,
-        candidate,
-        sourcePath,
-        authorization,
-      );
+      validateRemovalAuthorization(original, candidate, sourcePath, authorization);
     }
     return;
   }
@@ -198,12 +187,7 @@ export const validateCompression = (
       `Compression lost protected Markdown tokens: ${lost.join(', ')}. Provide an explicit removal authorization manifest.`,
     );
   }
-  const authorized = validateRemovalAuthorization(
-    original,
-    candidate,
-    sourcePath,
-    authorization,
-  );
+  const authorized = validateRemovalAuthorization(original, candidate, sourcePath, authorization);
   const undeclared = lost.filter((token) => !authorized.has(token));
   if (undeclared.length > 0 || authorized.size !== lost.length) {
     throw new Error(
@@ -223,20 +207,6 @@ export const finalizeCompression = async (
   await removeFile(fileSystem, guard.backupPath);
   await removeFile(fileSystem, guard.lockPath);
 };
-
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
-
-export const clockFor = (now: () => number): Clock => ({ now });
-
-export const digestFor = (hash: HashFactory): Digest => ({
-  sha256: (value) => hash('sha256').update(value).digest('hex'),
-});
-
-const temporaryBackupRootFor = (temporaryRoot: string): string =>
-  join(temporaryRoot, 'md-compress');
 
 const sha256Digest = digestFor(createHash);
 const systemClock = clockFor(Date.now);
@@ -261,41 +231,32 @@ const removalAuthorizationFor = async (
   try {
     parsed = JSON.parse(await readText(fileSystem, authorizationPath));
   } catch {
-    throw new Error(
-      `Removal authorization must be valid JSON: ${authorizationPath}`,
-    );
+    throw new Error(`Removal authorization must be valid JSON: ${authorizationPath}`);
   }
   if (!parsed || typeof parsed !== 'object') {
     throw new Error('Removal authorization must be a JSON object.');
   }
   const authorization = parsed as Partial<RemovalAuthorization>;
   if (
-    typeof authorization.sourcePath !== 'string' ||
-    authorization.sourcePath !== sourcePath ||
-    !Array.isArray(authorization.removals) ||
-    authorization.removals.length === 0
+    typeof authorization.sourcePath !== 'string'
+    || authorization.sourcePath !== sourcePath
+    || !Array.isArray(authorization.removals)
+    || authorization.removals.length === 0
   ) {
-    throw new Error(
-      'Removal authorization must name the source path and one or more removals.',
-    );
+    throw new Error('Removal authorization must name the source path and one or more removals.');
   }
   return authorization as RemovalAuthorization;
 };
 
 const sourcePathFor = (args: readonly string[]): string | undefined => {
   const [command, sourcePath, authorizationPath] = args;
-  if (
-    (command !== 'begin' && command !== 'finalize' && command !== 'guard') ||
-    !sourcePath
-  ) {
+  if ((command !== 'begin' && command !== 'finalize' && command !== 'guard') || !sourcePath) {
     return undefined;
   }
   if (command === 'begin') {
     return args.length === 2 ? sourcePath : undefined;
   }
-  return args.length === 2 || (args.length === 3 && authorizationPath)
-    ? sourcePath
-    : undefined;
+  return args.length === 2 || (args.length === 3 && authorizationPath) ? sourcePath : undefined;
 };
 
 export const usage = (): string =>
@@ -351,11 +312,7 @@ export async function run(
       sourcePath,
       resolvedDependencies.digest,
     );
-    await finalizeCompression(
-      resolvedDependencies.fileSystem,
-      sourcePath,
-      guard,
-    );
+    await finalizeCompression(resolvedDependencies.fileSystem, sourcePath, guard);
     write(
       JSON.stringify({
         next: { action: 'done', status: 'guarded' },
@@ -375,12 +332,7 @@ export async function run(
     args,
     sourcePath,
   );
-  await finalizeCompression(
-    resolvedDependencies.fileSystem,
-    sourcePath,
-    guard,
-    authorization,
-  );
+  await finalizeCompression(resolvedDependencies.fileSystem, sourcePath, guard, authorization);
   write(
     JSON.stringify({
       backupPath: guard.backupPath,

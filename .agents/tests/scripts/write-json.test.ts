@@ -40,17 +40,11 @@ const makeFileSystem = (): FileSystem => ({
   writeFile: async () => undefined,
 });
 
-const makeDependencies = (
-  writes: string[],
-): Parameters<typeof writeJson>[2] => ({
+const makeDependencies = (writes: string[]): Parameters<typeof writeJson>[2] => ({
   fileSystem: makeFileSystem(),
   pathApi,
   temporaryRoot: '/tmp',
-  writeText: async (
-    _fileSystem: FileSystem,
-    outputPath: string,
-    content: string,
-  ) => {
+  writeText: async (_fileSystem: FileSystem, outputPath: string, content: string) => {
     writes.push(`${outputPath}\n${content}`);
   },
 });
@@ -100,9 +94,9 @@ describe('writeJson', () => {
     await expect(writeJson('request.json', '{}', dependencies)).rejects.toThrow(
       'JSON output path must be absolute',
     );
-    await expect(
-      writeJson('/var/request.json', '{}', dependencies),
-    ).rejects.toThrow('inside the operating-system temporary directory');
+    await expect(writeJson('/var/request.json', '{}', dependencies)).rejects.toThrow(
+      'inside the operating-system temporary directory',
+    );
     expect(writes).toHaveLength(0);
   });
 
@@ -199,11 +193,7 @@ describe('writeJson CLI', () => {
     const { writeJson } = await import('../../scripts/write-json.js');
     // Test that paths within temp root are allowed
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/subdir/request.json',
-      '{"ok":true}',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/subdir/request.json', '{"ok":true}', makeDependencies(writes));
     expect(writes.length).toBe(1);
   });
 
@@ -247,11 +237,7 @@ describe('writeJson CLI', () => {
 describe('writeJson values', () => {
   test('writeJson handles nested objects', async () => {
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/nested.json',
-      '{"a":{"b":{"c":1}}}',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/nested.json', '{"a":{"b":{"c":1}}}', makeDependencies(writes));
     expect(writes[0]).toContain('"a":');
     expect(writes[0]).toContain('"b":');
     expect(writes[0]).toContain('"c": 1');
@@ -269,21 +255,13 @@ describe('writeJson primitive values', () => {
 
   test('writeJson handles null values', async () => {
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/null.json',
-      '{"value":null}',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/null.json', '{"value":null}', makeDependencies(writes));
     expect(writes[0]).toContain('null');
   });
 
   test('writeJson handles boolean values', async () => {
     const writes: string[] = [];
-    await writeJson(
-      '/tmp/bool.json',
-      '{"true":true,"false":false}',
-      makeDependencies(writes),
-    );
+    await writeJson('/tmp/bool.json', '{"true":true,"false":false}', makeDependencies(writes));
     expect(writes[0]).toContain('true');
     expect(writes[0]).toContain('false');
   });

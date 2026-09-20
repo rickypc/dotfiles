@@ -17,10 +17,7 @@ describe('process', () => {
 
   test.each([
     [{ code: 1, stderr: '', stdout: '' }, 'tool exited with code 1'],
-    [
-      { code: 2, stderr: 'bad', stdout: 'partial' },
-      'tool exited with code 2: partial\nbad',
-    ],
+    [{ code: 2, stderr: 'bad', stdout: 'partial' }, 'tool exited with code 2: partial\nbad'],
   ])('reports failed command output', (result, message) => {
     expect(() => requireSuccess(spec, result)).toThrow(message);
   });
@@ -58,9 +55,7 @@ describe('process', () => {
   ])(
     'runs a command through a mocked Bun spawn boundary',
     async (stderr, stdout, expectedStderr, cwd) => {
-      const toStream = (
-        value: string | null,
-      ): ReadableStream<Uint8Array> | null => {
+      const toStream = (value: string | null): ReadableStream<Uint8Array> | null => {
         if (value === null) {
           return null;
         }
@@ -122,9 +117,9 @@ describe('process', () => {
       stdout: null,
     });
 
-    await expect(
-      createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
-    ).rejects.toThrow('tool timed out after 1ms');
+    await expect(createBunExecutor(spawn)({ ...spec, timeoutMs: 1 })).rejects.toThrow(
+      'tool timed out after 1ms',
+    );
     expect(kill).toHaveBeenCalledWith(9);
   });
 });
@@ -184,9 +179,9 @@ describe('process cleanup', () => {
       stdout: null,
     });
 
-    await expect(
-      createBunExecutor(spawn)({ ...spec, timeoutMs: 1 }),
-    ).rejects.toThrow('tool timed out after 1ms');
+    await expect(createBunExecutor(spawn)({ ...spec, timeoutMs: 1 })).rejects.toThrow(
+      'tool timed out after 1ms',
+    );
     expect(kill).toHaveBeenCalledWith(9);
   });
 });

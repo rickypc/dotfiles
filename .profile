@@ -158,6 +158,10 @@ if [ -d $PERL_DIR ]; then
   export_to_path "$PERL_DIR/bin"
 fi
 
+if [ -d ~/Library/pnpm/bin ]; then
+  export_to_path ~/Library/pnpm/bin
+fi
+
 if [ -d "$PYTHON_USER_BASE/bin" ]; then
   export PYTHON_USER_SITE=`$LOCAL/bin/python3 -m site --user-site`
   export_to_path "$PYTHON_USER_BASE/bin"

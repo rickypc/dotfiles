@@ -34,9 +34,7 @@ test('renders a content outline', () => {
     ],
     write,
   );
-  expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('Evidence-backed'),
-  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('Evidence-backed'));
 });
 
 test('validates a complete content package', () => {

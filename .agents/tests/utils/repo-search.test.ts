@@ -27,9 +27,7 @@ test('accepts only a repo-search project name returned by the project list', () 
   const projects = '{"projects":[{"name":"home-index"},{"name":"Bento"}]}';
   expect(repoSearchProjectNames(projects)).toEqual(['home-index', 'Bento']);
   expect(() => assertKnownRepoSearchProject('Bento', projects)).not.toThrow();
-  expect(() => assertKnownRepoSearchProject('made-up', projects)).toThrow(
-    'not a listed',
-  );
+  expect(() => assertKnownRepoSearchProject('made-up', projects)).toThrow('not a listed');
 });
 
 test('resolves a project only from an explicit indexed-root mapping', () => {
@@ -43,18 +41,13 @@ test('resolves a project only from an explicit indexed-root mapping', () => {
     ],
   });
   expect(repoSearchProjectForRoot(APP_ROOT, projects)).toBe('home-index');
-  expect(
-    repoSearchProjectForRoot(
-      join(HOME_ROOT, 'Github', 'bento', 'src'),
-      projects,
-    ),
-  ).toBe('home-index-Github-bento');
-  expect(() => repoSearchProjectForRoot('/other', projects)).toThrow(
+  expect(repoSearchProjectForRoot(join(HOME_ROOT, 'Github', 'bento', 'src'), projects)).toBe(
+    'home-index-Github-bento',
+  );
+  expect(() => repoSearchProjectForRoot('/other', projects)).toThrow('explicit indexed root');
+  expect(() => repoSearchProjectForRoot(APP_ROOT, '{"projects":[{"name":"home-index"}]}')).toThrow(
     'explicit indexed root',
   );
-  expect(() =>
-    repoSearchProjectForRoot(APP_ROOT, '{"projects":[{"name":"home-index"}]}'),
-  ).toThrow('explicit indexed root');
   expect(() =>
     repoSearchProjectForRoot(
       APP_ROOT,
@@ -66,9 +59,7 @@ test('resolves a project only from an explicit indexed-root mapping', () => {
       }),
     ),
   ).toThrow('Multiple repo-search projects');
-  expect(() => repoSearchProjectForRoot(APP_ROOT, '{')).toThrow(
-    'explicit indexed root',
-  );
+  expect(() => repoSearchProjectForRoot(APP_ROOT, '{')).toThrow('explicit indexed root');
   const withExact = JSON.stringify({
     projects: [
       { name: 'home-index', repository_path: HOME_ROOT },
@@ -83,13 +74,9 @@ test('ignores malformed and incomplete project-list entries', () => {
     '{"projects":{}}',
     '{"projects":[null, 1, {"name":""}, {"name":"repo"}]}',
   ]) {
-    expect(() => repoSearchProjectForRoot('/repo', output)).toThrow(
-      'explicit indexed root',
-    );
+    expect(() => repoSearchProjectForRoot('/repo', output)).toThrow('explicit indexed root');
   }
-  expect(() => repoSearchProjectForRoot('/repo', '{')).toThrow(
-    'explicit indexed root',
-  );
+  expect(() => repoSearchProjectForRoot('/repo', '{')).toThrow('explicit indexed root');
 });
 
 test('resolves the index in-process from the single project-list command', async () => {
@@ -103,9 +90,9 @@ test('resolves the index in-process from the single project-list command', async
       ],
     }),
   }));
-  await expect(
-    resolveRepoSearchProjectForRoot(join(REPO_ROOT, 'src'), execute),
-  ).resolves.toBe('repo');
+  await expect(resolveRepoSearchProjectForRoot(join(REPO_ROOT, 'src'), execute)).resolves.toBe(
+    'repo',
+  );
   expect(execute).toHaveBeenCalledTimes(1);
   await expect(
     resolveRepoSearchProjectForRoot(HOME_ROOT, async () => ({
@@ -128,9 +115,7 @@ test('resolves the exact project identity without checking or substituting its i
     stderr: '',
     stdout: projectList,
   }));
-  await expect(
-    resolveRepoSearchProjectForRoot(APP_ROOT, execute),
-  ).resolves.toBe('tmp-sum-app');
+  await expect(resolveRepoSearchProjectForRoot(APP_ROOT, execute)).resolves.toBe('tmp-sum-app');
   expect(execute).toHaveBeenCalledTimes(1);
 });
 
@@ -141,46 +126,23 @@ test('builds CLI-only repo-search command specifications', () => {
     environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
   });
   expect(repoSearchCommands.indexRepository('/repo', 'repo')).toEqual({
-    args: [
-      'cli',
-      'index_repository',
-      '--repo-path',
-      '/repo',
-      '--name',
-      'repo',
-      '--mode',
-      'full',
-    ],
+    args: ['cli', 'index_repository', '--repo-path', '/repo', '--name', 'repo', '--mode', 'full'],
     command: 'codebase-memory-mcp',
     environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
   });
-  expect(repoSearchCommands.searchGraph('repo', 'service', 5).args).toContain(
-    '--query',
-  );
-  expect(
-    repoSearchCommands.searchGraph('repo', 'service', 5).environment,
-  ).toEqual({
+  expect(repoSearchCommands.searchGraph('repo', 'service', 5).args).toContain('--query');
+  expect(repoSearchCommands.searchGraph('repo', 'service', 5).environment).toEqual({
     REPO_SEARCH_LOG_LEVEL: 'error',
   });
   expect(repoSearchCommands.getArchitecture('repo').args).toContain('--path');
-  expect(repoSearchCommands.getCodeSnippet('repo', 'a.b').args).toContain(
-    '--qualified-name',
+  expect(repoSearchCommands.getCodeSnippet('repo', 'a.b').args).toContain('--qualified-name');
+  expect(repoSearchCommands.getGraphSchema('repo').args).toContain('get_graph_schema');
+  expect(repoSearchCommands.queryGraph('repo', 'MATCH', 3).args).toContain('--max-rows');
+  expect(repoSearchCommands.searchCode('repo', 'literal', 3).args).toContain('compact');
+  expect(repoSearchCommands.searchGraphByName('repo', '.*A.*', 'Function', 3).args).toContain(
+    '--name-pattern',
   );
-  expect(repoSearchCommands.getGraphSchema('repo').args).toContain(
-    'get_graph_schema',
-  );
-  expect(repoSearchCommands.queryGraph('repo', 'MATCH', 3).args).toContain(
-    '--max-rows',
-  );
-  expect(repoSearchCommands.searchCode('repo', 'literal', 3).args).toContain(
-    'compact',
-  );
-  expect(
-    repoSearchCommands.searchGraphByName('repo', '.*A.*', 'Function', 3).args,
-  ).toContain('--name-pattern');
-  expect(
-    repoSearchCommands.tracePath('repo', 'a.b', 'inbound', 2).args,
-  ).toContain('calls');
+  expect(repoSearchCommands.tracePath('repo', 'a.b', 'inbound', 2).args).toContain('calls');
 });
 
 test('parses fixed local JSONL inspection requests and renders only repo-search flags', () => {
@@ -211,30 +173,20 @@ test('parses fixed local JSONL inspection requests and renders only repo-search 
     '--limit',
     '20',
   ]);
-  expect(() => parseRepoSearchInspectionJsonl('')).toThrow(
-    'at least one JSONL',
-  );
-  expect(() =>
-    parseRepoSearchInspectionJsonl('{"operation":"unknown"}'),
-  ).toThrow('Unsupported');
+  expect(() => parseRepoSearchInspectionJsonl('')).toThrow('at least one JSONL');
+  expect(() => parseRepoSearchInspectionJsonl('{"operation":"unknown"}')).toThrow('Unsupported');
   expect(() =>
     parseRepoSearchInspectionJsonl(
       '{"operation":"trace","qualifiedName":"repo.f","direction":"both","depth":3}',
     ),
   ).toThrow('direction');
-  expect(() => parseRepoSearchInspectionJsonl('[]')).toThrow(
-    'must be an object',
-  );
-  expect(() => parseRepoSearchInspectionJsonl('{"operation":""}')).toThrow(
-    'non-empty string',
+  expect(() => parseRepoSearchInspectionJsonl('[]')).toThrow('must be an object');
+  expect(() => parseRepoSearchInspectionJsonl('{"operation":""}')).toThrow('non-empty string');
+  expect(() => parseRepoSearchInspectionJsonl('{"operation":"architecture"}')).toThrow(
+    'architecture path',
   );
   expect(() =>
-    parseRepoSearchInspectionJsonl('{"operation":"architecture"}'),
-  ).toThrow('architecture path');
-  expect(() =>
-    parseRepoSearchInspectionJsonl(
-      '{"operation":"search-code","pattern":"value","limit":0}',
-    ),
+    parseRepoSearchInspectionJsonl('{"operation":"search-code","pattern":"value","limit":0}'),
   ).toThrow('positive integer');
   expect(() => parseRepoSearchInspectionJsonl('not-json')).toThrow('line 1');
 });
@@ -251,9 +203,7 @@ test('maps every declared inspection operation to one flag-based CLI specificati
     ].join('\n'),
   );
   expect(
-    operations.map(
-      (operation) => repoSearchInspectionCommand('repo', operation).args[1],
-    ),
+    operations.map((operation) => repoSearchInspectionCommand('repo', operation).args[1]),
   ).toEqual([
     'get_architecture',
     'get_graph_schema',
@@ -275,14 +225,10 @@ test('checks readiness once and concurrently returns every requested read receip
       stdout: spec.args.join(' '),
     };
   });
-  const receipt = await inspectRepoSearch(
-    execute,
-    { index: 'repo', root: '/repo' },
-    [
-      { operation: 'architecture', path: '' },
-      { operation: 'snippet', qualifiedName: 'repo.utils.inspect' },
-    ],
-  );
+  const receipt = await inspectRepoSearch(execute, { index: 'repo', root: '/repo' }, [
+    { operation: 'architecture', path: '' },
+    { operation: 'snippet', qualifiedName: 'repo.utils.inspect' },
+  ]);
   expect(receipt).toMatchObject({
     project: 'repo',
     ready: true,
@@ -303,11 +249,9 @@ test('does not index, retry, or read declared operations when status is unavaila
     stderr: '',
     stdout: 'not ready',
   }));
-  const receipt = await inspectRepoSearch(
-    execute,
-    { index: 'repo', root: '/repo' },
-    [{ operation: 'schema' }],
-  );
+  const receipt = await inspectRepoSearch(execute, { index: 'repo', root: '/repo' }, [
+    { operation: 'schema' },
+  ]);
   expect(receipt).toMatchObject({ ready: false });
   expect(receipt.entries).toHaveLength(1);
   expect(execute).toHaveBeenCalledTimes(1);
@@ -321,8 +265,7 @@ test('indexes one allowed root then retries the requested repo-search read once'
     { code: 0, stderr: '', stdout: 'result' },
   ];
   const result = await readWithReadyIndex(
-    async () =>
-      results.shift() ?? { code: 1, stderr: 'unexpected', stdout: '' },
+    async () => results.shift() ?? { code: 1, stderr: 'unexpected', stdout: '' },
     {
       allowedRoots: ['/repo', '/home', '/kb'],
       read: (project) => repoSearchCommands.searchGraph(project, 'symbol', 5),
@@ -331,9 +274,7 @@ test('indexes one allowed root then retries the requested repo-search read once'
   );
   expect(result).toEqual({ indexed: true, output: 'result', project: 'repo' });
   assertAllowedRepoSearchRoot('/home', ['/repo', '/home']);
-  expect(() => assertAllowedRepoSearchRoot('/other', ['/repo'])).toThrow(
-    'not allowed',
-  );
+  expect(() => assertAllowedRepoSearchRoot('/other', ['/repo'])).toThrow('not allowed');
 });
 
 test('reports failed indexing, readiness, and read results', async () => {
@@ -406,9 +347,7 @@ test('does not create a repo-search index during search fallback', async () => {
       root: { index: 'kb-index', root: '/kb' },
     }),
   ).resolves.toMatchObject({ found: true, source: 'rg' });
-  expect(
-    commands.some((args) => args.includes('index_repository')),
-  ).toBeFalse();
+  expect(commands.some((args) => args.includes('index_repository'))).toBeFalse();
 });
 
 test('rejects an empty repo-search fallback query before invoking the executor', async () => {
@@ -480,15 +419,10 @@ test('uses repo-search code search before staged rg when graph search has no mat
     'rg-literal-ignore-case',
     'rg-files',
   ]);
-  expect(
-    repoSearchOutputHasMatches('{"total_results":1}\nlevel=info msg=mem.init'),
-  ).toBeTrue();
+  expect(repoSearchOutputHasMatches('{"total_results":1}\nlevel=info msg=mem.init')).toBeTrue();
   expect(repoSearchOutputHasMatches('{"total":0,"results":[]}')).toBeFalse();
   expect(
-    repoSearchOutputHasMatches(
-      '{"total":1,"results":[{"name":"token"}]}',
-      'needle',
-    ),
+    repoSearchOutputHasMatches('{"total":1,"results":[{"name":"token"}]}', 'needle'),
   ).toBeFalse();
   expect(repoSearchOutputHasMatches('not-json')).toBeFalse();
   expect(repoSearchOutputHasMatches('{bad}')).toBeFalse();
@@ -503,8 +437,7 @@ test('uses repo-search code search before staged rg when graph search has no mat
       return {
         code: 0,
         stderr: '',
-        stdout:
-          '{"total_results":1,"results":[{"file":"browser-testing.md","match_lines":[10]}]}',
+        stdout: '{"total_results":1,"results":[{"file":"browser-testing.md","match_lines":[10]}]}',
       };
     },
     {
@@ -602,8 +535,7 @@ test('rejects graph matches that contain the query only in unrelated metadata', 
         return {
           code: 0,
           stderr: '',
-          stdout:
-            '{"total":1,"results":[{"name":"unrelated","description":"needle"}]}',
+          stdout: '{"total":1,"results":[{"name":"unrelated","description":"needle"}]}',
         };
       }
       if (spec.args.includes('search_code')) {
@@ -663,17 +595,9 @@ test('accepts graph matches in structured identity fields', async () => {
 });
 
 test('requires structured graph identity fields for query-aware matching', () => {
-  expect(repoSearchGraphIdentityFields).toEqual([
-    'name',
-    'qualified_name',
-    'file_path',
-    'path',
-  ]);
+  expect(repoSearchGraphIdentityFields).toEqual(['name', 'qualified_name', 'file_path', 'path']);
   expect(
-    repoSearchOutputHasMatches(
-      '{"total":1,"results":[{"description":"needle"}]}',
-      'needle',
-    ),
+    repoSearchOutputHasMatches('{"total":1,"results":[{"description":"needle"}]}', 'needle'),
   ).toBeFalse();
   expect(
     repoSearchOutputHasMatches(
@@ -682,9 +606,6 @@ test('requires structured graph identity fields for query-aware matching', () =>
     ),
   ).toBeTrue();
   expect(
-    repoSearchOutputHasMatches(
-      '{"total":2,"results":[null,{"path":"src/needle.ts"}]}',
-      'needle',
-    ),
+    repoSearchOutputHasMatches('{"total":2,"results":[null,{"path":"src/needle.ts"}]}', 'needle'),
   ).toBeTrue();
 });

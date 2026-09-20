@@ -1,7 +1,4 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import {
   checkImmutableAgentsConfig,
   type ImmutableAgentsConfigReceipt,

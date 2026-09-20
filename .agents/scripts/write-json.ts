@@ -17,25 +17,14 @@ export interface WriteJsonDependencies {
   readonly fileSystem: FileSystem;
   readonly pathApi: JsonPathApi;
   readonly temporaryRoot: string;
-  readonly writeText: (
-    fileSystem: FileSystem,
-    path: string,
-    content: string,
-  ) => Promise<void>;
+  readonly writeText: (fileSystem: FileSystem, path: string, content: string) => Promise<void>;
 }
 
 type WriteJsonRunner = typeof run;
 
-const isWithinRoot = (
-  pathApi: JsonPathApi,
-  root: string,
-  candidate: string,
-): boolean => {
+const isWithinRoot = (pathApi: JsonPathApi, root: string, candidate: string): boolean => {
   const relative = pathApi.relative(root, candidate);
-  return (
-    relative === '' ||
-    (!relative.startsWith('..') && !pathApi.isAbsolute(relative))
-  );
+  return relative === '' || (!relative.startsWith('..') && !pathApi.isAbsolute(relative));
 };
 
 export const readStdin = async (input: BodyInit = Bun.stdin): Promise<string> =>
@@ -57,9 +46,7 @@ export const writeJson = async (
   const resolvedRoot = pathApi.resolve(temporaryRoot);
   const resolvedOutput = pathApi.resolve(outputPath);
   if (!isWithinRoot(pathApi, resolvedRoot, resolvedOutput)) {
-    throw new Error(
-      'JSON output path must be inside the operating-system temporary directory.',
-    );
+    throw new Error('JSON output path must be inside the operating-system temporary directory.');
   }
 
   let value: unknown;
@@ -97,10 +84,7 @@ export const run = async (
 const defaultWriteJsonRunner: WriteJsonRunner = run;
 
 export const processExit = {
-  setExitCode: (
-    code: number,
-    target: { exitCode?: number | string | null } = process,
-  ): void => {
+  setExitCode: (code: number, target: { exitCode?: number | string | null } = process): void => {
     target.exitCode = code;
   },
 };

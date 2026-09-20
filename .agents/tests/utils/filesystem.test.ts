@@ -19,9 +19,7 @@ describe('filesystem', () => {
       rm: mock(async () => undefined),
       writeFile: mock(async () => undefined),
     });
-    await expect(
-      fileSystem.readdir?.('/directory', { withFileTypes: true }),
-    ).resolves.toEqual([]);
+    await expect(fileSystem.readdir?.('/directory', { withFileTypes: true })).resolves.toEqual([]);
     await expect(readText(fileSystem, '/file.txt')).resolves.toBe('content');
     expect(readDirectory).toHaveBeenCalledWith('/directory', {
       withFileTypes: true,
@@ -37,9 +35,7 @@ describe('filesystem', () => {
   });
 
   test.each(['file.txt', ''])('rejects a non-absolute file path', (path) => {
-    expect(() => parentDirectory(path)).toThrow(
-      'An absolute file path is required',
-    );
+    expect(() => parentDirectory(path)).toThrow('An absolute file path is required');
   });
 
   test('reads text through the injected filesystem boundary', async () => {

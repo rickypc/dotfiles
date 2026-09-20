@@ -1,17 +1,14 @@
 import type { CheckResult } from '../contracts.js';
 import type { MatrixCase, MatrixEvidence, MatrixVerifierId } from './matrix.js';
 
-type MatrixVerifier = (
-  matrixCase: MatrixCase,
-  evidence: MatrixEvidence,
-) => CheckResult;
+type MatrixVerifier = (matrixCase: MatrixCase, evidence: MatrixEvidence) => CheckResult;
 
 const matrixShapeVerifier: MatrixVerifier = (matrixCase) => {
   const valid =
-    matrixCase.assertions.length > 0 &&
-    matrixCase.scenario.trim().length > 0 &&
-    matrixCase.failureMode.trim().length > 0 &&
-    matrixCase.repairBoundary.trim().length > 0;
+    matrixCase.assertions.length > 0
+    && matrixCase.scenario.trim().length > 0
+    && matrixCase.failureMode.trim().length > 0
+    && matrixCase.repairBoundary.trim().length > 0;
   return {
     detail: valid
       ? 'Matrix case has executable shape.'
@@ -26,12 +23,12 @@ const sourceStructureVerifier: MatrixVerifier = (matrixCase, evidence) => {
   const frontmatter = match?.[1] ?? '';
   const content = match?.[2] ?? '';
   const hasValidFrontmatter =
-    /^name:\s*\S/mu.test(frontmatter) &&
-    /^description:\s*\S/mu.test(frontmatter) &&
-    content.trim().length > 0;
+    /^name:\s*\S/mu.test(frontmatter)
+    && /^description:\s*\S/mu.test(frontmatter)
+    && content.trim().length > 0;
   const valid =
-    evidence.text.trim().length > 0 &&
-    (!evidence.text.trimStart().startsWith('---') || hasValidFrontmatter);
+    evidence.text.trim().length > 0
+    && (!evidence.text.trimStart().startsWith('---') || hasValidFrontmatter);
   return {
     detail: valid
       ? 'Source has valid frontmatter and nonblank instructions.'
@@ -46,9 +43,7 @@ const registry: Readonly<Record<MatrixVerifierId, MatrixVerifier>> = {
   'source-structure': sourceStructureVerifier,
 };
 
-export const matrixVerifierIds = Object.freeze(
-  Object.keys(registry) as MatrixVerifierId[],
-);
+export const matrixVerifierIds = Object.freeze(Object.keys(registry) as MatrixVerifierId[]);
 
 export const isMatrixVerifierId = (value: string): value is MatrixVerifierId =>
   Object.hasOwn(registry, value);

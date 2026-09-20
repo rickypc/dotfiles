@@ -1,19 +1,11 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import type { CheckResult, CheckStatus } from '../utils/contracts.js';
 import { requirePassingChecks, summarizeChecks } from '../utils/validation.js';
 
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/validate.ts <name>:<blocked|failed|not-applicable|passed>:<detail>';
 
-const statuses = new Set<CheckStatus>([
-  'passed',
-  'failed',
-  'blocked',
-  'not-applicable',
-]);
+const statuses = new Set<CheckStatus>(['blocked', 'failed', 'not-applicable', 'passed']);
 
 export const parseCheck = (value: string): CheckResult => {
   const [name, status, ...detailParts] = value.split(':');

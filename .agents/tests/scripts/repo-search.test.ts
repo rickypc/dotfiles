@@ -1,11 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import {
-  commandFor,
-  run,
-  runWhenMain,
-  usage,
-} from '../../scripts/repo-search.js';
+import { commandFor, run, runWhenMain, usage } from '../../scripts/repo-search.js';
 
 test.each([
   [['list-projects'], 'list_projects'],
@@ -17,19 +12,14 @@ test.each([
   [['search-code', 'repo', 'text', '2'], 'search_code'],
   [['query', 'repo', 'MATCH', '2'], 'query_graph'],
   [['trace', 'repo', 'a.b', 'outbound', '2'], 'trace_path'],
-] as const)(
-  'renders %s through the repo-search CLI only',
-  async (args, operation) => {
-    expect(commandFor(args).args).toContain(operation);
-    const write = mock();
-    await run(args, write);
-    expect(write).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'REPO_SEARCH_LOG_LEVEL=error codebase-memory-mcp cli',
-      ),
-    );
-  },
-);
+] as const)('renders %s through the repo-search CLI only', async (args, operation) => {
+  expect(commandFor(args).args).toContain(operation);
+  const write = mock();
+  await run(args, write);
+  expect(write).toHaveBeenCalledWith(
+    expect.stringContaining('REPO_SEARCH_LOG_LEVEL=error codebase-memory-mcp cli'),
+  );
+});
 
 test('renders query through the dedicated graph-query branch', () => {
   expect(commandFor(['query', 'repo', 'MATCH', '2']).args).toEqual([
@@ -52,13 +42,7 @@ test('runs discovery through the shared repo-search fallback boundary', async ()
     output: '',
     source: 'none' as const,
   }));
-  await run(
-    ['discover', '/repo', 'repo', 'needle'],
-    write,
-    search,
-    undefined,
-    async () => 'repo',
-  );
+  await run(['discover', '/repo', 'repo', 'needle'], write, search, undefined, async () => 'repo');
   expect(search).toHaveBeenCalledWith(
     expect.anything(),
     expect.objectContaining({ query: 'needle' }),
@@ -102,13 +86,7 @@ test('batches independent path-only queries in parallel after resolving the inde
   });
   const resolve = mock(async () => 'resolved-project');
 
-  await run(
-    ['/repo', 'first', 'second', 'third'],
-    write,
-    search,
-    undefined,
-    resolve,
-  );
+  await run(['/repo', 'first', 'second', 'third'], write, search, undefined, resolve);
 
   expect(resolve).toHaveBeenCalledTimes(1);
   expect(search).toHaveBeenCalledTimes(3);
@@ -165,10 +143,7 @@ test('serves discovery through the fallback boundary when the index is absent', 
 
 test('runs a typed inspection from an OS-temporary JSONL handoff in one receipt', async () => {
   const write = mock();
-  const read = mock(
-    async () =>
-      '{"operation":"architecture","path":""}\n{"operation":"schema"}',
-  );
+  const read = mock(async () => '{"operation":"architecture","path":""}\n{"operation":"schema"}');
   const resolve = mock(async () => 'repo');
   const inspect = mock(async () => ({
     entries: [],
@@ -216,9 +191,7 @@ test('rejects an inspection request outside the OS temporary directory', async (
 
 test('rejects invalid repo-search command shapes and guards the main boundary', async () => {
   expect(() => commandFor(['search-code', 'repo', 'x', '0'])).toThrow(usage());
-  expect(() => commandFor(['trace', 'repo', 'a.b', 'both', '2'])).toThrow(
-    usage(),
-  );
+  expect(() => commandFor(['trace', 'repo', 'a.b', 'both', '2'])).toThrow(usage());
   await expect(run([])).rejects.toThrow(usage());
   const runner = mock();
   runWhenMain(true, ['list-projects'], runner);

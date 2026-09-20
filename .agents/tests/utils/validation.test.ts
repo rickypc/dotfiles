@@ -1,11 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
 import { failed, passed } from '../../utils/contracts.js';
-import {
-  hasFailure,
-  requirePassingChecks,
-  summarizeChecks,
-} from '../../utils/validation.js';
+import { hasFailure, requirePassingChecks, summarizeChecks } from '../../utils/validation.js';
 
 describe('validation', () => {
   test('accepts passed and not-applicable checks', () => {
@@ -30,8 +26,8 @@ describe('validation', () => {
   });
 
   test('summarizes all checks', () => {
-    expect(
-      summarizeChecks([passed('lint', 'clean'), failed('test', 'failure')]),
-    ).toBe('lint: passed — clean\ntest: failed — failure');
+    expect(summarizeChecks([passed('lint', 'clean'), failed('test', 'failure')])).toBe(
+      'lint: passed — clean\ntest: failed — failure',
+    );
   });
 });

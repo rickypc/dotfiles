@@ -26,9 +26,7 @@ test('builds the shared literal and file-name rg commands', () => {
     ],
     command: 'rg',
   });
-  expect(rgLiteralCommand('/repo', 'Needle', true).args).toContain(
-    '--ignore-case',
-  );
+  expect(rgLiteralCommand('/repo', 'Needle', true).args).toContain('--ignore-case');
   expect(rgFilesCommand('/repo').args).toEqual([
     '--files',
     '--glob',
@@ -62,11 +60,7 @@ test('stops after a literal match and records skipped strategies', async () => {
     found: true,
     output: '/repo/file.ts:3:Needle',
   });
-  expect(receipt.attempts.map((item) => item.status)).toEqual([
-    'found',
-    'skipped',
-    'skipped',
-  ]);
+  expect(receipt.attempts.map((item) => item.status)).toEqual(['found', 'skipped', 'skipped']);
 });
 
 test('tries case-insensitive content after an exact miss', async () => {
@@ -80,11 +74,7 @@ test('tries case-insensitive content after an exact miss', async () => {
     'Needle',
   );
   expect(receipt.found).toBeTrue();
-  expect(receipt.attempts.map((item) => item.status)).toEqual([
-    'not-found',
-    'found',
-    'skipped',
-  ]);
+  expect(receipt.attempts.map((item) => item.status)).toEqual(['not-found', 'found', 'skipped']);
 });
 
 test('preserves contextual rg output without color codes', async () => {
@@ -92,8 +82,7 @@ test('preserves contextual rg output without color codes', async () => {
     async () => ({
       code: 0,
       stderr: '',
-      stdout:
-        '/repo/file.ts-1-before\n/repo/file.ts:2:Needle\n/repo/file.ts-3-after',
+      stdout: '/repo/file.ts-1-before\n/repo/file.ts:2:Needle\n/repo/file.ts-3-after',
     }),
     '/repo',
     'Needle',
@@ -118,11 +107,7 @@ test('tries file-name discovery after content misses and records command errors'
     found: true,
     output: '/repo/needle-file.ts',
   });
-  expect(receipt.attempts.map((item) => item.status)).toEqual([
-    'not-found',
-    'error',
-    'found',
-  ]);
+  expect(receipt.attempts.map((item) => item.status)).toEqual(['not-found', 'error', 'found']);
   await expect(
     stagedRgSearch(
       async () => {
@@ -133,18 +118,10 @@ test('tries file-name discovery after content misses and records command errors'
     ),
   ).resolves.toMatchObject({ found: false });
   await expect(
-    stagedRgSearch(
-      async () => ({ code: 1, stderr: '', stdout: '' }),
-      'relative',
-      'needle',
-    ),
+    stagedRgSearch(async () => ({ code: 1, stderr: '', stdout: '' }), 'relative', 'needle'),
   ).rejects.toThrow('absolute');
   await expect(
-    stagedRgSearch(
-      async () => ({ code: 1, stderr: '', stdout: '' }),
-      '/repo',
-      ' ',
-    ),
+    stagedRgSearch(async () => ({ code: 1, stderr: '', stdout: '' }), '/repo', ' '),
   ).rejects.toThrow('query');
 });
 

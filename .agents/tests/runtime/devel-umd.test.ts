@@ -1,5 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 import { join } from 'node:path';
+import vm from 'node:vm';
 
 type FakeBabel = {
   availablePlugins: Record<string, (() => void) | undefined>;
@@ -42,11 +43,7 @@ type HarnessOptions = {
 };
 
 type LoaderApi = {
-  loadTransforms(
-    paths: unknown,
-    globals?: unknown,
-    imports?: unknown,
-  ): LoaderResult;
+  loadTransforms(paths: unknown, globals?: unknown, imports?: unknown): LoaderResult;
   loadStyles(styles: unknown): boolean;
   loadUmds(paths: unknown): LoaderResult;
 };
@@ -92,9 +89,7 @@ const createBabel = (
 
 const sourceText = async () => Bun.file(SUT_PATH).text();
 
-const createHarness = async (
-  options: HarnessOptions = {},
-): Promise<Harness> => {
+const createHarness = async (options: HarnessOptions = {}): Promise<Harness> => {
   const transformCalls: TransformCall[] = [];
   const fetchCalls: string[] = [];
   const scripts: FakeScript[] = [];
@@ -151,10 +146,7 @@ const createHarness = async (
     Babel: babel,
     document: documentObject,
     fetch: fakeFetch,
-    moduleResolver:
-      options.moduleResolver === undefined
-        ? () => undefined
-        : options.moduleResolver,
+    moduleResolver: options.moduleResolver === undefined ? () => undefined : options.moduleResolver,
   };
   const windowObject = {
     location: {
@@ -163,31 +155,20 @@ const createHarness = async (
       protocol: 'http:',
     },
   };
-  const evaluate = new Function(
-    'globalThis',
-    'window',
-    'setInterval',
-    'clearInterval',
-    'Date',
-    'console',
-    `${await sourceText()}
-return { loadTransforms, loadStyles, loadUmds };`,
-  ) as unknown as (
-    globalObject: typeof sandboxGlobal,
-    windowValue: typeof windowObject,
-    setIntervalValue: (callback: () => void) => number,
-    clearIntervalValue: (_id: number) => void,
-    dateValue: DateConstructor,
-    consoleValue: typeof fakeConsole,
-  ) => LoaderApi;
-  const loader = evaluate(
-    sandboxGlobal,
-    windowObject,
-    mockedTimers.setInterval,
-    mockedTimers.clearInterval,
-    dateValue,
-    fakeConsole,
-  );
+  const context = {
+    clearInterval: mockedTimers.clearInterval,
+    console: fakeConsole,
+    Date: dateValue,
+    globalThis: sandboxGlobal,
+    setInterval: mockedTimers.setInterval,
+    window: windowObject,
+  };
+  const codeToRun = `
+    ${await sourceText()}
+    // Return the bound variables directly
+    ({ loadStyles, loadTransforms, loadUmds });
+  `;
+  const loader = vm.runInNewContext(codeToRun, context) as LoaderApi;
 
   return {
     babel,
@@ -211,16 +192,10 @@ return { loadTransforms, loadStyles, loadUmds };`,
 
 test('selects source-aware presets and passes both filename fields', async () => {
   const typescript = await createHarness();
-  expect(await typescript.loader.loadTransforms(['src/core/result.ts'])).toBe(
-    true,
-  );
+  expect(await typescript.loader.loadTransforms(['src/core/result.ts'])).toBe(true);
   expect(typescript.transformCalls).toHaveLength(1);
-  expect(typescript.transformCalls[0]?.options.filename).toBe(
-    'src/core/result.ts',
-  );
-  expect(typescript.transformCalls[0]?.options.sourceFileName).toBe(
-    'src/core/result.ts',
-  );
+  expect(typescript.transformCalls[0]?.options.filename).toBe('src/core/result.ts');
+  expect(typescript.transformCalls[0]?.options.sourceFileName).toBe('src/core/result.ts');
   expect(typescript.transformCalls[0]?.options.presets).toHaveLength(2);
 
   const tsx = await createHarness();
@@ -228,32 +203,23 @@ test('selects source-aware presets and passes both filename fields', async () =>
   expect(tsx.transformCalls[0]?.options.presets).toHaveLength(3);
 
   const javascript = await createHarness();
-  expect(await javascript.loader.loadTransforms(['src/app/legacy.jsx'])).toBe(
-    true,
-  );
+  expect(await javascript.loader.loadTransforms(['src/app/legacy.jsx'])).toBe(true);
   expect(javascript.transformCalls[0]?.options.presets).toHaveLength(3);
 });
 
 test('preserves ordered transforms, UMDs, and styles', async () => {
   const harness = await createHarness();
-  expect(await harness.loader.loadTransforms(['src/a.ts', 'src/b.ts'])).toBe(
-    true,
-  );
+  expect(await harness.loader.loadTransforms(['src/a.ts', 'src/b.ts'])).toBe(true);
   expect(harness.fetchCalls).toEqual([
     'http://localhost/sprint-pulse/src/a.ts',
     'http://localhost/sprint-pulse/src/b.ts',
   ]);
-  expect(harness.scripts.map((script) => script.type)).toEqual([
-    'module',
-    'module',
-  ]);
+  expect(harness.scripts.map((script) => script.type)).toEqual(['module', 'module']);
 
   expect(harness.loader.loadStyles(['src/a.css', 'src/b.css'])).toBe(true);
   expect(harness.styles[0]).toContain("@import'src/a.css';@import'src/b.css'");
 
-  expect(await harness.loader.loadUmds(['vendor/a.js', 'vendor/b.js'])).toBe(
-    true,
-  );
+  expect(await harness.loader.loadUmds(['vendor/a.js', 'vendor/b.js'])).toBe(true);
   expect(harness.scripts.map((script) => script.type)).toEqual([
     'module',
     'module',
@@ -296,16 +262,10 @@ test('reports missing Babel and required capabilities before fetching', async ()
   expect(missingPlugin.fetchCalls).toHaveLength(0);
 
   const missingResolver = await createHarness({ moduleResolver: null });
-  expect(
-    await missingResolver.loader.loadTransforms(
-      ['src/a.ts'],
-      {},
-      { react: 'React' },
-    ),
-  ).toBe(false);
-  expect(missingResolver.errors.join('\n')).toContain(
-    'module-resolver-standalone',
+  expect(await missingResolver.loader.loadTransforms(['src/a.ts'], {}, { react: 'React' })).toBe(
+    false,
   );
+  expect(missingResolver.errors.join('\n')).toContain('module-resolver-standalone');
   expect(missingResolver.fetchCalls).toHaveLength(0);
 });
 
@@ -320,9 +280,7 @@ test('recovers after fetch, transform, and script failures so retry succeeds', a
 
   const transformFailure = await createHarness();
   transformFailure.setTransformError(new Error('transform failed'));
-  expect(await transformFailure.loader.loadTransforms(['src/a.ts'])).toBe(
-    false,
-  );
+  expect(await transformFailure.loader.loadTransforms(['src/a.ts'])).toBe(false);
   transformFailure.setTransformError(null);
   expect(await transformFailure.loader.loadTransforms(['src/a.ts'])).toBe(true);
 

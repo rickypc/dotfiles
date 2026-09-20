@@ -70,12 +70,14 @@ test('rejects an attempt outside the approved budget', () => {
 });
 
 test('gates baseline and challenge receipts by their exact lifecycle phase', () => {
-  expect(
-    decideBaseline({ ...passingReceipt, state: 'baseline_recorded' }),
-  ).toEqual({ nextState: 'candidate_requested', nextStep: 'candidate' });
-  expect(
-    decideBaseline({ ...failingReceipt, state: 'baseline_recorded' }),
-  ).toEqual({ nextState: 'blocked', nextStep: 'block' });
+  expect(decideBaseline({ ...passingReceipt, state: 'baseline_recorded' })).toEqual({
+    nextState: 'candidate_requested',
+    nextStep: 'candidate',
+  });
+  expect(decideBaseline({ ...failingReceipt, state: 'baseline_recorded' })).toEqual({
+    nextState: 'blocked',
+    nextStep: 'block',
+  });
   expect(() => decideBaseline(passingReceipt)).toThrow('baseline');
   expect(
     decideChallenge({

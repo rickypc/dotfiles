@@ -75,14 +75,9 @@ test('validates briefs, sources, refreshes, and quote preservation', () => {
   ).toContain('原文');
   expect(() => renderQuotation({ original: '' })).toThrow('original');
   expect(
-    requiresQuotationClarification(
-      { original: '原文', translation: 'Original' },
-      undefined,
-    ),
+    requiresQuotationClarification({ original: '原文', translation: 'Original' }, undefined),
   ).toBeTrue();
-  expect(
-    requiresQuotationClarification({ original: 'quote' }, true),
-  ).toBeFalse();
+  expect(requiresQuotationClarification({ original: 'quote' }, true)).toBeFalse();
   expect(() =>
     validateRefreshInventory({
       citations: true,
@@ -154,19 +149,17 @@ test('gates complete drafts against claims, sources, and quotations', () => {
       },
     }),
   ).not.toThrow();
-  expect(() =>
-    validateContentPackage({ ...content, draft: 'The supported statement.' }),
-  ).toThrow('quotation');
-  expect(() =>
-    validateContentPackage({ ...content, draft: 'Exact quotation.' }),
-  ).toThrow('claim must appear');
+  expect(() => validateContentPackage({ ...content, draft: 'The supported statement.' })).toThrow(
+    'quotation',
+  );
+  expect(() => validateContentPackage({ ...content, draft: 'Exact quotation.' })).toThrow(
+    'claim must appear',
+  );
   expect(() =>
     validateContentPackage({
       ...content,
       claims: [{ ...content.claims[0], sourceUrl: 'https://example.com/lead' }],
     }),
   ).toThrow('admissible');
-  expect(() =>
-    validateContentPackage({ ...content, claims: [], draft: '' }),
-  ).toThrow('draft');
+  expect(() => validateContentPackage({ ...content, claims: [], draft: '' })).toThrow('draft');
 });

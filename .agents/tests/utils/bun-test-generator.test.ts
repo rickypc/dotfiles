@@ -29,9 +29,7 @@ test('derives canonical TypeScript test paths', () => {
   expect(testPathFor('/repo', '/repo/assets/js/api-client.js')).toBe(
     '/repo/tests/assets/js/api-client.test.ts',
   );
-  expect(testPathFor('/repo/', '/repo/.agents/skill.ts')).toBe(
-    '/repo/tests/.agents/skill.test.ts',
-  );
+  expect(testPathFor('/repo/', '/repo/.agents/skill.ts')).toBe('/repo/tests/.agents/skill.test.ts');
   expect(() => testPathFor('/repo', '/other/file.ts')).toThrow('inside');
   expect(() => testPathFor('/repo', '/repo/file.txt')).toThrow('JavaScript');
   expect(
@@ -41,35 +39,25 @@ test('derives canonical TypeScript test paths', () => {
     ]),
   ).toBe('/repo/packages/a');
   expect(() => projectRootFor('/repo/file.ts', [])).toThrow('package.json');
-  expect(canonicalTestPathFor('/repo/a.ts', ['/repo/package.json'])).toBe(
-    '/repo/tests/a.test.ts',
-  );
-  expect(jestTestPathsFor('/repo/tests/a.test.ts')).toContain(
-    '/repo/tests/a.test.js',
-  );
+  expect(canonicalTestPathFor('/repo/a.ts', ['/repo/package.json'])).toBe('/repo/tests/a.test.ts');
+  expect(jestTestPathsFor('/repo/tests/a.test.ts')).toContain('/repo/tests/a.test.js');
 });
 test('requires complete behavior-quality rows', () => {
   expect(() => validateBehaviorMatrix([])).toThrow('At least one');
   expect(() => validateBehaviorMatrix([row()])).not.toThrow();
-  expect(() => validateBehaviorMatrix([row({ assertion: '' })])).toThrow(
-    'complete',
-  );
+  expect(() => validateBehaviorMatrix([row({ assertion: '' })])).toThrow('complete');
 });
 
 test('rejects Jest and type suppressions while requiring Bun APIs', () => {
-  expect(() => validateBunTestSource('test("x", () => {})')).toThrow(
-    'bun:test',
+  expect(() => validateBunTestSource('test("x", () => {})')).toThrow('bun:test');
+  expect(() => validateBunTestSource('import { test } from "bun:test"; jest.fn();')).toThrow(
+    'Jest',
+  );
+  expect(() => validateBunTestSource('import { test } from "bun:test"; // @ts-ignore')).toThrow(
+    'suppress',
   );
   expect(() =>
-    validateBunTestSource('import { test } from "bun:test"; jest.fn();'),
-  ).toThrow('Jest');
-  expect(() =>
-    validateBunTestSource('import { test } from "bun:test"; // @ts-ignore'),
-  ).toThrow('suppress');
-  expect(() =>
-    validateBunTestSource(
-      'import { test } from "bun:test"; test("x", () => {});',
-    ),
+    validateBunTestSource('import { test } from "bun:test"; test("x", () => {});'),
   ).not.toThrow();
   expect(() =>
     validateBunTestSource(
@@ -106,16 +94,9 @@ test('requires mocks for every external SUT module and global boundary', () => {
     '',
     "test('load', () => expect(true).toBeTrue());",
   ].join('\n');
-  expect(externalModuleSpecifiersFor(sutSource)).toEqual([
-    './clock.js',
-    'node:fs/promises',
-  ]);
-  expect(
-    externalModuleSpecifiersFor("import { test } from 'bun:test';"),
-  ).toEqual([]);
-  expect(() =>
-    validateExternalDependencyMocks(sutSource, testSource),
-  ).not.toThrow();
+  expect(externalModuleSpecifiersFor(sutSource)).toEqual(['./clock.js', 'node:fs/promises']);
+  expect(externalModuleSpecifiersFor("import { test } from 'bun:test';")).toEqual([]);
+  expect(() => validateExternalDependencyMocks(sutSource, testSource)).not.toThrow();
   expect(() =>
     validateExternalDependencyMocks(
       sutSource,
@@ -123,24 +104,19 @@ test('requires mocks for every external SUT module and global boundary', () => {
       './sut.js',
     ),
   ).toThrow('selected SUT');
-  expect(() =>
-    validateExternalDependencyMocks(sutSource, testSource, ' '),
-  ).toThrow('must not be blank');
+  expect(() => validateExternalDependencyMocks(sutSource, testSource, ' ')).toThrow(
+    'must not be blank',
+  );
   expect(() =>
     validateExternalDependencyMocks(
       sutSource,
-      testSource.replace(
-        "mock.module('./clock.js', () => ({ now: mock() }));\n",
-        '',
-      ),
+      testSource.replace("mock.module('./clock.js', () => ({ now: mock() }));\n", ''),
     ),
   ).toThrow('./clock.js');
   expect(() =>
     validateExternalDependencyMocks(
       sutSource,
-      testSource
-        .replace('const consoleLog = mock();\n', '')
-        .replace('void consoleLog;\n', ''),
+      testSource.replace('const consoleLog = mock();\n', '').replace('void consoleLog;\n', ''),
     ),
   ).toThrow('console');
   expect(() =>
@@ -165,12 +141,7 @@ test('protects shared Bun suites from local helper mock contamination', () => {
     "test('load', () => expect(true).toBeTrue());",
   ].join('\n');
   expect(() =>
-    validateExternalDependencyMocks(
-      sutSource,
-      sharedTest,
-      './sut.js',
-      'shared-suite-integration',
-    ),
+    validateExternalDependencyMocks(sutSource, sharedTest, './sut.js', 'shared-suite-integration'),
   ).toThrow('External module boundaries');
   const withExternalMock = [
     "import { expect, mock, test } from 'bun:test';",
@@ -212,9 +183,7 @@ test('renders quality-focused templates and converts supported Jest tests', () =
     matcher: 'toEqual',
   });
   expect(source).toContain('test.each');
-  expect(source).toContain(
-    'mock.module("./clock.js", () => ({\n  now: mock(),\n}));',
-  );
+  expect(source).toContain('mock.module("./clock.js", () => ({\n  now: mock(),\n}));');
   expect(source).toContain("import { expect, mock, test } from 'bun:test';");
   expect(source).not.toContain('as const');
   expect(source).not.toContain('toBeDefined');
@@ -294,10 +263,8 @@ test('renders quality-focused templates and converts supported Jest tests', () =
       "import { expect, test } from '@jest/globals'; test('x', () => expect(jest.fn()).toBeTruthy());",
     ),
   ).toContain('mock()');
-  expect(() =>
-    convertJestToBun("import { jest } from '@jest/globals'; jest.mock('x');"),
-  ).toThrow('explicit Bun mock');
-  expect(() => convertJestToBun('test("x", () => {})')).toThrow(
-    '@jest/globals',
+  expect(() => convertJestToBun("import { jest } from '@jest/globals'; jest.mock('x');")).toThrow(
+    'explicit Bun mock',
   );
+  expect(() => convertJestToBun('test("x", () => {})')).toThrow('@jest/globals');
 });

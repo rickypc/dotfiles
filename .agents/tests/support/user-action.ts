@@ -55,8 +55,7 @@ export const renderBrowserVerificationAction = (
     doLanguage: 'text',
     expected,
     title: 'browser verification',
-    verify:
-      'Open the URL above in a browser and perform the stated interaction.',
+    verify: 'Open the URL above in a browser and perform the stated interaction.',
     why: 'This session has no callable browser-control surface.',
   });
 };

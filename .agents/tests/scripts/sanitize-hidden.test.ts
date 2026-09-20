@@ -40,15 +40,13 @@ const stat = mock(async (file: string) => {
   }
   return value;
 });
-const writeFile = mock(
-  async (file: string, content: string, _encoding: 'utf8') => {
-    if (!file.startsWith(virtualRoot)) {
-      await realFileSystem.writeFile(file, content, 'utf8');
-      return;
-    }
-    fileContents.set(file, content);
-  },
-);
+const writeFile = mock(async (file: string, content: string, _encoding: 'utf8') => {
+  if (!file.startsWith(virtualRoot)) {
+    await realFileSystem.writeFile(file, content, 'utf8');
+    return;
+  }
+  fileContents.set(file, content);
+});
 
 mock.module('node:fs/promises', () => ({
   ...realFileSystem,
@@ -128,11 +126,7 @@ const setArgv = (...values: string[]): void => {
   cliArgv.splice(0, cliArgv.length, ...values);
 };
 
-const setFile = (
-  file: string,
-  content: string,
-  size = content.length,
-): void => {
+const setFile = (file: string, content: string, size = content.length): void => {
   fileContents.set(file, content);
   fileStats.set(file, { isFile: () => true, size });
 };
@@ -219,23 +213,17 @@ test('sanitizeFile skips non-files, oversized files, and read failures', async (
     size: 16 * 1024 * 1024 + 1,
   });
 
-  await expect(
-    sut.sanitizeFile(`${virtualRoot}/directory`, false),
-  ).resolves.toEqual({
+  await expect(sut.sanitizeFile(`${virtualRoot}/directory`, false)).resolves.toEqual({
     bytes: 0,
     changed: false,
     file: `${virtualRoot}/directory`,
   });
-  await expect(
-    sut.sanitizeFile(`${virtualRoot}/large.txt`, false),
-  ).resolves.toEqual({
+  await expect(sut.sanitizeFile(`${virtualRoot}/large.txt`, false)).resolves.toEqual({
     bytes: 0,
     changed: false,
     file: `${virtualRoot}/large.txt`,
   });
-  await expect(
-    sut.sanitizeFile(`${virtualRoot}/missing.txt`, false),
-  ).resolves.toEqual({
+  await expect(sut.sanitizeFile(`${virtualRoot}/missing.txt`, false)).resolves.toEqual({
     bytes: 0,
     changed: false,
     file: `${virtualRoot}/missing.txt`,
@@ -247,23 +235,17 @@ test('sanitizeFile preserves clean files and dry-run changes', async () => {
   setFile(`${virtualRoot}/dry-run.txt`, 'hello\u200Bworld');
   writeFile.mockClear();
 
-  await expect(
-    sut.sanitizeFile(`${virtualRoot}/clean.txt`, false),
-  ).resolves.toEqual({
+  await expect(sut.sanitizeFile(`${virtualRoot}/clean.txt`, false)).resolves.toEqual({
     bytes: 0,
     changed: false,
     file: `${virtualRoot}/clean.txt`,
   });
-  await expect(
-    sut.sanitizeFile(`${virtualRoot}/dry-run.txt`, true),
-  ).resolves.toEqual({
+  await expect(sut.sanitizeFile(`${virtualRoot}/dry-run.txt`, true)).resolves.toEqual({
     bytes: 1,
     changed: true,
     file: `${virtualRoot}/dry-run.txt`,
   });
-  expect(fileContents.get(`${virtualRoot}/dry-run.txt`)).toBe(
-    'hello\u200Bworld',
-  );
+  expect(fileContents.get(`${virtualRoot}/dry-run.txt`)).toBe('hello\u200Bworld');
   expect(writeFile).not.toHaveBeenCalled();
 });
 
@@ -271,18 +253,12 @@ test('sanitizeFile writes changed content when not in dry-run mode', async () =>
   setFile(`${virtualRoot}/write.txt`, 'hello\u200Bworld');
   writeFile.mockClear();
 
-  await expect(
-    sut.sanitizeFile(`${virtualRoot}/write.txt`, false),
-  ).resolves.toEqual({
+  await expect(sut.sanitizeFile(`${virtualRoot}/write.txt`, false)).resolves.toEqual({
     bytes: 1,
     changed: true,
     file: `${virtualRoot}/write.txt`,
   });
-  expect(writeFile).toHaveBeenCalledWith(
-    `${virtualRoot}/write.txt`,
-    'helloworld',
-    'utf8',
-  );
+  expect(writeFile).toHaveBeenCalledWith(`${virtualRoot}/write.txt`, 'helloworld', 'utf8');
   expect(fileContents.get(`${virtualRoot}/write.txt`)).toBe('helloworld');
 });
 
@@ -339,9 +315,9 @@ test('runPool propagates worker failures', async () => {
     throw new Error('worker failed');
   };
 
-  await expect(
-    sut.runPool(gen(), 1, async (value) => value.toUpperCase()),
-  ).rejects.toThrow('worker failed');
+  await expect(sut.runPool(gen(), 1, async (value) => value.toUpperCase())).rejects.toThrow(
+    'worker failed',
+  );
 });
 
 test('main reports changed files in normal and dry-run modes', async () => {
@@ -353,20 +329,12 @@ test('main reports changed files in normal and dry-run modes', async () => {
 
   await sut.main();
 
-  expect(log).toHaveBeenCalledWith(
-    expect.stringContaining('[sanitize] 1 file(s) changed'),
-  );
+  expect(log).toHaveBeenCalledWith(expect.stringContaining('[sanitize] 1 file(s) changed'));
   expect(log).toHaveBeenCalledWith('  changed.txt  (-1 bytes)');
 
   setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
   writeFile.mockClear();
-  setArgv(
-    'bun',
-    'sanitize-hidden.ts',
-    virtualRoot,
-    '--dry-run',
-    '--concurrency=1',
-  );
+  setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--dry-run', '--concurrency=1');
   await sut.main();
 
   expect(log).toHaveBeenCalledWith(

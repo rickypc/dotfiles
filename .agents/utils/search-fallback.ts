@@ -77,8 +77,7 @@ const attempt = async (
   }
 };
 
-const rgGlobs = (): readonly string[] =>
-  ignoredGlobs.flatMap((glob) => ['--glob', glob]);
+const rgGlobs = (): readonly string[] => ignoredGlobs.flatMap((glob) => ['--glob', glob]);
 
 export const rgFilesCommand = (root: string): CommandSpec => ({
   args: ['--files', ...rgGlobs(), root],
@@ -130,21 +129,13 @@ export const stagedRgSearch = async (
 ): Promise<SearchFallbackReceipt> => {
   assertSearchInput(root, query);
   const attempts: SearchAttempt[] = [];
-  const literal = await attempt(
-    executor,
-    'rg-literal',
-    rgLiteralCommand(root, query, false),
-  );
+  const literal = await attempt(executor, 'rg-literal', rgLiteralCommand(root, query, false));
   attempts.push(literal.attempt);
   if (literal.attempt.status === 'found') {
     return {
       attempts: [
         ...attempts,
-        ...skippedRgAttempts(
-          root,
-          query,
-          'Skipped because rg-literal found a match.',
-        ).slice(1),
+        ...skippedRgAttempts(root, query, 'Skipped because rg-literal found a match.').slice(1),
       ],
       found: true,
       output: literal.output,
@@ -183,11 +174,7 @@ export const stagedRgSearch = async (
         ? files.attempt.detail
         : 'No matching file paths.',
     status:
-      files.attempt.status === 'error'
-        ? 'error'
-        : matchingPaths.length
-          ? 'found'
-          : 'not-found',
+      files.attempt.status === 'error' ? 'error' : matchingPaths.length ? 'found' : 'not-found',
   };
   attempts.push(fileAttempt);
   return {

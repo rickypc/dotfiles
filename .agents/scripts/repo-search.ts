@@ -1,8 +1,5 @@
 import { tmpdir } from 'node:os';
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import type { CommandSpec } from '../utils/contracts.js';
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import { bunExecutor } from '../utils/process.js';
@@ -15,21 +12,13 @@ import {
 } from '../utils/repo-search.js';
 import { commandText } from '../utils/search-fallback.js';
 
-const isTemporaryRequestPath = (
-  requestPath: string,
-  temporaryDirectory: string,
-): boolean => {
+const isTemporaryRequestPath = (requestPath: string, temporaryDirectory: string): boolean => {
   const base = temporaryDirectory.replace(/\/+$/u, '');
   return requestPath.startsWith(`${base}/`);
 };
 
-const listProjectsFor = (
-  command: string,
-  length: number,
-): CommandSpec | undefined =>
-  command === 'list-projects' && length === 1
-    ? repoSearchCommands.listProjects()
-    : undefined;
+const listProjectsFor = (command: string, length: number): CommandSpec | undefined =>
+  command === 'list-projects' && length === 1 ? repoSearchCommands.listProjects() : undefined;
 
 const commandForSimple = (
   command: string,
@@ -71,18 +60,12 @@ const runInspect = async (
   if (command !== 'inspect' || !root || !requestPath || args.length !== 3) {
     return false;
   }
-  if (
-    !root.startsWith('/') ||
-    !isTemporaryRequestPath(requestPath, temporaryDirectory)
-  ) {
+  if (!root.startsWith('/') || !isTemporaryRequestPath(requestPath, temporaryDirectory)) {
     throw new Error(
       'inspect requires an absolute <approved-root> and an absolute JSONL request path under the OS temporary directory.',
     );
   }
-  const [project, request] = await Promise.all([
-    resolve(root, bunExecutor),
-    read(requestPath),
-  ]);
+  const [project, request] = await Promise.all([resolve(root, bunExecutor), read(requestPath)]);
   write(
     JSON.stringify(
       await inspect(
@@ -117,22 +100,17 @@ const commandForTrace = (
   length: number,
 ): CommandSpec | undefined => {
   if (
-    command !== 'trace' ||
-    !project ||
-    !value ||
-    !direction ||
-    !depth ||
-    length !== 5 ||
-    (direction !== 'inbound' && direction !== 'outbound')
+    command !== 'trace'
+    || !project
+    || !value
+    || !direction
+    || !depth
+    || length !== 5
+    || (direction !== 'inbound' && direction !== 'outbound')
   ) {
     return undefined;
   }
-  return repoSearchCommands.tracePath(
-    project,
-    value,
-    direction,
-    positiveLimit(depth),
-  );
+  return repoSearchCommands.tracePath(project, value, direction, positiveLimit(depth));
 };
 
 const limitedCommand = (
@@ -169,13 +147,7 @@ export const commandFor = (args: readonly string[]): CommandSpec => {
   if (simple) {
     return simple;
   }
-  const limited = commandForLimited(
-    command,
-    project,
-    value,
-    limitOrDirection,
-    args.length,
-  );
+  const limited = commandForLimited(command, project, value, limitOrDirection, args.length);
   if (limited) {
     return limited;
   }
@@ -197,24 +169,19 @@ export const run = async (
   args: readonly string[],
   write: (message: string) => void = console.log,
   search = searchWithRepoSearchFallback,
-  read: (path: string) => Promise<string | Buffer> = readText.bind(
-    undefined,
-    nodeFileSystem,
-  ),
+  read: (path: string) => Promise<string | Buffer> = readText.bind(undefined, nodeFileSystem),
   resolve = resolveRepoSearchProjectForRoot,
   inspect = inspectRepoSearch,
   temporaryDirectory = tmpdir(),
 ): Promise<void> => {
-  if (
-    await runInspect(args, write, read, resolve, inspect, temporaryDirectory)
-  ) {
+  if (await runInspect(args, write, read, resolve, inspect, temporaryDirectory)) {
     return;
   }
   const [pathOnlyRoot, ...pathOnlyQueries] = args;
   if (
-    pathOnlyRoot?.startsWith('/') &&
-    pathOnlyQueries.length > 0 &&
-    pathOnlyQueries.every((query) => query.trim())
+    pathOnlyRoot?.startsWith('/')
+    && pathOnlyQueries.length > 0
+    && pathOnlyQueries.every((query) => query.trim())
   ) {
     let project = '__repo_search_index_unresolved__';
     try {

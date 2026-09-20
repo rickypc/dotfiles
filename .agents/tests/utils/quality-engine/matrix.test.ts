@@ -25,18 +25,14 @@ test('validates a typed matrix and selects by visibility', () => {
     visibility: 'challenge' as const,
   };
   expect(() => validateMatrix([candidateCase, challengeCase])).not.toThrow();
-  expect(casesFor([candidateCase, challengeCase], 'challenge')).toEqual([
-    challengeCase,
-  ]);
+  expect(casesFor([candidateCase, challengeCase], 'challenge')).toEqual([challengeCase]);
 });
 test('rejects empty, duplicate, incomplete, and invalid matrix cases', () => {
   expect(() => validateMatrix([])).toThrow('At least one');
-  expect(() => validateMatrix([candidateCase, candidateCase])).toThrow(
-    'unique',
+  expect(() => validateMatrix([candidateCase, candidateCase])).toThrow('unique');
+  expect(() => validateMatrix([{ ...candidateCase, assertions: [], scenario: ' ' }])).toThrow(
+    'incomplete',
   );
-  expect(() =>
-    validateMatrix([{ ...candidateCase, assertions: [], scenario: ' ' }]),
-  ).toThrow('incomplete');
   expect(() =>
     validateMatrix([
       {
@@ -45,9 +41,7 @@ test('rejects empty, duplicate, incomplete, and invalid matrix cases', () => {
       },
     ]),
   ).toThrow('invalid');
-  expect(() =>
-    validateMatrix([{ ...candidateCase, repairBoundary: ' ' }]),
-  ).toThrow('incomplete');
+  expect(() => validateMatrix([{ ...candidateCase, repairBoundary: ' ' }])).toThrow('incomplete');
 });
 
 test('evaluates every typed assertion from independent evidence', () => {
@@ -115,9 +109,7 @@ test('reports failed or blocked evidence without trusting the matrix author', ()
 
 test('rejects unknown verifiers and malformed matrix records', () => {
   expect(() =>
-    validateMatrix([
-      { ...candidateCase, independentVerifier: 'unknown' as never },
-    ]),
+    validateMatrix([{ ...candidateCase, independentVerifier: 'unknown' as never }]),
   ).toThrow('independent verifier');
   expect(() => validateMatrix([null as never])).toThrow('unique');
 });

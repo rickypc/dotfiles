@@ -1,21 +1,19 @@
 {
-  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "$schema": "https://biomejs.dev/schemas/latest/schema.json",
   "assist": {
     "actions": {
       "source": {
+        "noDuplicateClasses": "on",
         "organizeImports": "on",
+        "useSortedAttributes": "on",
+        "useSortedEnumMembers": "on",
         "useSortedInterfaceMembers": "on",
         "useSortedKeys": "on"
       }
     }
   },
   "files": {
-    "includes": [
-      "**/*.{js,jsx,ts,tsx}",
-      "!!**/.git",
-      "!!**/coverage",
-      "!!**/node_modules"
-    ]
+    "ignoreUnknown": true
   },
   "formatter": {
     "indentStyle": "space",
@@ -23,6 +21,11 @@
   },
   "javascript": {
     "formatter": {
+      "arrowParentheses": "always",
+      "delimiterSpacing": false,
+      "lineEnding": "lf",
+      "lineWidth": 100,
+      "operatorLinebreak": "before",
       "quoteStyle": "single",
       "semicolons": "always"
     }
@@ -42,22 +45,34 @@
             "skipIifes": true
           }
         },
-        "noUselessSwitchCase": "error"
+        "noUselessSwitchCase": "error",
+        "useMaxParams": {
+          "level": "error",
+          "options": { "max": 10 }
+        }
       },
       "nursery": {
-        "useExhaustiveSwitchCases": "error"
+        "noConditionalExpect": "error",
+        "noExcessiveNestedCallbacks": "error",
+        // "noFloatingPromises": "error",
+        "noIdenticalTestTitle": "error",
+        "noImpliedEval": "error",
+        "noLoopFunc": "error",
+        "useExhaustiveSwitchCases": "error",
+        "useExpect": "error",
+        "useImportsFirst": "error",
+        "useThisInClassMethods": "error",
+        "useVarsOnTop": "error"
       },
       "preset": "recommended",
       "style": {
+        "noExcessiveClassesPerFile": "error",
         "noExcessiveLinesPerFile": {
           "level": "error",
           "options": { "maxLines": 1000, "skipBlankLines": true }
         },
         "useBlockStatements": "error",
         "useDefaultSwitchClause": "error"
-      },
-      "suspicious": {
-        "useDefaultSwitchClauseLast": "error"
       }
     }
   },

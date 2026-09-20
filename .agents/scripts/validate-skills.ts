@@ -1,19 +1,10 @@
-import {
-  runWhenMain as runCliWhenMain,
-  runWhenMainWithHelp,
-} from '../utils/cli.js';
+import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import { nodeFileSystem } from '../utils/filesystem.js';
-import {
-  type SkillSuiteValidationReceipt,
-  validateAllSkills,
-} from '../utils/skill-manager.js';
+import { type SkillSuiteValidationReceipt, validateAllSkills } from '../utils/skill-manager.js';
 
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/validate-skills.ts';
+export const usage = (): string => 'Usage: bun <agents-root>/scripts/validate-skills.ts';
 
-export const validReceiptLine = (
-  receipt: SkillSuiteValidationReceipt,
-): string =>
+export const validReceiptLine = (receipt: SkillSuiteValidationReceipt): string =>
   `skill-validation: passed — ${receipt.skillCount} skills, ${receipt.matrixCount} matrix cases, ${receipt.prose.prosePaths.length} prose paths, ${receipt.prose.checkedLocalLinkTargets} local links checked.`;
 
 export const run = async (

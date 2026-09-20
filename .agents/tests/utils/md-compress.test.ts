@@ -14,12 +14,8 @@ import {
 const digest = { sha256: mock(() => 'hash') };
 
 test('derives a deterministic backup path', () => {
-  expect(backupPathFor('/backup', '/docs/plan.md', digest)).toBe(
-    '/backup/hash/plan.md.original',
-  );
-  expect(lockPathFor('/backup/hash/plan.md.original')).toBe(
-    '/backup/hash/plan.md.original.lock',
-  );
+  expect(backupPathFor('/backup', '/docs/plan.md', digest)).toBe('/backup/hash/plan.md.original');
+  expect(lockPathFor('/backup/hash/plan.md.original')).toBe('/backup/hash/plan.md.original.lock');
 });
 
 test.each(['/docs/secret.md', '/docs/plan.txt'])(
@@ -30,9 +26,7 @@ test.each(['/docs/secret.md', '/docs/plan.txt'])(
 );
 
 test('guards and finalizes a valid compression transaction', async () => {
-  const readFile = mock(
-    async () => 'See `code` at https://example.test.\n```ts\nvalue\n```',
-  );
+  const readFile = mock(async () => 'See `code` at https://example.test.\n```ts\nvalue\n```');
   const writeFile = mock(async () => undefined);
   const rm = mock(async () => undefined);
   const fileSystem = {
@@ -41,12 +35,7 @@ test('guards and finalizes a valid compression transaction', async () => {
     rm,
     writeFile,
   };
-  const guard = await guardCompression(
-    fileSystem,
-    '/backup',
-    '/docs/plan.md',
-    digest,
-  );
+  const guard = await guardCompression(fileSystem, '/backup', '/docs/plan.md', digest);
   await finalizeCompression(fileSystem, '/docs/plan.md', guard);
   expect(writeFile).toHaveBeenCalled();
   expect(rm).toHaveBeenCalledWith('/backup/hash/plan.md.original', {
@@ -74,9 +63,9 @@ test('resumes a guarded transaction from the original backup', async () => {
 });
 
 test('rejects a candidate that loses a protected token', () => {
-  expect(() =>
-    validateCompression('See https://example.test.', 'See nothing.'),
-  ).toThrow('Compression lost');
+  expect(() => validateCompression('See https://example.test.', 'See nothing.')).toThrow(
+    'Compression lost',
+  );
 });
 
 test('claims a new or stale compression lock and rejects an active one', async () => {
@@ -99,14 +88,12 @@ test('claims a new or stale compression lock and rejects an active one', async (
   await claimCompressionLock(fileSystem, guard, { now: () => 100 }, 10);
   expect(writes).toEqual(['100']);
   const active = { ...fileSystem, readFile: async () => '95' };
-  await expect(
-    claimCompressionLock(active, guard, { now: () => 100 }, 10),
-  ).rejects.toThrow('already');
+  await expect(claimCompressionLock(active, guard, { now: () => 100 }, 10)).rejects.toThrow(
+    'already',
+  );
   const stale = { ...fileSystem, readFile: async () => '50' };
-  await expect(
-    claimCompressionLock(stale, guard, { now: () => 100 }, 10),
-  ).resolves.toBeUndefined();
-  await expect(
-    claimCompressionLock(stale, guard, { now: () => 100 }, 0),
-  ).rejects.toThrow('positive');
+  await expect(claimCompressionLock(stale, guard, { now: () => 100 }, 10)).resolves.toBeUndefined();
+  await expect(claimCompressionLock(stale, guard, { now: () => 100 }, 0)).rejects.toThrow(
+    'positive',
+  );
 });

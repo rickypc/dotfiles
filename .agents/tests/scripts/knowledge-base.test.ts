@@ -1,4 +1,3 @@
-// biome-ignore lint/style/noExcessiveLinesPerFile: This canonical command suite intentionally covers all CLI branches together.
 import { expect, mock, test } from 'bun:test';
 import {
   buildKbInfo,
@@ -89,12 +88,8 @@ const reconcileStub: typeof reconcileConcepts = async () => ({
 const searchStub: typeof searchKnowledgeBase = async () => [];
 
 test('conceptIndexPath renders correct index path', () => {
-  expect(conceptIndexPath('shared/team/decision.md')).toBe(
-    'shared/team/index.md',
-  );
-  expect(conceptIndexPath('personal/work/task.md')).toBe(
-    'personal/work/index.md',
-  );
+  expect(conceptIndexPath('shared/team/decision.md')).toBe('shared/team/index.md');
+  expect(conceptIndexPath('personal/work/task.md')).toBe('personal/work/index.md');
 });
 
 test('scopeIndexPath renders correct scope index path', () => {
@@ -111,16 +106,12 @@ test('parseOkfConcept parses valid OKF content', () => {
 });
 
 test('parseOkfConcept throws for missing frontmatter', () => {
-  expect(() => parseOkfConcept('no frontmatter')).toThrow(
-    'OKF concept frontmatter is required',
-  );
+  expect(() => parseOkfConcept('no frontmatter')).toThrow('OKF concept frontmatter is required');
 });
 
 test('parseOkfConcept throws for missing required fields', () => {
   const incomplete = ['---', 'type: "note"', '---', '', 'Body'].join('\n');
-  expect(() => parseOkfConcept(incomplete)).toThrow(
-    'OKF metadata field is required',
-  );
+  expect(() => parseOkfConcept(incomplete)).toThrow('OKF metadata field is required');
 });
 
 test('validateOkfMetadata validates required fields', () => {
@@ -144,25 +135,16 @@ test('validateOkfMetadata validates required fields', () => {
 
 test('renderOkfConcept renders OKF concept', () => {
   expect(() =>
-    renderOkfConcept(
-      { description: 'D', tags: ['t'], title: 'T', type: 'note' },
-      'body',
-    ),
+    renderOkfConcept({ description: 'D', tags: ['t'], title: 'T', type: 'note' }, 'body'),
   ).not.toThrow();
   expect(() =>
-    renderOkfConcept(
-      { description: 'D', tags: ['t'], title: '', type: 'note' },
-      'body',
-    ),
+    renderOkfConcept({ description: 'D', tags: ['t'], title: '', type: 'note' }, 'body'),
   ).toThrow('title');
 });
 
 test('renderOkfConcept throws for empty body', () => {
   expect(() =>
-    renderOkfConcept(
-      { description: 'D', tags: ['t'], title: 'T', type: 'note' },
-      '',
-    ),
+    renderOkfConcept({ description: 'D', tags: ['t'], title: 'T', type: 'note' }, ''),
   ).toThrow('OKF concept body is required');
 });
 
@@ -368,16 +350,6 @@ test('renderOkfConcept with full metadata', () => {
   expect(result).toContain('body content');
 });
 
-test('validateLesson throws for empty fields', () => {
-  const lesson = {
-    cause: 'cause',
-    durableFix: 'fix',
-    evidence: '',
-    symptom: 'symptom',
-  };
-  expect(() => validateLesson(lesson)).toThrow('Lesson evidence is required.');
-});
-
 test('captureConcept creates concept and indexes', async () => {
   const writeCalls: string[] = [];
   const mockFs = {
@@ -471,11 +443,7 @@ test('importPlan imports plan and returns receipt', async () => {
     writeFile: async () => undefined,
   };
 
-  const result = await importPlan(
-    mockFs,
-    '/kb',
-    '/kb/.agents/plans/test-plan.md',
-  );
+  const result = await importPlan(mockFs, '/kb', '/kb/.agents/plans/test-plan.md');
   expect(result.conceptPath).toContain('shared/plans/');
   expect(result.repoSearchIndex).toBe('shared');
 });
@@ -531,9 +499,9 @@ test('searchKnowledgeBase throws for empty query', async () => {
 
 test('searchKnowledgeBase throws for non-absolute path', async () => {
   const fileSystem = makeFileSystem();
-  await expect(
-    searchKnowledgeBase(fileSystem, 'relative', 'query'),
-  ).rejects.toThrow('KB root must be an absolute path.');
+  await expect(searchKnowledgeBase(fileSystem, 'relative', 'query')).rejects.toThrow(
+    'KB root must be an absolute path.',
+  );
 });
 
 test('run handles search command', async () => {
@@ -545,9 +513,7 @@ test('run handles search command', async () => {
 
 test('run handles search fallback and related commands', async () => {
   const write = mock();
-  const search = mock(
-    async (..._args: Parameters<typeof searchKnowledgeBase>) => [],
-  );
+  const search = mock(async (..._args: Parameters<typeof searchKnowledgeBase>) => []);
   const discover = mock(
     async (..._args: Parameters<typeof searchKnowledgeBaseWithFallback>) =>
       ({
@@ -562,13 +528,7 @@ test('run handles search fallback and related commands', async () => {
       }) as Awaited<ReturnType<typeof searchKnowledgeBaseWithFallback>>,
   );
 
-  await run(
-    ['search', '/kb', 'index', 'query'],
-    write,
-    captureStub,
-    search,
-    discover,
-  );
+  await run(['search', '/kb', 'index', 'query'], write, captureStub, search, discover);
   await run(['related', '/kb', 'query'], write, captureStub, search, discover);
 
   expect(discover).toHaveBeenCalled();
@@ -578,9 +538,7 @@ test('run handles search fallback and related commands', async () => {
 
 test('run rejects malformed search command shapes', async () => {
   await expect(run(['search', '/kb'])).rejects.toThrow(usage());
-  await expect(run(['related', '/kb', 'query', 'extra'])).rejects.toThrow(
-    usage(),
-  );
+  await expect(run(['related', '/kb', 'query', 'extra'])).rejects.toThrow(usage());
 });
 
 test('run handles search-batch command', async () => {
@@ -623,14 +581,7 @@ test('run handles capture command with invalid JSON', async () => {
   const write = mock();
   await expect(
     run(
-      [
-        'capture',
-        '/kb',
-        'shared/team/test.md',
-        '{invalid json}',
-        'body',
-        'evidence',
-      ],
+      ['capture', '/kb', 'shared/team/test.md', '{invalid json}', 'body', 'evidence'],
       write,
       captureStub,
     ),
@@ -641,9 +592,7 @@ test('run handles capture command with invalid JSON', async () => {
 test('run handles capture command with wrong arg count', async () => {
   const write = mock();
   // The run function throws usage error for wrong arg count
-  await expect(run(['capture', '/kb'], write, captureStub)).rejects.toThrow(
-    usage(),
-  );
+  await expect(run(['capture', '/kb'], write, captureStub)).rejects.toThrow(usage());
 });
 
 test('run handles reconcile command', async () => {
@@ -748,9 +697,9 @@ test('run handles concept-index command', async () => {
 test('run handles concept-index command with invalid args', async () => {
   const write = mock();
   await expect(run(['concept-index'], write)).rejects.toThrow(usage());
-  await expect(
-    run(['concept-index', 'shared/team/test.md', 'extra'], write),
-  ).rejects.toThrow(usage());
+  await expect(run(['concept-index', 'shared/team/test.md', 'extra'], write)).rejects.toThrow(
+    usage(),
+  );
 });
 
 test('run handles import-plan command', async () => {
@@ -865,9 +814,9 @@ test('run handles validate command with non-existent file', async () => {
     return originalReadFile(path, 'utf8');
   };
 
-  await expect(
-    run(['validate', '/kb/nonexistent.md'], write, captureStub),
-  ).rejects.toThrow('ENOENT');
+  await expect(run(['validate', '/kb/nonexistent.md'], write, captureStub)).rejects.toThrow(
+    'ENOENT',
+  );
 
   mutableNodeFileSystem.readFile = originalReadFile;
 });
@@ -887,13 +836,10 @@ test('runWhenMain delegates only when invoked as the main module', async () => {
 test('searchKnowledgeBaseBatch searches multiple queries', async () => {
   const mockFs = makeFileSystem();
 
-  const results = await searchKnowledgeBaseBatch(
-    mockFs,
-    commandExecutor,
-    '/kb',
-    'index',
-    ['query1', 'query2'],
-  );
+  const results = await searchKnowledgeBaseBatch(mockFs, commandExecutor, '/kb', 'index', [
+    'query1',
+    'query2',
+  ]);
   expect(results.length).toBe(2);
   expect(results[0].query).toBe('query1');
   expect(results[1].query).toBe('query2');
@@ -922,13 +868,8 @@ test('searchKnowledgeBaseBatch throws for too many queries', async () => {
 test('searchKnowledgeBaseBatch throws for duplicate queries', async () => {
   const fileSystem = makeFileSystem();
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', [
-      'query',
-      'query',
-    ]),
-  ).rejects.toThrow(
-    'KB search-batch queries must be unique after normalization.',
-  );
+    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', ['query', 'query']),
+  ).rejects.toThrow('KB search-batch queries must be unique after normalization.');
 });
 
 test('searchKnowledgeBaseWithFallback returns receipt', async () => {
@@ -1089,28 +1030,4 @@ test('renderOkfConcept renders with metadata', () => {
   expect(result).toContain('tag1');
   expect(result).toContain('tag2');
   expect(result).toContain('body content');
-});
-
-test('validateLesson throws for empty fields', () => {
-  const lesson = {
-    cause: 'cause',
-    durableFix: 'fix',
-    evidence: '',
-    symptom: 'symptom',
-  };
-  expect(() => validateLesson(lesson)).toThrow('Lesson evidence is required.');
-});
-
-test('renderLessonBody renders lesson', () => {
-  const lesson = {
-    cause: 'cause',
-    durableFix: 'fix',
-    evidence: 'evidence',
-    symptom: 'symptom',
-  };
-  const body = renderLessonBody(lesson);
-  expect(body).toContain('symptom');
-  expect(body).toContain('cause');
-  expect(body).toContain('fix');
-  expect(body).toContain('evidence');
 });

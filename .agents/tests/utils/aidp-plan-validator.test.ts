@@ -66,10 +66,7 @@ test('rejects frontmatter drift, index mismatch, and invalid dates', () => {
   expect(() =>
     validateAidpPlan(
       validPlan
-        .replace(
-          'repo_search_index: "Users-demo"',
-          'repo_search_index: "Other"',
-        )
+        .replace('repo_search_index: "Users-demo"', 'repo_search_index: "Other"')
         .replace('created_at: "2026-08-09"', 'created_at: "2026-02-30"')
         .replace('status: "pending"', 'extra: "unexpected"\nstatus: "pending"'),
       planPath,
@@ -82,10 +79,7 @@ test('rejects heading drift, empty sections, and unresolved placeholders', () =>
     validateAidpPlan(
       validPlan
         .replace('## 4. TOOL STRATEGY & FALLBACKS', '## 4. TOOL STRATEGY')
-        .replace(
-          'Scope covers the named files',
-          'Scope covers [the named files]',
-        ),
+        .replace('Scope covers the named files', 'Scope covers [the named files]'),
       planPath,
     ),
   ).toThrow(AidpPlanValidationError);
@@ -93,38 +87,30 @@ test('rejects heading drift, empty sections, and unresolved placeholders', () =>
 
 test('rejects a workflow step that omits an independently testable proof field', () => {
   expect(() =>
-    validateAidpPlan(
-      validPlan.replace('Proof and check: focused test; ', ''),
-      planPath,
-    ),
+    validateAidpPlan(validPlan.replace('Proof and check: focused test; ', ''), planPath),
   ).toThrow(/step 2.*proof/u);
 });
 
 test('rejects workflow steps without unchecked task markers', () => {
-  expect(() =>
-    validateAidpPlan(validPlan.replaceAll('- [ ]', '1.'), planPath),
-  ).toThrow(/unchecked Markdown task items/u);
+  expect(() => validateAidpPlan(validPlan.replaceAll('- [ ]', '1.'), planPath)).toThrow(
+    /unchecked Markdown task items/u,
+  );
 });
 
 test('rejects a plan outside the canonical indexed plan route', () => {
-  expect(() => validateAidpPlan(validPlan, '/workspace/notes/plan.md')).toThrow(
-    /\.agents\/plans/u,
-  );
+  expect(() => validateAidpPlan(validPlan, '/workspace/notes/plan.md')).toThrow(/\.agents\/plans/u);
 });
 
 test('rejects a plan whose document H1 differs from the frontmatter title', () => {
   expect(() =>
-    validateAidpPlan(
-      validPlan.replace('# Valid AIDP plan', '# Different title'),
-      planPath,
-    ),
+    validateAidpPlan(validPlan.replace('# Valid AIDP plan', '# Different title'), planPath),
   ).toThrow(/H1/u);
 });
 
 test('rejects a plan with no document H1', () => {
-  expect(() =>
-    validateAidpPlan(validPlan.replace('# Valid AIDP plan\n\n', ''), planPath),
-  ).toThrow(/H1/u);
+  expect(() => validateAidpPlan(validPlan.replace('# Valid AIDP plan\n\n', ''), planPath)).toThrow(
+    /H1/u,
+  );
 });
 
 test('rejects an unflagged assumption phrase', () => {
@@ -171,9 +157,7 @@ test('runs the validator through its absolute-file command boundary', async () =
   })) as unknown as Parameters<typeof run>[2];
   const receipt = await run([planPath], read, checkStat, write);
   expect(receipt.status).toBe('valid');
-  expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('"status": "valid"'),
-  );
+  expect(write).toHaveBeenCalledWith(expect.stringContaining('"status": "valid"'));
 });
 
 test('rejects invalid command arguments and non-file paths', async () => {
@@ -182,7 +166,5 @@ test('rejects invalid command arguments and non-file paths', async () => {
   const checkStat = (async () => ({
     isFile: () => false,
   })) as unknown as Parameters<typeof run>[2];
-  await expect(run([planPath], read, checkStat)).rejects.toThrow(
-    'not a regular file',
-  );
+  await expect(run([planPath], read, checkStat)).rejects.toThrow('not a regular file');
 });

@@ -20,8 +20,7 @@ test('passes when protected files are clean or staged only', async () => {
   );
   const receipt = await checkImmutableAgentsConfig(executor, '/agents');
   expect(receipt).toEqual({
-    detail:
-      'immutable-agents-config: passed — protected files match the Git index.',
+    detail: 'immutable-agents-config: passed — protected files match the Git index.',
     paths: [],
     status: 'passed',
   });
@@ -43,9 +42,7 @@ test.each([
 });
 
 test('fails closed when git status cannot run', async () => {
-  const executor = mock(async () =>
-    resultFor('fatal: not a git repository', 128),
-  );
+  const executor = mock(async () => resultFor('fatal: not a git repository', 128));
   const receipt = await checkImmutableAgentsConfig(executor, '/agents');
   expect(receipt.status).toBe('failed');
   expect(receipt.detail).toContain('code 128');

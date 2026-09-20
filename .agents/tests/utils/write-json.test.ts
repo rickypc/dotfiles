@@ -6,9 +6,7 @@ import type { FileSystem } from '../../utils/filesystem.js';
 import { nodeFileSystem, writeText } from '../../utils/filesystem.js';
 
 mock.module('./filesystem.js', () => ({}));
-const { processExit, run, runCli, writeJson } = await import(
-  '../../scripts/write-json.js'
-);
+const { processExit, run, runCli, writeJson } = await import('../../scripts/write-json.js');
 
 const pathApi: JsonPathApi = {
   isAbsolute: (value: string) => value.startsWith('/'),
@@ -31,17 +29,11 @@ const makeFileSystem = (): FileSystem => ({
   writeFile: async () => undefined,
 });
 
-const makeDependencies = (
-  writes: string[],
-): Parameters<typeof writeJson>[2] => ({
+const makeDependencies = (writes: string[]): Parameters<typeof writeJson>[2] => ({
   fileSystem: makeFileSystem(),
   pathApi,
   temporaryRoot: '/tmp',
-  writeText: async (
-    _fileSystem: FileSystem,
-    outputPath: string,
-    content: string,
-  ) => {
+  writeText: async (_fileSystem: FileSystem, outputPath: string, content: string) => {
     writes.push(`${outputPath}\n${content}`);
   },
 });
@@ -91,9 +83,9 @@ describe('writeJson', () => {
     await expect(writeJson('request.json', '{}', dependencies)).rejects.toThrow(
       'JSON output path must be absolute',
     );
-    await expect(
-      writeJson('/var/request.json', '{}', dependencies),
-    ).rejects.toThrow('inside the operating-system temporary directory');
+    await expect(writeJson('/var/request.json', '{}', dependencies)).rejects.toThrow(
+      'inside the operating-system temporary directory',
+    );
     expect(writes).toHaveLength(0);
   });
 

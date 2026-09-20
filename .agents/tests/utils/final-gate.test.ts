@@ -2,17 +2,20 @@ import { expect, mock, test } from 'bun:test';
 import * as nodeChildProcess from 'node:child_process';
 import * as nodeFs from 'node:fs';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import {
-  mkdir,
-  readdir,
-  readFile,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import * as nodePath from 'node:path';
 import { join } from 'node:path';
+
+import {
+  aidxConfigJsonPathFor,
+  defaultFinalGate,
+  executeFinalGate,
+  finalGateFor,
+  finalGateReceipt,
+  gateDiagnosticsFor,
+  resolveFinalGate,
+} from '../support/final-gate.js';
 
 mock.module('node:child_process', () => nodeChildProcess);
 mock.module('node:fs', () => nodeFs);
@@ -25,16 +28,6 @@ mock.module('node:fs/promises', () => ({
   writeFile,
 }));
 mock.module('node:path', () => nodePath);
-
-import {
-  aidxConfigJsonPathFor,
-  defaultFinalGate,
-  executeFinalGate,
-  finalGateFor,
-  finalGateReceipt,
-  gateDiagnosticsFor,
-  resolveFinalGate,
-} from '../support/final-gate.js';
 
 test('uses the explicit camelCase finalGate or the default command', () => {
   expect(finalGateFor({})).toBe(defaultFinalGate);
@@ -64,13 +57,9 @@ test('returns an observable result from the injected gate executor', () => {
 });
 
 test('preserves failure diagnostics in the gate receipt', () => {
-  const diagnostics = gateDiagnosticsFor(
-    'error: declaration order\ncoverage: 99%\n',
-  );
+  const diagnostics = gateDiagnosticsFor('error: declaration order\ncoverage: 99%\n');
   expect(diagnostics).toEqual(['error: declaration order', 'coverage: 99%']);
-  expect(finalGateReceipt('bun run test', 1, diagnostics)).toContain(
-    'declaration order',
-  );
+  expect(finalGateReceipt('bun run test', 1, diagnostics)).toContain('declaration order');
 });
 
 test('resolves the JSON config or the default command', async () => {
@@ -94,24 +83,18 @@ test('resolves the JSON config or the default command', async () => {
 });
 
 test('reports invalid project roots and invalid JSON config values', async () => {
-  await expect(resolveFinalGate('relative')).rejects.toThrow(
-    'absolute project root',
-  );
+  await expect(resolveFinalGate('relative')).rejects.toThrow('absolute project root');
   const projectRoot = mkdtempSync(join(tmpdir(), 'aidx-invalid-gate-'));
   try {
     writeFileSync(join(projectRoot, 'aidx.json'), '[]\n');
-    await expect(resolveFinalGate(projectRoot)).rejects.toThrow(
-      'must contain an object',
-    );
+    await expect(resolveFinalGate(projectRoot)).rejects.toThrow('must contain an object');
   } finally {
     rmSync(projectRoot, { force: true, recursive: true });
   }
   const loadErrorRoot = mkdtempSync(join(tmpdir(), 'aidx-invalid-json-'));
   try {
     writeFileSync(join(loadErrorRoot, 'aidx.json'), '{\n');
-    await expect(resolveFinalGate(loadErrorRoot)).rejects.toThrow(
-      'file could not be loaded',
-    );
+    await expect(resolveFinalGate(loadErrorRoot)).rejects.toThrow('file could not be loaded');
   } finally {
     rmSync(loadErrorRoot, { force: true, recursive: true });
   }
@@ -130,7 +113,6 @@ test('returns a failed result when the injected executor has no status', () => {
   ).toMatchObject({
     diagnostics: ['error: command failed'],
     exitCode: 1,
-    receipt:
-      'final gate: bun run test failed (exit 1); diagnostics: error: command failed',
+    receipt: 'final gate: bun run test failed (exit 1); diagnostics: error: command failed',
   });
 });
