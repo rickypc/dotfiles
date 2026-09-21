@@ -2,7 +2,9 @@
 
 ## <pattern:hanging-stdin>
 
-**Problem**: Tests that read from `stdin` (e.g., `Bun.stdin`, `process.stdin`, `new Response(Bun.stdin).text()`) hang indefinitely in test environments because no input is provided.
+**Problem**: Tests that read from `stdin` (e.g., `Bun.stdin`, `process.stdin`,
+`new Response(Bun.stdin).text()`) hang indefinitely in test environments because no input is
+provided.
 
 **Solution**: Always inject `readInput` / stdin reader as a dependency and mock it in tests.
 
@@ -22,58 +24,54 @@ await run(args, { ...defaultDependencies, readInput: mockStdin });
 
 ## <pattern:focused-green-full-gate-red>
 
-**Problem**: A focused test or coverage command passes, but the full Bun suite
-fails later because a persistent `mock.module()` registration changed a default
-dependency, or because strict TypeScript and lint were never run. This is easy
-to miss when the selected SUT reports 100% coverage.
+**Problem**: A focused test or coverage command passes, but the full Bun suite fails later because a
+persistent `mock.module()` registration changed a default dependency, or because strict TypeScript
+and lint were never run. This is easy to miss when the selected SUT reports 100% coverage.
 
-**Solution**: Treat focused coverage as diagnostic evidence only. Run the
-configured full project lanes independently after the focused check:
-`test:lint`, `test:unit`, and `test:type` when those scripts exist. Require every
-lane to exit 0, retain each receipt, and rerun the full suite after any mock or
-fixture repair. The coverage receipt must name the selected SUT files and show
-100% of the configured function/line metrics; aggregate coverage is not enough.
+**Solution**: Treat focused coverage as diagnostic evidence only. Run the configured full project
+lanes independently after the focused check: `test:lint`, `test:unit`, and `test:type` when those
+scripts exist. Require every lane to exit 0, retain each receipt, and rerun the full suite after any
+mock or fixture repair. The coverage receipt must name the selected SUT files and show 100% of the
+configured function/line metrics; aggregate coverage is not enough.
 
-**Anti-pattern**: Declaring completion from a focused 100% report or from
-`test:lint` while `test:unit` or `test:type` remains unverified.
+**Anti-pattern**: Declaring completion from a focused 100% report or from `test:lint` while
+`test:unit` or `test:type` remains unverified.
 
 ## <pattern:same-process-built-in-mock>
 
-**Problem**: Bun module mocks can persist across test files in one process. A
-top-level built-in mock such as `node:os` may replace a platform value used by a
-later test, making a default path, temporary root, or other OS boundary
-inconsistent. The focused file passes while the full suite fails due to test
-ordering.
+**Problem**: Bun module mocks can persist across test files in one process. A top-level built-in
+mock such as `node:os` may replace a platform value used by a later test, making a default path,
+temporary root, or other OS boundary inconsistent. The focused file passes while the full suite
+fails due to test ordering.
 
-**Solution**: Prefer dependency injection or the real platform value when it
-already provides a deterministic boundary. If a built-in module mock is
-unavoidable, preserve unrelated exports, keep the mocked value consistent with
-the test's actual inputs, restore mutable globals, and prove same-process
-full-suite behavior. Run the full suite in more than one relevant order when
-the runner or project supports it.
+**Solution**: Prefer dependency injection or the real platform value when it already provides a
+deterministic boundary. If a built-in module mock is unavoidable, preserve unrelated exports, keep
+the mocked value consistent with the test's actual inputs, restore mutable globals, and prove
+same-process full-suite behavior. Run the full suite in more than one relevant order when the runner
+or project supports it.
 
-**Anti-pattern**: Registering a narrow top-level built-in mock, relying on
-`mock.restore()` to isolate it, or validating only the changed test file.
+**Anti-pattern**: Registering a narrow top-level built-in mock, relying on `mock.restore()` to
+isolate it, or validating only the changed test file.
 
 ## <pattern:strict-test-doubles>
 
-**Problem**: Coverage-oriented test repairs use `any`, incomplete filesystem
-doubles, or mutations of readonly shared adapters. Focused tests can pass while
-the project's strict type gate fails.
+**Problem**: Coverage-oriented test repairs use `any`, incomplete filesystem doubles, or mutations
+of readonly shared adapters. Focused tests can pass while the project's strict type gate fails.
 
-**Solution**: Build complete dependency shapes, define stubs from the SUT's
-exported function types, run the strict type lane after test edits, and use
-dependency injection or a typed local seam instead of mutating readonly shared
-objects. Keep cleanup guaranteed when a shared seam is temporarily replaced.
+**Solution**: Build complete dependency shapes, define stubs from the SUT's exported function types,
+run the strict type lane after test edits, and use dependency injection or a typed local seam
+instead of mutating readonly shared objects. Keep cleanup guaranteed when a shared seam is
+temporarily replaced.
 
-**Anti-pattern**: `as any`, suppression comments, partial doubles accepted by
-the test runner, or a type check omitted because lint already passed.
+**Anti-pattern**: `as any`, suppression comments, partial doubles accepted by the test runner, or a
+type check omitted because lint already passed.
 
 ---
 
 ## <pattern:real-timers-in-tests>
 
-**Problem**: Tests using real `setTimeout`/`setInterval` with long delays (e.g., 1000ms+) cause slow test suites and potential hangs if timers aren't cleaned up.
+**Problem**: Tests using real `setTimeout`/`setInterval` with long delays (e.g., 1000ms+) cause slow
+test suites and potential hangs if timers aren't cleaned up.
 
 **Solution**: Use fake timers that can be advanced programmatically.
 
@@ -120,7 +118,8 @@ const timers = mock((cb, delay) => setTimeout(cb, delay));
 
 ## <pattern:unmocked-external-boundaries>
 
-**Problem**: Tests that leave external boundaries live (network, filesystem, process spawn, timers, console, environment) cause flakiness, slow execution, and hangs.
+**Problem**: Tests that leave external boundaries live (network, filesystem, process spawn, timers,
+console, environment) cause flakiness, slow execution, and hangs.
 
 **Solution**: Mock EVERY external boundary using `mock()` and `mock.module()`:
 
@@ -148,7 +147,8 @@ afterEach(() => { Bun.env = originalEnv; });
 
 ## <pattern:missing-afterEach-cleanup>
 
-**Problem**: Tests that create resources (timers, streams, event listeners, temp files) without cleaning them up cause hangs between tests.
+**Problem**: Tests that create resources (timers, streams, event listeners, temp files) without
+cleaning them up cause hangs between tests.
 
 **Solution**: Always clean up in `afterEach`:
 
@@ -183,7 +183,8 @@ afterEach(() => {
 
 ## <pattern:test-structure-for-speed>
 
-1. **Separate fast unit tests from slow integration tests** - use different test files or directories
+1. **Separate fast unit tests from slow integration tests** - use different test files or
+   directories
 2. **Use `test.each` for parameterized tests** - avoids duplicate setup
 3. **Mock at module boundary** - use `mock.module()` for all imports except SUT
 4. **Inject dependencies** - pass boundaries as parameters, not global imports
@@ -203,3 +204,16 @@ const { writeJson } = await import('../../scripts/write-json.js');
 // Incorrect - live filesystem
 import { nodeFileSystem } from '../../utils/filesystem.js';
 ```
+
+---
+
+## <pattern:mock-reset-semantics>
+
+**Rule**: `mockReset()` in Bun **clears the implementation to `undefined`** - it does NOT restore
+the factory or prior base implementation. After any `mockReset()`, re-apply the base implementation
+in the next `beforeEach` (e.g. `fn.mockImplementation(baseImpl)`), otherwise later calls return
+`undefined` and downstream code fails with `undefined is not a function`.
+
+Verified empirically on Bun 1.4.2 via BUN_TEST_POC. External references claiming sinon-style
+"restore base implementation" behavior do not apply to `bun:test`. Prefer `mockClear()` when you
+only need call-history reset.
