@@ -8,6 +8,7 @@ __pycache__/
 *.py[cod]
 *.swp
 .actrc
+aidlc
 .android
 .aspnet
 .atom/.atom-socket-*
@@ -18,6 +19,7 @@ __pycache__/
 .cache
 .CFUserTextEncoding
 .cisco
+.claude*
 .colima
 .composer
 .config/*
@@ -41,6 +43,7 @@ __pycache__/
 .homebrew
 .IdentityService
 .idlerc
+.kiro*
 .lesshst
 .lima
 .litert-lm
