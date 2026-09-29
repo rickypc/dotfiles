@@ -171,6 +171,62 @@ const sanitizeCases = [
   { expected: 'hello world', input: 'hello world', label: 'keeps clean text' },
   { expected: '', input: '', label: 'handles empty text' },
   { expected: 'x', input: '\u00D7', label: 'replaces multiplication sign' },
+  {
+    expected: 'a"b',
+    input: 'a\u201Cb',
+    label: 'replaces left double quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u201Db',
+    label: 'replaces right double quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u201Eb',
+    label: 'replaces double low-9 quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u201Fb',
+    label: 'replaces double high-reversed-9 quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u00ABb',
+    label: 'replaces left-pointing double angle quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u00BBb',
+    label: 'replaces right-pointing double angle quotation mark',
+  },
+  { expected: 'a"b', input: 'a\u2033b', label: 'replaces double prime' },
+  {
+    expected: 'a"b',
+    input: 'a\u2036b',
+    label: 'replaces reversed double prime',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u301Db',
+    label: 'replaces reversed double prime quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u301Eb',
+    label: 'replaces double prime quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\u301Fb',
+    label: 'replaces low double prime quotation mark',
+  },
+  {
+    expected: 'a"b',
+    input: 'a\uFF02b',
+    label: 'replaces fullwidth quotation mark',
+  },
 ];
 
 test.each(sanitizeCases)('$label', ({ input, expected }) => {

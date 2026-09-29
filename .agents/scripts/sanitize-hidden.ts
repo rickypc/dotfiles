@@ -26,6 +26,20 @@
  *   U+2014  EM DASH
  *   U+00D7  MULTIPLICATION SIGN (×) -> "x"
  *
+ * Double quotation marks — replaced with ASCII '"':
+ *   U+201C  LEFT DOUBLE QUOTATION MARK
+ *   U+201D  RIGHT DOUBLE QUOTATION MARK
+ *   U+201E  DOUBLE LOW-9 QUOTATION MARK
+ *   U+201F  DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+ *   U+00AB  LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+ *   U+00BB  RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+ *   U+2033  DOUBLE PRIME
+ *   U+2036  REVERSED DOUBLE PRIME
+ *   U+301D  REVERSED DOUBLE PRIME QUOTATION MARK
+ *   U+301E  DOUBLE PRIME QUOTATION MARK
+ *   U+301F  LOW DOUBLE PRIME QUOTATION MARK
+ *   U+FF02  FULLWIDTH QUOTATION MARK
+ *
  * Other:
  *   U+00A0  NON-BREAKING SPACE  -> " "
  *   U+2028  LINE SEPARATOR       -> "\n"
@@ -43,11 +57,20 @@ import { argv, cwd, exit } from 'node:process';
 
 const REPLACE_MAP = {
   '\u00A0': ' ',
+  '\u00AB': '"', // LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
   '\u00AD': '',
+  '\u00BB': '"', // RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
   '\u00D7': 'x', // MULTIPLICATION SIGN (×) -> "x"
   '\u200B': '',
   '\u200C': '',
   '\u200D': '',
+  '\u201C': '"', // LEFT DOUBLE QUOTATION MARK
+  '\u201D': '"', // RIGHT DOUBLE QUOTATION MARK
+  '\u201E': '"', // DOUBLE LOW-9 QUOTATION MARK
+  '\u201F': '"', // DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+  '\u301D': '"', // REVERSED DOUBLE PRIME QUOTATION MARK
+  '\u301E': '"', // DOUBLE PRIME QUOTATION MARK
+  '\u301F': '"', // LOW DOUBLE PRIME QUOTATION MARK
   '\u2010': '-',
   '\u2011': '-',
   '\u2012': '-',
@@ -55,8 +78,11 @@ const REPLACE_MAP = {
   '\u2014': '-',
   '\u2028': '\n',
   '\u2029': '\n',
+  '\u2033': '"', // DOUBLE PRIME
+  '\u2036': '"', // REVERSED DOUBLE PRIME
   '\u2060': '',
   '\uFEFF': '',
+  '\uFF02': '"', // FULLWIDTH QUOTATION MARK
 };
 
 // biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional for control character matching
