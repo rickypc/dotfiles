@@ -89,12 +89,12 @@ Run this skill before editing the selected test surface.
 See [references/lessons-learned.md](references/lessons-learned.md) for documented
 patterns that cause hanging or slow tests and their fixes:
 
-- `<pattern:hanging-stdin>` — inject stdin as mockable dependency
-- `<pattern:real-timers-in-tests>` — use fake timers with `advanceTimers()`
-- `<pattern:unmocked-external-boundaries>` — mock every boundary with `mock()`/`mock.module()`
-- `<pattern:missing-afterEach-cleanup>` — clean up timers/streams in `afterEach`
-- `<pattern:slow-test-anti-patterns>` — table of slow patterns vs fast alternatives
-- `<pattern:mock-module-rule>` — `mock.module()` for all non-SUT imports
+- `<pattern:hanging-stdin>` - inject stdin as mockable dependency
+- `<pattern:real-timers-in-tests>` - use fake timers with `advanceTimers()`
+- `<pattern:unmocked-external-boundaries>` - mock every boundary with `mock()`/`mock.module()`
+- `<pattern:missing-afterEach-cleanup>` - clean up timers/streams in `afterEach`
+- `<pattern:slow-test-anti-patterns>` - table of slow patterns vs fast alternatives
+- `<pattern:mock-module-rule>` - `mock.module()` for all non-SUT imports
 
 ## 4. Input & Context Schema
 
@@ -105,7 +105,7 @@ patterns that cause hanging or slow tests and their fixes:
   behavior matrix, external-boundary contract, same-process consumers, project
   test command, and static-check owner.
 - **Unknowns:** Missing module/global, unresolved canonical test owner, unsafe
-  mock isolation, or unknown boundary behavior is a stop—not a reason to leave
+  mock isolation, or unknown boundary behavior is a stop-not a reason to leave
   a dependency live.
 
 The default scope is `isolated-unit`. In `shared-suite-integration`, the SUT
@@ -234,4 +234,4 @@ receipt green.
 
 ## References
 
-- [lessons-learned.md](references/lessons-learned.md) — Anti-patterns for hanging/slow tests and their fixes
+- [lessons-learned.md](references/lessons-learned.md) - Anti-patterns for hanging/slow tests and their fixes

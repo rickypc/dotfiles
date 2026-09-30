@@ -231,6 +231,13 @@ target, and rerun the same gate. Never merely display, summarize, or hand off a 
 missing, blocked, ambiguous, or unsafe packet is a hard stop; do not invent a repair or cross its
 boundaries.
 
+### Line length
+
+Wrap Markdown and MDX prose at 100 characters or fewer. TypeScript and JSON already use the shared
+Biome `lineWidth` of 100, so no separate rule is needed there. Tables, fenced code blocks, YAML
+frontmatter, and single unbreakable tokens (a long URL or code span) are exempt because wrapping
+them would break their meaning.
+
 ## 8. Command, script, and structured-data contracts
 
 Before invoking any script or skill command, read its owning command catalog and parser/entrypoint.
@@ -261,8 +268,8 @@ mv <absolute-source-path> <trash-destination>
 where `<trash-destination>` is `~/.Trash/<basename>` or, on collision,
 `~/.Trash/<basename>.<suffix>`. Use the `trash.ts` module's `defaultMoveSourceToTrash` for
 programmatic retirement; use `mv` directly for shell-level retirement. Never skip this rule for
-"trivial" temp files — the OS tmpdir janitor handles those, and any other file must be trashed,
-not deleted.
+"trivial" temp files - the OS tmpdir janitor handles those, and any other file must be trashed, not
+deleted.
 
 ### String-only JSON boundary
 
@@ -273,7 +280,7 @@ Never reuse the editor for JSON payloads; always use the shared TypeScript write
 
 For backtick-, dollar-, quote-, or newline-rich JSON that must be written to disk, there is exactly
 ONE way: the four-step procedure below. There is no alternative, no exception, no shortcut, and no
-fallback. Do not attempt any other method — not the editor `write` tool, not `JSON.stringify`, not a
+fallback. Do not attempt any other method - not the editor `write` tool, not `JSON.stringify`, not a
 heredoc, not Python, not `echo`, not shell redirection, and not any ad-hoc workaround. If you cannot
 complete all four steps, STOP and tell the user what you cannot do; do not substitute a different
 method.
@@ -373,17 +380,17 @@ After the complete implementation batch:
    This strips zero-width and soft-hyphen characters, BOM, non-breaking and weird dashes to ASCII
    "-", and stale control bytes from every text file under the working tree (recursively, in
    parallel, skipping `.git`, `build`, `coverage`, `node_modules`, `playwright`, `*.html`, and
-   binary extensions). The command above is a dry-run preview and never modifies files; files
-   change only with the explicit `--write` flag. Review the preview, then apply it once,
-   immediately before the final gate:
+   binary extensions). The command above is a dry-run preview and never modifies files; files change
+   only with the explicit `--write` flag. Review the preview, then apply it once, immediately before
+   the final gate:
 
    ```text
    bun <agents-root>/scripts/sanitize-hidden.ts . --write
    ```
 
    NEVER pass `--write` without having just reviewed a dry-run of the exact same scope: the write
-   pass rewrites files in place and cannot be undone. Binary content is detected from the bytes
-   (a NUL byte or invalid UTF-8) and skipped, so images, fonts, and archives are never rewritten.
+   pass rewrites files in place and cannot be undone. Binary content is detected from the bytes (a
+   NUL byte or invalid UTF-8) and skipped, so images, fonts, and archives are never rewritten.
    Re-diff after the run so any sanitized line is part of the same closeout batch.
 
 3. Run the selected project final gate exactly once.
@@ -411,7 +418,7 @@ bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-js
 
 | Command or information | Arguments                                                                                                                                                               | When to use                                                         | Additional information                                                                                     |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `list-projects`        | `—`                                                                                                                                                                     | Resolve approved roots and matching indexes                         | Select by explicit indexed root.                                                                           |
+| `list-projects`        | `-`                                                                                                                                                                     | Resolve approved roots and matching indexes                         | Select by explicit indexed root.                                                                           |
 | `index-status`         | `<repo-search-index>`                                                                                                                                                   | Check readiness before a read                                       | Follow the indexing boundary and receipt if not ready.                                                     |
 | `architecture`         | `<repo-search-index>`                                                                                                                                                   | Read indexed architecture                                           | Returns one wrapper-owned result.                                                                          |
 | `schema`               | `<repo-search-index>`                                                                                                                                                   | Verify graph identity fields                                        | Use before relying on a newly observed identity field.                                                     |

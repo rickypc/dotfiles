@@ -9,10 +9,10 @@ the authority for changes in the upstream guidance.
 
 - A skill is a directory with a required `SKILL.md`; `scripts/`, `references/`,
   and `assets/` are optional resource directories.
-- YAML frontmatter requires `name` and `description`. `name` is 1–64
+- YAML frontmatter requires `name` and `description`. `name` is 1-64
   characters, lowercase letters/numbers/hyphens only, has no leading/trailing
   or consecutive hyphens, and matches the directory. `description` is
-  1–1,024 characters and states both the job and when to use it.
+  1-1,024 characters and states both the job and when to use it.
 - Keep the body below 500 lines and approximately 5,000 tokens. Use relative
   skill-root paths, keep resource links one level deep, and move branch-only
   detail into focused references for progressive disclosure.

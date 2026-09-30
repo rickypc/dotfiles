@@ -233,6 +233,20 @@ test('leaves angle quotation marks (guillemets) untouched', () => {
   expect(sut.sanitizeText('a\u00BBb')).toBe('a\u00BBb');
 });
 
+test('leaves a Sinhala line untouched, including its zero-width joiner', () => {
+  const sinhala = '\u0db4\u0dca\u200d\u0dbb\u0da5\u0dcf';
+  expect(sut.sanitizeText(`${sinhala} \u2014 \u00A0`)).toBe(`${sinhala} \u2014 \u00A0`);
+});
+
+test('still sanitizes lines that contain no Sinhala script', () => {
+  expect(sut.sanitizeText('a\u200db \u2014')).toBe('ab -');
+});
+
+test('sanitizes only the non-Sinhala lines of a multi-line input', () => {
+  const sinhala = '\u0d9a\u0dca\u200d\u0dbb';
+  expect(sut.sanitizeText(`${sinhala}\na\u200db \u2014`)).toBe(`${sinhala}\nab -`);
+});
+
 test.each([
   {
     bytes: new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0x6f]),
@@ -400,7 +414,11 @@ test('walk yields newline-delimited output and final buffered output', async () 
 
   expect(files).toEqual(['first.txt', 'second.txt']);
   expect(spawn).toHaveBeenCalledWith(
-    expect.arrayContaining(['rg', '-g', '!node_modules', '/workspace']),
+    expect.arrayContaining(['rg', '--files-with-matches', '-g', '!node_modules', '/workspace']),
+    expect.anything(),
+  );
+  expect(spawn).not.toHaveBeenCalledWith(
+    expect.arrayContaining(['--no-ignore-vcs']),
     expect.anything(),
   );
 });
@@ -462,7 +480,7 @@ test('main requires --write to modify files and warns in write mode', async () =
 
   await sut.main();
 
-  expect(log).toHaveBeenCalledWith('[sanitize] WRITE mode — files will be modified in place');
+  expect(log).toHaveBeenCalledWith('[sanitize] WRITE mode - files will be modified in place');
   expect(log).toHaveBeenCalledWith(expect.stringContaining('[sanitize] 1 file(s) changed'));
   expect(log).toHaveBeenCalledWith('  changed.txt  (-1 bytes)');
   expect(writeFile).toHaveBeenCalled();
@@ -479,7 +497,7 @@ test('main defaults to dry-run and never writes without --write', async () => {
   await sut.main();
 
   expect(log).toHaveBeenCalledWith(
-    expect.stringContaining('[sanitize] dry-run — 1 file(s) would change'),
+    expect.stringContaining('[sanitize] dry-run - 1 file(s) would change'),
   );
   expect(writeFile).not.toHaveBeenCalled();
   setArgv('bun', 'sanitize-hidden.ts');
@@ -506,7 +524,7 @@ test('main reports when no files need changes', async () => {
 
   await sut.main();
 
-  expect(log).toHaveBeenCalledWith('  (no changes needed — all clean)');
+  expect(log).toHaveBeenCalledWith('  (no changes needed - all clean)');
   setArgv('bun', 'sanitize-hidden.ts');
 });
 

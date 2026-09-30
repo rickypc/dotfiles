@@ -2,9 +2,32 @@
   "[github-actions-workflow]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  }
+  "[markdown]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "other": "off",
+      "strings": "off"
+    },
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    "editor.wordWrap": "off"
+  },
+  "[skill]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.autoIndent": "advanced",
+    "editor.insertSpaces": true,
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "other": "on",
+      "strings": "on"
+    },
+    "editor.tabSize": 2,
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    "editor.wordBasedSuggestions": "off",
+    "editor.wordWrap": "off"
+  },
   "application.shellEnvironmentResolutionTimeout": 60,
   "biome.requireConfiguration": true,
   "chat.customAgentInSubagent.enabled": true,
@@ -73,6 +96,7 @@
   "editor.renderWhitespace": "none",
   "editor.rulers": [80, 100, 120],
   "editor.stickyTabStops": true,
+  "editor.wordWrapColumn": 100,
   "errorLens.gutterIconsEnabled": true,
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,

@@ -13,7 +13,7 @@ test('renders the standard user-action protocol', () => {
       verify: 'test -f /tmp/example',
       why: 'An external configuration is required.',
     }),
-  ).toContain('## User action required — configure example');
+  ).toContain('## User action required - configure example');
 });
 
 test('renders an exact file URL for browser verification', () => {

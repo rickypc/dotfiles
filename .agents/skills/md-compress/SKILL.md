@@ -27,7 +27,7 @@ justification.
 
 The finalize command may additionally receive one removal-authorization JSON
 path when the edit intentionally removes protected tokens. The `guard`
-command is for no-edit validation passes (e.g. after KB reconcile) — it
+command is for no-edit validation passes (e.g. after KB reconcile) - it
 runs begin+finalize in one shot and returns `{"status":"guarded"}`.
 
 The unannotated grammar is:

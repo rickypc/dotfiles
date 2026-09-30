@@ -5,7 +5,7 @@ import { type SkillSuiteValidationReceipt, validateAllSkills } from '../utils/sk
 export const usage = (): string => 'Usage: bun <agents-root>/scripts/validate-skills.ts';
 
 export const validReceiptLine = (receipt: SkillSuiteValidationReceipt): string =>
-  `skill-validation: passed — ${receipt.skillCount} skills, ${receipt.matrixCount} matrix cases, ${receipt.prose.prosePaths.length} prose paths, ${receipt.prose.checkedLocalLinkTargets} local links checked.`;
+  `skill-validation: passed - ${receipt.skillCount} skills, ${receipt.matrixCount} matrix cases, ${receipt.prose.prosePaths.length} prose paths, ${receipt.prose.checkedLocalLinkTargets} local links checked.`;
 
 export const run = async (
   args: readonly string[],

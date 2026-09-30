@@ -73,8 +73,8 @@ brief -> source research -> evidence ledger -> draft -> claim verification
 2. **Research:** Define the research question and evidence standard. Search
    primary or authoritative sources first, open and verify each material
    source, and record the research ledger.
-3. **Plan and draft:** Write the compact document contract—reader, job, format,
-   defining takeaway, required sections, evidence standard, and non-goals—then
+3. **Plan and draft:** Write the compact document contract-reader, job, format,
+   defining takeaway, required sections, evidence standard, and non-goals-then
    build an earned outline and draft. Keep citations and uncertainty traceable.
 4. **Branch:** For documentation, orient the reader with job, constraint,
    trigger, and place among nearby documents. For SEO/GEO, enable both modes.

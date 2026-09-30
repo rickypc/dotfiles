@@ -37,7 +37,7 @@ request path. Use the command catalog for exact JSON/request-file forms.
 
 **Execution rule:** This skill is executed by running
 `bun <agents-root>/scripts/knowledge-base.ts <command> <arguments>`.
-Never read `knowledge-base.ts` source code to understand its behavior —
+Never read `knowledge-base.ts` source code to understand its behavior -
 run it. The `--help` flag prints the usage contract. The `search` command
 returns `kbInfo` with `resolvedRoot` and `availableIndexes` so you know
 the KB root and all scope indexes without `ls`-ing directories.

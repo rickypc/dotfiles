@@ -16,7 +16,7 @@ const checkImmutableAgentsConfig = mock(
           status: 'failed' as const,
         }
       : {
-          detail: 'immutable-agents-config: passed — protected files match the Git index.',
+          detail: 'immutable-agents-config: passed - protected files match the Git index.',
           paths: [],
           status: 'passed' as const,
         };
@@ -49,7 +49,7 @@ test('reports a passing protection check', async () => {
   const receipt = await run([], executor, '/agents', write);
   expect(receipt.status).toBe('passed');
   expect(write.mock.calls).toEqual([
-    ['immutable-agents-config: passed — protected files match the Git index.'],
+    ['immutable-agents-config: passed - protected files match the Git index.'],
     ['\n'],
   ]);
 });

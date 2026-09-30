@@ -11,7 +11,7 @@ test('renders declaration-order evidence for canonical source', async () => {
 test('renders a concise global-gate summary and only failed checks', async () => {
   const passingWrite = mock();
   await run(['--summary', 'alpha.ts', 'beta.ts'], async () => 'function alpha() {}', passingWrite);
-  expect(passingWrite).toHaveBeenCalledWith('declaration-order: passed — 2 file(s) checked.');
+  expect(passingWrite).toHaveBeenCalledWith('declaration-order: passed - 2 file(s) checked.');
   const failedWrite = mock();
   await expect(
     run(
@@ -22,7 +22,7 @@ test('renders a concise global-gate summary and only failed checks', async () =>
     ),
   ).rejects.toThrow('emitted action packet');
   expect(failedWrite).toHaveBeenCalledWith(
-    expect.stringContaining('declaration-order: failed — 1 of 2 file(s)'),
+    expect.stringContaining('declaration-order: failed - 1 of 2 file(s)'),
   );
   expect(failedWrite).toHaveBeenCalledWith(expect.stringContaining('"errors"'));
   expect(failedWrite).toHaveBeenCalledWith(expect.not.stringContaining('"path": "alpha.ts"'));

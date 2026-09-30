@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * sanitize-hidden.ts — Recursively strip hidden/zero-width characters and
+ * sanitize-hidden.ts - Recursively strip hidden/zero-width characters and
  * normalize weird dashes across all text files in a directory.
  *
  * Usage:
@@ -16,24 +16,34 @@
  * (a NUL byte or invalid UTF-8), so images, fonts, and archives are never
  * decoded or rewritten.
  *
- * Hidden characters from the grep command — replaced with empty string:
+ * Discovery is delegated to ripgrep. rg honors .gitignore/.ignore/.rgignore
+ * and the global git excludes out of the box, skips hidden entries, skips
+ * files larger than MAX_FILE_BYTES, and `--files-with-matches` narrows the
+ * walk to files that actually contain a character we replace. Only those
+ * candidate files are read and decoded.
+ *
+ * Hidden characters from the grep command - replaced with empty string:
  *   U+200B  ZERO WIDTH SPACE
  *   U+200C  ZERO WIDTH NON-JOINER
  *   U+2060  WORD JOINER
  *   U+FEFF  BOM / ZERO WIDTH NO-BREAK SPACE
  *   U+00AD  SOFT HYPHEN
  *   U+200D  ZERO WIDTH JOINER (bonus)
- *   control chars 0x01–0x08, 0x0B, 0x0C, 0x0E–0x1F, 0x7F
+ *   control chars 0x01-0x08, 0x0B, 0x0C, 0x0E-0x1F, 0x7F
  *
- * Weird dashes — replaced with ASCII "-":
+ * Sinhala exception: a line containing Sinhala script (U+0D80-U+0DFF) is left
+ * byte-for-byte untouched. Sinhala conjuncts depend on ZWJ/ZWNJ (U+200D/
+ * U+200C), so stripping them would produce invalid Sinhala.
+ *
+ * Weird dashes - replaced with ASCII "-":
  *   U+2010  HYPHEN
  *   U+2011  NON-BREAKING HYPHEN
  *   U+2012  FIGURE DASH
  *   U+2013  EN DASH
  *   U+2014  EM DASH
- *   U+00D7  MULTIPLICATION SIGN (×) -> "x"
+ *   U+00D7  MULTIPLICATION SIGN -> "x"
  *
- * Double quotation marks — replaced with ASCII '"':
+ * Double quotation marks - replaced with ASCII '"':
  *   U+201C  LEFT DOUBLE QUOTATION MARK
  *   U+201D  RIGHT DOUBLE QUOTATION MARK
  *   U+201E  DOUBLE LOW-9 QUOTATION MARK
@@ -47,13 +57,17 @@
  *
  * Other:
  *   U+00A0  NON-BREAKING SPACE  -> " "
- *   U+2028  LINE SEPARATOR       -> "\n"
- *   U+2029  PARAGRAPH SEPARATOR  -> "\n"
+ *   U+2028  LINE SEPARATOR      -> "\n"
+ *   U+2029  PARAGRAPH SEPARATOR -> "\n"
  *
- * Skip rules (mirrors the find -prune list):
- *   .git, playwright, node_modules, build, coverage subtrees
+ * Skip rules:
+ *   anything ripgrep ignores via .gitignore/.ignore/.rgignore (a gitignored
+ *     `Github/` or `Library/` subtree is therefore never traversed)
+ *   hidden files/directories (ripgrep default), incl. .git
+ *   playwright, node_modules, build, coverage, dist subtrees
  *   *.html files
  *   binary file extensions (images, fonts, archives, media, executables)
+ *   files larger than MAX_FILE_BYTES
  *   any file whose bytes contain a NUL or are not valid UTF-8
  */
 
@@ -147,7 +161,7 @@ const MAX_FILE_BYTES = 16 * 1024 * 1024; // 16 MB
 const REPLACE_MAP = {
   '\u00A0': ' ',
   '\u00AD': '',
-  '\u00D7': 'x', // MULTIPLICATION SIGN (×) -> "x"
+  '\u00D7': 'x', // MULTIPLICATION SIGN -> "x"
   '\u200B': '',
   '\u200C': '',
   '\u200D': '',
@@ -171,6 +185,8 @@ const REPLACE_MAP = {
   '\uFEFF': '',
   '\uFF02': '"', // FULLWIDTH QUOTATION MARK
 };
+
+const SINHALA_RE = /[\u0D80-\u0DFF]/;
 
 const USAGE = `sanitize-hidden.ts [directory] [--dry-run] [--write] [--concurrency=16]
 
@@ -231,12 +247,19 @@ export function parseArgs(): {
 }
 
 export function sanitizeText(input: string): string {
-  let out = input;
-  for (const [from, to] of Object.entries(REPLACE_MAP)) {
-    out = out.split(from).join(to);
-  }
-  out = out.replace(CONTROL_RE, '');
-  return out;
+  return input
+    .split('\n')
+    .map((line) => {
+      if (SINHALA_RE.test(line)) {
+        return line;
+      }
+      let out = line;
+      for (const [from, to] of Object.entries(REPLACE_MAP)) {
+        out = out.split(from).join(to);
+      }
+      return out.replace(CONTROL_RE, '');
+    })
+    .join('\n');
 }
 
 export async function sanitizeFile(
@@ -423,7 +446,7 @@ export async function main(): Promise<void> {
   }
   console.log(`[sanitize] root=${root} dry-run=${dryRun} concurrency=${concurrency}`);
   if (!dryRun) {
-    console.log('[sanitize] WRITE mode — files will be modified in place');
+    console.log('[sanitize] WRITE mode - files will be modified in place');
   }
 
   const gen = walk(root);
@@ -436,7 +459,7 @@ export async function main(): Promise<void> {
 
   if (dryRun) {
     console.log(
-      `\n[sanitize] dry-run — ${changed} file(s) would change, ~${totalBytes} bytes removed:`,
+      `\n[sanitize] dry-run - ${changed} file(s) would change, ~${totalBytes} bytes removed:`,
     );
   } else {
     console.log(`\n[sanitize] ${changed} file(s) changed, ~${totalBytes} bytes removed:`);
@@ -446,7 +469,7 @@ export async function main(): Promise<void> {
     console.log(`  ${rel}  (-${r.bytes} bytes)`);
   }
   if (changed === 0) {
-    console.log('  (no changes needed — all clean)');
+    console.log('  (no changes needed - all clean)');
   }
 }
 

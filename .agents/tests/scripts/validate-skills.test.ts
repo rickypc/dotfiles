@@ -17,7 +17,7 @@ const receipt = {
 
 test('renders one concise stable success receipt line', () => {
   expect(validReceiptLine(receipt)).toBe(
-    'skill-validation: passed — 13 skills, 15 matrix cases, 34 prose paths, 7 local links checked.',
+    'skill-validation: passed - 13 skills, 15 matrix cases, 34 prose paths, 7 local links checked.',
   );
 });
 

@@ -27,7 +27,7 @@ describe('validation', () => {
 
   test('summarizes all checks', () => {
     expect(summarizeChecks([passed('lint', 'clean'), failed('test', 'failure')])).toBe(
-      'lint: passed — clean\ntest: failed — failure',
+      'lint: passed - clean\ntest: failed - failure',
     );
   });
 });

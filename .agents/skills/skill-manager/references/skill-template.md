@@ -1,8 +1,8 @@
 # Reusable Skill Contract Template
 
 Use this contract in every `SKILL.md`. It preserves the useful properties of a
-deterministic execution template—explicit scope, inputs, ordering, outputs, and
-examples—without imposing a robotic persona or an exact-output format on skills
+deterministic execution template-explicit scope, inputs, ordering, outputs, and
+examples-without imposing a robotic persona or an exact-output format on skills
 whose work requires research, judgment, interaction, or delegated ownership.
 
 Keep these seven headings in this order. They are the document architecture, not

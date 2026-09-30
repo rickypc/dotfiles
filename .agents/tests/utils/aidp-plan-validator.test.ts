@@ -25,8 +25,8 @@ status: "pending"
 Objective: deliver the approved change. Scope covers the named files; exclusions and one owner are explicit.
 
 ## 2. VARIABLE DEFINITION MATRIX
-- target_path — type: absolute path; required; source: repository evidence.
-- optional_note — type: string; optional; source: user decision.
+- target_path - type: absolute path; required; source: repository evidence.
+- optional_note - type: string; optional; source: user decision.
 
 ## 3. CHRONOLOGICAL WORKFLOW
 - [ ] Inspect the target and record the owner responsibility; Target: parser module; Dependency and ordering: first; Reason: establish the baseline; Expected result: verified current behavior and preserved invariant; Proof: focused test; Failure or boundary: stop on ambiguity.

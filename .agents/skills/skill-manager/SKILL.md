@@ -4,7 +4,7 @@ description: Use this skill when creating, updating, reviewing, renaming, synchr
 argument-hint: "<operation> [arguments]"
 ---
 
-# Skill Manager — Create, Maintain, and Govern Skills
+# Skill Manager - Create, Maintain, and Govern Skills
 
 ## 1. Role & Scope
 
@@ -41,7 +41,7 @@ synchronization, optimization, validation, or repair request.
 
 # Usage governance: commands are the canonical information and action routes.
 # Put required arguments in <name>, optional arguments in [name], and no
-# arguments in —. Keep normal calls first, alternatives at their decision
+# arguments in -. Keep normal calls first, alternatives at their decision
 # point, and recovery last. Do not duplicate this contract in another table.
 # Every referenced command must be defined above; dependencies belong in the
 # Ordered Execution Chain.

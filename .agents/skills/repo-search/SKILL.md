@@ -246,7 +246,7 @@ indexed operations.
 
 | Command or information | Arguments | When to use | Additional information |
 | --- | --- | --- | --- |
-| `list-projects` | `—` | Resolve approved roots and matching indexes | Returns the project list; select by explicit indexed root. |
+| `list-projects` | `-` | Resolve approved roots and matching indexes | Returns the project list; select by explicit indexed root. |
 | `index-status` | `<repo-search-index>` | Check readiness before a read | If not ready, follow the repo-search indexing boundary and receipt. |
 | `architecture` | `<repo-search-index>` | Read indexed architecture | Returns one wrapper-owned architecture result. |
 | `schema` | `<repo-search-index>` | Verify graph identity fields | Use before relying on a newly observed identity field. |

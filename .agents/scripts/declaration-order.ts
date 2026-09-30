@@ -64,8 +64,8 @@ export const run = async (
   if (summary) {
     write(
       nonPassing.length === 0
-        ? `declaration-order: passed — ${checks.length} file(s) checked.`
-        : `declaration-order: failed — ${nonPassing.length} of ${checks.length} file(s) need attention.\n${JSON.stringify({ errors: nonPassing }, null, 2)}`,
+        ? `declaration-order: passed - ${checks.length} file(s) checked.`
+        : `declaration-order: failed - ${nonPassing.length} of ${checks.length} file(s) need attention.\n${JSON.stringify({ errors: nonPassing }, null, 2)}`,
     );
   } else {
     write(JSON.stringify({ checks }, null, 2));

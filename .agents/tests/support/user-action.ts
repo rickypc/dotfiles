@@ -12,7 +12,7 @@ export interface UserAction {
 
 export const renderUserAction = (
   action: UserAction,
-): string => `## User action required — ${action.title}
+): string => `## User action required - ${action.title}
 
 Why
 

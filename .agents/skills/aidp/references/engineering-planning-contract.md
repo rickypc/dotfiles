@@ -31,7 +31,7 @@ When a material decision has competing paths, unclear criteria, fallback or
 adapter growth, duplicate ownership, or architecture-direction risk, add a
 conditional decision-quality pass before decomposition. Capture the
 irreducible outcome, non-negotiables, assumptions to drop, smallest sufficient
-path, escalation signal, and—when ownership is at risk—the invariant,
+path, escalation signal, and-when ownership is at risk-the invariant,
 canonical owner / contract, responsibility overlap, higher-level
 simplification, retirement trigger or falsifier, and verdict. This is part of
 the Design or Architect record; it is not a second workflow or approval gate.
