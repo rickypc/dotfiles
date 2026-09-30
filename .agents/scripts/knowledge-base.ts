@@ -200,7 +200,7 @@ export const buildKbInfo = async (fileSystem: FileSystem, kbRoot: string): Promi
 });
 
 const planSection = (body: string, heading: string, nextHeading?: string): string => {
-  const end = nextHeading ? `(?=^## \\d+\\. ${nextHeading}\\n)` : '$';
+  const end = nextHeading ? `(?=^## \\d+\\. ${nextHeading}\\n)` : '(?![\\s\\S])';
   const match = new RegExp(`^## \\d+\\. ${heading}\\n([\\s\\S]*?)${end}`, 'mu').exec(body);
   if (!match?.[1]?.trim()) {
     throw new Error(`Plan section is required: ${heading}.`);
