@@ -1,9 +1,4 @@
 {
-  "allowScripts": {
-    "tree-sitter": true,
-    "tree-sitter-javascript": true,
-    "tree-sitter-typescript": true
-  },
   "devDependencies": {
     "@biomejs/biome": "latest",
     "@types/bun": "latest",
@@ -21,6 +16,11 @@
     "test:type": "tsc",
     "test:unit": "bun test ."
   },
+  "trustedDependencies": [
+    "tree-sitter",
+    "tree-sitter-javascript",
+    "tree-sitter-typescript"
+  ],
   "type": "module",
   "version": "0.0.0"
 }
