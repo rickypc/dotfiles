@@ -396,7 +396,10 @@ const typeGroupsFor = (
   if (allTypes.length === 0) {
     return [];
   }
-  const expectedTypes = declarations.slice(firstNonImport, firstNonImport + allTypes.length);
+  const declarationsAfterImports = declarations
+    .slice(firstNonImport)
+    .filter((entry): entry is DeclarationNode => entry !== undefined && entry.item !== undefined);
+  const expectedTypes = declarationsAfterImports.slice(0, allTypes.length);
   const desiredItems = [...allTypes.map(({ item }) => item)].sort((left, right) =>
     alphabetically(left.name, right.name),
   );
@@ -682,9 +685,5 @@ export const fixDeclarationOrder = (
       source,
     };
   }
-  return {
-    changed: next !== source,
-    report: finalReport,
-    source: next,
-  };
+  return { changed: next !== source, report: finalReport, source: next };
 };

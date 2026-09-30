@@ -297,16 +297,19 @@ cross-cutting boundary:
   the final-gate step, and never on the gate itself:
 
   ```text
-  - [ ] Run the hidden-character sanitizer over the workspace before the final gate:
-        `bun <agents-root>/scripts/sanitize-hidden.ts .`
-        (preview with `--dry-run`; run once, then re-diff).
+  - [ ] Preview the hidden-character sanitizer over the workspace before the final gate:
+        `bun <agents-root>/scripts/sanitize-hidden.ts .` (a dry run; it never writes).
+  - [ ] Review the preview, then apply it once with `--write`:
+        `bun <agents-root>/scripts/sanitize-hidden.ts . --write`, then re-diff.
   ```
 
   This strips zero-width/soft-hyphen characters, BOM, non-breaking and weird 
   dashes (to ASCII "-"), and stale control bytes from every text file 
   recursively, in parallel, skipping `.git`, `build`, `coverage`, 
   `node_modules`, `playwright`, and binary extensions. A plan that omits 
-  this step is incomplete and must not be handed off.
+  this step is incomplete and must not be handed off. Never pass `--write` without reviewing
+  the dry-run first: the write pass rewrites files in place and cannot be undone. Binary
+  content (a NUL byte or invalid UTF-8) is skipped by byte content.
 
 ### 2. VARIABLE DEFINITION MATRIX
 

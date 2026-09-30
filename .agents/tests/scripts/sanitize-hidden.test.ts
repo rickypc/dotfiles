@@ -7,7 +7,7 @@ const realPath = await import('node:path');
 const realProcess = await import('node:process');
 const cliArgv = ['bun', 'sanitize-hidden.ts'];
 const exitCodes: Array<string | number | null | undefined> = [];
-const fileContents = new Map<string, string>();
+const fileContents = new Map<string, string | Uint8Array>();
 const fileStats = new Map<string, { isFile: () => boolean; size: number }>();
 const virtualRoot = '/virtual-sanitize';
 const log = mock();
@@ -20,9 +20,9 @@ const exit = mock((code?: string | number | null) => {
 const resolvePath = mock((value: string) =>
   value.startsWith('/') ? value : realPath.resolve(value),
 );
-const readFile = mock(async (file: string, _encoding: 'utf8') => {
+const readFile = mock(async (file: string) => {
   if (!file.startsWith(virtualRoot)) {
-    return realFileSystem.readFile(file, 'utf8');
+    return realFileSystem.readFile(file);
   }
   const content = fileContents.get(file);
   if (content === undefined) {
@@ -126,6 +126,11 @@ const setArgv = (...values: string[]): void => {
   cliArgv.splice(0, cliArgv.length, ...values);
 };
 
+const setBinaryFile = (file: string, bytes: Uint8Array): void => {
+  fileContents.set(file, bytes);
+  fileStats.set(file, { isFile: () => true, size: bytes.length });
+};
+
 const setFile = (file: string, content: string, size = content.length): void => {
   fileContents.set(file, content);
   fileStats.set(file, { isFile: () => true, size });
@@ -191,16 +196,6 @@ const sanitizeCases = [
     input: 'a\u201Fb',
     label: 'replaces double high-reversed-9 quotation mark',
   },
-  {
-    expected: 'a"b',
-    input: 'a\u00ABb',
-    label: 'replaces left-pointing double angle quotation mark',
-  },
-  {
-    expected: 'a"b',
-    input: 'a\u00BBb',
-    label: 'replaces right-pointing double angle quotation mark',
-  },
   { expected: 'a"b', input: 'a\u2033b', label: 'replaces double prime' },
   {
     expected: 'a"b',
@@ -233,6 +228,65 @@ test.each(sanitizeCases)('$label', ({ input, expected }) => {
   expect(sut.sanitizeText(input)).toBe(expected);
 });
 
+test('leaves angle quotation marks (guillemets) untouched', () => {
+  expect(sut.sanitizeText('a\u00ABb')).toBe('a\u00ABb');
+  expect(sut.sanitizeText('a\u00BBb')).toBe('a\u00BBb');
+});
+
+test.each([
+  {
+    bytes: new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0x6f]),
+    expected: false,
+    label: 'plain UTF-8 text is not binary',
+  },
+  { bytes: new Uint8Array([0x61, 0x00, 0x62]), expected: true, label: 'NUL byte marks binary' },
+  { bytes: new Uint8Array([0xc3, 0x28]), expected: true, label: 'invalid UTF-8 marks binary' },
+  {
+    bytes: new Uint8Array([0xe2, 0x80, 0x94]),
+    expected: false,
+    label: 'valid multi-byte UTF-8 is not binary',
+  },
+])('isBinaryBuffer: $label', ({ bytes, expected }) => {
+  expect(sut.isBinaryBuffer(bytes)).toBe(expected);
+});
+
+test('parseArgs uses safe dry-run defaults', () => {
+  setArgv('bun', 'sanitize-hidden.ts');
+
+  expect(sut.parseArgs()).toEqual({
+    concurrency: 16,
+    dryRun: true,
+    help: false,
+    root: '/workspace',
+  });
+});
+
+test('parseArgs requires --write to leave dry-run mode', () => {
+  setArgv('bun', 'sanitize-hidden.ts', '--write');
+
+  expect(sut.parseArgs()).toEqual({
+    concurrency: 16,
+    dryRun: false,
+    help: false,
+    root: '/workspace',
+  });
+});
+
+test('parseArgs honors the last dry-run/write flag and help flags', () => {
+  setArgv('bun', 'sanitize-hidden.ts', '--write', '--dry-run', '--concurrency=4');
+  expect(sut.parseArgs()).toEqual({
+    concurrency: 4,
+    dryRun: true,
+    help: false,
+    root: '/workspace',
+  });
+
+  setArgv('bun', 'sanitize-hidden.ts', '--help');
+  expect(sut.parseArgs()).toMatchObject({ help: true });
+  setArgv('bun', 'sanitize-hidden.ts', '-h');
+  expect(sut.parseArgs()).toMatchObject({ help: true });
+});
+
 test('parseArgs covers flags and positional argument precedence', () => {
   setArgv(
     'bun',
@@ -247,12 +301,13 @@ test('parseArgs covers flags and positional argument precedence', () => {
   expect(sut.parseArgs()).toEqual({
     concurrency: 8,
     dryRun: true,
+    help: false,
     root: '/first/path',
   });
   setArgv('bun', 'sanitize-hidden.ts');
 });
 
-test.each(['/tmp/test.jpg', '/tmp/test.HTML'])(
+test.each(['/tmp/test.jpg', '/tmp/test.HTML', '/tmp/test.avif', '/tmp/test.WOFF2'])(
   'sanitizeFile skips excluded extension %s',
   async (file) => {
     stat.mockClear();
@@ -261,6 +316,24 @@ test.each(['/tmp/test.jpg', '/tmp/test.HTML'])(
     expect(stat).not.toHaveBeenCalled();
   },
 );
+
+test('sanitizeFile skips binary content even with a text extension', async () => {
+  setBinaryFile(`${virtualRoot}/image.png.txt`, new Uint8Array([0x61, 0x00, 0x62]));
+  setBinaryFile(`${virtualRoot}/font.woff2.txt`, new Uint8Array([0xc3, 0x28]));
+  writeFile.mockClear();
+
+  await expect(sut.sanitizeFile(`${virtualRoot}/image.png.txt`, false)).resolves.toEqual({
+    bytes: 0,
+    changed: false,
+    file: `${virtualRoot}/image.png.txt`,
+  });
+  await expect(sut.sanitizeFile(`${virtualRoot}/font.woff2.txt`, false)).resolves.toEqual({
+    bytes: 0,
+    changed: false,
+    file: `${virtualRoot}/font.woff2.txt`,
+  });
+  expect(writeFile).not.toHaveBeenCalled();
+});
 
 test('sanitizeFile skips non-files, oversized files, and read failures', async () => {
   fileStats.set(`${virtualRoot}/directory`, { isFile: () => false, size: 0 });
@@ -326,7 +399,10 @@ test('walk yields newline-delimited output and final buffered output', async () 
   }
 
   expect(files).toEqual(['first.txt', 'second.txt']);
-  expect(spawn).toHaveBeenCalled();
+  expect(spawn).toHaveBeenCalledWith(
+    expect.arrayContaining(['rg', '-g', '!node_modules', '/workspace']),
+    expect.anything(),
+  );
 });
 
 test('walk returns empty when spawn fails', async () => {
@@ -376,27 +452,49 @@ test('runPool propagates worker failures', async () => {
   );
 });
 
-test('main reports changed files in normal and dry-run modes', async () => {
+test('main requires --write to modify files and warns in write mode', async () => {
+  clearFiles();
+  spawnOutput = `${virtualRoot}/changed.txt\n`;
+  setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
+  setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--write', '--concurrency=1');
+  log.mockClear();
+  writeFile.mockClear();
+
+  await sut.main();
+
+  expect(log).toHaveBeenCalledWith('[sanitize] WRITE mode — files will be modified in place');
+  expect(log).toHaveBeenCalledWith(expect.stringContaining('[sanitize] 1 file(s) changed'));
+  expect(log).toHaveBeenCalledWith('  changed.txt  (-1 bytes)');
+  expect(writeFile).toHaveBeenCalled();
+});
+
+test('main defaults to dry-run and never writes without --write', async () => {
   clearFiles();
   spawnOutput = `${virtualRoot}/changed.txt\n`;
   setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
   setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--concurrency=1');
   log.mockClear();
-
-  await sut.main();
-
-  expect(log).toHaveBeenCalledWith(expect.stringContaining('[sanitize] 1 file(s) changed'));
-  expect(log).toHaveBeenCalledWith('  changed.txt  (-1 bytes)');
-
-  setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
   writeFile.mockClear();
-  setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--dry-run', '--concurrency=1');
+
   await sut.main();
 
   expect(log).toHaveBeenCalledWith(
     expect.stringContaining('[sanitize] dry-run — 1 file(s) would change'),
   );
   expect(writeFile).not.toHaveBeenCalled();
+  setArgv('bun', 'sanitize-hidden.ts');
+});
+
+test('main prints usage for --help without scanning', async () => {
+  clearFiles();
+  setArgv('bun', 'sanitize-hidden.ts', '--help');
+  log.mockClear();
+  spawn.mockClear();
+
+  await sut.main();
+
+  expect(log).toHaveBeenCalledWith(expect.stringContaining('--write'));
+  expect(spawn).not.toHaveBeenCalled();
   setArgv('bun', 'sanitize-hidden.ts');
 });
 

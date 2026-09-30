@@ -1,13 +1,20 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 /**
  * sanitize-hidden.ts — Recursively strip hidden/zero-width characters and
  * normalize weird dashes across all text files in a directory.
  *
  * Usage:
- *   tsx sanitize-hidden.ts [directory] [--dry-run] [--concurrency=16]
- *   bun  sanitize-hidden.ts [directory] [--dry-run] [--concurrency=16]
+ *   bun  sanitize-hidden.ts [directory] [--dry-run] [--write] [--concurrency=16]
+ *   tsx sanitize-hidden.ts [directory] [--dry-run] [--write] [--concurrency=16]
  *
- * Defaults: directory = pwd; concurrency = 16; writes in place.
+ * Defaults: directory = pwd; concurrency = 16; DRY-RUN (writes nothing).
+ *
+ * SAFETY: this script previews by default. It writes nothing unless the
+ * explicit `--write` flag is passed. Never run `--write` against a repository
+ * that holds uncommitted work you have not backed up; inspect the dry-run
+ * output first. Binary files are skipped by extension *and* by content
+ * (a NUL byte or invalid UTF-8), so images, fonts, and archives are never
+ * decoded or rewritten.
  *
  * Hidden characters from the grep command — replaced with empty string:
  *   U+200B  ZERO WIDTH SPACE
@@ -31,8 +38,6 @@
  *   U+201D  RIGHT DOUBLE QUOTATION MARK
  *   U+201E  DOUBLE LOW-9 QUOTATION MARK
  *   U+201F  DOUBLE HIGH-REVERSED-9 QUOTATION MARK
- *   U+00AB  LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
- *   U+00BB  RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
  *   U+2033  DOUBLE PRIME
  *   U+2036  REVERSED DOUBLE PRIME
  *   U+301D  REVERSED DOUBLE PRIME QUOTATION MARK
@@ -48,18 +53,100 @@
  * Skip rules (mirrors the find -prune list):
  *   .git, playwright, node_modules, build, coverage subtrees
  *   *.html files
- *   binary file extensions
+ *   binary file extensions (images, fonts, archives, media, executables)
+ *   any file whose bytes contain a NUL or are not valid UTF-8
  */
 
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { argv, cwd, exit } from 'node:process';
 
+interface ArgState {
+  concurrency: number;
+  dryRun: boolean;
+  help: boolean;
+  rootArg?: string;
+}
+
+const BINARY_EXTS = new Set([
+  '.7z',
+  '.ai',
+  '.aif',
+  '.aiff',
+  '.apng',
+  '.avi',
+  '.avif',
+  '.avifs',
+  '.bin',
+  '.bmp',
+  '.bz2',
+  '.class',
+  '.dll',
+  '.dylib',
+  '.eot',
+  '.exe',
+  '.flac',
+  '.gif',
+  '.gz',
+  '.heic',
+  '.heif',
+  '.ico',
+  '.jar',
+  '.jpeg',
+  '.jpg',
+  '.jxl',
+  '.m4a',
+  '.mkv',
+  '.mov',
+  '.mp3',
+  '.mp4',
+  '.mpeg',
+  '.mpg',
+  '.ogg',
+  '.otf',
+  '.pdf',
+  '.png',
+  '.psd',
+  '.rar',
+  '.so',
+  '.tar',
+  '.tgz',
+  '.tiff',
+  '.ttf',
+  '.wav',
+  '.webm',
+  '.webp',
+  '.woff',
+  '.woff2',
+  '.xz',
+  '.zip',
+]);
+
+const CONCURRENCY_REGEX = /^--concurrency=(\d+)$/;
+
+// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional for control character matching
+const CONTROL_RE = /[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+
+const FLAG_ACTIONS: Record<string, (state: ArgState) => void> = {
+  '--dry-run': (state) => {
+    state.dryRun = true;
+  },
+  '--help': (state) => {
+    state.help = true;
+  },
+  '--write': (state) => {
+    state.dryRun = false;
+  },
+  '-h': (state) => {
+    state.help = true;
+  },
+};
+
+const MAX_FILE_BYTES = 16 * 1024 * 1024; // 16 MB
+
 const REPLACE_MAP = {
   '\u00A0': ' ',
-  '\u00AB': '"', // LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
   '\u00AD': '',
-  '\u00BB': '"', // RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
   '\u00D7': 'x', // MULTIPLICATION SIGN (×) -> "x"
   '\u200B': '',
   '\u200C': '',
@@ -85,62 +172,62 @@ const REPLACE_MAP = {
   '\uFF02': '"', // FULLWIDTH QUOTATION MARK
 };
 
-// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional for control character matching
-const CONTROL_RE = /[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const USAGE = `sanitize-hidden.ts [directory] [--dry-run] [--write] [--concurrency=16]
 
-const BINARY_EXTS = new Set([
-  '.avi',
-  '.bmp',
-  '.eot',
-  '.gif',
-  '.gz',
-  '.ico',
-  '.jpg',
-  '.jpeg',
-  '.mov',
-  '.mp3',
-  '.mp4',
-  '.pdf',
-  '.png',
-  '.tar',
-  '.tiff',
-  '.ttf',
-  '.webm',
-  '.webp',
-  '.woff',
-  '.zip',
-]);
+  directory        root to scan (default: current working directory)
+  --dry-run        preview changes without writing (default)
+  --write          apply changes in place (required to modify files)
+  --concurrency=N  parallel workers (default: 16)
+  --help, -h       print this usage and exit`;
 
-const MAX_FILE_BYTES = 16 * 1024 * 1024; // 16 MB
+function applyArg(state: ArgState, arg: string): void {
+  const action = FLAG_ACTIONS[arg];
+  if (action) {
+    action(state);
+    return;
+  }
+  if (arg.startsWith('--concurrency=')) {
+    const match = arg.match(CONCURRENCY_REGEX);
+    if (match) {
+      state.concurrency = Math.max(1, parseInt(match[1], 10));
+    }
+    return;
+  }
+  if (state.rootArg === undefined && !arg.startsWith('-')) {
+    state.rootArg = arg;
+  }
+}
+
+/**
+ * Content-level binary guard. A file is treated as binary when it contains a
+ * NUL byte or when decoding it as UTF-8 does not round-trip byte-for-byte
+ * (invalid UTF-8). This catches images, fonts, and archives even when the
+ * extension is missing from BINARY_EXTS.
+ */
+export function isBinaryBuffer(buf: Uint8Array): boolean {
+  if (buf.includes(0)) {
+    return true;
+  }
+  const decoded = Buffer.from(buf).toString('utf8');
+  return !Buffer.from(decoded, 'utf8').equals(Buffer.from(buf));
+}
 
 export function parseArgs(): {
   concurrency: number;
   dryRun: boolean;
+  help: boolean;
   root: string;
 } {
-  const rest = argv.slice(2);
-  let rootArg: string | undefined;
-  let dryRun = false;
-  let concurrency = 16;
-  for (let i = 0; i < rest.length; i++) {
-    const a = rest[i];
-    if (a === '--dry-run') {
-      dryRun = true;
-      continue;
-    }
-    if (a.startsWith('--concurrency=')) {
-      concurrency = Math.max(1, parseInt(a.slice('--concurrency='.length), 10));
-      continue;
-    }
-    if (a.startsWith('--')) {
-      continue;
-    }
-    if (!rootArg) {
-      rootArg = a;
-    }
+  const state: { concurrency: number; dryRun: boolean; help: boolean; rootArg?: string } = {
+    concurrency: 16,
+    dryRun: true,
+    help: false,
+  };
+  for (const arg of argv.slice(2)) {
+    applyArg(state, arg);
   }
-  const root = rootArg ? resolve(rootArg) : resolve(cwd());
-  return { concurrency, dryRun, root };
+  const root = state.rootArg === undefined ? resolve(cwd()) : resolve(state.rootArg);
+  return { concurrency: state.concurrency, dryRun: state.dryRun, help: state.help, root };
 }
 
 export function sanitizeText(input: string): string {
@@ -171,7 +258,11 @@ export async function sanitizeFile(
     if (st.size > MAX_FILE_BYTES) {
       return { bytes: 0, changed: false, file };
     }
-    const original = await readFile(file, 'utf8');
+    const raw: string | Uint8Array = await readFile(file);
+    if (typeof raw !== 'string' && isBinaryBuffer(raw)) {
+      return { bytes: 0, changed: false, file };
+    }
+    const original = typeof raw === 'string' ? raw : Buffer.from(raw).toString('utf8');
     const modified = sanitizeText(original);
     if (modified === original) {
       return { bytes: 0, changed: false, file };
@@ -189,34 +280,78 @@ const RG_EXCLUDE_GLOBS = [
   '!.git',
   '!.hg',
   '!.svn',
+  '!*.7z',
+  '!*.ai',
+  '!*.aif',
+  '!*.aiff',
+  '!*.apng',
   '!*.avi',
+  '!*.avif',
+  '!*.avifs',
+  '!*.bin',
   '!*.bmp',
+  '!*.bz2',
+  '!*.class',
+  '!*.dll',
+  '!*.dylib',
   '!*.eot',
+  '!*.exe',
+  '!*.flac',
   '!*.gif',
   '!*.gz',
+  '!*.heic',
+  '!*.heif',
   '!*.ico',
-  '!*.jpg',
+  '!*.jar',
   '!*.jpeg',
+  '!*.jpg',
+  '!*.jxl',
+  '!*.m4a',
+  '!*.mkv',
   '!*.mov',
   '!*.mp3',
   '!*.mp4',
+  '!*.mpeg',
+  '!*.mpg',
+  '!*.ogg',
+  '!*.otf',
   '!*.pdf',
   '!*.png',
+  '!*.psd',
+  '!*.rar',
+  '!*.so',
   '!*.tar',
+  '!*.tgz',
   '!*.tiff',
   '!*.ttf',
+  '!*.wav',
   '!*.webm',
   '!*.webp',
   '!*.woff',
+  '!*.woff2',
+  '!*.xz',
   '!*.zip',
   '!build',
   '!coverage',
+  '!dist',
   '!node_modules',
   '!playwright',
 ];
 
 export async function* walk(dir: string): AsyncGenerator<string> {
-  const args = ['--files', '--no-messages', '--no-ignore-vcs', ...RG_EXCLUDE_GLOBS, dir];
+  const keys = Object.keys(REPLACE_MAP)
+    .map((ch) => `\\x{${(ch.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, '0')}}`)
+    .join('');
+  const controlClass = '\\x{0001}-\\x{0008}\\x{000B}\\x{000C}\\x{000E}-\\x{001F}\\x{007F}';
+  const args = [
+    'rg',
+    '--files-with-matches',
+    ...RG_EXCLUDE_GLOBS.flatMap((glob) => ['-g', glob]),
+    `--max-filesize=${MAX_FILE_BYTES}`,
+    '--no-messages',
+    `[${controlClass}${keys}]`,
+    dir,
+  ];
   let proc: ReturnType<typeof Bun.spawn> | null = null;
   try {
     proc = Bun.spawn(args, { stderr: 'pipe', stdout: 'pipe' });
@@ -281,8 +416,15 @@ export async function runPool<T>(
 }
 
 export async function main(): Promise<void> {
-  const { root, dryRun, concurrency } = parseArgs();
+  const { root, dryRun, concurrency, help } = parseArgs();
+  if (help) {
+    console.log(USAGE);
+    return;
+  }
   console.log(`[sanitize] root=${root} dry-run=${dryRun} concurrency=${concurrency}`);
+  if (!dryRun) {
+    console.log('[sanitize] WRITE mode — files will be modified in place');
+  }
 
   const gen = walk(root);
   const all = await runPool(gen, concurrency, (f) => sanitizeFile(f, dryRun));

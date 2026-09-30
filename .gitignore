@@ -40,6 +40,7 @@ aidlc
 .gnupg
 .go
 .gradle
+.grok
 .homebrew
 .IdentityService
 .idlerc
@@ -53,6 +54,7 @@ aidlc
 .matplotlib
 .microsoft
 .models
+.modsearch
 .mono
 .my.cnf
 .mysql_history
@@ -82,6 +84,7 @@ aidlc
 .sqlworkbench
 .standard-*-cache
 .subversion
+.swiftpm
 .swt
 .templateengine
 .Trash

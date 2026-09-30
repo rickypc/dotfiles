@@ -373,9 +373,18 @@ After the complete implementation batch:
    This strips zero-width and soft-hyphen characters, BOM, non-breaking and weird dashes to ASCII
    "-", and stale control bytes from every text file under the working tree (recursively, in
    parallel, skipping `.git`, `build`, `coverage`, `node_modules`, `playwright`, `*.html`, and
-   binary extensions). Run a `--dry-run` first to preview changed files; run the real pass only
-   once, immediately before the final gate. Re-diff after the run so any sanitized line is part of
-   the same closeout batch.
+   binary extensions). The command above is a dry-run preview and never modifies files; files
+   change only with the explicit `--write` flag. Review the preview, then apply it once,
+   immediately before the final gate:
+
+   ```text
+   bun <agents-root>/scripts/sanitize-hidden.ts . --write
+   ```
+
+   NEVER pass `--write` without having just reviewed a dry-run of the exact same scope: the write
+   pass rewrites files in place and cannot be undone. Binary content is detected from the bytes
+   (a NUL byte or invalid UTF-8) and skipped, so images, fonts, and archives are never rewritten.
+   Re-diff after the run so any sanitized line is part of the same closeout batch.
 
 3. Run the selected project final gate exactly once.
 4. If it fails, collect all compatible repairs, apply them as one repair batch, and run the same

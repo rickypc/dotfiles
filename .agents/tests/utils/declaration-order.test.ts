@@ -64,12 +64,25 @@ test('makes type placement actionable and reports runtime dependency uncertainty
   expect(report.blockers).toEqual(['Runtime declaration alpha shadows sortable names: beta.']);
   expect(report.packet).toEqual(
     expect.objectContaining({
-      requiredActionGroups: [
-        expect.objectContaining({
-          id: 'types-after-imports',
-          title: expect.stringContaining('Move and reorder'),
-        }),
+      forbiddenActions: [
+        'Do not change a declaration body, signature, comments, imports, or exports.',
+        'Do not move a declaration across a reported barrier or blocked group.',
+        'Do not add, remove, rename, or merge declarations.',
       ],
+      intentId: expect.any(String),
+      knownUserQuestions: [],
+      nextPhase: 'candidate',
+      packetFingerprint: expect.any(String),
+      packetId: expect.any(String),
+      requiredActionGroups: [
+        {
+          allowedPaths: ['/repo/blocked.ts'],
+          id: 'types-after-imports',
+          requiredAssertionIds: ['declaration-order:types-after-imports'],
+          title: 'Reorder types declarations as Alpha, Zeta.',
+        },
+      ],
+      state: 'candidate_requested',
     }),
   );
   expect(
@@ -84,7 +97,7 @@ test('makes type placement actionable and reports runtime dependency uncertainty
     ),
   ).toEqual(
     expect.objectContaining({
-      detail: expect.stringContaining('immediately after imports'),
+      detail: expect.stringContaining('types-after-imports must be Alpha, Zeta'),
       status: 'failed',
     }),
   );
@@ -182,9 +195,7 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
   expect(fixed.changed).toBe(true);
   expect(fixed.report).toEqual(expect.objectContaining({ blockers: [], violations: [] }));
   expect(fixed.source).toContain('// Beta docs\ntype Beta = string;');
-  expect(fixed.source.indexOf('interface Alpha')).toBeLessThan(
-    fixed.source.indexOf('const runtime'),
-  );
+  expect(fixed.source.indexOf('interface Alpha')).toBeLessThan(fixed.source.indexOf('type Beta'));
   expect(fixed.source.indexOf('function alpha')).toBeLessThan(
     fixed.source.indexOf('function zebra'),
   );
@@ -202,7 +213,7 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
       '/repo/no-import.ts',
       'const value = 1;\ntype Zebra = number;\ninterface Alpha {}',
     ).source.trim(),
-  ).toBe('interface Alpha {}\n\ntype Zebra = number;\n\nconst value = 1;');
+  ).toBe('const value = 1;\ninterface Alpha {}\n\ntype Zebra = number;');
   expect(
     fixDeclarationOrder(
       '/repo/two-groups.ts',
@@ -248,6 +259,25 @@ test('rejects a reorder when the source-preservation guard fails', () => {
   expect(fixed.report.blockers).toContain(
     'Automatic reorder rejected because top-level source statements changed.',
   );
+});
+
+test('covers type group placement hoisting and zero-import fallbacks', () => {
+  const noImportSource = 'type Zebra = number;\ntype Alpha = string;';
+  const noImportFixed = fixDeclarationOrder('/repo/no-imports-coverage.ts', noImportSource);
+
+  expect(noImportFixed.changed).toBe(true);
+  expect(noImportFixed.source).toBe('type Alpha = string;\n\ntype Zebra = number;');
+
+  const placementSource = [
+    "import { value } from './value.js';",
+    'function run() { return 1; }',
+    'type Gamma = number;',
+    'type Beta = string;',
+  ].join('\n');
+
+  const placementFixed = fixDeclarationOrder('/repo/hoist-placement.ts', placementSource);
+  expect(placementFixed.changed).toBe(true);
+  expect(placementFixed.source).toContain('type Beta = string;\n\ntype Gamma = number;');
 });
 
 test('does not reorder dependency cycles or declarations separated by barriers', () => {

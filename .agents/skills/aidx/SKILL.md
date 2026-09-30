@@ -199,12 +199,16 @@ smoke check, inspection, browser path, or manual observation is evidence only
 for the claim it actually covers. Run the hidden-character sanitizer over the
 working tree `bun <agents-root>/scripts/sanitize-hidden.ts .` once, immediately
 before the final gate — after every implementation and focused check, never on
-the gate itself. It strips zero-width/soft-hyphen characters, BOM, non-breaking
-space, weird dashes (to ASCII "-"), and stale control bytes from every text
-file recursively, in parallel, skipping `.git`, `build`, `coverage`,
-`node_modules`, `playwright`, and binary extensions; preview with `--dry-run`,
-run the real pass once, then re-diff so any sanitized line is part of the same
-closeout batch. Then run the configured project final gate once at the final
+the gate itself. That command is a dry-run preview and never modifies files;
+files change only with `--write`, which MUST NOT be passed without reviewing a
+dry-run of the exact same scope first, because the write pass rewrites files in
+place and cannot be undone. It strips zero-width/soft-hyphen characters, BOM,
+non-breaking space, weird dashes (to ASCII "-"), and stale control bytes from
+every text file recursively, in parallel, skipping `.git`, `build`, `coverage`,
+`node_modules`, `playwright`, and binary extensions, and it skips binary bytes
+(NUL or invalid UTF-8) by content; review the preview, run the real pass once
+with `--write`, then re-diff so any sanitized line is part of the same closeout
+batch. Then run the configured project final gate once at the final
 boundary when the plan names one; a green gate cannot prove an unmapped
 acceptance item. If that gate returns a non-blocked action packet, validate it,
 apply its required actions through the named owner's explicit apply route,
