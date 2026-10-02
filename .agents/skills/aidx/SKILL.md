@@ -136,7 +136,10 @@ return the exact changed evidence and decision needed; do not silently turn a ne
 After execution, AIDX must complete the plan's closeout before considering retirement. It must
 atomically update every successful workflow item to `[x]`, mark intentionally skipped items `[-]`
 with a reason, leave no `[ ]`, `[~]`, or `[!]` item, set frontmatter `status` to `completed`, and
-validate the updated plan at its same absolute path. A stale `pending` field is not evidence that
+validate the updated plan at its same absolute path with
+`bun <agents-root>/scripts/aidx-completed-plan-validator.ts <absolute-plan-path>`. That validator
+owns the completed-plan contract; never reuse `aidp-plan-validator.ts`, which requires an unchecked
+pending plan and rejects a completed closeout. A stale `pending` field is not evidence that
 execution is incomplete, but it is also not permission to infer completion: the current checklist,
 receipts, acceptance mapping, and final gate must all prove the terminal state. If AIDX cannot write
 or validate this closeout, it must stop and must not distill or remove the plan.
@@ -146,7 +149,9 @@ mandatory, not optional, once the closeout and the chosen disposition are verifi
 
 - **Distill then remove:** If the plan contains verified, reusable decisions, patterns, lessons, or
   evidence not already held by the configured private KB, invoke
-  `/knowledge-base import-plan <plan-path> --remove-source`. The `--remove-source` flag moves the
+  `/knowledge-base import-plan <plan-path> --remove-source`. The plan importer requires the source
+  plan under `<agents-root>/plans/<repo-search-index>/` and rejects any other location with
+  `KB plan import requires a plan under .agents/plans/.`. The `--remove-source` flag moves the
   source plan to `~/.Trash/` atomically after the KB write and validation receipt succeed; the
   importer returns a `retiredTo` field naming the trash destination. Never remove the source
   yourself after the importer has already done it via the flag.

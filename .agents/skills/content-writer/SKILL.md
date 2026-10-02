@@ -41,6 +41,16 @@ refresh verification.
   material cannot close a material claim.
 - **Preserve all quotations exactly**. Keep the original non-English quotation
   and ask before adding translation or transliteration when audience needs it.
+  When extracting a Markdown blockquote, include its continuation lines that
+  omit the leading `>`; a strict `^>` extractor silently truncates the
+  quotation.
+- **Treat tradition claims as claims**. State a tradition-based or religious
+  claim as the tradition frames it, attribute the framing, or escalate it to
+  the owner; never promote an unsupported tradition claim to an inferred fact.
+- **Keep MDX/Markdown output render-safe**. Wrap code-like, formula-like, or
+  otherwise renderer-sensitive tokens in inline code so MDX renders them
+  literally, keep every quotation block byte-identical, and wrap free prose at
+  the host document's line width.
 - Keep the research ledger separate from reader-facing prose. Surface
   uncertainty, do not fill gaps from memory, and ask one focused question when
   audience, language, refresh state, or evidence standard changes the result.
@@ -109,6 +119,19 @@ matrix, citations, unchanged quotation record, and refresh change record when
 applicable. Completion requires every material claim to have an admissible
 source, each citation to support its claim, structure to fit the audience, and
 the result to be exactly `ready`.
+
+### Content quality matrix
+
+| Criterion | Pass evidence |
+| --- | --- |
+| Claim coverage | every material claim maps to an admissible source |
+| Citation accuracy | each citation supports the claim it is attached to |
+| Quotation fidelity | every quotation byte-identical, continuation lines included |
+| Information density | no section collapses below the host document's paragraph/word floor |
+| Link retention | every pre-existing inline link is preserved |
+| Voice neutrality | no repeated filler framing; no second person outside quotations |
+| Source attribution | each source line carries publisher, date, and URL |
+| MDX safety | renderer-sensitive tokens are inline code; prose wrapped to the host line width |
 
 `needs-input` names the focused missing decision; `blocked` names the evidence,
 approval, or format boundary. Fluency, citation count, or an outline is not

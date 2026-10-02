@@ -335,7 +335,10 @@ lifecycle, and the `request` itself follows that owner's contract.
 
 Every temporary path must be printed by standalone `mktemp` or derived from `os.tmpdir()` evidence.
 Never guess a platform temp path, reuse a placeholder, or create multiple temp directories for one
-workflow when one OS temp directory with distinct files is sufficient.
+workflow when one OS temp directory with distinct files is sufficient. Standalone `mktemp` prints a
+regular file path; when a workflow needs a directory to hold a builder script and its output, run
+`mktemp -d` and use the directory it prints. Creating files under a plain `mktemp` path fails
+because that path is a file, not a directory.
 
 ### Model error recovery
 

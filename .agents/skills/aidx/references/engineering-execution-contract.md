@@ -74,6 +74,17 @@ permission to expand scope:
   packet; do not display, summarize, or hand it to the user. Missing, blocked,
   ambiguous, or unsafe packets are stops.
 
+## Large multi-file fan-out
+
+For a plan touching many independent files, fan out one subagent per work
+packet or content group, and have each return structured JSON into one
+temporary out-directory. Apply the returned decisions with a single
+deterministic script over that directory, then verify with one script before
+claiming completion: compare every changed file with its committed baseline
+through read-only `git show HEAD:<file>` (never a mutating checkout) on
+paragraph count, word count, and unique-link retention. Treat first-pass
+generated output as disposable and regenerate rather than patching it.
+
 ## Re-plan and stop conditions
 
 Stop before mutation for missing, unsafe, ambiguous, or unverifiable required
