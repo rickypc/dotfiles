@@ -50,8 +50,13 @@ need research, citations, quotation preservation, or refresh verification.
   procedural, or liturgical text earns prose corrections only-grammar, punctuation, and
   run-ons-while its procedure, order, and recited wording stay untouched.
 - **Keep MDX/Markdown output render-safe**. Wrap code-like, formula-like, or otherwise
-  renderer-sensitive tokens in inline code so MDX renders them literally, keep every quotation block
-  byte-identical, and wrap free prose at the host document's line width.
+  renderer-sensitive tokens in inline code so MDX renders them literally, and keep every quotation
+  block byte-identical. Wrap prose to 100 characters as a band, not a ceiling: refill prose a file
+  already wraps at 80 or narrower. Never split an inline code span, a link's text or target, an MDX
+  `{...}` expression, or a JSX tag with its attributes; never begin a wrapped continuation line with
+  an ordered-list marker, `>`, `#`, `[`, `{`, or a tag; keep footnote and citation continuation
+  lines indent-aligned under their label; and when an inline JSX element starts a continuation line,
+  keep the preceding space with `&nbsp;`.
 - Keep the research ledger separate from reader-facing prose. Surface uncertainty, do not fill gaps
   from memory, and ask one focused question when audience, language, refresh state, or evidence
   standard changes the result.
@@ -127,7 +132,7 @@ the audience, and the result to be exactly `ready`.
 | Human voice | no repeated template sentence, no "X rather than Y" tic, no process metadiscourse |
 | Register fidelity | instructional/liturgical procedure, order, and wording unchanged |
 | Source attribution | each source line carries publisher, date, and URL |
-| MDX safety | renderer-sensitive tokens are inline code; prose wrapped to the host line width |
+| MDX safety | renderer-sensitive tokens are inline code; prose filled to the 100-character band; no continuation line starts with structure |
 
 `needs-input` names the focused missing decision; `blocked` names the evidence, approval, or format
 boundary. Fluency, citation count, or an outline is not proof. Never conceal unsupported claims or

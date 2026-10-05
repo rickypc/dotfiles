@@ -235,8 +235,61 @@ boundaries.
 
 Wrap Markdown and MDX prose at 100 characters or fewer. TypeScript and JSON already use the shared
 Biome `lineWidth` of 100, so no separate rule is needed there. Tables, fenced code blocks, YAML
-frontmatter, and single unbreakable tokens (a long URL or code span) are exempt because wrapping
-them would break their meaning.
+frontmatter, headings, `import`/`export` lines, recitation and verse blockquotes, single unbreakable
+tokens (a long URL or code span), and `<em>Source: ...</em>` citation lines are exempt because
+wrapping them would break their meaning or the rendered structure.
+
+100 is a band, not a ceiling you approach from below: a compliant wrapped line runs past 80
+characters. Refill prose a file already wraps narrower, and never treat the width you find in a file
+as the rule. A document wrapped at 78 or 80 is non-compliant, not a precedent, and `<= 80` is not
+`<= 100` - widen it into the 81-100 band. The number is 100 whatever that file currently does.
+
+Keep these units atomic when wrapping; splitting any of them changes meaning or breaks the build:
+
+- an inline code span, a link's text or its target, an MDX `{...}` expression, and a JSX tag with
+  its attributes.
+- a heading, and any line the renderer treats as one structural unit.
+- an `<em>...</em>` element: breaking inside it fails the build with `Expected a closing tag for
+  <em>`.
+
+Never let a wrapped continuation line begin with structure: an ordered-list marker (`N.` or `N)`),
+`>`, `#`, `[`, `{`, or a JSX tag. A continuation line starting with `N.` silently becomes a new
+ordered-list item, and one starting with a tag turns an inline element into a flow element. When an
+inline JSX element must begin a continuation line, keep the preceding space with `&nbsp;` so the
+rendered text does not lose it.
+
+Citation, footnote, and source blocks carry their own alignment. A footnote definition's
+continuation lines are indented to align under the label text, so a wider `[^N]:` marker shifts
+every continuation line right by the same number of characters; each language or reference chunk
+keeps its own line. Preserve that indentation and those breaks exactly - joining or re-indenting
+them breaks rendering and the source line alike.
+
+### Mechanical rewrites and formatting transforms
+
+When one rule applies across many files, whether it is a line width, a formatting convention, or a
+token substitution, do not hand-edit the files. Write one deterministic transform, dry-run it to
+classify every affected line, inspect each class, then drive every selected file through that one
+transform. Hand-editing is what produces the inconsistency a rule-based rewrite exists to remove.
+Revert the whole batch when an invariant fails instead of patching individual files.
+
+Keep the transform and its verification scripts outside the repository. A scratch directory or
+helper script left in the tree becomes a lint or build failure and a commit hazard; use the
+temporary-path rule above and retire it when the work closes.
+
+A formatting-only change still needs proof that only formatting changed. Verify in this order:
+
+1. Normalize whitespace and compare the text: the sequence of non-whitespace characters must be
+   identical per file.
+2. Compare the target set (link targets, URLs, code spans, citation targets) against the committed
+   version, not just its count. Equal counts hide a silently rewritten target.
+3. Parse both versions with the document's real parser and compare the syntax tree, so a structural
+   change cannot hide behind identical text.
+4. Run the project's build and lint gates.
+5. Spot-check rendered output for the structural facts the parser cannot see.
+
+Report residual exceptions as counted classes with the reason each is irreducibly exempt, and prove
+the negative: state how many remaining lines were wrappable, so "every line complies" is a measured
+claim rather than an impression.
 
 ## 8. Command, script, and structured-data contracts
 
