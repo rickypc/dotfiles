@@ -118,6 +118,11 @@ if [ -d $ANDROID_SDK ]; then
   [ -d $ANDROID_SDK/tools ] && export_to_path "$ANDROID_SDK/tools"
 fi
 
+if [ -f ~/.github-token ]; then
+  eval "$(grep -v '^[[:space:]]*#' ~/.github-token | grep 'GITHUB_TOKEN=')"
+  export GITHUB_TOKEN
+fi
+
 # Golang specific environment
 export GOPATH=$GO_DIR
 [ -d $GO_DIR ] && export_to_path "$GOPATH/bin"
