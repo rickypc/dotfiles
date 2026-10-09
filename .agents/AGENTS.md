@@ -244,6 +244,10 @@ characters. Refill prose a file already wraps narrower, and never treat the widt
 as the rule. A document wrapped at 78 or 80 is non-compliant, not a precedent, and `<= 80` is not
 `<= 100` - widen it into the 81-100 band. The number is 100 whatever that file currently does.
 
+A repository can be owner-frozen against band refill: its committed below-band wrap stays frozen, so
+the reflow transform runs there in its default over-limit mode only and that corpus must stay
+byte-identical; never point `--band` at an owner-frozen repository.
+
 Keep these units atomic when wrapping; splitting any of them changes meaning or breaks the build:
 
 - an inline code span, a link's text or its target, an MDX `{...}` expression, and a JSX tag with
@@ -254,9 +258,11 @@ Keep these units atomic when wrapping; splitting any of them changes meaning or 
 
 Never let a wrapped continuation line begin with structure: an ordered-list marker (`N.` or `N)`),
 `>`, `#`, `[`, `{`, or a JSX tag. A continuation line starting with `N.` silently becomes a new
-ordered-list item, and one starting with a tag turns an inline element into a flow element. When an
-inline JSX element must begin a continuation line, keep the preceding space with `&nbsp;` so the
-rendered text does not lose it.
+ordered-list item, and one starting with a tag turns an inline element into a flow element. A bare
+`[` is a reference-definition hazard, but a complete inline link `[text](target)` is exempt: its
+label is followed by a target, never `:`, so it cannot parse as a reference or footnote definition
+and may lead a continuation line. When an inline JSX element must begin a continuation line, keep
+the preceding space with `&nbsp;` so the rendered text does not lose it.
 
 Citation, footnote, and source blocks carry their own alignment. A footnote definition's
 continuation lines are indented to align under the label text, so a wider `[^N]:` marker shifts

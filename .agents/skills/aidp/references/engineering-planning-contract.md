@@ -1,90 +1,81 @@
 # Engineering planning contract
 
-This reference is owned by `/aidp`. It carries the reusable engineering,
-language, role, UI, quality, security, brownfield, and delivery guidance that
-the planner needs after the retired lifecycle tree is removed. It contains no
-runtime dependency on that tree.
+This reference is owned by `/aidp`. It carries the reusable engineering, language, role, UI,
+quality, security, brownfield, and delivery guidance that the planner needs after the retired
+lifecycle tree is removed. It contains no runtime dependency on that tree.
 
 ## Evidence and records
 
-Use this authority order: current user request; applicable project
-instructions; verified repository and file evidence; validated private
-knowledge; labelled assumptions. A missing result is unknown, not permission
-to invent a fact. For brownfield work, capture current behavior, entry path,
-owner, consumers, data/protocol boundaries, existing proof, compatibility,
-and uncertainty.
+Use this authority order: current user request; applicable project instructions; verified repository
+and file evidence; validated private knowledge; labelled assumptions. A missing result is unknown,
+not permission to invent a fact. For brownfield work, capture current behavior, entry path, owner,
+consumers, data/protocol boundaries, existing proof, compatibility, and uncertainty.
 
 Build one compact evidence set before decomposition:
 
 - Research record: sources read, observed facts, unknowns, and search limits.
-- Requirements record: actor/trigger, outcome, success and failure behavior,
-  preserved behavior, exclusions, constraints, dependencies, and one proof per
-  acceptance item.
-- Design record: current extension point, ownership, interfaces, data flow,
-  alternatives, reversibility, NFR/security impact, and migration/rollback.
-- Units record: smallest independently testable units, dependency order,
-  owner, acceptance mapping, and completion proof.
-- Delivery record: sequence rationale, risks, assumptions, final gate, and
-  re-plan triggers.
+- Requirements record: actor/trigger, outcome, success and failure behavior, preserved behavior,
+  exclusions, constraints, dependencies, and one proof per acceptance item.
+- Design record: current extension point, ownership, interfaces, data flow, alternatives,
+  reversibility, NFR/security impact, and migration/rollback.
+- Units record: smallest independently testable units, dependency order, owner, acceptance mapping,
+  and completion proof.
+- Delivery record: sequence rationale, risks, assumptions, final gate, and re-plan triggers.
 
-When a material decision has competing paths, unclear criteria, fallback or
-adapter growth, duplicate ownership, or architecture-direction risk, add a
-conditional decision-quality pass before decomposition. Capture the
-irreducible outcome, non-negotiables, assumptions to drop, smallest sufficient
-path, escalation signal, and-when ownership is at risk-the invariant,
-canonical owner / contract, responsibility overlap, higher-level
-simplification, retirement trigger or falsifier, and verdict. This is part of
-the Design or Architect record; it is not a second workflow or approval gate.
+When a material decision has competing paths, unclear criteria, fallback or adapter growth,
+duplicate ownership, or architecture-direction risk, add a conditional decision-quality pass before
+decomposition. Capture the irreducible outcome, non-negotiables, assumptions to drop, smallest
+sufficient path, escalation signal, and-when ownership is at risk-the invariant, canonical owner /
+contract, responsibility overlap, higher-level simplification, retirement trigger or falsifier, and
+verdict. This is part of the Design or Architect record; it is not a second workflow or approval
+gate.
 
-Every executable workflow step must be authored as an unchecked Markdown task
-item (`- [ ]`). This is the shared state handed to `/aidx`; AIDP never marks a
-step complete.
+Every executable workflow step must be authored as an unchecked Markdown task item (`- [ ]`). This
+is the shared state handed to `/aidx`; AIDP never marks a step complete.
 
-Before asking a clarification question, retrieve repository context through
-`/repo-search` and private context through `/knowledge-base`, then record both
-receipts and the resulting facts, limits, decisions, and unknowns. Ask one
-decision-relevant question at a time. If an answer changes a target, owner,
-scope, behavior, dependency, safety, architecture, or proof strategy, refresh
-the affected context and continue the clarification loop. Do not infer a
-default or write a plan while any material ambiguity remains.
+Before asking a clarification question, retrieve repository context through `/repo-search` and
+private context through `/knowledge-base`, then record both receipts and the resulting facts,
+limits, decisions, and unknowns. Ask one decision-relevant question at a time. If an answer changes
+a target, owner, scope, behavior, dependency, safety, architecture, or proof strategy, refresh the
+affected context and continue the clarification loop. Do not infer a default or write a plan while
+any material ambiguity remains.
 
-The request may be only an incomplete sentence. Treat it as a hypothesis to
-expand, not as a complete specification. The command options and arguments
-for building the evidence set are owned by `SKILL.md`; this reference supplies
-the planning obligations and interpretation rules only.
+The request may be only an incomplete sentence. Treat it as a hypothesis to expand, not as a
+complete specification. The command options and arguments for building the evidence set are owned by
+`SKILL.md`; this reference supplies the planning obligations and interpretation rules only.
 
 The protected command-contract tokens remain `<approved-root>`, `<query>`,
-`<absolute-jsonl-request-path-under-os-tempdir>`, `<private-kb-root>`, and
-`<repo-search-index>`. The canonical command strings remain
+`<absolute-jsonl-request-path-under-os-tempdir>`, `<private-kb-root>`, and `<repo-search-index>`.
+The canonical command strings remain
 `bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"`,
 `bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"`,
 and `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<repo-search-index>" "<query>"`;
 their caller-facing options table is maintained only in `SKILL.md`.
 
-Ask one focused question only when its answer changes scope, behavior, safety,
-ownership, architecture, or verification. State what decision it unlocks and
-the smallest consequence of each answer. Do not infer layout, framework,
-compliance, or preserved behavior from a screenshot or plausible convention.
+Ask one focused question only when its answer changes scope, behavior, safety, ownership,
+architecture, or verification. State what decision it unlocks and the smallest consequence of each
+answer. Do not infer layout, framework, compliance, or preserved behavior from a screenshot or
+plausible convention.
 
 ## Common engineering rules
 
 - Prefer the smallest compatible change and an existing extension point.
-- Keep responsibilities cohesive, dependencies directional, public contracts
-  narrow, data flow explicit, and side effects visible at boundaries.
-- Validate untrusted input at ingress; keep validation separate from
-  authorization; protect secrets and use parameterized data access.
-- Test behavior at the smallest useful boundary, then use integration or
-  browser proof where persistence, protocols, or critical user journeys need
-  it. A coverage number never substitutes for mapped acceptance proof.
-- A performance claim names the path, observation or measurement, baseline or
-  limit, and trade-off. A security, reliability, or performance discovery that
-  changes scope or proof is a re-plan trigger.
+- Keep responsibilities cohesive, dependencies directional, public contracts narrow, data flow
+  explicit, and side effects visible at boundaries.
+- Validate untrusted input at ingress; keep validation separate from authorization; protect secrets
+  and use parameterized data access.
+- Test behavior at the smallest useful boundary, then use integration or browser proof where
+  persistence, protocols, or critical user journeys need it. A coverage number never substitutes for
+  mapped acceptance proof.
+- A performance claim names the path, observation or measurement, baseline or limit, and trade-off.
+  A security, reliability, or performance discovery that changes scope or proof is a re-plan
+  trigger.
 
 ## Observed-language routing
 
-Read the common rules first. Select only profiles supported by repository
-evidence; never route from a guessed extension. Combine the selected profile
-with project instructions and the configured final gate.
+Read the common rules first. Select only profiles supported by repository evidence; never route from
+a guessed extension. Combine the selected profile with project instructions and the configured final
+gate.
 
 | Observed language or surface | Planning obligations | Proof emphasis |
 |---|---|---|
@@ -101,8 +92,8 @@ with project instructions and the configured final gate.
 
 ## Role routing
 
-Use only roles relevant to the request. Roles provide perspective, not extra
-scope or a second workflow.
+Use only roles relevant to the request. Roles provide perspective, not extra scope or a second
+workflow.
 
 | Role | Invoke when | Required contribution |
 |---|---|---|
@@ -116,32 +107,27 @@ scope or a second workflow.
 
 ## UI, NFR, and delivery gates
 
-For UI work, capture primary user/job, hierarchy, density, viewport rules,
-navigation, interaction ownership, loading/empty/partial/error/retry/success/
-disabled/stale states, accessibility, visual language, preserved behavior, and
-measurement evidence before comparing alternatives. Prefer native semantics,
-visible focus, labels, non-color cues, keyboard operation, responsive behavior,
-and reduced-motion support.
+For UI work, capture primary user/job, hierarchy, density, viewport rules, navigation, interaction
+ownership, loading/empty/partial/error/retry/success/ disabled/stale states, accessibility, visual
+language, preserved behavior, and measurement evidence before comparing alternatives. Prefer native
+semantics, visible focus, labels, non-color cues, keyboard operation, responsive behavior, and
+reduced-motion support.
 
-For NFR work, name only evidenced categories: performance, security,
-scalability, reliability, observability, privacy, maintainability, or
-operability. Each material category needs a constraint, owner, implementation
-implication, and proof. Do not invent numeric targets.
+For NFR work, name only evidenced categories: performance, security, scalability, reliability,
+observability, privacy, maintainability, or operability. Each material category needs a constraint,
+owner, implementation implication, and proof. Do not invent numeric targets.
 
-For delivery, choose a proportionate unit count. Sequence by dependency, risk
-reduction, value, or test isolation; record the rationale. Every unit maps to
-acceptance and a completion proof. A changed owner, dependency, boundary,
-requirement, risk, or proof strategy requires re-planning.
+For delivery, choose a proportionate unit count. Sequence by dependency, risk reduction, value, or
+test isolation; record the rationale. Every unit maps to acceptance and a completion proof. A
+changed owner, dependency, boundary, requirement, risk, or proof strategy requires re-planning.
 
 ## Source migration map
 
-The following source families were reviewed and their reusable contracts are
-represented above: `knowledge/languages/common.md` and `profiles.md`; role
-guidance for architect, developer, product, quality, security, design, and
-delivery; shared guidance for principles, brownfield discovery, rules reading,
-software-engineering work packets, verification, and upstream adoption; and
-stage material covering intent capture, scope, feasibility, reverse
-engineering, requirements, UI definition, code generation, NFRs, workspace
-state, and recovery. Runtime scripts, lifecycle frontmatter, duplicated stage
-machinery, and implementation-specific examples are intentionally not copied
-because this skill owns planning contracts, not execution infrastructure.
+The following source families were reviewed and their reusable contracts are represented above:
+`knowledge/languages/common.md` and `profiles.md`; role guidance for architect, developer, product,
+quality, security, design, and delivery; shared guidance for principles, brownfield discovery, rules
+reading, software-engineering work packets, verification, and upstream adoption; and stage material
+covering intent capture, scope, feasibility, reverse engineering, requirements, UI definition, code
+generation, NFRs, workspace state, and recovery. Runtime scripts, lifecycle frontmatter, duplicated
+stage machinery, and implementation-specific examples are intentionally not copied because this
+skill owns planning contracts, not execution infrastructure.

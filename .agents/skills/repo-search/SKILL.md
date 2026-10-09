@@ -9,7 +9,7 @@ description: >
   textual fallback degrading sequentially to AST parsing, regex, and literal text matching. Provides
   strict evidence tracing by logging exact byte offsets, line numbers, call paths, and confidence
   scores. Outputs a structured discovery report mapping system architecture.
-argument-hint: "<approved-root> <query> [query...]"
+argument-hint: <approved-root> <query> [query...]
 capabilities:
   - CLI-driven symbol, call path, and architecture mapping
   - Transport determination (CLI primary -> MCP runner fallback)

@@ -1,7 +1,8 @@
 ---
 name: aidx
-description: "Read a user-supplied six-section plan path and execute its instructions deterministically."
-argument-hint: "<plan-path-relative-or-absolute>"
+description: >-
+  Read a user-supplied six-section plan path and execute its instructions deterministically.
+argument-hint: <plan-path-relative-or-absolute>
 ---
 
 # AIDX - Deterministic Execution Engine

@@ -1,7 +1,7 @@
 ---
 name: content-writer
 description: Research, draft, refresh, and validate credible content with preserved quotations.
-argument-hint: "<objective> <audience> <format> <constraints> <citation-style>"
+argument-hint: <objective> <audience> <format> <constraints> <citation-style>
 ---
 
 # Content Writer

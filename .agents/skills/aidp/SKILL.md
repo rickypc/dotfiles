@@ -1,7 +1,7 @@
 ---
 name: aidp
-description: "Turn a user request into one explicit six-section execution plan and hand it to /aidx."
-argument-hint: "<goal-and-concerns>"
+description: Turn a user request into one explicit six-section execution plan and hand it to /aidx.
+argument-hint: <goal-and-concerns>
 ---
 
 # AIDP - Architect of Execution
@@ -157,8 +157,8 @@ Any of the following, when the user has not explicitly decided it and verified e
 established it, is a forbidden assumption:
 
 - A scope, ownership, or boundary the user did not confirm.
-- A framework, library, command, gate string, or API shape inferred from "how these projects usually
-  work" rather than verified against the repo or `package.json`.
+- A framework, library, command, gate string, or API shape inferred from
+  "how these projects usually work" rather than verified against the repo or `package.json`.
 - A voice, tone, density target, or content rule inferred from prior sessions without a returned
   `/knowledge-base` receipt proving it applies here.
 - A fix for a quote, citation, anchor, or doctrinal claim the canonical patterns do not cover.
