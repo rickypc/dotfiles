@@ -97,6 +97,18 @@ instructions, retrieved evidence, decisions, and assumptions. For brownfield wor
 states the current behavior, consumer or contract boundaries, preservation obligations, and existing
 proof.
 
+### Phase checkpoints and resume
+
+Execute phase by phase. When a phase's completion criteria pass, write its checkpoint before
+starting the next phase: the phase name, the completed steps, the validation receipts, and the
+next action. The most recent checkpoint is the resume point - when execution resumes after an
+aborted turn, a failed call, or a fresh session, continue from the last checkpoint's next action
+and never re-derive or silently repeat a step whose checkpoint receipt already proves it. Every
+modification is followed by its focused check before the next modification begins: act, check,
+then react to the result at that boundary - diagnose once, repair, or stop; never proceed on an
+unverified change. A recovered interruption never skips closeout: resumed execution still ends
+with the completed-plan closeout and validation.
+
 ## 4. Input & Context Schema
 
 Use Section 1 as the objective and boundary. Resolve Section 2 inputs. Execute Section 3 in order:

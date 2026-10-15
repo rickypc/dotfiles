@@ -120,6 +120,12 @@ skill invocation catalogs, but retain a necessary owner-specific four-column tab
   Reference bundled scripts with skill-root-relative paths, document dependencies and `--help`, keep
   scripts non-interactive, accept inputs through arguments/environment/stdin, emit structured
   output, and make errors state the problem, expected input, and what the agent should try next.
+- Capture a materially repeated workflow as skill guidance instead of re-deriving it per session:
+  extract the stable inputs, ordered steps, boundaries, validation, and recovery; make the
+  act-check-react loop explicit (perform the action, verify with the named check, react to the
+  result at that boundary); and preserve human judgment as explicit escalation or decision
+  points, never hardcoded verdicts. Extracted guidance stays generic: no session-specific tools,
+  paths, or one-off payloads.
 - Treat the seven headings as the document architecture, not as a wrapper. For an existing skill,
   make a content-ownership map first, then rewrite the entire source in place: move every retained
   paragraph, table, code block, and branch rule into one owning section or nested subsection and

@@ -285,6 +285,15 @@ update; do not use prose-only steps or pre-mark them complete. For material work
 after the requirements and design decisions are explicit; identify the smallest units, their
 dependency order, and the fact that would require re-planning.
 
+Group the steps into explicit phase blocks. Write each phase as an H3 `### Phase N - <name>`
+heading (numbered ascending from 1), followed by one prose paragraph declaring the three enforced
+fields - **Phase inputs:** what the phase consumes; **Completion criteria:** the observable end
+state and its proof; **Resume point:** what the execution checkpoint records at the boundary
+(completed work, validation receipts, next action) - then that phase's `- [ ]` steps. Decompose
+long work into audit, implementation, validation, and delivery phases as applicable; a small plan
+may carry one phase. Every task item sits inside a phase block, each phase block carries at least
+one step, and the validator rejects a workflow without phase blocks.
+
 The per-step responsibility field names the executor role that will carry out the step (typically
 the AIDX execution skill or a delegated router). It is NOT a re-statement of the singular owner
 established in TARGET DIRECTIVES. Do not paste `(owner: AIDX)` (or any other executor attribution)
@@ -350,12 +359,14 @@ Author each section with these minimum contents:
 - **VARIABLE DEFINITION MATRIX:** every required path, value, source fragment, dependency, strict
   type, and required/optional state.
 - **CHRONOLOGICAL WORKFLOW:** independently testable ingest, process, and synthesis steps, each as
-  `- [ ] <step>`. Every material requirement names its source, actor or trigger, expected result,
-  must-not constraint, failure or boundary case, and proof. Every unit names its responsibility (the
-  executor role that carries it out, typically AIDX), its dependencies, its mapped requirement, and
-  its completion condition. The responsibility field is per-step and replaces the older per-step
-  "owner" wording - establish the singular owner (the human decision-maker) exactly once in TARGET
-  DIRECTIVES under an Agent Role / Human Owner / Authority & Escalation block.
+  `- [ ] <step>`, grouped under `### Phase N - <name>` blocks that each declare phase inputs,
+  completion criteria, and a resume point. Every material requirement names its source, actor or
+  trigger, expected result, must-not constraint, failure or boundary case, and proof. Every unit
+  names its responsibility (the executor role that carries it out, typically AIDX), its
+  dependencies, its mapped requirement, and its completion condition. The responsibility field is
+  per-step and replaces the older per-step "owner" wording - establish the singular owner (the human
+  decision-maker) exactly once in TARGET DIRECTIVES under an Agent Role / Human Owner / Authority &
+  Escalation block.
 - **TOOL STRATEGY & FALLBACKS:** the owned primary method, exact input boundary, empty or
   failed-result condition, and concrete fallback.
 - **SYSTEMATIC VERIFICATION CHECKLIST:** objective, variable, workflow, exclusion, and failure-state
@@ -465,12 +476,13 @@ bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>
 The validator is deliberately independent of execution. It checks the exact five-field frontmatter,
 canonical plan path and index match, real dates, allowed status, the document H1 exactly equals the
 frontmatter `title`, the six H2 headings in order (numbered, `## N. <TITLE>`), non-empty sections,
-unresolved placeholders, typed variable declarations, numbered workflow steps, required workflow
-proof fields, a decision or clarified marker on every step that asserts a user decision, a
-no-assumption smell-phrase scan rejecting unflagged assumptions, primary method ownership, concrete
-fallback, mapped verification coverage, and an explicit output schema. It returns one JSON receipt
-on success and every actionable finding on failure. It validates AIDP plans only; it does not parse,
-complete, import, delete, or execute plans.
+unresolved placeholders, typed variable declarations, numbered workflow steps grouped under
+`### Phase N` blocks that each declare phase inputs, completion criteria, and a resume point,
+required workflow proof fields, a decision or clarified marker on every step that asserts a user
+decision, a no-assumption smell-phrase scan rejecting unflagged assumptions, primary method
+ownership, concrete fallback, mapped verification coverage, and an explicit output schema. It
+returns one JSON receipt on success and every actionable finding on failure. It validates AIDP plans
+only; it does not parse, complete, import, delete, or execute plans.
 
 On failure, report the exact missing evidence or validation finding and whether the prior plan was
 preserved. Never claim a plan was written when it was not.

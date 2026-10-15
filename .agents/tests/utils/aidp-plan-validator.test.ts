@@ -29,6 +29,11 @@ Objective: deliver the approved change. Scope covers the named files; exclusions
 - optional_note - type: string; optional; source: user decision.
 
 ## 3. CHRONOLOGICAL WORKFLOW
+
+### Phase 1 - Apply
+
+Phase inputs: the parser module and its recorded owner responsibility. Completion criteria: both steps pass their focused tests. Resume point: checkpoint records completed steps, receipts, and the next action.
+
 - [ ] Inspect the target and record the owner responsibility; Target: parser module; Dependency and ordering: first; Reason: establish the baseline; Expected result: verified current behavior and preserved invariant; Proof: focused test; Failure or boundary: stop on ambiguity.
 - [ ] Apply the selected change; Target: parser module; Owner responsibility: implementation owner; Dependency and ordering: after step 1; Reason: satisfy the objective; Expected result: requested behavior; Preserved behavior: existing valid inputs; Proof and check: focused test; Failure or boundary: return to planning.
 
@@ -94,6 +99,44 @@ test('rejects a workflow step that omits an independently testable proof field',
 test('rejects workflow steps without unchecked task markers', () => {
   expect(() => validateAidpPlan(validPlan.replaceAll('- [ ]', '1.'), planPath)).toThrow(
     /unchecked Markdown task items/u,
+  );
+});
+
+test('rejects a workflow without phase blocks', () => {
+  const phaseless = validPlan.replace(/^### Phase 1 - Apply\n\nPhase inputs: .+\n\n/gmu, '');
+  expect(() => validateAidpPlan(phaseless, planPath)).toThrow(/must decompose/u);
+});
+
+test('rejects a phase block that omits the resume point', () => {
+  const noResume = validPlan.replace(
+    ' Resume point: checkpoint records completed steps, receipts, and the next action.',
+    '',
+  );
+  expect(() => validateAidpPlan(noResume, planPath)).toThrow(/phase 1 must state resume/u);
+});
+
+test('rejects a task item outside every phase block', () => {
+  const strayStep = validPlan.replace(
+    '### Phase 1 - Apply',
+    '- [ ] Stray preamble step; Target: parser module; Owner responsibility: implementation owner; Dependency and ordering: first; Reason: establish the baseline; Expected result: verified behavior; Preserved behavior: existing valid inputs; Proof: focused test; Failure or boundary: stop.\n\n### Phase 1 - Apply',
+  );
+  expect(() => validateAidpPlan(strayStep, planPath)).toThrow(
+    /not before the first phase heading/u,
+  );
+});
+
+test('rejects phase numbering that does not ascend from 1', () => {
+  const renumbered = validPlan.replace('### Phase 1 - Apply', '### Phase 2 - Apply');
+  expect(() => validateAidpPlan(renumbered, planPath)).toThrow(/ascend from 1/u);
+});
+
+test('rejects a phase block with no unchecked step', () => {
+  const emptyPhase = validPlan.replace(
+    '## 4. TOOL STRATEGY & FALLBACKS',
+    '### Phase 2 - Deliver\n\nPhase inputs: the applied change. Completion criteria: the final gate passes. Resume point: closeout recorded.\n\n## 4. TOOL STRATEGY & FALLBACKS',
+  );
+  expect(() => validateAidpPlan(emptyPhase, planPath)).toThrow(
+    /phase 2 must contain at least one unchecked/u,
   );
 });
 

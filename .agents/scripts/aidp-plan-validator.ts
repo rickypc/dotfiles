@@ -199,6 +199,44 @@ const validatePlanPath = (planPath: string, expectedIndex: string, issues: strin
   }
 };
 
+const validateWorkflowPhases = (workflow: string, issues: string[]): void => {
+  const headers = [...workflow.matchAll(/^### Phase (\d+) - .+$/gmu)];
+  if (headers.length === 0) {
+    issues.push(
+      'CHRONOLOGICAL WORKFLOW must decompose the work into `### Phase N - <name>` blocks that each declare phase inputs, completion criteria, and a resume point.',
+    );
+    return;
+  }
+  if (itemLines(workflow.slice(0, headers[0]?.index ?? 0)).length > 0) {
+    issues.push(
+      'CHRONOLOGICAL WORKFLOW task items must sit inside a `### Phase N` block, not before the first phase heading.',
+    );
+  }
+  headers.forEach((header, index) => {
+    const number = Number(header[1]);
+    if (number !== index + 1) {
+      issues.push(
+        `Phase numbering must ascend from 1; expected Phase ${index + 1}, found Phase ${number}.`,
+      );
+    }
+    const block = workflow.slice(
+      (header.index ?? 0) + header[0].length,
+      headers[index + 1]?.index ?? workflow.length,
+    );
+    requireTerms(
+      block,
+      `CHRONOLOGICAL WORKFLOW phase ${number}`,
+      [['inputs', 'input'], ['completion'], ['resume']],
+      issues,
+    );
+    if (!block.split('\n').some((line) => /^- \[ \] \S/u.test(line.trim()))) {
+      issues.push(
+        `CHRONOLOGICAL WORKFLOW phase ${number} must contain at least one unchecked \`- [ ]\` step.`,
+      );
+    }
+  });
+};
+
 const validateWorkflowStep = (step: string, index: number, issues: string[]): void => {
   requireTerms(
     step,
@@ -262,6 +300,7 @@ const validateSections = (body: string, issues: string[]) => {
     issues.push('CHRONOLOGICAL WORKFLOW must contain numbered steps.');
   }
   requireWorkflowTaskItems(workflow, workflowItems, issues);
+  validateWorkflowPhases(workflow, issues);
   workflowItems.forEach((step, index) => {
     validateWorkflowStep(step, index, issues);
   });

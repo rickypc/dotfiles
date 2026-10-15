@@ -196,6 +196,9 @@ one H1 (the frontmatter `title`) followed by the six H2 sections in order:
 `## 6. RIGID OUTPUT SCHEMA`. Use AIDX in fresh context for deterministic construction, delegation,
 verification, repair/re-plan behavior, and one final gate. AIDX accepts the absolute or relative
 plan path defined by its own Usage contract; do not parse or reinterpret the plan in the caller.
+Long plans decompose `## 3. CHRONOLOGICAL WORKFLOW` into `### Phase N` blocks that each declare
+phase inputs, completion criteria, and a resume point; AIDX writes a checkpoint at each phase
+boundary and resumes from the latest one.
 
 ## 7. Coding and test changes
 
@@ -223,6 +226,14 @@ Use a failure-first repair loop for multi-lane work: run one baseline discovery 
 collect independent failures, apply compatible repairs as one batch, run focused checks, and run the
 final gate once. Keep a concise command/result/next-action ledger. Never rerun an unchanged full
 gate after each individual fix.
+
+Put recovery in the work contract. For work spanning phases or sessions, leave a checkpoint at each
+phase boundary: the completed work, the validation receipts that prove it, and the next action.
+When a turn aborts, a call fails, or a session resumes, diagnose the failure once, then resume from
+the latest checkpoint instead of re-deriving or silently repeating completed work. Each
+modification is followed by its focused check, and a failed check reacts at that boundary -
+diagnose once, repair, or stop - before the next modification. A recovered interruption never
+skips closeout: finished work must still be recorded as finished.
 
 Final-gate action packets are executable repair instructions. When a checker returns a non-blocked
 packet with explicit `allowedPaths`, required actions, and forbidden actions, the owning workflow
