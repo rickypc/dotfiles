@@ -205,7 +205,7 @@ it, apply its required actions through the named owner's explicit apply route, v
 `allowedPaths` changed, and rerun the identical gate. The packet is executable repair evidence, not
 display-only output or a user handoff. Stop for a missing, blocked, ambiguous, unsafe, or
 unappliable packet; never invent a repair. When the plan changes JavaScript or TypeScript tests,
-follow its explicit `/bun-test-generator`, boundary-validation, and `/biome-tsc-checker` route
+follow its explicit `/bun-test-generator`, boundary-validation, and `/biome-checker` route
 before editing; when it changes retained browser coverage, follow its explicit
 `/playwright-test-generator` route.
 

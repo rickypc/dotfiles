@@ -73,7 +73,7 @@ editing the selected test surface.
 - **The skill MUST ALWAYS mock every external dependency used in generated tests**, including
   temporary file creation, file writes, removals, process spawns, and any OS interaction.
 - If a dependency contract cannot be mocked without guessing, stop and ask for that contract. A
-  passing test, coverage report, `/biome-tsc-checker`, or all-skill validation cannot substitute for
+  passing test, coverage report, `/biome-checker`, or all-skill validation cannot substitute for
   this gate.
 
 ### Anti-patterns and countermeasures
@@ -127,8 +127,8 @@ SUT and scope -> impact map -> behavior matrix -> isolated tests
    Jest test. Register every dependency mock before dynamically importing the real SUT; do not alter
    the SUT or project config.
 4. **Validate and test:** Run `validate-boundaries` with source strings and the exact SUT module
-   specifier, then `/biome-tsc-checker` for the test. Run the selected Bun coverage command and
-   relevant focused tests, then run the configured full project lanes (`test:lint`, `test:unit`, and
+   specifier, then `/biome-checker` for the test. Run the selected Bun coverage command and relevant
+   focused tests, then run the configured full project lanes (`test:lint`, `test:unit`, and
    `test:type` or their exact equivalents) independently in the same runner context. Re-run every
    affected lane after mock or fixture repairs. Perform a mutation check for wrong branches,
    arguments, side effects, defaults, and malformed or boundary inputs. Do not close on coverage

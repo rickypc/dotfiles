@@ -1,30 +1,31 @@
 ---
-name: biome-tsc-checker
+name: biome-checker
 description: >-
-  Run Biome and strict TypeScript checks for explicitly selected JavaScript or TypeScript paths.
+  Run Biome, bun check, and declaration-order checks for explicitly selected JavaScript or
+  TypeScript paths.
 argument-hint: <path> [path...]
 ---
 
-# Biome TypeScript Checker
+# Biome Checker
 
 ## 1. Role & Scope
 
 This skill owns focused static checking for explicitly selected JavaScript and TypeScript paths. It
-reports Biome, strict TypeScript, and top-level declaration-order results without implementing
+reports Biome, bun check, and top-level declaration-order results without implementing
 behavior, generating tests, or broadening the selected paths. A JavaScript path receives Biome and
-an explicit TypeScript `not-applicable` result; a TypeScript path receives Biome and strict
-`--noEmit` checking.
+an explicit TypeScript `not-applicable` result; a TypeScript path receives Biome and `bun check`
+type checking.
 
 ## 2. Usage
 
 ```text
-/biome-tsc-checker <path> [path...] # check selected JS/TS paths and declaration order
+/biome-checker <path> [path...] # check selected JS/TS paths and declaration order
 ```
 
 The unannotated grammar is:
 
 ```text
-/biome-tsc-checker <path> [path...]
+/biome-checker <path> [path...]
 ```
 
 Required: one or more selected JavaScript or TypeScript paths. Use the command catalog in this skill
@@ -59,14 +60,14 @@ for focused checks and declaration-order actions.
 ## 5. Ordered Execution Chain
 
 ```text
-selected paths -> package/config resolution -> Biome and TypeScript checks
+selected paths -> package/config resolution -> Biome and bun check
                -> declaration-order check -> permitted reorder -> receipt
 ```
 
 1. **Intake:** Validate each path and extension, resolve its nearest package, and confirm the shared
    config/compiler boundary.
-2. **Static checks:** Run Biome for every selected path. Run strict TypeScript with `--noEmit` for
-   `.ts`, `.tsx`, `.mts`, and `.cts`; report TypeScript as `not-applicable` for JavaScript.
+2. **Static checks:** Run Biome for every selected path. Run the type check with `bun check` for
+   `.ts`, `.tsx`, `.mts`, and `.cts`; report bun-check as `not-applicable` for JavaScript.
 3. **Declaration order:** Run the CST inspection for every selected path. For `passed`, make no
    order edit. For `failed`, require a non-null action packet, read every `requiredActionGroups`
    entry, and immediately apply the packet through
@@ -81,7 +82,7 @@ selected paths -> package/config resolution -> Biome and TypeScript checks
 ### Commands owned by this skill
 
 ```bash
-bun <agents-root>/scripts/biome-tsc-checker.ts <path>
+bun <agents-root>/scripts/biome-checker.ts <path>
 bun <agents-root>/scripts/declaration-order.ts <path>
 bun <agents-root>/scripts/declaration-order.ts --apply <path>
 bun <agents-root>/scripts/declaration-order.ts --summary <path>
@@ -102,7 +103,7 @@ The receipt shape is the authority: `const` declarations are represented in `che
 must return `"passed"` before the candidate is accepted.
 
 ```bash
-bun <agents-root>/scripts/biome-tsc-checker.ts <path>
+bun <agents-root>/scripts/biome-checker.ts <path>
 ```
 
 ```bash
@@ -134,7 +135,7 @@ action packet is absent.
 
 ## 6. Output & Completion Contract
 
-Success returns per-path Biome, TypeScript or `not-applicable`, and declaration-order results, with
+Success returns per-path Biome, bun-check or `not-applicable`, and declaration-order results, with
 all applicable commands passing under shared rules. The JSON receipt and exit status are the proof.
 The global final gate, when selected, remains the final decision.
 
@@ -147,8 +148,8 @@ packet is applied and the identical checker is rerun.
 
 ## 7. Evaluation Anchors
 
-- **Canonical:** A selected JavaScript path reports Biome plus TypeScript `not-applicable`; a
-  selected TypeScript path reports strict `--noEmit` checking.
+- **Canonical:** A selected JavaScript path reports Biome plus bun-check `not-applicable`; a
+  selected TypeScript path reports `bun check` type checking.
 - **Boundary:** A barrier, cycle, duplicate, shadowed name, syntax error, or action packet with no
   permitted reorder is reported without crossing it.
 - **Challenge:** A noncanonical source is fixed only by the returned action packet's

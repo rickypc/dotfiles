@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import { runStaticChecks } from '../../scripts/biome-tsc-checker.js';
+import { runStaticChecks } from '../../scripts/biome-checker.js';
 
 test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   const executor = mock(
@@ -20,7 +20,7 @@ test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
     ),
   ).resolves.toEqual([
     { detail: 'clean', name: 'biome', status: 'passed' },
-    { detail: 'type error', name: 'tsc', status: 'failed' },
+    { detail: 'type error', name: 'bun-check', status: 'failed' },
     {
       detail: '/repo/file.ts: Top-level declarations are canonical.',
       name: 'declaration-order',
@@ -31,8 +31,8 @@ test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   expect(executor.mock.calls[0]?.[0].cwd).toBe('/agents');
   expect(executor.mock.calls[1]?.[0].cwd).toBe('/agents');
   expect(executor.mock.calls[0]?.[0].args).toContain('--config-path');
-  expect(executor.mock.calls[1]?.[0].args).toContain('--ignoreConfig');
-  expect(executor.mock.calls[1]?.[0].args).toContain('/agents/node_modules/@types');
+  expect(executor.mock.calls[1]?.[0].args).toContain('check');
+  expect(executor.mock.calls[1]?.[0].command).toBe('bun');
 });
 
 test('runs independent Biome, declaration-order, and TypeScript checks together', async () => {
@@ -63,7 +63,7 @@ test('runs independent Biome, declaration-order, and TypeScript checks together'
   await expect(result).resolves.toEqual(
     expect.arrayContaining([
       expect.objectContaining({ name: 'biome', status: 'passed' }),
-      expect.objectContaining({ name: 'tsc', status: 'passed' }),
+      expect.objectContaining({ name: 'bun-check', status: 'passed' }),
       expect.objectContaining({ name: 'declaration-order', status: 'passed' }),
     ]),
   );
@@ -84,7 +84,7 @@ test('preserves a failed Biome result while the independent checks complete', as
   ).resolves.toEqual(
     expect.arrayContaining([
       { detail: 'style error', name: 'biome', status: 'failed' },
-      { detail: 'typed', name: 'tsc', status: 'passed' },
+      { detail: 'typed', name: 'bun-check', status: 'passed' },
       expect.objectContaining({ name: 'declaration-order', status: 'passed' }),
     ]),
   );
@@ -104,7 +104,7 @@ test('runs plain JavaScript through lint and structural ordering without tsc', a
     { detail: 'clean', name: 'biome', status: 'passed' },
     {
       detail: 'No TypeScript paths selected.',
-      name: 'tsc',
+      name: 'bun-check',
       status: 'not-applicable',
     },
     {
@@ -127,7 +127,7 @@ test('reports structural ordering as not applicable for a non-source path', asyn
     { detail: 'clean', name: 'biome', status: 'passed' },
     {
       detail: 'No TypeScript paths selected.',
-      name: 'tsc',
+      name: 'bun-check',
       status: 'not-applicable',
     },
     {

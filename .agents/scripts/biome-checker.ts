@@ -82,28 +82,7 @@ export const runStaticChecks = async (
   const typeCheck =
     typeScriptPaths.length === 0
       ? undefined
-      : executor(
-          command(
-            `${request.agentsRoot}/node_modules/.bin/tsc`,
-            [
-              '--noEmit',
-              '--ignoreConfig',
-              '--strict',
-              '--module',
-              'nodenext',
-              '--moduleResolution',
-              'nodenext',
-              '--target',
-              'esnext',
-              '--typeRoots',
-              `${request.agentsRoot}/node_modules/@types`,
-              '--types',
-              'bun',
-              ...typeScriptPaths,
-            ],
-            request.agentsRoot,
-          ),
-        );
+      : executor(command('bun', ['check', ...typeScriptPaths], request.agentsRoot));
   const [biomeCommandResult, declarationOrder, typeCheckResult] = await Promise.all([
     biome,
     declarationOrderResult(sourcePaths, read),
@@ -118,7 +97,7 @@ export const runStaticChecks = async (
       biomeResult,
       {
         detail: 'No TypeScript paths selected.',
-        name: 'tsc',
+        name: 'bun-check',
         status: 'not-applicable',
       },
       declarationOrder,
@@ -127,8 +106,8 @@ export const runStaticChecks = async (
   return [
     biomeResult,
     typeCheckResult?.code === 0
-      ? passed('tsc', detail(typeCheckResult.stdout, typeCheckResult.stderr))
-      : failed('tsc', detail(typeCheckResult?.stdout ?? '', typeCheckResult?.stderr ?? '')),
+      ? passed('bun-check', detail(typeCheckResult.stdout, typeCheckResult.stderr))
+      : failed('bun-check', detail(typeCheckResult?.stdout ?? '', typeCheckResult?.stderr ?? '')),
     declarationOrder,
   ];
 };
@@ -147,7 +126,7 @@ export const run = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/biome-tsc-checker.ts <path> [path...]';
+  'Usage: bun <agents-root>/scripts/biome-checker.ts <path> [path...]';
 
 export const runWhenMain = runCliWhenMain;
 

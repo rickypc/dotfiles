@@ -1,6 +1,7 @@
 import { expect, mock, test } from 'bun:test';
+import { join } from 'node:path';
 
-import { run, runWhenMain, usage } from '../../scripts/biome-tsc-checker.js';
+import { run, runWhenMain, usage } from '../../scripts/biome-checker.js';
 
 test('runs the static checker script through injected boundaries', async () => {
   const executor = mock(async () => ({ code: 0, stderr: '', stdout: 'clean' }));
@@ -10,7 +11,7 @@ test('runs the static checker script through injected boundaries', async () => {
   ).resolves.toBeUndefined();
   expect(executor).toHaveBeenCalledTimes(2);
   expect(write).toHaveBeenCalledWith(
-    'biome: passed - clean\ntsc: passed - clean\ndeclaration-order: passed - /repo/file.ts: Top-level declarations are canonical.',
+    'biome: passed - clean\nbun-check: passed - clean\ndeclaration-order: passed - /repo/file.ts: Top-level declarations are canonical.',
   );
 });
 
@@ -22,7 +23,7 @@ test('uses the default source reader when an existing selected path is provided'
   const executor = mock(async () => ({ code: 0, stderr: '', stdout: 'clean' }));
   const write = mock();
   await expect(
-    run(['tests/scripts/biome-tsc-checker.test.ts'], executor, '/agents', write),
+    run([join(import.meta.dir, 'biome-checker.test.ts')], executor, '/agents', write),
   ).resolves.toBeUndefined();
   expect(write).toHaveBeenCalledTimes(1);
 });

@@ -56,9 +56,8 @@ scope:
 - Preserve public signatures, data formats, authorization, persistence, migrations, external
   boundaries, and rollback behavior when affected.
 - For JavaScript or TypeScript test changes, invoke `/bun-test-generator` before authoring, freeze
-  boundary mocks, run boundary validation, then run `/biome-tsc-checker`. For accepted browser
-  criteria, invoke `/playwright-test-generator` unless retained coverage already proves the
-  criterion.
+  boundary mocks, run boundary validation, then run `/biome-checker`. For accepted browser criteria,
+  invoke `/playwright-test-generator` unless retained coverage already proves the criterion.
 - Record changed targets, requirement mapping, tests and outputs, limitations, and every uncovered
   criterion. Run the configured project final gate once at the final boundary; it cannot prove an
   unmapped acceptance item. If a checker emits a non-blocked action packet, validate it, invoke the

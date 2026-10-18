@@ -10,6 +10,11 @@ Keep every response to a single response, terse, and to the point. Minimize outp
 maintaining accuracy. Do not add preamble, postamble, filler, or tangential explanation. Prefer
 one-word answers. State the result, not what was done to achieve it.
 
+Always write prompt responses and reasoning in English, in every session, with no exception. Even
+when the input prompt, injected memory, or any other content is in another language, the response
+and the reasoning must stay in English. Code, file content, and verbatim quotations remain in their
+original language.
+
 ## 1. Read this first: decision order
 
 Apply these decisions in order before acting:
@@ -112,8 +117,9 @@ guardrail change. That exception does not permit changes to the protected config
 
 ### Runtime and reusable-content boundaries
 
-- MCP tools are unavailable in this runtime. Use the approved skills and their caller-facing wrapper
-  contracts.
+- MCP tool availability is runner-dependent: never assume MCP tools are banned or unavailable
+  without probing, and never hand-run a backend transport that an owning wrapper probes itself. Use
+  the approved skills and their caller-facing wrapper contracts.
 - Reusable guidance uses `<agents-root>`, `<project-root>`, `<repo-search-index>`, and
   source-relative links. Never embed a concrete username, home directory, machine path, or
   credential in shared guidance.
@@ -140,9 +146,9 @@ boundaries.
 | ---------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/aidp`                      | `<goal-and-concerns>`                                                   | An incomplete or complete request needs evidence intake, clarification, and one explicit six-section execution plan handed to `/aidx`.              |
 | `/aidx`                      | `<plan-path-relative-or-absolute>`                                      | One materialized six-section plan needs deterministic execution, delegated ownership, fresh verification, and mapped completion or repair evidence. |
-| `/repo-search`               | `<approved-root> <query>`                                               | Repository, symbol, call-path, architecture, or code-text discovery is needed; read Usage for inspection routes and the complete wrapper contract.  |
+| `/repo-search`               | `<approved-root> <query...>`                                            | Repository, file, symbol, call-path, architecture, connection, or binary-content discovery is needed; read Usage for the three wrapper verbs and the unified response contract. |
 | `/knowledge-base`            | `<operation> <private-kb-root> <scope-or-request>`                      | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed.                                                  |
-| `/biome-tsc-checker`         | `<path> [path...]`                                                      | Explicit JavaScript or TypeScript paths need Biome, strict TypeScript, and declaration-order checks.                                                |
+| `/biome-checker`             | `<path> [path...]`                                                      | Explicit JavaScript or TypeScript paths need Biome, bun check, and declaration-order checks. |
 | `/bun-test-generator`        | `<sut-path> <all\|method-list\|method-range>`                           | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted.                                   |
 | `/frontend-design`           | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>`   | A user-facing web UI is created, redesigned, or visually refreshed.                                                                                 |
 | `/react`                     | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | React or React Native implementation is in scope after design/content inputs are approved.                                                          |
@@ -215,7 +221,7 @@ boundary and resumes from the latest one.
   across test files in one process; prove compatibility for every same-process consumer, or use
   test-local injection/an isolated boundary.
 - For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, use the real SUT,
-  mock every external boundary, run `validate-boundaries`, and then use `/biome-tsc-checker` on
+  mock every external boundary, run `validate-boundaries`, and then use `/biome-checker` on
   selected paths. A passing test, coverage result, or skill validation cannot substitute for the
   required generator receipt. Do not use `mock.restore()` as proof that a shared same-process mock
   is isolated.
@@ -482,27 +488,27 @@ base.
 
 ## Appendix A: repo-search command catalog
 
-The caller-facing wrapper is:
+The caller-facing wrapper is `bun <agents-root>/scripts/repo-search.ts` with three verbs; the bare
+two-argument form is an alias for `search`. The script executes every backend operation itself -
+transport probe, index resolution, searches, reads, and binary routing - and prints one unified JSON
+response contract on every route.
 
 ```bash
-bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"
+bun <agents-root>/scripts/repo-search.ts [search] "<approved-root>" "<query...>"
+bun <agents-root>/scripts/repo-search.ts read "<approved-root>" "<file-or-URL-or-PID-or-process-or-symbol>" ["<query...>"]
 bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"
 ```
 
-| Command or information | Arguments                                                                                                                                                               | When to use                                                         | Additional information                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `list-projects`        | `-`                                                                                                                                                                     | Resolve approved roots and matching indexes                         | Select by explicit indexed root.                                                                           |
-| `index-status`         | `<repo-search-index>`                                                                                                                                                   | Check readiness before a read                                       | Follow the indexing boundary and receipt if not ready.                                                     |
-| `architecture`         | `<repo-search-index>`                                                                                                                                                   | Read indexed architecture                                           | Returns one wrapper-owned result.                                                                          |
-| `schema`               | `<repo-search-index>`                                                                                                                                                   | Verify graph identity fields                                        | Use before relying on a newly observed identity field.                                                     |
-| `snippet`              | `<repo-search-index>` `<qualified-name>`                                                                                                                                | Read one indexed code snippet                                       | Request the smallest fragment needed.                                                                      |
-| `search-graph`         | `<repo-search-index>` `<query>` `<positive-limit>`                                                                                                                      | Search graph nodes                                                  | A match requires normalized identity-field evidence.                                                       |
-| `search-code`          | `<repo-search-index>` `<literal-pattern>` `<positive-limit>`                                                                                                            | Search indexed code text                                            | Use after graph search or as a declared inspection operation.                                              |
-| `query`                | `<repo-search-index>` `<graph-query>` `<positive-limit>`                                                                                                                | Run a bounded graph query                                           | Keep the query narrow and record the receipt.                                                              |
-| `trace`                | `<repo-search-index>` `<qualified-name>` `<inbound\|outbound>` `<positive-depth>`                                                                                       | Trace callers or callees                                            | Direction is restricted to `inbound` or `outbound`.                                                        |
-| `discover`             | `<approved-root>` `[repo-search-index]` `<query>`                                                                                                                       | Any code, symbol, call-path, architecture, or literal-text question | Path-only works without an index; indexed form tries graph/code search, then returns one fallback receipt. |
-| `inspect`              | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>`                                                                                                      | Several independent reads for one decision                          | Returns one resolved index, readiness result, and ordered receipt per read.                                |
-| `inspection JSONL`     | `architecture(path)`, `schema`, `search-graph(namePattern,label,limit)`, `snippet(qualifiedName)`, `trace(qualifiedName,direction,depth)`, `search-code(pattern,limit)` | Batch independent reads                                             | The request file must be under the operating-system temp directory.                                        |
+| Command | Arguments | When to use | Additional information |
+| --- | --- | --- | --- |
+| `search` | `<approved-root> <query...>` | Any code, symbol, call-path, architecture, connection, keyword-cluster, or literal-text question | Graph then code search, connection traces, the binary content gate, then the staged literal fallback; search never creates an index. |
+| `read` | `<approved-root> <target> [query...]` | One file fragment, symbol snippet, URL, PID, or process target | Classifies the target by content and shape; binary targets route through the eighteen-row binary router. |
+| `inspect` | `<approved-root> <jsonl-path>` | Several independent indexed reads for one decision | One readiness check, then every declared read concurrently; the inspect route never indexes. |
+
+Every envelope carries `ok`, `status`, `transport`, `source`, `query`, `results`, `reliability`,
+`attempts`, and `next` with the same schema regardless of transport. Backend storage paths are
+redacted as `<backend-store>`; never access the backend storage directly. A cache-private or sandbox
+denial is a transport failure, never an empty result.
 
 Inspection JSONL operations:
 

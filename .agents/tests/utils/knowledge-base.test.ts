@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 
 import {
   buildKbInfo,
@@ -663,14 +663,16 @@ test('combines repo-search discovery with validated KB search results', async ()
     rm: async () => undefined,
     writeFile: async () => undefined,
   };
-  const outputs = [
-    { code: 0, stderr: '', stdout: 'ready' },
-    {
-      code: 0,
-      stderr: '',
-      stdout: '{"total":1,"results":[{"name":"verified"}]}',
+  const outputs = [{ code: 0, stderr: '', stdout: '/kb/shared/practice/fixture.md:3:verified' }];
+  const probe = mock(async () => ({
+    attempt: {
+      command: 'probe',
+      detail: 'No backend transport answered.',
+      status: 'skipped' as const,
+      strategy: 'transport-probe',
     },
-  ];
+    transport: null,
+  }));
   await expect(
     searchKnowledgeBaseWithFallback(
       fileSystem,
@@ -678,10 +680,11 @@ test('combines repo-search discovery with validated KB search results', async ()
       '/kb',
       'kb-index',
       'verified',
+      probe,
     ),
   ).resolves.toMatchObject({
     concepts: [{ path: 'shared/practice/fixture.md' }],
-    discovery: { found: true, source: 'repo-search' },
+    discovery: { found: true, source: 'fallback', status: 'found' },
   });
 });
 
@@ -694,11 +697,24 @@ test('batches bounded distinct KB queries and rejects duplicates', async () => {
     writeFile: async () => undefined,
   };
   const executor = async () => ({ code: 0, stderr: '', stdout: 'ready' });
+  const probe = mock(async () => ({
+    attempt: {
+      command: 'probe',
+      detail: 'No backend transport answered.',
+      status: 'skipped' as const,
+      strategy: 'transport-probe',
+    },
+    transport: null,
+  }));
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', [
-      'verifier',
-      'temporary path',
-    ]),
+    searchKnowledgeBaseBatch(
+      fileSystem,
+      executor,
+      '/kb',
+      'kb-index',
+      ['verifier', 'temporary path'],
+      probe,
+    ),
   ).resolves.toHaveLength(2);
   await expect(
     searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['Verifier', ' verifier ']),
@@ -735,6 +751,15 @@ test('starts local KB lookup while repo-search discovery waits for index readine
     '/kb',
     'kb-index',
     'verified',
+    mock(async () => ({
+      attempt: {
+        command: 'probe',
+        detail: 'No backend transport answered.',
+        status: 'skipped' as const,
+        strategy: 'transport-probe',
+      },
+      transport: null,
+    })),
   );
   expect(localLookupStarted).toBeTrue();
   releaseStatus?.({ code: 0, stderr: '', stdout: 'ready' });
