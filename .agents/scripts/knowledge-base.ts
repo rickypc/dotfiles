@@ -7,10 +7,13 @@ import { nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import { type BatchTask, runBatched } from '../utils/quality-engine/batch.js';
+import { type RepoSearchEnvelope, repoSearchDiscover } from '../utils/repo-search.js';
 import {
-  type RepoSearchSearchFallbackReceipt,
-  searchWithRepoSearchFallback,
-} from '../utils/repo-search.js';
+  probeRepoSearchTransport,
+  type RepoSearchTransport,
+  type RepoSearchTransportOptions,
+} from '../utils/repo-search-transport.js';
+import type { SearchAttempt } from '../utils/search-fallback.js';
 import { defaultMoveSourceToTrash } from './trash.js';
 
 type BatchSearchDependency = typeof searchKnowledgeBaseBatch;
@@ -46,7 +49,7 @@ export interface KnowledgeBaseBatchSearchResult {
 
 export interface KnowledgeBaseSearchReceipt {
   readonly concepts: readonly KnowledgeSearchResult[];
-  readonly discovery: RepoSearchSearchFallbackReceipt;
+  readonly discovery: RepoSearchEnvelope;
   readonly kbInfo: KbInfo;
 }
 
@@ -200,6 +203,7 @@ export const buildKbInfo = async (fileSystem: FileSystem, kbRoot: string): Promi
 });
 
 const planSection = (body: string, heading: string, nextHeading?: string): string => {
+  // biome-ignore lint/security/noSecrets: -
   const end = nextHeading ? `(?=^## \\d+\\. ${nextHeading}\\n)` : '(?![\\s\\S])';
   const match = new RegExp(`^## \\d+\\. ${heading}\\n([\\s\\S]*?)${end}`, 'mu').exec(body);
   if (!match?.[1]?.trim()) {
@@ -723,21 +727,36 @@ export const searchKnowledgeBaseWithFallback = async (
   kbRoot: string,
   repoSearchIndex: string,
   query: string,
+  probeTransport: (options: RepoSearchTransportOptions) => Promise<{
+    readonly attempt: SearchAttempt;
+    readonly transport: RepoSearchTransport | null;
+  }> = probeRepoSearchTransport,
 ): Promise<KnowledgeBaseSearchReceipt> => {
-  const [concepts, discovery, kbInfo] = await Promise.all([
-    searchKnowledgeBase(fileSystem, kbRoot, query),
-    searchWithRepoSearchFallback(executor, {
-      allowedRoots: [kbRoot],
-      query,
-      root: { index: repoSearchIndex, root: kbRoot },
-    }),
-    buildKbInfo(fileSystem, kbRoot),
-  ]);
-  return {
-    concepts,
-    discovery,
-    kbInfo,
-  };
+  const conceptsPromise = searchKnowledgeBase(fileSystem, kbRoot, query);
+  const kbInfoPromise = buildKbInfo(fileSystem, kbRoot);
+  const probed = await probeTransport({ executor });
+  try {
+    const [concepts, discovery, kbInfo] = await Promise.all([
+      conceptsPromise,
+      repoSearchDiscover({
+        allowedRoots: [kbRoot],
+        executor,
+        indexHint: repoSearchIndex,
+        probe: probed.attempt,
+        query,
+        root: kbRoot,
+        transport: probed.transport,
+      }),
+      kbInfoPromise,
+    ]);
+    return {
+      concepts,
+      discovery,
+      kbInfo,
+    };
+  } finally {
+    await probed.transport?.close();
+  }
 };
 
 export const searchKnowledgeBaseBatch = async (
@@ -746,6 +765,7 @@ export const searchKnowledgeBaseBatch = async (
   kbRoot: string,
   repoSearchIndex: string,
   queries: readonly string[],
+  probeTransport: Parameters<typeof searchKnowledgeBaseWithFallback>[5] = probeRepoSearchTransport,
 ): Promise<readonly KnowledgeBaseBatchSearchResult[]> => {
   if (queries.length === 0 || queries.length > maxKnowledgeBaseBatchSize) {
     throw new Error(`KB search-batch requires 1-${maxKnowledgeBaseBatchSize} queries.`);
@@ -761,7 +781,14 @@ export const searchKnowledgeBaseBatch = async (
     id: `query-${index}`,
     mode: 'read-only',
     run: () =>
-      searchKnowledgeBaseWithFallback(fileSystem, executor, kbRoot, repoSearchIndex, query),
+      searchKnowledgeBaseWithFallback(
+        fileSystem,
+        executor,
+        kbRoot,
+        repoSearchIndex,
+        query,
+        probeTransport,
+      ),
   }));
   const receipts = await runBatched(tasks);
   const receiptById = new Map(receipts.map((result) => [result.id, result.value]));

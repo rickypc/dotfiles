@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
- * sanitize-hidden.ts - Recursively strip hidden/zero-width characters and
- * normalize weird dashes across all text files in a directory.
+ * sanitize-hidden.ts - Recursively strip hidden/zero-width characters and normalize weird dashes
+ * across all text files in a directory.
  *
  * Usage:
  *   bun  sanitize-hidden.ts [directory] [--dry-run] [--write] [--concurrency=16]
@@ -9,18 +9,15 @@
  *
  * Defaults: directory = pwd; concurrency = 16; DRY-RUN (writes nothing).
  *
- * SAFETY: this script previews by default. It writes nothing unless the
- * explicit `--write` flag is passed. Never run `--write` against a repository
- * that holds uncommitted work you have not backed up; inspect the dry-run
- * output first. Binary files are skipped by extension *and* by content
- * (a NUL byte or invalid UTF-8), so images, fonts, and archives are never
- * decoded or rewritten.
+ * SAFETY: this script previews by default. It writes nothing unless the explicit `--write` flag is
+ * passed. Never run `--write` against a repository that holds uncommitted work you have not backed
+ * up; inspect the dry-run output first. Binary files are skipped by extension *and* by content (a
+ * NUL byte or invalid UTF-8), so images, fonts, and archives are never decoded or rewritten.
  *
- * Discovery is delegated to ripgrep. rg honors .gitignore/.ignore/.rgignore
- * and the global git excludes out of the box, skips hidden entries, skips
- * files larger than MAX_FILE_BYTES, and `--files-with-matches` narrows the
- * walk to files that actually contain a character we replace. Only those
- * candidate files are read and decoded.
+ * Discovery is delegated to ripgrep. rg honors .gitignore/.ignore/.rgignore and the global git
+ * excludes out of the box, skips hidden entries, skips files larger than MAX_FILE_BYTES, and
+ * `--files-with-matches` narrows the walk to files that actually contain a character we replace.
+ * Only those candidate files are read and decoded.
  *
  * Hidden characters from the grep command - replaced with empty string:
  *   U+200B  ZERO WIDTH SPACE
@@ -31,9 +28,9 @@
  *   U+200D  ZERO WIDTH JOINER (bonus)
  *   control chars 0x01-0x08, 0x0B, 0x0C, 0x0E-0x1F, 0x7F
  *
- * Sinhala exception: a line containing Sinhala script (U+0D80-U+0DFF) is left
- * byte-for-byte untouched. Sinhala conjuncts depend on ZWJ/ZWNJ (U+200D/
- * U+200C), so stripping them would produce invalid Sinhala.
+ * Sinhala exception: a line containing Sinhala script (U+0D80-U+0DFF) is left byte-for-byte
+ * untouched. Sinhala conjuncts depend on ZWJ/ZWNJ (U+200D/U+200C), so stripping them would produce
+ * invalid Sinhala.
  *
  * Weird dashes - replaced with ASCII "-":
  *   U+2010  HYPHEN
@@ -61,14 +58,13 @@
  *   U+2029  PARAGRAPH SEPARATOR -> "\n"
  *
  * Skip rules:
- *   anything ripgrep ignores via .gitignore/.ignore/.rgignore (a gitignored
- *     `Github/` or `Library/` subtree is therefore never traversed)
- *   hidden files/directories (ripgrep default), incl. .git
- *   playwright, node_modules, build, coverage, dist subtrees
- *   *.html files
- *   binary file extensions (images, fonts, archives, media, executables)
- *   files larger than MAX_FILE_BYTES
- *   any file whose bytes contain a NUL or are not valid UTF-8
+ *   - anything ripgrep ignores via .gitignore/.ignore/.rgignore (a gitignored `Github/` or
+ *     `Library/` subtree is therefore never traversed)
+ *   - hidden files/directories (ripgrep default), incl. .git
+ *   - playwright, node_modules, build, coverage, dist subtrees *.html files
+ *   - binary file extensions (images, fonts, archives, media, executables)
+ *   - files larger than MAX_FILE_BYTES
+ *   - any file whose bytes contain a NUL or are not valid UTF-8
  */
 
 import { readFile, stat, writeFile } from 'node:fs/promises';
@@ -138,7 +134,8 @@ const BINARY_EXTS = new Set([
 
 const CONCURRENCY_REGEX = /^--concurrency=(\d+)$/;
 
-// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional for control character matching
+// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional
+// for control character matching
 const CONTROL_RE = /[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 const FLAG_ACTIONS: Record<string, (state: ArgState) => void> = {
@@ -215,10 +212,9 @@ function applyArg(state: ArgState, arg: string): void {
 }
 
 /**
- * Content-level binary guard. A file is treated as binary when it contains a
- * NUL byte or when decoding it as UTF-8 does not round-trip byte-for-byte
- * (invalid UTF-8). This catches images, fonts, and archives even when the
- * extension is missing from BINARY_EXTS.
+ * Content-level binary guard. A file is treated as binary when it contains a NUL byte or when
+ * decoding it as UTF-8 does not round-trip byte-for-byte (invalid UTF-8). This catches images,
+ * fonts, and archives even when the extension is missing from BINARY_EXTS.
  */
 export function isBinaryBuffer(buf: Uint8Array): boolean {
   if (buf.includes(0)) {
@@ -363,6 +359,7 @@ const RG_EXCLUDE_GLOBS = [
 
 export async function* walk(dir: string): AsyncGenerator<string> {
   const keys = Object.keys(REPLACE_MAP)
+    // biome-ignore lint/security/noSecrets: -
     .map((ch) => `\\x{${(ch.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, '0')}}`)
     .join('');
   const controlClass = '\\x{0001}-\\x{0008}\\x{000B}\\x{000C}\\x{000E}-\\x{001F}\\x{007F}';
