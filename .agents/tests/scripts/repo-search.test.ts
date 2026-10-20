@@ -1,200 +1,206 @@
-import { expect, mock, test } from 'bun:test';
+import { afterEach, expect, mock, test } from 'bun:test';
 
-import { commandFor, run, runWhenMain, usage } from '../../scripts/repo-search.js';
+import { parseRepoSearchArgs, run, runWhenMain, usage } from '../../scripts/repo-search.js';
+import type { CommandExecutor } from '../../utils/process.js';
+import type { RepoSearchTransport } from '../../utils/repo-search-transport.js';
 
-test.each([
-  [['list-projects'], 'list_projects'],
-  [['index-status', 'repo'], 'index_status'],
-  [['architecture', 'repo'], 'get_architecture'],
-  [['schema', 'repo'], 'get_graph_schema'],
-  [['snippet', 'repo', 'a.b'], 'get_code_snippet'],
-  [['search-graph', 'repo', 'symbol', '2'], 'search_graph'],
-  [['search-code', 'repo', 'text', '2'], 'search_code'],
-  [['query', 'repo', 'MATCH', '2'], 'query_graph'],
-  [['trace', 'repo', 'a.b', 'outbound', '2'], 'trace_path'],
-] as const)('renders %s through the repo-search CLI only', async (args, operation) => {
-  expect(commandFor(args).args).toContain(operation);
-  const write = mock();
-  await run(args, write);
-  expect(write).toHaveBeenCalledWith(
-    expect.stringContaining('REPO_SEARCH_LOG_LEVEL=error codebase-memory-mcp cli'),
-  );
+afterEach(() => {
+  process.exitCode = undefined;
 });
 
-test('renders query through the dedicated graph-query branch', () => {
-  expect(commandFor(['query', 'repo', 'MATCH', '2']).args).toEqual([
-    'cli',
-    'query_graph',
-    '--project',
-    'repo',
-    '--query',
-    'MATCH',
-    '--max-rows',
-    '2',
-  ]);
-});
-
-test('runs discovery through the shared repo-search fallback boundary', async () => {
-  const write = mock();
-  const search = mock(async () => ({
-    attempts: [],
-    found: false,
-    output: '',
-    source: 'none' as const,
+const probeFor = (transport: RepoSearchTransport | null) =>
+  mock(async () => ({
+    attempt: {
+      command: 'probe',
+      detail: transport ? 'available' : 'unavailable',
+      status: 'found',
+      strategy: 'transport-probe',
+    } as const,
+    transport,
   }));
-  await run(['discover', '/repo', 'repo', 'needle'], write, search, undefined, async () => 'repo');
-  expect(search).toHaveBeenCalledWith(
-    expect.anything(),
-    expect.objectContaining({ query: 'needle' }),
-  );
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"source"'));
-});
 
-test('accepts path-only discovery and resolves the index internally', async () => {
-  const write = mock();
-  const search = mock(async () => ({
-    attempts: [],
-    found: true,
-    output: 'indexed match',
-    source: 'repo-search' as const,
-  }));
-  const resolve = mock(async () => 'resolved-project');
-  await run(['/repo', 'needle'], write, search, undefined, resolve);
-  expect(resolve).toHaveBeenCalledWith('/repo', expect.anything());
-  expect(search).toHaveBeenCalledWith(
-    expect.anything(),
-    expect.objectContaining({
-      allowedRoots: ['/repo'],
-      query: 'needle',
-      root: { index: 'resolved-project', root: '/repo' },
-    }),
-  );
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('indexed match'));
-});
+const executor: CommandExecutor = mock(async () => ({ code: 0, stderr: '', stdout: '' }));
 
-test('batches independent path-only queries in parallel after resolving the index once', async () => {
-  const write = mock();
-  const calls: string[] = [];
-  const search = mock(async (_executor, request) => {
-    calls.push(request.query);
-    return {
-      attempts: [],
-      found: true,
-      output: request.query,
-      source: 'repo-search' as const,
-    };
-  });
-  const resolve = mock(async () => 'resolved-project');
-
-  await run(['/repo', 'first', 'second', 'third'], write, search, undefined, resolve);
-
-  expect(resolve).toHaveBeenCalledTimes(1);
-  expect(search).toHaveBeenCalledTimes(3);
-  expect(calls).toEqual(['first', 'second', 'third']);
-  expect(JSON.parse(String(write.mock.calls[0]?.[0]))).toHaveLength(3);
-});
-
-test('keeps path-only discovery on the same receipt boundary when index resolution fails', async () => {
-  const write = mock();
-  const search = mock(async () => ({
-    attempts: [],
-    found: true,
-    output: 'fallback match',
-    source: 'rg' as const,
-  }));
-  await run(['/path', 'needle'], write, search, undefined, async () => {
-    throw new Error('no matching project');
-  });
-  expect(search).toHaveBeenCalledWith(
-    expect.anything(),
-    expect.objectContaining({
-      allowedRoots: ['/path'],
-      query: 'needle',
-      root: { index: '__repo_search_index_unresolved__', root: '/path' },
-    }),
-  );
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('fallback match'));
-});
-
-test('serves discovery through the fallback boundary when the index is absent', async () => {
-  const write = mock();
-  const fallback = mock(async () => ({
-    attempts: [],
-    found: true,
-    output: '/path/.hidden.ts:1:needle',
-    source: 'rg' as const,
-  }));
-  await run(['discover', '/path', 'repo', 'needle'], write, fallback);
-  expect(fallback).toHaveBeenCalledWith(
-    expect.anything(),
-    expect.objectContaining({
-      allowedRoots: ['/path'],
-      query: 'needle',
-      root: { index: 'repo', root: '/path' },
-    }),
-  );
-  const receipt = JSON.parse(String(write.mock.calls[0]?.[0])) as {
-    readonly attempts: readonly { readonly strategy: string }[];
-    readonly found: boolean;
-  };
-  expect(receipt.found).toBeTrue();
-  expect(receipt.attempts).toEqual([]);
-});
-
-test('runs a typed inspection from an OS-temporary JSONL handoff in one receipt', async () => {
-  const write = mock();
-  const read = mock(async () => '{"operation":"architecture","path":""}\n{"operation":"schema"}');
-  const resolve = mock(async () => 'repo');
-  const inspect = mock(async () => ({
-    entries: [],
-    project: 'repo',
-    ready: true,
+test('parses the three-verb grammar and the bare search alias', () => {
+  expect(parseRepoSearchArgs(['/repo', 'how', 'does', 'x', 'work'])).toEqual({
+    queries: ['how does x work'],
     root: '/repo',
-  }));
+    verb: 'search',
+  });
+  expect(parseRepoSearchArgs(['search', '/repo', 'needle'])).toEqual({
+    queries: ['needle'],
+    root: '/repo',
+    verb: 'search',
+  });
+  expect(parseRepoSearchArgs(['read', '/repo', '/repo/file.ts', 'extra'])).toEqual({
+    queries: ['extra'],
+    root: '/repo',
+    target: '/repo/file.ts',
+    verb: 'read',
+  });
+  expect(parseRepoSearchArgs(['inspect', '/repo', '/os-temp/request.jsonl'])).toEqual({
+    queries: [],
+    requestPath: '/os-temp/request.jsonl',
+    root: '/repo',
+    verb: 'inspect',
+  });
+});
+
+test('rejects malformed invocations with the usage contract', () => {
+  for (const args of [
+    [],
+    ['repo'],
+    ['search', '/repo'],
+    ['read', '/repo'],
+    ['inspect', '/repo'],
+    ['inspect', '/repo', '/os-temp/a.jsonl', 'extra'],
+  ] as const) {
+    expect(() => parseRepoSearchArgs([...args])).toThrow(usage());
+  }
+});
+
+test('runs a search through the wrapper and prints the envelope', async () => {
+  const write = mock();
+  const executorCalls = mock(async () => ({
+    code: 0,
+    stderr: '',
+    stdout: '/repo/needle.ts:4:needle found',
+  })) as unknown as CommandExecutor;
+  await run(['/repo', 'needle'], write, mock(), '/os-temp', probeFor(null), executorCalls);
+  const printed = JSON.parse(String(write.mock.calls[0]?.[0])) as {
+    status: string;
+    source: string;
+  };
+  expect(printed.status).toBe('found');
+  expect(printed.source).toBe('fallback');
+  expect(process.exitCode).toBeUndefined();
+});
+
+test('sets the exit code only for error envelopes', async () => {
+  const write = mock();
   await run(
-    ['inspect', '/repo', '/os-temp/repo-search/request.jsonl'],
+    ['read', '/repo', '/outside/file.ts'],
     write,
-    undefined,
-    read,
-    resolve,
-    inspect,
+    mock(),
     '/os-temp',
+    probeFor(null),
+    executor,
   );
-  expect(resolve).toHaveBeenCalledWith('/repo', expect.anything());
-  expect(read).toHaveBeenCalledWith('/os-temp/repo-search/request.jsonl');
-  expect(inspect).toHaveBeenCalledWith(
-    expect.anything(),
-    { index: 'repo', root: '/repo' },
-    expect.arrayContaining([{ operation: 'architecture', path: '' }]),
+  const printed = JSON.parse(String(write.mock.calls[0]?.[0])) as { ok: boolean; status: string };
+  expect(printed.ok).toBeFalse();
+  expect(printed.status).toBe('error');
+  expect(process.exitCode).toBe(1);
+});
+
+test('runs an inspection from an OS-temporary JSONL request', async () => {
+  const write = mock();
+  const read = mock(async () => '{"operation":"schema"}');
+  const calls: string[] = [];
+  const transport: RepoSearchTransport = {
+    call: mock(async (call: { tool: string }) => {
+      calls.push(call.tool);
+      if (call.tool === 'list_projects') {
+        return {
+          error: null,
+          isError: false,
+          text: 'projects: 1  (cols: name root_path branch)\n  repo /repo main\ntotal: 1',
+        };
+      }
+      if (call.tool === 'index_status') {
+        return {
+          error: null,
+          isError: false,
+          text: 'status: ready\nindexed_at: 2026-09-25T08:22:24Z',
+        };
+      }
+      return { error: null, isError: false, text: 'schema body' };
+    }),
+    close: mock(async () => undefined),
+    kind: 'mcp',
+  };
+  await run(
+    ['inspect', '/repo', '/os-temp/request.jsonl'],
+    write,
+    read,
+    '/os-temp',
+    probeFor(transport),
+    executor,
   );
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"ready"'));
+  expect(read).toHaveBeenCalledWith('/os-temp/request.jsonl');
+  expect(calls).toEqual(['list_projects', 'index_status', 'get_graph_schema']);
+  const printed = JSON.parse(String(write.mock.calls[0]?.[0])) as {
+    results: readonly { detail: string }[];
+    verb: string;
+  };
+  expect(printed.verb).toBe('inspect');
+  expect(printed.results[0]?.detail).toBe('schema body');
 });
 
 test('rejects an inspection request outside the OS temporary directory', async () => {
-  await expect(
-    run(
-      ['inspect', '/repo', '/project/request.jsonl'],
-      mock(),
-      undefined,
-      async () => '',
-      async () => 'repo',
-      async () => ({
-        entries: [],
-        project: 'repo',
-        ready: true,
-        root: '/repo',
-      }),
-      '/os-temp',
-    ),
-  ).rejects.toThrow('OS temporary directory');
+  const write = mock();
+  const transport: RepoSearchTransport = {
+    call: mock(async () => ({ error: null, isError: false, text: 'unused' })),
+    close: mock(async () => undefined),
+    kind: 'mcp',
+  };
+  await run(
+    ['inspect', '/repo', '/project/request.jsonl'],
+    write,
+    mock(),
+    '/os-temp',
+    probeFor(transport),
+    executor,
+  );
+  const printed = JSON.parse(String(write.mock.calls[0]?.[0])) as { status: string };
+  expect(printed.status).toBe('error');
+  expect(write.mock.calls[0]?.[0]).toContain('OS temporary directory');
+  expect(process.exitCode).toBe(1);
 });
 
-test('rejects invalid repo-search command shapes and guards the main boundary', async () => {
-  expect(() => commandFor(['search-code', 'repo', 'x', '0'])).toThrow(usage());
-  expect(() => commandFor(['trace', 'repo', 'a.b', 'both', '2'])).toThrow(usage());
-  await expect(run([])).rejects.toThrow(usage());
+test('guards the main boundary and help route', () => {
   const runner = mock();
-  runWhenMain(true, ['list-projects'], runner);
-  runWhenMain(false, [], runner);
+  void runWhenMain(true, ['/repo', 'needle'], runner);
+  void runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
+});
+
+test('rejects an inspection when no transport is available', async () => {
+  const write = mock();
+  await run(
+    ['inspect', '/repo', '/os-temp/request.jsonl'],
+    write,
+    mock(),
+    '/os-temp',
+    probeFor(null),
+    executor,
+  );
+  const printed = JSON.parse(String(write.mock.calls[0]?.[0])) as { status: string };
+  expect(printed.status).toBe('error');
+  expect(write.mock.calls[0]?.[0]).toContain('Inspection reads require a backend transport.');
+  expect(process.exitCode).toBe(1);
+});
+
+test('rejects an inspection when no project index matches the root', async () => {
+  const write = mock();
+  const transport: RepoSearchTransport = {
+    call: mock(async () => ({
+      error: null,
+      isError: false,
+      text: 'projects: 1  (cols: name root_path branch)\n  other /other main\ntotal: 1',
+    })),
+    close: mock(async () => undefined),
+    kind: 'cli',
+  };
+  await run(
+    ['inspect', '/repo', '/os-temp/request.jsonl'],
+    write,
+    mock(async () => '{"operation":"schema"}'),
+    '/os-temp',
+    probeFor(transport),
+    executor,
+  );
+  const printed = JSON.parse(String(write.mock.calls[0]?.[0])) as { status: string };
+  expect(printed.status).toBe('error');
+  expect(write.mock.calls[0]?.[0]).toContain('No matching project index');
+  expect(process.exitCode).toBe(1);
 });

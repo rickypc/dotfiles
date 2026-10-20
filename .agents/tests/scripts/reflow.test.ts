@@ -2,8 +2,9 @@
  * reflow.ts scenario matrix - one named test per plan scenario (s1-s52).
  * Scope: shared-suite-integration - the SUT (scripts/reflow.ts) and its local
  * engine (utils/reflow.ts) stay real; every filesystem boundary is injected
- * or module-mocked. Corpus parity reads REFLOW_CORPUS_ROOT and skips with a
- * clear message when unset (no machine path is embedded here).
+ * or module-mocked. Corpus parity asserts the committed fixture corpus on every
+ * run; the external repository corpus registers only when REFLOW_CORPUS_ROOT is
+ * set, so the default gate never reports a skipped test.
  */
 
 import { describe, expect, mock, test } from 'bun:test';
@@ -123,6 +124,7 @@ describe('wrap engine edges', () => {
 
   test('a bullet atom never begins a continuation line, even when it would fit', () => {
     const text =
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       'In Buddhism the teaching of the [**Middle Way**](https://en.wikipedia.org/wiki/Middle_Way) (*Majjhimāpaṭipadā*) - a path between the extremes of indulgence and austerity as taught by the Buddha to his students here.';
     const r = reflowText(text);
     expect(r.changed).toBe(true);
@@ -131,6 +133,7 @@ describe('wrap engine edges', () => {
       expect(line.startsWith('-')).toBe(false);
     }
     expect(r.output).toBe(
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       'In Buddhism the teaching of the [**Middle Way**](https://en.wikipedia.org/wiki/Middle_Way)\n(*Majjhimāpaṭipadā*) - a path between the extremes of indulgence and austerity as taught by the\nBuddha to his students here.',
     );
     expect(r.residuals).toEqual([]);
@@ -249,12 +252,15 @@ describe('scenario matrix: atoms and links', () => {
 
   test('s9: markdown link is atomic and its target survives', () => {
     const r = reflowText(
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       'Words [dependent origination](https://en.wikipedia.org/wiki/Prat%C4%ABtyasamutp%C4%81da) continue after the atomic link with enough extra text to force a wrapped second line in the band.',
     );
     expect(r.output).toContain(
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       '[dependent origination](https://en.wikipedia.org/wiki/Prat%C4%ABtyasamutp%C4%81da)',
     );
     expect(r.output).toBe(
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       'Words [dependent origination](https://en.wikipedia.org/wiki/Prat%C4%ABtyasamutp%C4%81da) continue\nafter the atomic link with enough extra text to force a wrapped second line in the band.',
     );
   });
@@ -664,7 +670,7 @@ describe('cli contract', () => {
     expect(reportDeps.log).toHaveBeenCalledWith(expect.stringContaining('[reflow] over100'));
 
     const helpWrite = mock();
-    runWhenMainWithHelp(true, ['--help'], usage, mock(), helpWrite);
+    void runWhenMainWithHelp(true, ['--help'], usage, mock(), helpWrite);
     expect(helpWrite).toHaveBeenCalledWith(usage());
   });
 
@@ -698,7 +704,10 @@ describe('cli contract', () => {
     }
     expect(deps.transform(text).changed).toBe(true);
     await deps.write('/fixtures/defaults.md', text);
-    expect(run(['--unknown-flag'])).resolves.toBe(2);
+    const badFlagDeps = makeDeps();
+    expect(run(['--unknown-flag'], badFlagDeps)).resolves.toBe(2);
+    expect(badFlagDeps.log).toHaveBeenCalledWith(expect.stringContaining('Usage: bun'));
+    expect(badFlagDeps.write).not.toHaveBeenCalled();
   });
 
   test('verifyInvariants names each failed invariant', () => {
@@ -792,10 +801,30 @@ describe('cli walk contract', () => {
 });
 
 describe('corpus parity', () => {
+  const assertFixedPoint = async (root: string, file: string): Promise<void> => {
+    const text = await Bun.file(`${root}/${file}`).text();
+    const result = reflowText(text);
+    expect(result.changed).toBe(false);
+    expect(result.output).toBe(text);
+    const second = reflowText(result.output);
+    expect(second.changed).toBe(false);
+    expect(second.output).toBe(result.output);
+  };
+
+  test('the committed fixture corpus is a byte-identical fixed point and idempotent', async () => {
+    const fixtureRoot = `${import.meta.dir}/../fixtures/reflow-corpus`;
+    const files = (
+      await Array.fromAsync(new Bun.Glob('**/*.mdx').scan({ cwd: fixtureRoot }))
+    ).sort();
+    expect(files).toEqual(['band-compliant.mdx', 'exempt-structures.mdx', 'residual-token.mdx']);
+    for (const file of files) {
+      await assertFixedPoint(fixtureRoot, file);
+    }
+  });
+
   const corpusRoot = Bun.env.REFLOW_CORPUS_ROOT;
-  test.skipIf(corpusRoot === undefined)(
-    'the corpus is a byte-identical fixed point and every pass is idempotent',
-    async () => {
+  if (corpusRoot !== undefined) {
+    test('the external corpus is a byte-identical fixed point and every pass is idempotent', async () => {
       const files = (await Array.fromAsync(new Bun.Glob('**/*.mdx').scan({ cwd: corpusRoot })))
         .filter(
           (f) =>
@@ -818,6 +847,6 @@ describe('corpus parity', () => {
       }
       expect(files).toHaveLength(113);
       expect(changed).toEqual([]);
-    },
-  );
+    });
+  }
 });

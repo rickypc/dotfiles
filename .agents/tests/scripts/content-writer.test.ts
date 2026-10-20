@@ -82,7 +82,7 @@ test('rejects invalid sources and protects the main boundary', () => {
   expect(() => run(['validate-source', 'not-json'])).toThrow('JSON');
   expect(() => run([])).toThrow(usage());
   const runner = mock();
-  runWhenMain(true, ['validate-source', source], runner);
-  runWhenMain(false, [], runner);
+  void runWhenMain(true, ['validate-source', source], runner);
+  void runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
 });

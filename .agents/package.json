@@ -11,7 +11,7 @@
   "name": "agent-infrastructure",
   "private": true,
   "scripts": {
-    "test": "bun run test:lint & lint_pid=$!; bun run test:unit & unit_pid=$!; bun run test:type & type_pid=$!; wait $lint_pid; lint_status=$?; wait $unit_pid; unit_status=$?; wait $type_pid; type_status=$?; [ $lint_status -eq 0 ] && [ $unit_status -eq 0 ] && [ $type_status -eq 0 ]",
+    "test": "bun run test:deps:ci & deps_pid=$!; bun run test:lint & lint_pid=$!; bun run test:unit:ci & unit_pid=$!; bun run test:type & type_pid=$!; wait $deps_pid; deps_status=$?; wait $lint_pid; lint_status=$?; wait $unit_pid; unit_status=$?; wait $type_pid; type_status=$?; [ $deps_status -eq 0 ] && [ $lint_status -eq 0 ] && [ $unit_status -eq 0 ] && [ $type_status -eq 0 ]",
     "test:biome": "biome check .",
     "test:deps:ci": "bun outdated | grep -vE '\\-\\-\\-|Package|bun' | sed -E 's/^[[:space:]]*│[[:space:]]*//; s/[[:space:]]*│[[:space:]]*/ | /g; s/[[:space:]]*│[[:space:]]*$//'",
     "test:lint": "bun scripts/validate-skills.ts && bun scripts/lint.ts",

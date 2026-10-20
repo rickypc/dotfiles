@@ -23,6 +23,7 @@ const pathApi: JsonPathApi = {
 };
 
 const makeFileSystem = (): FileSystem => ({
+  exists: async () => false,
   mkdir: async () => undefined,
   readFile: async () => '',
   rm: async () => undefined,

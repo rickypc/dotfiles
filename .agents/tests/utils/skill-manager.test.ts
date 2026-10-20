@@ -560,6 +560,7 @@ test('parses prose-only local links and honors the runtime ignore boundary', asy
     '/tmp/.agents/skills/demo/SKILL.md': [
       '[Guide](./guide.md)',
       '[Out of scope](../../outside.md)',
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       '```md\n[Example](./missing.md)\n```',
     ].join('\n'),
   };
@@ -609,6 +610,7 @@ test('reports missing reference links and rejects invalid prose-review roots', a
     '/tmp/.agents/.gitignore': '',
     '/tmp/.agents/skills/demo/SKILL.md': [
       '[Missing](./missing.md)',
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       '[External](https://example.com)',
       '[Reference][missing-reference]',
       '[missing-reference]: ./missing-reference.md',

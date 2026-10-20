@@ -23,7 +23,7 @@ test('renders the VS Code universal adapter handoff', () => {
 test('rejects invalid adapter input and protects the main boundary', () => {
   expect(() => run([])).toThrow(usage());
   const runner = mock();
-  runWhenMain(true, ['codex', '/agents'], runner);
-  runWhenMain(false, [], runner);
+  void runWhenMain(true, ['codex', '/agents'], runner);
+  void runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
 });

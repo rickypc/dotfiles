@@ -936,4 +936,4 @@ export const runWhenMain = (
   runner: typeof run,
 ): unknown => runCliWhenMain(isMain, args, runner);
 
-runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

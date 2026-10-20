@@ -17,12 +17,12 @@ const fmDoc = (fm: string) =>
 describe('band mode: frontmatter scalar contract', () => {
   test('s53: a plain scalar whose key line exceeds the width folds to a >- block', () => {
     const authored = fmDoc(
-      'name: biome-tsc-checker\ndescription: Run Biome and strict TypeScript checks for explicitly selected JavaScript or TypeScript paths.',
+      'name: biome-checker\ndescription: Run Biome, bun check, and declaration-order checks for explicitly selected JavaScript or TypeScript paths.',
     );
     const r = reflowText(authored, { band: true });
     expect(r.changed).toBe(true);
     expect(r.output).toContain(
-      'description: >-\n  Run Biome and strict TypeScript checks for explicitly selected JavaScript or TypeScript paths.',
+      'description: >-\n  Run Biome, bun check, and declaration-order checks for explicitly selected JavaScript or\n  TypeScript paths.',
     );
     expect(reflowText(r.output, { band: true }).changed).toBe(false);
     expect(verifyInvariants(authored, r.output)).toEqual([]);

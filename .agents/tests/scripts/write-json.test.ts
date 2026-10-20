@@ -8,6 +8,7 @@ import { nodeFileSystem, writeText } from '../../utils/filesystem.js';
 mock.module('node:path', () => ({ default: path }));
 mock.module('../utils/filesystem.js', () => ({
   nodeFileSystem: {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async () => '',
     rm: async () => undefined,
@@ -34,6 +35,7 @@ const pathApi: JsonPathApi = {
 };
 
 const makeFileSystem = (): FileSystem => ({
+  exists: async () => false,
   mkdir: async () => undefined,
   readFile: async () => '',
   rm: async () => undefined,

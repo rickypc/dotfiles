@@ -1,611 +1,920 @@
 import { expect, mock, test } from 'bun:test';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { homedir } from 'node:os';
 
+import type { CommandExecutor } from '../../utils/process.js';
 import {
   assertAllowedRepoSearchRoot,
-  assertKnownRepoSearchProject,
-  indexIsReady,
-  inspectRepoSearch,
-  parseRepoSearchInspectionJsonl,
-  readWithReadyIndex,
-  repoSearchCommands,
-  repoSearchGraphIdentityFields,
-  repoSearchInspectionCommand,
-  repoSearchOutputHasMatches,
+  parseIndexStatus,
+  parseListProjects,
+  parseSearchCode,
+  parseSearchGraph,
+  readTargetShape,
+  repoSearchDiscover,
   repoSearchProjectForRoot,
-  repoSearchProjectNames,
-  resolveRepoSearchProjectForRoot,
-  searchWithRepoSearchFallback,
+  repoSearchRead,
+  resolveRepoSearchIndex,
+  tokenizeBackendRow,
 } from '../../utils/repo-search.js';
+import type {
+  RepoSearchBackendCall,
+  RepoSearchBackendResult,
+  RepoSearchTransport,
+} from '../../utils/repo-search-transport.js';
+import type { SearchAttempt } from '../../utils/search-fallback.js';
 
-const HOME_ROOT = join(tmpdir(), 'repo-search-home');
-const REPO_ROOT = join(HOME_ROOT, 'Github', 'repo');
-const APP_ROOT = join(HOME_ROOT, 'tmp-app');
+const projectsTable = [
+  'projects: 3  (cols: name root_path branch)',
+  '  repo /repo main',
+  '  nested /repo/nested main',
+  '  spaced "/repo/with space" main',
+  'total: 3',
+  'returned: 3',
+  'has_more: false',
+  '',
+].join('\n');
 
-test('accepts only a repo-search project name returned by the project list', () => {
-  const projects = '{"projects":[{"name":"home-index"},{"name":"Bento"}]}';
-  expect(repoSearchProjectNames(projects)).toEqual(['home-index', 'Bento']);
-  expect(() => assertKnownRepoSearchProject('Bento', projects)).not.toThrow();
-  expect(() => assertKnownRepoSearchProject('made-up', projects)).toThrow('not a listed');
+const readyStatus = [
+  'project: repo',
+  'nodes: 1',
+  'edges: 1',
+  'status: ready',
+  'root_path: /repo',
+  'indexed_at: 2026-09-25T08:22:24Z',
+  'parse_partial:',
+  '  files: 0',
+  '',
+].join('\n');
+
+const notReadyStatus = 'project: repo\nstatus: not ready\n';
+
+const graphTable = [
+  'results: 2  (cols: qn label file lines rank)',
+  '  repo.src.needle Function src/needle.ts 10-20 -1.0',
+  '  repo.src.unrelated Function src/unrelated.ts 1-2 -2.0',
+  'total: 2',
+  'has_more: false',
+  '',
+].join('\n');
+
+const twoSymbolGraphTable = [
+  'results: 2  (cols: qn label file lines rank)',
+  '  repo.src.needle Function src/needle.ts 10-20 -1.0',
+  '  repo.src.thread Function src/thread.ts 5-9 -2.0',
+  'total: 2',
+  'has_more: true',
+  '',
+].join('\n');
+
+const codeTable = [
+  'results: 1  (cols: qn label file lines matches matches_omitted in out)',
+  '  repo.src.needle Function src/needle.ts 10-20 12 0 1 0',
+  'directories: 2  (cols: dir hits)',
+  '  src/ 3',
+  '  tests/ 1',
+  'total_results: 1',
+  'has_more: false',
+  '',
+].join('\n');
+
+const backendError = (text: string): RepoSearchBackendResult => ({
+  error: text,
+  isError: true,
+  text,
+});
+
+const backendText = (text: string): RepoSearchBackendResult => ({
+  error: null,
+  isError: false,
+  text,
+});
+
+const executorFor = (stdout: string, code = 0) =>
+  mock(async () => ({ code, stderr: '', stdout })) as unknown as CommandExecutor;
+
+const fakeTransport = (
+  handler: (call: RepoSearchBackendCall) => RepoSearchBackendResult | Error,
+  kind: 'cli' | 'mcp' = 'mcp',
+): RepoSearchTransport => ({
+  call: mock(async (call: RepoSearchBackendCall) => {
+    const answered = handler(call);
+    if (answered instanceof Error) {
+      throw answered;
+    }
+    return answered;
+  }),
+  close: mock(async () => undefined),
+  kind,
+});
+
+const toolsTable =
+  (tool: string, text: string | ((call: RepoSearchBackendCall) => string)) =>
+  (call: RepoSearchBackendCall): RepoSearchBackendResult =>
+    call.tool === tool
+      ? backendText(typeof text === 'function' ? text(call) : text)
+      : backendError(`unexpected tool: ${call.tool}`);
+
+const probeAttempt: SearchAttempt = {
+  command: 'codebase-memory-mcp (stdio MCP)',
+  detail: 'MCP stdio transport is primary and available (list_projects answered).',
+  status: 'found',
+  strategy: 'transport-probe',
+};
+
+const gateReceipt = (found: boolean, output = '') => ({
+  attempts: [
+    {
+      command: 'probe /repo/a.ts',
+      detail: 'magic bytes: mach-o',
+      status: 'found' as const,
+      strategy: 'binary-gate:classify',
+    },
+  ],
+  found,
+  output,
+});
+
+test('tokenizes backend table rows and honors quoted segments', () => {
+  expect(tokenizeBackendRow('  a /plain/path main')).toEqual(['a', '/plain/path', 'main']);
+  expect(tokenizeBackendRow('  spaced "/repo/with space" main')).toEqual([
+    'spaced',
+    '/repo/with space',
+    'main',
+  ]);
+  expect(tokenizeBackendRow('   ')).toEqual([]);
+});
+
+test('parses the project list, index status, and result tables', () => {
+  expect(parseListProjects(projectsTable)).toEqual([
+    { branch: 'main', name: 'repo', rootPath: '/repo' },
+    { branch: 'main', name: 'nested', rootPath: '/repo/nested' },
+    { branch: 'main', name: 'spaced', rootPath: '/repo/with space' },
+  ]);
+  expect(parseListProjects('projects: 0  (cols: name root_path branch)\ntotal: 0')).toEqual([]);
+  expect(parseIndexStatus(readyStatus)).toEqual({
+    indexedAt: '2026-09-25T08:22:24Z',
+    ready: true,
+    rootPath: '/repo',
+  });
+  expect(parseIndexStatus(notReadyStatus).ready).toBeFalse();
+  expect(parseSearchGraph(graphTable)).toEqual({
+    hasMore: false,
+    rows: [
+      { file: 'src/needle.ts', lines: '10-20', qn: 'repo.src.needle' },
+      { file: 'src/unrelated.ts', lines: '1-2', qn: 'repo.src.unrelated' },
+    ],
+  });
+  expect(parseSearchGraph(twoSymbolGraphTable).hasMore).toBeTrue();
+  expect(parseSearchCode(codeTable)).toEqual({
+    directories: [
+      { dir: 'src/', hits: '3' },
+      { dir: 'tests/', hits: '1' },
+    ],
+    hasMore: false,
+    rows: [{ file: 'src/needle.ts', lines: '10-20', qn: 'repo.src.needle' }],
+  });
 });
 
 test('resolves a project only from an explicit indexed-root mapping', () => {
-  const projects = JSON.stringify({
-    projects: [
-      { name: 'home-index', repository_path: HOME_ROOT },
-      {
-        name: 'home-index-Github-bento',
-        repository_path: join(HOME_ROOT, 'Github', 'bento'),
-      },
-    ],
-  });
-  expect(repoSearchProjectForRoot(APP_ROOT, projects)).toBe('home-index');
-  expect(repoSearchProjectForRoot(join(HOME_ROOT, 'Github', 'bento', 'src'), projects)).toBe(
-    'home-index-Github-bento',
-  );
+  const projects = parseListProjects(projectsTable);
+  expect(repoSearchProjectForRoot('/repo/src', projects)).toBe('repo');
+  expect(repoSearchProjectForRoot('/repo/nested', projects)).toBe('nested');
   expect(() => repoSearchProjectForRoot('/other', projects)).toThrow('explicit indexed root');
-  expect(() => repoSearchProjectForRoot(APP_ROOT, '{"projects":[{"name":"home-index"}]}')).toThrow(
-    'explicit indexed root',
+  const duplicated = [...projects, { branch: 'main', name: 'twin', rootPath: '/repo/nested' }];
+  expect(() => repoSearchProjectForRoot('/repo/nested/a.ts', duplicated)).toThrow(
+    'Multiple repo-search projects',
   );
-  expect(() =>
-    repoSearchProjectForRoot(
-      APP_ROOT,
-      JSON.stringify({
-        projects: [
-          { name: 'one', repository_path: HOME_ROOT },
-          { name: 'two', repository_path: HOME_ROOT },
-        ],
-      }),
-    ),
-  ).toThrow('Multiple repo-search projects');
-  expect(() => repoSearchProjectForRoot(APP_ROOT, '{')).toThrow('explicit indexed root');
-  const withExact = JSON.stringify({
-    projects: [
-      { name: 'home-index', repository_path: HOME_ROOT },
-      { name: 'tmp', repository_path: APP_ROOT },
-    ],
-  });
-  expect(repoSearchProjectForRoot(APP_ROOT, withExact)).toBe('tmp');
-});
-
-test('ignores malformed and incomplete project-list entries', () => {
-  for (const output of [
-    '{"projects":{}}',
-    '{"projects":[null, 1, {"name":""}, {"name":"repo"}]}',
-  ]) {
-    expect(() => repoSearchProjectForRoot('/repo', output)).toThrow('explicit indexed root');
-  }
-  expect(() => repoSearchProjectForRoot('/repo', '{')).toThrow('explicit indexed root');
-});
-
-test('resolves the index in-process from the single project-list command', async () => {
-  const execute = mock(async () => ({
-    code: 0,
-    stderr: '',
-    stdout: JSON.stringify({
-      projects: [
-        { name: 'home', repository_path: HOME_ROOT },
-        { name: 'repo', repository_path: REPO_ROOT },
-      ],
-    }),
-  }));
-  await expect(resolveRepoSearchProjectForRoot(join(REPO_ROOT, 'src'), execute)).resolves.toBe(
-    'repo',
-  );
-  expect(execute).toHaveBeenCalledTimes(1);
-  await expect(
-    resolveRepoSearchProjectForRoot(HOME_ROOT, async () => ({
-      code: 1,
-      stderr: 'offline',
-      stdout: '',
-    })),
-  ).rejects.toThrow('project list is unavailable');
-});
-
-test('resolves the exact project identity without checking or substituting its index', async () => {
-  const projectList = JSON.stringify({
-    projects: [
-      { name: 'home', repository_path: HOME_ROOT },
-      { name: 'tmp-sum-app', repository_path: APP_ROOT },
-    ],
-  });
-  const execute = mock(async () => ({
-    code: 0,
-    stderr: '',
-    stdout: projectList,
-  }));
-  await expect(resolveRepoSearchProjectForRoot(APP_ROOT, execute)).resolves.toBe('tmp-sum-app');
-  expect(execute).toHaveBeenCalledTimes(1);
-});
-
-test('builds CLI-only repo-search command specifications', () => {
-  expect(repoSearchCommands.listProjects()).toEqual({
-    args: ['cli', 'list_projects'],
-    command: 'codebase-memory-mcp',
-    environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
-  });
-  expect(repoSearchCommands.indexRepository('/repo', 'repo')).toEqual({
-    args: ['cli', 'index_repository', '--repo-path', '/repo', '--name', 'repo', '--mode', 'full'],
-    command: 'codebase-memory-mcp',
-    environment: { REPO_SEARCH_LOG_LEVEL: 'error' },
-  });
-  expect(repoSearchCommands.searchGraph('repo', 'service', 5).args).toContain('--query');
-  expect(repoSearchCommands.searchGraph('repo', 'service', 5).environment).toEqual({
-    REPO_SEARCH_LOG_LEVEL: 'error',
-  });
-  expect(repoSearchCommands.getArchitecture('repo').args).toContain('--path');
-  expect(repoSearchCommands.getCodeSnippet('repo', 'a.b').args).toContain('--qualified-name');
-  expect(repoSearchCommands.getGraphSchema('repo').args).toContain('get_graph_schema');
-  expect(repoSearchCommands.queryGraph('repo', 'MATCH', 3).args).toContain('--max-rows');
-  expect(repoSearchCommands.searchCode('repo', 'literal', 3).args).toContain('compact');
-  expect(repoSearchCommands.searchGraphByName('repo', '.*A.*', 'Function', 3).args).toContain(
-    '--name-pattern',
-  );
-  expect(repoSearchCommands.tracePath('repo', 'a.b', 'inbound', 2).args).toContain('calls');
-});
-
-test('parses fixed local JSONL inspection requests and renders only repo-search flags', () => {
-  const operations = parseRepoSearchInspectionJsonl(
-    [
-      '{"operation":"architecture","path":""}',
-      '{"operation":"search-graph","namePattern":".*inspect.*","label":"Function","limit":20}',
-      '{"operation":"snippet","qualifiedName":"repo.utils.inspect"}',
-      '{"operation":"trace","qualifiedName":"repo.utils.inspect","direction":"inbound","depth":3}',
-      '{"operation":"search-code","pattern":"inspection","limit":20}',
-    ].join('\n'),
-  );
-  expect(operations).toHaveLength(5);
-  const searchGraph = operations.at(1);
-  expect(searchGraph).toBeDefined();
-  if (!searchGraph) {
-    throw new Error('Expected search-graph inspection operation.');
-  }
-  expect(repoSearchInspectionCommand('repo', searchGraph).args).toEqual([
-    'cli',
-    'search_graph',
-    '--project',
-    'repo',
-    '--name-pattern',
-    '.*inspect.*',
-    '--label',
-    'Function',
-    '--limit',
-    '20',
-  ]);
-  expect(() => parseRepoSearchInspectionJsonl('')).toThrow('at least one JSONL');
-  expect(() => parseRepoSearchInspectionJsonl('{"operation":"unknown"}')).toThrow('Unsupported');
-  expect(() =>
-    parseRepoSearchInspectionJsonl(
-      '{"operation":"trace","qualifiedName":"repo.f","direction":"both","depth":3}',
-    ),
-  ).toThrow('direction');
-  expect(() => parseRepoSearchInspectionJsonl('[]')).toThrow('must be an object');
-  expect(() => parseRepoSearchInspectionJsonl('{"operation":""}')).toThrow('non-empty string');
-  expect(() => parseRepoSearchInspectionJsonl('{"operation":"architecture"}')).toThrow(
-    'architecture path',
-  );
-  expect(() =>
-    parseRepoSearchInspectionJsonl('{"operation":"search-code","pattern":"value","limit":0}'),
-  ).toThrow('positive integer');
-  expect(() => parseRepoSearchInspectionJsonl('not-json')).toThrow('line 1');
-});
-
-test('maps every declared inspection operation to one flag-based CLI specification', () => {
-  const operations = parseRepoSearchInspectionJsonl(
-    [
-      '{"operation":"architecture","path":"src"}',
-      '{"operation":"schema"}',
-      '{"operation":"search-graph","namePattern":".*a.*","label":"Function","limit":1}',
-      '{"operation":"snippet","qualifiedName":"repo.a"}',
-      '{"operation":"trace","qualifiedName":"repo.a","direction":"outbound","depth":1}',
-      '{"operation":"search-code","pattern":"needle","limit":1}',
-    ].join('\n'),
-  );
-  expect(
-    operations.map((operation) => repoSearchInspectionCommand('repo', operation).args[1]),
-  ).toEqual([
-    'get_architecture',
-    'get_graph_schema',
-    'search_graph',
-    'get_code_snippet',
-    'trace_path',
-    'search_code',
-  ]);
-});
-
-test('checks readiness once and concurrently returns every requested read receipt', async () => {
-  const execute = mock(async (spec) => {
-    if (spec.args.includes('index_status')) {
-      return { code: 0, stderr: '', stdout: 'ready' };
-    }
-    return {
-      code: spec.args.includes('get_code_snippet') ? 1 : 0,
-      stderr: '',
-      stdout: spec.args.join(' '),
-    };
-  });
-  const receipt = await inspectRepoSearch(execute, { index: 'repo', root: '/repo' }, [
-    { operation: 'architecture', path: '' },
-    { operation: 'snippet', qualifiedName: 'repo.utils.inspect' },
-  ]);
-  expect(receipt).toMatchObject({
-    project: 'repo',
-    ready: true,
-    root: '/repo',
-  });
-  expect(receipt.entries.map((entry) => entry.operation)).toEqual([
-    'index-status',
-    'architecture',
-    'snippet',
-  ]);
-  expect(receipt.entries[2]).toMatchObject({ code: 1 });
-  expect(execute).toHaveBeenCalledTimes(3);
-});
-
-test('does not index, retry, or read declared operations when status is unavailable', async () => {
-  const execute = mock(async () => ({
-    code: 0,
-    stderr: '',
-    stdout: 'not ready',
-  }));
-  const receipt = await inspectRepoSearch(execute, { index: 'repo', root: '/repo' }, [
-    { operation: 'schema' },
-  ]);
-  expect(receipt).toMatchObject({ ready: false });
-  expect(receipt.entries).toHaveLength(1);
-  expect(execute).toHaveBeenCalledTimes(1);
-});
-
-test('indexes one allowed root then retries the requested repo-search read once', async () => {
-  const results = [
-    { code: 0, stderr: '', stdout: 'not ready' },
-    { code: 0, stderr: '', stdout: 'index complete' },
-    { code: 0, stderr: '', stdout: 'ready' },
-    { code: 0, stderr: '', stdout: 'result' },
-  ];
-  const result = await readWithReadyIndex(
-    async () => results.shift() ?? { code: 1, stderr: 'unexpected', stdout: '' },
-    {
-      allowedRoots: ['/repo', '/home', '/kb'],
-      read: (project) => repoSearchCommands.searchGraph(project, 'symbol', 5),
-      root: { index: 'repo', root: '/repo/' },
-    },
-  );
-  expect(result).toEqual({ indexed: true, output: 'result', project: 'repo' });
-  assertAllowedRepoSearchRoot('/home', ['/repo', '/home']);
   expect(() => assertAllowedRepoSearchRoot('/other', ['/repo'])).toThrow('not allowed');
+  expect(() => assertAllowedRepoSearchRoot('/repo/', ['/repo'])).not.toThrow();
 });
 
-test('reports failed indexing, readiness, and read results', async () => {
-  const failure = async () => ({ code: 1, stderr: 'bad', stdout: '' });
-  await expect(
-    readWithReadyIndex(failure, {
-      allowedRoots: ['/repo'],
-      read: () => repoSearchCommands.listProjects(),
-      root: { index: 'repo', root: '/repo' },
-    }),
-  ).rejects.toThrow('indexing');
-  const notReady = async () => ({ code: 0, stderr: '', stdout: 'not ready' });
-  await expect(
-    readWithReadyIndex(notReady, {
-      allowedRoots: ['/repo'],
-      read: () => repoSearchCommands.listProjects(),
-      root: { index: 'repo', root: '/repo' },
-    }),
-  ).rejects.toThrow('not ready');
-  const readyThenFailed = [
-    { code: 0, stderr: '', stdout: 'ready' },
-    { code: 1, stderr: 'missing', stdout: '' },
-  ];
-  await expect(
-    readWithReadyIndex(
-      async () => {
-        const next = readyThenFailed.shift();
-        if (!next) {
-          throw new Error('Unexpected repo-search command.');
-        }
-        return next;
-      },
-      {
-        allowedRoots: ['/repo'],
-        read: () => repoSearchCommands.listProjects(),
-        root: { index: 'repo', root: '/repo' },
-      },
-    ),
-  ).rejects.toThrow('read failed');
-});
-
-test('does not create a repo-search index during search fallback', async () => {
-  const commands: string[][] = [];
-  const execute = mock(async (command: { args: readonly string[] }) => {
-    commands.push([...command.args]);
-    const operation = command.args[1];
-    if (operation === 'index_status') {
-      return { code: 0, stderr: '', stdout: 'not ready' };
+test('search answers from the graph stage with located results and reliability', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
     }
-    if (operation === 'search_graph') {
-      return { code: 0, stderr: '', stdout: '' };
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
     }
-    if (command.args.includes('--line-number')) {
-      return {
-        code: 0,
-        stderr: '',
-        stdout: '/kb/browser-testing.md:1:browser testing',
-      };
+    if (call.tool === 'search_graph') {
+      return backendText(graphTable);
     }
-    if (command.args.includes('--files')) {
-      return { code: 0, stderr: '', stdout: '/kb/browser-testing.md' };
-    }
-    return { code: 1, stderr: '', stdout: '' };
+    return backendError(`unexpected tool: ${call.tool}`);
   });
-
-  await expect(
-    searchWithRepoSearchFallback(execute, {
-      allowedRoots: ['/kb'],
-      query: 'browser testing',
-      root: { index: 'kb-index', root: '/kb' },
-    }),
-  ).resolves.toMatchObject({ found: true, source: 'rg' });
-  expect(commands.some((args) => args.includes('index_repository'))).toBeFalse();
+  const envelope = await repoSearchDiscover({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    probe: probeAttempt,
+    query: 'needle',
+    root: '/repo',
+    transport,
+  });
+  expect(envelope).toMatchObject({
+    found: true,
+    ok: true,
+    source: 'graph',
+    status: 'found',
+    transport: 'mcp',
+    verb: 'search',
+  });
+  expect(envelope.query.index).toBe('repo');
+  expect(envelope.reliability.indexedAt).toBe('2026-09-25T08:22:24Z');
+  expect(envelope.reliability.caveats).toContain(
+    'The indexed snapshot may differ from the working tree.',
+  );
+  expect(envelope.results).toEqual([
+    {
+      detail: 'repo.src.needle',
+      kind: 'symbol',
+      location: 'src/needle.ts:10-20',
+      name: 'repo.src.needle',
+    },
+  ]);
+  expect(envelope.attempts.map((attempt) => attempt.strategy)).toEqual([
+    'transport-probe',
+    'resolve-index',
+    'index-status',
+    'search-graph',
+    'search-code',
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-files',
+  ]);
+  expect(envelope.next).toEqual(['read <approved-root> <qualified-name> for one snippet']);
 });
 
-test('rejects an empty repo-search fallback query before invoking the executor', async () => {
-  const execute = mock(async () => ({ code: 0, stderr: '', stdout: '' }));
-  await expect(
-    searchWithRepoSearchFallback(execute, {
+test('search falls through to code results and clusters when graph has no identity match', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_graph') {
+      return backendText(graphTable);
+    }
+    if (call.tool === 'search_code') {
+      return backendText(codeTable);
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchDiscover({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    query: 'zebra',
+    root: '/repo',
+    transport,
+  });
+  expect(envelope.source).toBe('code');
+  expect(envelope.results[0]).toMatchObject({ kind: 'symbol', location: 'src/needle.ts:10-20' });
+  expect(envelope.results).toContainEqual({
+    detail: '3 matches',
+    kind: 'cluster',
+    location: 'src/',
+    name: 'src/',
+  });
+});
+
+test('search traces the connection between two named symbols', async () => {
+  const traceArgs: string[] = [];
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_graph') {
+      return backendText(twoSymbolGraphTable);
+    }
+    if (call.tool === 'trace_path') {
+      traceArgs.push(call.args.project ?? '');
+      return backendText('hop: caller');
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchDiscover({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    query: 'needle thread',
+    root: '/repo',
+    transport,
+  });
+  expect(envelope.source).toBe('graph');
+  const connection = envelope.results.find((result) => result.kind === 'connection');
+  expect(connection?.name).toBe('repo.src.needle <-> repo.src.thread');
+  expect(connection?.detail).toContain('repo.src.needle inbound:');
+  expect(
+    envelope.attempts.filter((attempt) => attempt.strategy.startsWith('connect:')),
+  ).toHaveLength(4);
+  expect([...new Set(traceArgs)]).toEqual(['repo']);
+  expect(envelope.reliability.caveats).toContain('Graph results truncated by the search limit.');
+});
+
+test('search never indexes and answers from the staged fallback without an index', async () => {
+  const calls: string[] = [];
+  const transport = fakeTransport((call) => {
+    calls.push(call.tool);
+    if (call.tool === 'list_projects') {
+      return backendText(
+        'projects: 1  (cols: name root_path branch)\n  other /other main\ntotal: 1',
+      );
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const executor = executorFor('/repo/found.ts:3:needle located');
+  const envelope = await repoSearchDiscover(
+    {
       allowedRoots: ['/repo'],
-      query: '  ',
-      root: { index: 'repo', root: '/repo' },
+      executor,
+      query: 'needle',
+      root: '/repo',
+      transport,
+    },
+    async () => gateReceipt(false),
+  );
+  expect(calls).toEqual(['list_projects']);
+  expect(envelope).toMatchObject({ found: true, source: 'fallback', status: 'found' });
+  expect(envelope.reliability.caveats).toContain(
+    'No matching project index; answered from the local staged fallback.',
+  );
+  expect(envelope.results[0]).toEqual({
+    detail: 'needle located',
+    kind: 'location',
+    location: '/repo/found.ts:3',
+    name: null,
+  });
+});
+
+test('search reports a not-ready index and still answers from the fallback', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(notReadyStatus);
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor('/repo/found.ts:3:needle located'),
+      query: 'needle',
+      root: '/repo',
+      transport,
+    },
+    async () => gateReceipt(false),
+  );
+  expect(envelope.source).toBe('fallback');
+  expect(envelope.reliability.caveats).toContain(
+    'Index not ready; answered from the local staged fallback.',
+  );
+});
+
+test('search gates binary candidates and reports router evidence', async () => {
+  const gate = mock(async () => gateReceipt(true, 'mach-o strings evidence'));
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor('/repo/tool.bin'),
+      query: 'tool',
+      root: '/repo',
+      transport: null,
+    },
+    gate,
+  );
+  expect(envelope).toMatchObject({ found: true, source: 'binary', transport: 'none' });
+  expect(envelope.results[0]).toMatchObject({ detail: 'mach-o strings evidence', kind: 'binary' });
+  expect(gate).toHaveBeenCalledWith(expect.anything(), {
+    candidates: ['/repo/tool.bin'],
+    query: 'tool',
+  });
+  expect(envelope.reliability.caveats).toContain(
+    'No backend transport answered; answered from the local staged fallback.',
+  );
+  expect(envelope.next).toEqual([]);
+});
+
+test('search rejects invalid roots and blank queries before any backend call', async () => {
+  const transport = fakeTransport(() => backendError('unexpected call'));
+  await expect(
+    repoSearchDiscover({
+      allowedRoots: ['/repo'],
+      executor: executorFor(''),
+      query: 'needle',
+      root: '/other',
+      transport,
+    }),
+  ).rejects.toThrow('not allowed');
+  await expect(
+    repoSearchDiscover({
+      allowedRoots: ['/repo'],
+      executor: executorFor(''),
+      query: '   ',
+      root: '/repo',
+      transport,
     }),
   ).rejects.toThrow('Search query is required');
-  expect(execute).not.toHaveBeenCalled();
+  expect(transport.call).not.toHaveBeenCalled();
 });
 
-test.each([
-  ['ready', true],
-  ['index complete', true],
-  ['not ready', false],
-  ['error', false],
-] as const)('detects repo-search readiness for %s', (output, expected) => {
-  expect(indexIsReady(output)).toBe(expected);
+test('search redacts backend storage paths from every envelope surface', async () => {
+  const leak = `${homedir()}/.cache/codebase-memory-mcp/shadow/worktree`;
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_graph') {
+      return backendText(
+        `results: 1  (cols: qn label file lines rank)\n  repo.src.needle Function src/needle.ts 1-2 -1.0\ntotal: 1\n${leak}`,
+      );
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchDiscover({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    query: 'needle',
+    root: '/repo',
+    transport,
+  });
+  const serialized = JSON.stringify(envelope);
+  expect(serialized).not.toContain('.cache/codebase-memory-mcp');
+  expect(serialized).toContain('<backend-store>');
 });
 
-test('uses repo-search code search before staged rg when graph search has no match', async () => {
-  const foundOutputs = [
-    { code: 0, stderr: '', stdout: 'ready' },
-    {
-      code: 0,
-      stderr: '',
-      stdout: '{"total":1,"results":[{"name":"match"}]}',
-    },
-  ];
-  const repoSearchFound = await searchWithRepoSearchFallback(
-    async () => foundOutputs.shift() ?? { code: 1, stderr: '', stdout: '' },
-    {
+test('read classifies targets deterministically', () => {
+  expect(readTargetShape('https://example.com')).toBe('url');
+  expect(readTargetShape('http://example.com')).toBe('url');
+  expect(readTargetShape('12345')).toBe('pid');
+  expect(readTargetShape('/repo/file.ts')).toBe('file');
+  expect(readTargetShape('repo.src.symbol')).toBe('symbol');
+  expect(readTargetShape('Safari')).toBe('process');
+});
+
+test('read returns a bounded numbered text fragment for text files', async () => {
+  const content = ['one', 'two', 'three', 'four', 'five'].join('\n');
+  const headPaths: string[] = [];
+  const envelope = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    headReader: mock(async (path: string) => {
+      headPaths.push(path);
+      return 'plain text head';
+    }),
+    queries: [],
+    readFile: mock(async () => content),
+    root: '/repo',
+    target: '/repo/file.ts:2-3',
+    transport: null,
+  });
+  expect(headPaths).toEqual(['/repo/file.ts']);
+  expect(envelope).toMatchObject({ found: true, source: 'file', status: 'found', verb: 'read' });
+  expect(envelope.results[0]).toEqual({
+    detail: '2|two\n3|three',
+    kind: 'text',
+    location: '/repo/file.ts:2-3',
+    name: '/repo/file.ts',
+  });
+  await expect(
+    repoSearchRead({
       allowedRoots: ['/repo'],
-      query: 'match',
-      root: { index: 'repo', root: '/repo' },
-    },
-  );
-  expect(repoSearchFound.source).toBe('repo-search');
-  expect(repoSearchFound.attempts.map((item) => item.status)).toEqual([
-    'found',
-    'skipped',
-    'skipped',
-    'skipped',
-    'skipped',
+      executor: executorFor(''),
+      headReader: mock(async () => 'x'),
+      queries: [],
+      readFile: mock(async () => ''),
+      root: '/repo',
+      target: '/outside/file.ts',
+      transport: null,
+    }),
+  ).rejects.toThrow('outside the approved root');
+});
+
+test('read routes binary file targets through the binary router', async () => {
+  const machOHead = `${String.fromCharCode(0xcf, 0xfa, 0xed, 0xfe)}binary body`;
+  const executor = executorFor('', 1);
+  const envelope = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor,
+    headReader: mock(async () => machOHead),
+    queries: ['strings'],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: '/repo/tool.bin',
+    transport: null,
+  });
+  expect(envelope).toMatchObject({ source: 'binary', status: 'empty', transport: 'none' });
+  expect(envelope.attempts.map((attempt) => attempt.strategy)).toContain('binary-gate:classify');
+  expect(envelope.reliability.caveats).toContain('No routed stage answered the target.');
+});
+
+test('read resolves a symbol snippet through the ready index', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'get_code_snippet') {
+      return backendText('export const needle = 1;');
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport,
+  });
+  expect(envelope).toMatchObject({ found: true, source: 'symbol', status: 'found' });
+  expect(envelope.results[0]).toEqual({
+    detail: 'export const needle = 1;',
+    kind: 'symbol',
+    location: null,
+    name: 'repo.src.needle',
+  });
+});
+
+test('read indexes once, re-checks status, and retries the requested read once', async () => {
+  const statusOutputs = [notReadyStatus, readyStatus];
+  const calls: string[] = [];
+  const transport = fakeTransport((call) => {
+    calls.push(call.tool);
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(statusOutputs.shift() ?? readyStatus);
+    }
+    if (call.tool === 'index_repository') {
+      return backendText('indexed');
+    }
+    if (call.tool === 'get_code_snippet') {
+      return backendText('snippet body');
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport,
+  });
+  expect(calls).toEqual([
+    'list_projects',
+    'index_status',
+    'index_repository',
+    'index_status',
+    'get_code_snippet',
   ]);
-  const outputs = [
-    { code: 0, stderr: '', stdout: 'ready' },
-    { code: 0, stderr: '', stdout: '{"total":0,"results":[]}' },
-    { code: 0, stderr: '', stdout: '{"total_results":0,"results":[]}' },
-    { code: 1, stderr: '', stdout: '' },
-    { code: 0, stderr: '', stdout: '/repo/a.ts:1:match' },
-  ];
-  const fallback = await searchWithRepoSearchFallback(
-    async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' },
-    {
-      allowedRoots: ['/repo'],
-      query: 'match',
-      root: { index: 'repo', root: '/repo' },
-    },
-  );
-  expect(fallback).toMatchObject({ found: true, source: 'rg' });
-  expect(fallback.attempts.map((item) => item.strategy)).toEqual([
-    'repo-search-graph',
-    'repo-search-code',
-    'rg-literal',
-    'rg-literal-ignore-case',
-    'rg-files',
-  ]);
-  expect(repoSearchOutputHasMatches('{"total_results":1}\nlevel=info msg=mem.init')).toBeTrue();
-  expect(repoSearchOutputHasMatches('{"total":0,"results":[]}')).toBeFalse();
-  expect(
-    repoSearchOutputHasMatches('{"total":1,"results":[{"name":"token"}]}', 'needle'),
-  ).toBeFalse();
-  expect(repoSearchOutputHasMatches('not-json')).toBeFalse();
-  expect(repoSearchOutputHasMatches('{bad}')).toBeFalse();
-  const codeFound = await searchWithRepoSearchFallback(
-    async (spec) => {
-      if (spec.args.includes('index_status')) {
-        return { code: 0, stderr: '', stdout: 'ready' };
-      }
-      if (spec.args.includes('search_graph')) {
-        return { code: 0, stderr: '', stdout: '{"total":0,"results":[]}' };
-      }
-      return {
-        code: 0,
-        stderr: '',
-        stdout: '{"total_results":1,"results":[{"file":"browser-testing.md","match_lines":[10]}]}',
-      };
-    },
-    {
-      allowedRoots: ['/repo'],
-      query: 'browser testing',
-      root: { index: 'repo', root: '/repo' },
-    },
-  );
-  expect(codeFound).toMatchObject({ found: true, source: 'repo-search' });
-  expect(codeFound.attempts.map((item) => item.strategy)).toEqual([
-    'repo-search-graph',
-    'repo-search-code',
-    'rg-literal',
-    'rg-literal-ignore-case',
-    'rg-files',
-  ]);
-  const graphError = await searchWithRepoSearchFallback(
-    async (spec) => {
-      if (spec.args.includes('index_status')) {
-        return { code: 0, stderr: '', stdout: 'ready' };
-      }
-      if (spec.args.includes('search_graph')) {
-        throw new Error('repo-search graph request failed');
-      }
-      return { code: 1, stderr: '', stdout: '' };
-    },
-    {
-      allowedRoots: ['/repo'],
-      query: 'match',
-      root: { index: 'repo', root: '/repo' },
-    },
-  );
-  expect(graphError.attempts[0]).toMatchObject({ status: 'error' });
-  const repoSearchFailure = await searchWithRepoSearchFallback(
-    async (spec) =>
-      spec.args.includes('index_status')
-        ? { code: 1, stderr: 'repo-search unavailable', stdout: '' }
-        : { code: 0, stderr: '', stdout: '/repo/match.ts:1:match' },
-    {
-      allowedRoots: ['/repo'],
-      query: 'match',
-      root: { index: 'repo', root: '/repo' },
-    },
-  );
-  expect(repoSearchFailure).toMatchObject({ found: true, source: 'rg' });
-  expect(repoSearchFailure.attempts[0]?.status).toBe('error');
+  expect(envelope).toMatchObject({ found: true, source: 'symbol' });
 });
 
-test('normalizes one padded query for repo-search graph and code searches', async () => {
-  const commands: string[][] = [];
-  const result = await searchWithRepoSearchFallback(
-    async (spec) => {
-      commands.push([...spec.args]);
-      if (spec.args.includes('index_status')) {
-        return { code: 0, stderr: '', stdout: 'ready' };
-      }
-      if (spec.args.includes('search_graph')) {
-        return { code: 0, stderr: '', stdout: '{"total":0,"results":[]}' };
-      }
-      if (spec.args.includes('search_code')) {
-        return {
-          code: 0,
-          stderr: '',
-          stdout: '{"total_results":0,"results":[]}',
-        };
-      }
-      return { code: 1, stderr: '', stdout: '' };
-    },
-    {
-      allowedRoots: ['/repo'],
-      query: '  needle  ',
-      root: { index: 'repo', root: '/repo' },
-    },
-  );
-  expect(result).toMatchObject({ found: false, source: 'none' });
-  expect(
-    commands
-      .filter((args) => args.includes('--query'))
-      .map((args) => args[args.indexOf('--query') + 1]),
-  ).toEqual(['needle']);
-  expect(
-    commands
-      .filter((args) => args.includes('--pattern'))
-      .map((args) => args[args.indexOf('--pattern') + 1]),
-  ).toEqual(['needle']);
+test('read reports a missing snippet as empty and a missing transport as an error', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'get_code_snippet') {
+      return backendError('function not found');
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const empty = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.missing',
+    transport,
+  });
+  expect(empty).toMatchObject({ ok: true, status: 'empty' });
+  expect(empty.next).toEqual([
+    'search <approved-root> repo.src.missing to find the exact qualified name.',
+  ]);
+  const noTransport = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport: null,
+  });
+  expect(noTransport).toMatchObject({ ok: false, status: 'error', transport: 'none' });
 });
 
-test('rejects graph matches that contain the query only in unrelated metadata', async () => {
-  const result = await searchWithRepoSearchFallback(
-    async (spec) => {
-      if (spec.args.includes('index_status')) {
-        return { code: 0, stderr: '', stdout: 'ready' };
-      }
-      if (spec.args.includes('search_graph')) {
-        return {
-          code: 0,
-          stderr: '',
-          stdout: '{"total":1,"results":[{"name":"unrelated","description":"needle"}]}',
-        };
-      }
-      if (spec.args.includes('search_code')) {
-        return {
-          code: 0,
-          stderr: '',
-          stdout: '{"total_results":0,"results":[]}',
-        };
-      }
-      return { code: 1, stderr: '', stdout: '' };
-    },
+test('resolveRepoSearchIndex maps the root and reports resolution failures', async () => {
+  const transport = fakeTransport(toolsTable('list_projects', projectsTable));
+  await expect(resolveRepoSearchIndex(transport, '/repo/src')).resolves.toEqual({
+    attempt: expect.objectContaining({ status: 'found' }),
+    index: 'repo',
+  });
+  const failing = fakeTransport(
+    toolsTable('list_projects', 'projects: 0  (cols: name root_path branch)\ntotal: 0'),
+  );
+  await expect(resolveRepoSearchIndex(failing, '/repo')).resolves.toEqual({
+    attempt: expect.objectContaining({ status: 'error' }),
+    index: null,
+  });
+});
+
+test('search records a transport failure when the project list throws', async () => {
+  const transport = fakeTransport(() => new Error('backend exploded'));
+  const envelope = await repoSearchDiscover(
     {
       allowedRoots: ['/repo'],
+      executor: executorFor('/repo/found.ts:3:needle located'),
       query: 'needle',
-      root: { index: 'repo', root: '/repo' },
+      root: '/repo',
+      transport,
     },
+    async () => gateReceipt(false),
   );
-  expect(result).toMatchObject({ found: false, source: 'none' });
-  expect(result.attempts.map((attempt) => attempt.strategy)).toEqual([
-    'repo-search-graph',
-    'repo-search-code',
+  expect(envelope.attempts[0]).toMatchObject({ status: 'error', strategy: 'resolve-index' });
+  expect(envelope.reliability.caveats).toContain(
+    'Backend project list unavailable; answered from the local staged fallback.',
+  );
+  expect(envelope.source).toBe('fallback');
+});
+
+test('search reports indexed errors and answers from the fallback', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    return backendError('backend refused');
+  });
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor('/repo/found.ts:3:needle located'),
+      query: 'needle',
+      root: '/repo',
+      transport,
+    },
+    async () => gateReceipt(false),
+  );
+  expect(envelope.attempts.map((attempt) => attempt.strategy)).toEqual([
+    'resolve-index',
+    'index-status',
+    'search-graph',
+    'search-code',
     'rg-literal',
     'rg-literal-ignore-case',
     'rg-files',
+    'binary-gate:classify',
   ]);
+  expect(envelope.reliability.caveats).toContain(
+    'Indexed discovery errored; answered from the local staged fallback.',
+  );
+  expect(envelope.source).toBe('fallback');
 });
 
-test('accepts graph matches in structured identity fields', async () => {
-  const result = await searchWithRepoSearchFallback(
-    async (spec) => {
-      if (spec.args.includes('index_status')) {
-        return { code: 0, stderr: '', stdout: 'ready' };
-      }
-      if (spec.args.includes('search_graph')) {
-        return {
-          code: 0,
-          stderr: '',
-          stdout: '{"total":1,"results":[{"file_path":"src/needle.ts"}]}',
-        };
-      }
-      return { code: 1, stderr: '', stdout: '' };
-    },
+test('search records truncation caveats from both indexed stages', async () => {
+  const truncatedCode = codeTable.replace('has_more: false', 'has_more: true');
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_graph') {
+      return backendText(graphTable);
+    }
+    if (call.tool === 'search_code') {
+      return backendText(truncatedCode);
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchDiscover({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    query: 'zebra',
+    root: '/repo',
+    transport,
+  });
+  expect(envelope.source).toBe('code');
+  expect(envelope.reliability.caveats).toContain('Code results truncated by the search limit.');
+});
+
+test('search keeps the connection receipt empty when every trace errors', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_graph') {
+      return backendText(twoSymbolGraphTable);
+    }
+    return backendError('function not found');
+  });
+  const envelope = await repoSearchDiscover({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    query: 'needle thread',
+    root: '/repo',
+    transport,
+  });
+  expect(envelope.source).toBe('graph');
+  expect(envelope.results.some((result) => result.kind === 'connection')).toBeFalse();
+  expect(
+    envelope.attempts.filter((attempt) => attempt.strategy.startsWith('connect:')),
+  ).toHaveLength(4);
+});
+
+test('search falls back locally when a ready index has zero hits', async () => {
+  const emptyResults = 'results: 0  (cols: qn label file lines rank)\ntotal: 0\nhas_more: false\n';
+  const emptyCode =
+    'results: 0  (cols: qn label file lines matches matches_omitted in out)\ndirectories: 0  (cols: dir hits)\ntotal_results: 0\nhas_more: false\n';
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    return backendText(call.tool === 'search_graph' ? emptyResults : emptyCode);
+  });
+  const envelope = await repoSearchDiscover(
     {
       allowedRoots: ['/repo'],
+      executor: executorFor('/repo/needle.ts:2:needle here'),
       query: 'needle',
-      root: { index: 'repo', root: '/repo' },
+      root: '/repo',
+      transport,
     },
+    async () => gateReceipt(false),
   );
-  expect(result).toMatchObject({ found: true, source: 'repo-search' });
-  expect(result.attempts.map((attempt) => attempt.status)).toEqual([
-    'found',
-    'skipped',
-    'skipped',
-    'skipped',
-    'skipped',
+  expect(envelope).toMatchObject({ found: true, source: 'fallback', status: 'found' });
+  expect(envelope.attempts.map((attempt) => attempt.strategy)).toEqual([
+    'resolve-index',
+    'index-status',
+    'search-graph',
+    'search-code',
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-files',
+    'binary-gate:classify',
   ]);
 });
 
-test('requires structured graph identity fields for query-aware matching', () => {
-  expect(repoSearchGraphIdentityFields).toEqual(['name', 'qualified_name', 'file_path', 'path']);
-  expect(
-    repoSearchOutputHasMatches('{"total":1,"results":[{"description":"needle"}]}', 'needle'),
-  ).toBeFalse();
-  expect(
-    repoSearchOutputHasMatches(
-      '{"total":1,"results":[{"qualified_name":"repo.needle"}]}',
-      'needle',
-    ),
-  ).toBeTrue();
-  expect(
-    repoSearchOutputHasMatches('{"total":2,"results":[null,{"path":"src/needle.ts"}]}', 'needle'),
-  ).toBeTrue();
+test('read routes explicit URL targets through the running-app-free website row', async () => {
+  const executor = executorFor('<html>page body</html>');
+  const envelope = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor,
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'https://example.com',
+    transport: null,
+  });
+  expect(envelope).toMatchObject({ found: true, source: 'binary', status: 'found' });
+  expect(envelope.results[0]).toMatchObject({ detail: '<html>page body</html>', kind: 'binary' });
+});
+
+test('read reports symbol errors for a failed project list and a missing index', async () => {
+  const failing = fakeTransport(() => new Error('backend exploded'));
+  const listed = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport: failing,
+  });
+  expect(listed).toMatchObject({ ok: false, status: 'error' });
+  expect(listed.reliability.caveats).toContain('Backend project list unavailable.');
+  const empty = fakeTransport(
+    toolsTable('list_projects', 'projects: 0  (cols: name root_path branch)\ntotal: 0'),
+  );
+  const unmatched = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport: empty,
+  });
+  expect(unmatched).toMatchObject({ ok: false, status: 'error' });
+  expect(unmatched.next).toEqual([
+    'search <approved-root> repo.src.needle to locate the symbol first.',
+  ]);
+  await expect(
+    repoSearchRead({
+      allowedRoots: ['/repo'],
+      executor: executorFor(''),
+      queries: [],
+      readFile: mock(async () => ''),
+      root: '/repo',
+      target: '   ',
+      transport: null,
+    }),
+  ).rejects.toThrow('Read target is required');
+});
+
+test('parsers skip malformed rows instead of trusting partial tokens', () => {
+  expect(parseListProjects('projects: 1  (cols: name root_path branch)\n  ""\ntotal: 0')).toEqual(
+    [],
+  );
+  expect(parseSearchGraph('results: 1  (cols: qn label file lines rank)\n  a b\n')).toEqual({
+    hasMore: false,
+    rows: [],
+  });
+  expect(parseSearchCode('directories: 1  (cols: dir hits)\n  src/\n')).toEqual({
+    directories: [],
+    hasMore: false,
+    rows: [],
+  });
+});
+
+test('search suggests restoring the transport only when nothing was found', async () => {
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor('', 1),
+      query: 'needle',
+      root: '/repo',
+      transport: null,
+    },
+    async () => gateReceipt(false),
+  );
+  expect(envelope).toMatchObject({ found: false, status: 'empty' });
+  expect(envelope.next).toEqual(['Restore the backend transport for indexed discovery.']);
+});
+
+test('read reports indexing failure and a failed readiness re-check', async () => {
+  const failingIndex: typeof projectsTable = projectsTable;
+  const indexer = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(failingIndex);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(notReadyStatus);
+    }
+    if (call.tool === 'index_repository') {
+      return backendError('indexing denied');
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const failed = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport: indexer,
+  });
+  expect(failed).toMatchObject({ ok: false, status: 'error' });
+  expect(failed.reliability.caveats.join(' ')).toContain('indexing denied');
+  const rechecking = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(notReadyStatus);
+    }
+    if (call.tool === 'index_repository') {
+      return backendText('indexed');
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const rechecked = await repoSearchRead({
+    allowedRoots: ['/repo'],
+    executor: executorFor(''),
+    queries: [],
+    readFile: mock(async () => ''),
+    root: '/repo',
+    target: 'repo.src.needle',
+    transport: rechecking,
+  });
+  expect(rechecked).toMatchObject({ ok: false, status: 'error' });
+  expect(rechecked.reliability.caveats).toContain(
+    'Index not ready after indexing and the readiness re-check.',
+  );
 });

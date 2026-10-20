@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 
 export interface DirectoryEntry {
   readonly isDirectory: () => boolean;
@@ -6,6 +6,7 @@ export interface DirectoryEntry {
 }
 
 export interface FileSystem {
+  readonly exists: (path: string) => Promise<boolean>;
   readonly mkdir: (
     path: string,
     options: { readonly recursive: true },
@@ -20,6 +21,7 @@ export interface FileSystem {
 }
 
 export interface NodeFileSystemOperations {
+  readonly exists: FileSystem['exists'];
   readonly mkdir: FileSystem['mkdir'];
   readonly readDirectory: FileSystem['readdir'];
   readonly readFile: FileSystem['readFile'];
@@ -28,6 +30,7 @@ export interface NodeFileSystemOperations {
 }
 
 export const createNodeFileSystem = (operations: NodeFileSystemOperations): FileSystem => ({
+  exists: operations.exists,
   mkdir: operations.mkdir,
   readdir: operations.readDirectory,
   readFile: operations.readFile,
@@ -36,6 +39,14 @@ export const createNodeFileSystem = (operations: NodeFileSystemOperations): File
 });
 
 export const nodeFileSystem = createNodeFileSystem({
+  exists: async (path) => {
+    try {
+      await access(path);
+      return true;
+    } catch {
+      return false;
+    }
+  },
   mkdir,
   readDirectory: readdir as NonNullable<FileSystem['readdir']>,
   readFile,

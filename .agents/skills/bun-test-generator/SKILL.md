@@ -60,8 +60,12 @@ editing the selected test surface.
   TypeScript diagnostics, or lint errors before claiming completion. A focused green result is never
   a final handoff.
 - Coverage closure must identify the selected SUT files and report 100% of the configured
-  function/line metrics (or the project's explicit equivalent) for those files. Aggregate coverage
-  alone is insufficient. Retain the selected-SUT coverage receipt alongside the full-gate receipts.
+  function/line metrics (or the project's explicit equivalent) for those files, verifying the
+  coverage table shows 100.00% functions and 100.00% lines for every one of them before proceeding.
+  The configured coverageThreshold does not reliably fail a function-coverage gap (a 90.70% function
+  file has passed a configured run), so reading the per-file percentage is the agent's explicit
+  check, never deferred to the run exit code. Aggregate coverage alone is insufficient. Retain the
+  selected-SUT coverage receipt alongside the full-gate receipts.
 - A top-level `mock.module()` or global mock requires same-process full-suite proof, not only a
   focused-file pass. Built-in module mocks are especially risky: prefer an injected boundary or the
   real platform value when possible; otherwise preserve unrelated exports, restore mutable globals,

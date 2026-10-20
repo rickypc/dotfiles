@@ -14,6 +14,7 @@ const dependencies = (source = 'Original `token`.') => {
   const writes = new Map<string, string>();
   const removed: string[] = [];
   const fileSystem = {
+    exists: async () => false,
     mkdir: mock(async () => undefined),
     readFile: mock(async (path: string) => {
       if (path === '/docs/plan.md') {
@@ -199,6 +200,6 @@ test.each([
   [true, 1],
 ])('runs CLI work only when the script is main', (isMain, calls) => {
   const runner = mock(async () => undefined);
-  runWhenMain(isMain, ['begin', '/docs/plan.md'], runner);
+  void runWhenMain(isMain, ['begin', '/docs/plan.md'], runner);
   expect(runner).toHaveBeenCalledTimes(calls);
 });

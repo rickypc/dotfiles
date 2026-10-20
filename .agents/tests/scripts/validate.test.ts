@@ -18,7 +18,7 @@ test('rejects invalid or failed validation evidence', () => {
   expect(() => run(['biome:failed:bad'])).toThrow('biome');
   expect(() => run([])).toThrow(usage());
   const runner = mock();
-  runWhenMain(true, ['biome:passed:clean'], runner);
-  runWhenMain(false, [], runner);
+  void runWhenMain(true, ['biome:passed:clean'], runner);
+  void runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
 });

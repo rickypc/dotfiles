@@ -34,6 +34,7 @@ test('validates KB concept paths and derives subject indexes', () => {
 test('captures a concept and updates both deterministic indexes', async () => {
   const writes = new Map<string, string>();
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = writes.get(path);
@@ -138,6 +139,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
   ].join('\n');
   files.set(planPath, plan);
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = files.get(path);
@@ -201,6 +203,7 @@ test('slices a six-section plan into one validated OKF concept and updates index
 test('preserves description-suffixed index entries across subsequent captures', async () => {
   const writes = new Map<string, string>();
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = writes.get(path);
@@ -343,6 +346,7 @@ test('preserves optional OKF metadata and reconciles linked concepts', async () 
     ),
   );
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = files.get(path);
@@ -451,6 +455,7 @@ test('rejects unsafe reconciliation plans', async () => {
   files.set('/kb/shared/testing/strategy.md', renderOkfConcept(metadata, 'Existing rules.'));
   files.set('/kb/shared/testing/playwright.md', renderOkfConcept(metadata, 'Existing rules.'));
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async (path: string) => {
       const value = files.get(path);
@@ -577,6 +582,7 @@ test('searches validated KB concepts and returns an empty result when absent', a
     ],
   ]);
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async (path: string) => entries.get(path) ?? [],
     readFile: async (path: string) => files.get(path) ?? '',
@@ -652,6 +658,7 @@ test('combines repo-search discovery with validated KB search results', async ()
     'Verified evidence.',
   );
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async (path: string) =>
       path === '/kb'
@@ -690,6 +697,7 @@ test('combines repo-search discovery with validated KB search results', async ()
 
 test('batches bounded distinct KB queries and rejects duplicates', async () => {
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
@@ -736,6 +744,7 @@ test('starts local KB lookup while repo-search discovery waits for index readine
   });
   let localLookupStarted = false;
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => {
       localLookupStarted = true;

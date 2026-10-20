@@ -170,6 +170,7 @@ const sanitizeCases = [
   },
   {
     expected: '- \n',
+    // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
     input: '\u200B\u2014\u00A0\u2028',
     label: 'handles multiple replacements',
   },

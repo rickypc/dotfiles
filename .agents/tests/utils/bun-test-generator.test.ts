@@ -78,6 +78,7 @@ test('requires mocks for every external SUT module and global boundary', () => {
     "import { readFile } from 'node:fs/promises';",
     "import { now } from './clock.js';",
     'export const load = async () => {',
+    // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
     "  console.log(now(), await readFile('input'));",
     '  return fetch("/status");',
     '};',

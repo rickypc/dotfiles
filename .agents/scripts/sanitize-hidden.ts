@@ -134,8 +134,7 @@ const BINARY_EXTS = new Set([
 
 const CONCURRENCY_REGEX = /^--concurrency=(\d+)$/;
 
-// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional
-// for control character matching
+// biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional for control character matching
 const CONTROL_RE = /[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 const FLAG_ACTIONS: Record<string, (state: ArgState) => void> = {
@@ -359,9 +358,9 @@ const RG_EXCLUDE_GLOBS = [
 
 export async function* walk(dir: string): AsyncGenerator<string> {
   const keys = Object.keys(REPLACE_MAP)
-    // biome-ignore lint/security/noSecrets: -
     .map((ch) => `\\x{${(ch.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, '0')}}`)
     .join('');
+  // biome-ignore lint/security/noSecrets: regex character-class literal, not a credential
   const controlClass = '\\x{0001}-\\x{0008}\\x{000B}\\x{000C}\\x{000E}-\\x{001F}\\x{007F}';
   const args = [
     'rg',

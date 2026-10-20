@@ -22,4 +22,4 @@ export const run = async (
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

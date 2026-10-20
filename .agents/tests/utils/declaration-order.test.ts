@@ -164,6 +164,7 @@ test('parses TSX, preserves comments as source trivia, and blocks syntax errors'
     '/repo/component.tsx',
     [
       '// documents beta',
+      // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
       'const beta = () => <div>{alpha()}</div>;',
       'const alpha = () => <span />;',
     ].join('\n'),

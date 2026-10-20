@@ -1,226 +1,201 @@
 import { tmpdir } from 'node:os';
 import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
-import type { CommandSpec } from '../utils/contracts.js';
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
-import { bunExecutor } from '../utils/process.js';
+import { bunExecutor, type CommandExecutor } from '../utils/process.js';
+import {
+  type RepoSearchEnvelope,
+  repoSearchDiscover,
+  repoSearchRead,
+  resolveRepoSearchIndex,
+} from '../utils/repo-search.js';
 import {
   inspectRepoSearch,
   parseRepoSearchInspectionJsonl,
-  repoSearchCommands,
-  resolveRepoSearchProjectForRoot,
-  searchWithRepoSearchFallback,
-} from '../utils/repo-search.js';
-import { commandText } from '../utils/search-fallback.js';
+} from '../utils/repo-search-inspection.js';
+import {
+  probeRepoSearchTransport,
+  type RepoSearchTransport,
+} from '../utils/repo-search-transport.js';
 
-const isTemporaryRequestPath = (requestPath: string, temporaryDirectory: string): boolean => {
-  const base = temporaryDirectory.replace(/\/+$/u, '');
-  return requestPath.startsWith(`${base}/`);
-};
+export interface RepoSearchCliRequest {
+  readonly queries: readonly string[];
+  readonly requestPath?: string;
+  readonly root: string;
+  readonly target?: string;
+  readonly verb: RepoSearchCliVerb;
+}
 
-const listProjectsFor = (command: string, length: number): CommandSpec | undefined =>
-  command === 'list-projects' && length === 1 ? repoSearchCommands.listProjects() : undefined;
+export type RepoSearchCliVerb = 'inspect' | 'read' | 'search';
 
-const commandForSimple = (
-  command: string,
-  project: string | undefined,
-  value: string | undefined,
-  length: number,
-): CommandSpec | undefined => {
-  const projects = listProjectsFor(command, length);
-  if (projects) {
-    return projects;
-  }
-  if (!project) {
-    return undefined;
-  }
-  if (command === 'index-status' && length === 2) {
-    return repoSearchCommands.indexStatus(project);
-  }
-  if (command === 'architecture' && length === 2) {
-    return repoSearchCommands.getArchitecture(project);
-  }
-  if (command === 'schema' && length === 2) {
-    return repoSearchCommands.getGraphSchema(project);
-  }
-  if (command === 'snippet' && value && length === 3) {
-    return repoSearchCommands.getCodeSnippet(project, value);
-  }
-  return undefined;
-};
+const verbs: readonly RepoSearchCliVerb[] = ['inspect', 'read', 'search'];
+
+const errorEnvelope = (
+  message: string,
+  request: RepoSearchCliRequest,
+  transport: RepoSearchTransport | null,
+): RepoSearchEnvelope => ({
+  attempts: [],
+  found: false,
+  next: [],
+  ok: false,
+  query: { index: null, input: request.queries, root: request.root },
+  reliability: {
+    backend: null,
+    caveats: [message],
+    indexedAt: null,
+    note: 'The wrapper rejected the request.',
+  },
+  results: [],
+  source: 'none',
+  status: 'error',
+  transport: transport?.kind ?? 'none',
+  verb: request.verb,
+});
+
+const isTemporaryRequestPath = (requestPath: string, temporaryDirectory: string): boolean =>
+  requestPath.startsWith(`${temporaryDirectory.replace(/\/+$/u, '')}/`);
 
 const runInspect = async (
-  args: readonly string[],
-  write: (message: string) => void,
+  request: RepoSearchCliRequest,
+  transport: RepoSearchTransport,
+  probeAttempt: Parameters<typeof inspectRepoSearch>[3],
   read: (path: string) => Promise<string | Buffer>,
-  resolve: typeof resolveRepoSearchProjectForRoot,
-  inspect: typeof inspectRepoSearch,
   temporaryDirectory: string,
-): Promise<boolean> => {
-  const [command, root, requestPath] = args;
-  if (command !== 'inspect' || !root || !requestPath || args.length !== 3) {
-    return false;
-  }
-  if (!root.startsWith('/') || !isTemporaryRequestPath(requestPath, temporaryDirectory)) {
+): Promise<RepoSearchEnvelope> => {
+  const requestPath = request.requestPath ?? '';
+  if (!isTemporaryRequestPath(requestPath, temporaryDirectory)) {
     throw new Error(
-      'inspect requires an absolute <approved-root> and an absolute JSONL request path under the OS temporary directory.',
+      'inspect requires an absolute JSONL request path under the OS temporary directory.',
     );
   }
-  const [project, request] = await Promise.all([resolve(root, bunExecutor), read(requestPath)]);
-  write(
-    JSON.stringify(
-      await inspect(
-        bunExecutor,
-        { index: project, root },
-        parseRepoSearchInspectionJsonl(String(request)),
-      ),
-      null,
-      2,
-    ),
+  const operations = parseRepoSearchInspectionJsonl(String(await read(requestPath)));
+  const resolved = await resolveRepoSearchIndex(transport, request.root);
+  if (!resolved.index) {
+    return {
+      attempts: [resolved.attempt],
+      found: false,
+      next: [],
+      ok: false,
+      query: {
+        index: null,
+        input: operations.map((operation) => operation.operation),
+        root: request.root,
+      },
+      reliability: {
+        backend: `codebase-memory-mcp via ${transport.kind}`,
+        caveats: [resolved.attempt.detail],
+        indexedAt: null,
+        note: 'No matching project index for the inspection.',
+      },
+      results: [],
+      source: 'none',
+      status: 'error',
+      transport: transport.kind,
+      verb: 'inspect',
+    };
+  }
+  return inspectRepoSearch(
+    transport,
+    { index: resolved.index, root: request.root },
+    operations,
+    probeAttempt,
   );
-  return true;
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/repo-search.ts <absolute-root> <query> [query...] | <architecture|discover|index-status|inspect|list-projects|query|schema|search-code|search-graph|snippet|trace> <arguments>';
+  'Usage: bun <agents-root>/scripts/repo-search.ts [search] <absolute-root> <query...> '
+  + '| read <absolute-root> <file-or-URL-or-PID-or-process-or-symbol> [query...] '
+  + '| inspect <absolute-root> <absolute-jsonl-request-path-under-os-tempdir>';
 
-const positiveLimit = (value: string): number => {
-  const limit = Number(value);
-  if (!Number.isInteger(limit) || limit < 1) {
+export const parseRepoSearchArgs = (args: readonly string[]): RepoSearchCliRequest => {
+  const rest = [...args];
+  const first = rest[0];
+  const verb = verbs.includes(first as RepoSearchCliVerb)
+    ? (rest.shift() as RepoSearchCliVerb)
+    : 'search';
+  const root = rest.shift();
+  if (!root?.startsWith('/')) {
     throw new Error(usage());
   }
-  return limit;
-};
-
-const commandForTrace = (
-  command: string,
-  project: string | undefined,
-  value: string | undefined,
-  direction: string | undefined,
-  depth: string | undefined,
-  length: number,
-): CommandSpec | undefined => {
-  if (
-    command !== 'trace'
-    || !project
-    || !value
-    || !direction
-    || !depth
-    || length !== 5
-    || (direction !== 'inbound' && direction !== 'outbound')
-  ) {
-    return undefined;
+  if (verb === 'inspect') {
+    const requestPath = rest.shift();
+    if (!requestPath || rest.length > 0) {
+      throw new Error(usage());
+    }
+    return { queries: [], requestPath, root, verb };
   }
-  return repoSearchCommands.tracePath(project, value, direction, positiveLimit(depth));
-};
-
-const limitedCommand = (
-  command: string,
-  project: string,
-  value: string,
-  limit: string,
-): CommandSpec | undefined => {
-  if (command === 'search-graph') {
-    return repoSearchCommands.searchGraph(project, value, positiveLimit(limit));
+  if (verb === 'read') {
+    const target = rest.shift();
+    if (!target?.trim()) {
+      throw new Error(usage());
+    }
+    return { queries: rest, root, target, verb };
   }
-  if (command === 'search-code') {
-    return repoSearchCommands.searchCode(project, value, positiveLimit(limit));
+  const query = rest.join(' ').trim();
+  if (!query) {
+    throw new Error(usage());
   }
-  return command === 'query'
-    ? repoSearchCommands.queryGraph(project, value, positiveLimit(limit))
-    : undefined;
-};
-
-const commandForLimited = (
-  command: string,
-  project: string | undefined,
-  value: string | undefined,
-  limit: string | undefined,
-  length: number,
-): CommandSpec | undefined =>
-  project && value && limit && length === 4
-    ? limitedCommand(command, project, value, limit)
-    : undefined;
-
-export const commandFor = (args: readonly string[]): CommandSpec => {
-  const [command, project, value, limitOrDirection, depthOrLimit] = args;
-  const simple = commandForSimple(command, project, value, args.length);
-  if (simple) {
-    return simple;
-  }
-  const limited = commandForLimited(command, project, value, limitOrDirection, args.length);
-  if (limited) {
-    return limited;
-  }
-  const trace = commandForTrace(
-    command,
-    project,
-    value,
-    limitOrDirection,
-    depthOrLimit,
-    args.length,
-  );
-  if (trace) {
-    return trace;
-  }
-  throw new Error(usage());
+  return { queries: [query], root, verb };
 };
 
 export const run = async (
   args: readonly string[],
   write: (message: string) => void = console.log,
-  search = searchWithRepoSearchFallback,
   read: (path: string) => Promise<string | Buffer> = readText.bind(undefined, nodeFileSystem),
-  resolve = resolveRepoSearchProjectForRoot,
-  inspect = inspectRepoSearch,
-  temporaryDirectory = tmpdir(),
+  temporaryDirectory: string = tmpdir(),
+  probe: typeof probeRepoSearchTransport = probeRepoSearchTransport,
+  executor: CommandExecutor = bunExecutor,
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the verb dispatch keeps every route, error envelope, and exit-code transition explicit.
 ): Promise<void> => {
-  if (await runInspect(args, write, read, resolve, inspect, temporaryDirectory)) {
-    return;
-  }
-  const [pathOnlyRoot, ...pathOnlyQueries] = args;
-  if (
-    pathOnlyRoot?.startsWith('/')
-    && pathOnlyQueries.length > 0
-    && pathOnlyQueries.every((query) => query.trim())
-  ) {
-    let project = '__repo_search_index_unresolved__';
-    try {
-      project = await resolve(pathOnlyRoot, bunExecutor);
-    } catch {
-      // The shared search boundary records the resolution failure and owns
-      // the staged fallback; the caller never needs to know index state.
+  const request = parseRepoSearchArgs(args);
+  const probed = await probe();
+  const transport = probed.transport;
+  try {
+    let envelope: RepoSearchEnvelope;
+    if (request.verb === 'inspect') {
+      if (!transport) {
+        throw new Error('Inspection reads require a backend transport.');
+      }
+      envelope = await runInspect(request, transport, probed.attempt, read, temporaryDirectory);
+    } else if (request.verb === 'read') {
+      envelope = await repoSearchRead({
+        allowedRoots: [request.root],
+        executor,
+        probe: probed.attempt,
+        queries: request.queries,
+        readFile: read,
+        root: request.root,
+        target: request.target ?? '',
+        transport,
+      });
+    } else {
+      envelope = await repoSearchDiscover({
+        allowedRoots: [request.root],
+        executor,
+        probe: probed.attempt,
+        query: request.queries[0] ?? '',
+        root: request.root,
+        transport,
+      });
     }
-    const results = await Promise.all(
-      pathOnlyQueries.map((query) =>
-        search(bunExecutor, {
-          allowedRoots: [pathOnlyRoot],
-          query,
-          root: { index: project, root: pathOnlyRoot },
-        }),
-      ),
-    );
-    write(JSON.stringify(results.length === 1 ? results[0] : results, null, 2));
-    return;
-  }
-  const [command, root, project, query] = args;
-  if (command === 'discover' && root && project && query && args.length === 4) {
+    write(JSON.stringify(envelope, null, 2));
+    if (envelope.status === 'error') {
+      process.exitCode = 1;
+    }
+  } catch (error) {
     write(
       JSON.stringify(
-        await search(bunExecutor, {
-          allowedRoots: [root],
-          query,
-          root: { index: project, root },
-        }),
+        errorEnvelope(error instanceof Error ? error.message : String(error), request, transport),
         null,
         2,
       ),
     );
-    return;
+    process.exitCode = 1;
+  } finally {
+    await transport?.close();
   }
-  const spec = commandFor(args);
-  write(commandText(spec));
 };
 
 export const runWhenMain = runCliWhenMain;
 
-runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

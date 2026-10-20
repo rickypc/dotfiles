@@ -30,6 +30,7 @@ test('guards and finalizes a valid compression transaction', async () => {
   const writeFile = mock(async () => undefined);
   const rm = mock(async () => undefined);
   const fileSystem = {
+    exists: async () => false,
     mkdir: mock(async () => undefined),
     readFile,
     rm,
@@ -48,6 +49,7 @@ test('guards and finalizes a valid compression transaction', async () => {
 
 test('resumes a guarded transaction from the original backup', async () => {
   const fileSystem = {
+    exists: async () => false,
     mkdir: mock(async () => undefined),
     readFile: mock(async () => 'Original `token`.'),
     rm: mock(async () => undefined),
@@ -76,6 +78,7 @@ test('claims a new or stale compression lock and rejects an active one', async (
   };
   const writes: string[] = [];
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readFile: async () => {
       throw new Error('missing');

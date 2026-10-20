@@ -38,6 +38,7 @@ export class AidxCompletedPlanValidationError extends Error {
 
   constructor(issues: readonly string[]) {
     super(`AIDX completed-plan validation failed:\n- ${issues.join('\n- ')}`);
+    // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
     this.name = 'AidxCompletedPlanValidationError';
     this.issues = issues;
   }

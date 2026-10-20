@@ -17,6 +17,7 @@ export interface SearchFallbackReceipt {
 }
 
 const ignoredGlobs = ['!**/.git/**', '!**/node_modules/**'] as const;
+const rgTransparencyFlags = ['--hidden', '--no-ignore'] as const;
 const rgContextLines = 2;
 
 const assertSearchInput = (root: string, query: string): void => {
@@ -80,7 +81,7 @@ const attempt = async (
 const rgGlobs = (): readonly string[] => ignoredGlobs.flatMap((glob) => ['--glob', glob]);
 
 export const rgFilesCommand = (root: string): CommandSpec => ({
-  args: ['--files', ...rgGlobs(), root],
+  args: ['--files', ...rgTransparencyFlags, ...rgGlobs(), root],
   command: 'rg',
 });
 
@@ -97,6 +98,7 @@ export const rgLiteralCommand = (
     '--line-number',
     '--fixed-strings',
     ...(ignoreCase ? ['--ignore-case'] : []),
+    ...rgTransparencyFlags,
     ...rgGlobs(),
     query,
     root,

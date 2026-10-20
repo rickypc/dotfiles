@@ -11,8 +11,8 @@ test('renders a deterministic action packet without executing it', async () => {
 test('rejects invalid script input and covers the main boundary', async () => {
   await expect(run([])).rejects.toThrow(usage());
   const runner = mock(async () => undefined);
-  runWhenMain(true, ['packet', 'improve-skill', 'draft', '/skill.md'], runner);
-  runWhenMain(false, [], runner);
+  void runWhenMain(true, ['packet', 'improve-skill', 'draft', '/skill.md'], runner);
+  void runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
 });
 
@@ -83,6 +83,7 @@ test('batches independent matrix and skill-file pairs into one receipt', async (
 test('reviews absolute static roots through the Skill Manager integrity receipt', async () => {
   const write = mock();
   const fileSystem = {
+    exists: async () => false,
     mkdir: mock(async () => undefined),
     readdir: mock(async (path: string) => {
       if (path === '/tmp/.agents/skills/demo') {
@@ -110,6 +111,7 @@ test('reviews absolute static roots through the Skill Manager integrity receipt'
 test('validates a selected skill through the public command', async () => {
   const write = mock();
   const fileSystem = {
+    exists: async () => false,
     mkdir: mock(async () => undefined),
     readdir: mock(async () => []),
     readFile: mock(async () =>
@@ -130,6 +132,7 @@ test('initializes a selected skill through the public command', async () => {
   ).rejects.toThrow(usage());
   const files = new Map<string, string>();
   const fileSystem = {
+    exists: async () => false,
     mkdir: mock(async () => undefined),
     readdir: mock(async () => []),
     readFile: mock(async (path: string) => {

@@ -57,8 +57,15 @@ const discoverStub: typeof searchKnowledgeBaseWithFallback = async () => ({
   discovery: {
     attempts: [],
     found: false,
-    output: '',
+    next: [],
+    ok: true,
+    query: { index: null, input: [], root: '/kb' },
+    reliability: { backend: null, caveats: [], indexedAt: null, note: 'stub' },
+    results: [],
     source: 'none',
+    status: 'empty',
+    transport: 'none',
+    verb: 'search',
   },
   kbInfo: { availableIndexes: [], resolvedRoot: '/kb' },
 });
@@ -72,6 +79,7 @@ const importStub: typeof importPlan = async () => ({
 });
 
 const makeFileSystem = (overrides: Partial<FileSystem> = {}): FileSystem => ({
+  exists: async () => false,
   mkdir: async () => undefined,
   readdir: async () => [],
   readFile: async () => '',
@@ -353,6 +361,7 @@ test('renderOkfConcept with full metadata', () => {
 test('captureConcept creates concept and indexes', async () => {
   const writeCalls: string[] = [];
   const mockFs = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async (dir: string) => {
       if (dir === '/kb/shared/team') {
@@ -407,6 +416,7 @@ test('captureConcept creates concept and indexes', async () => {
 
 test('importPlan imports plan and returns receipt', async () => {
   const mockFs = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async (path: string) => {
@@ -507,7 +517,7 @@ test('searchKnowledgeBase throws for non-absolute path', async () => {
 test('run handles search command', async () => {
   const write = mock();
 
-  await run(['search', '/kb', 'query'], write, captureStub);
+  await run(['search', '/kb', 'query'], write, captureStub, searchStub, discoverStub);
   expect(write).toHaveBeenCalled();
 });
 
@@ -521,8 +531,15 @@ test('run handles search fallback and related commands', async () => {
         discovery: {
           attempts: [],
           found: false,
-          output: '',
+          next: [],
+          ok: true,
+          query: { index: null, input: [], root: '/kb' },
+          reliability: { backend: null, caveats: [], indexedAt: null, note: 'stub' },
+          results: [],
           source: 'none',
+          status: 'empty',
+          transport: 'none',
+          verb: 'search',
         },
         kbInfo: { availableIndexes: [], resolvedRoot: '/kb' },
       }) as Awaited<ReturnType<typeof searchKnowledgeBaseWithFallback>>,
@@ -835,14 +852,28 @@ test('runWhenMain delegates only when invoked as the main module', async () => {
 
 test('searchKnowledgeBaseBatch searches multiple queries', async () => {
   const mockFs = makeFileSystem();
+  const probe = mock(async () => ({
+    attempt: {
+      command: 'probe',
+      detail: 'No backend transport answered.',
+      status: 'skipped' as const,
+      strategy: 'transport-probe' as const,
+    },
+    transport: null,
+  }));
 
-  const results = await searchKnowledgeBaseBatch(mockFs, commandExecutor, '/kb', 'index', [
-    'query1',
-    'query2',
-  ]);
+  const results = await searchKnowledgeBaseBatch(
+    mockFs,
+    commandExecutor,
+    '/kb',
+    'index',
+    ['query1', 'query2'],
+    probe,
+  );
   expect(results.length).toBe(2);
   expect(results[0].query).toBe('query1');
   expect(results[1].query).toBe('query2');
+  expect(probe).toHaveBeenCalledTimes(2);
 });
 
 test('searchKnowledgeBaseBatch throws for empty queries', async () => {
@@ -872,6 +903,7 @@ test('searchKnowledgeBaseBatch throws for duplicate queries', async () => {
   ).rejects.toThrow('KB search-batch queries must be unique after normalization.');
 });
 
+// biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
 test('searchKnowledgeBaseWithFallback returns receipt', async () => {
   const mockFs = makeFileSystem();
 
@@ -881,6 +913,15 @@ test('searchKnowledgeBaseWithFallback returns receipt', async () => {
     '/kb',
     'index',
     'query',
+    mock(async () => ({
+      attempt: {
+        command: 'probe',
+        detail: 'No backend transport answered.',
+        status: 'skipped' as const,
+        strategy: 'transport-probe' as const,
+      },
+      transport: null,
+    })),
   );
   expect(result.concepts).toBeDefined();
   expect(result.discovery).toBeDefined();
@@ -889,6 +930,7 @@ test('searchKnowledgeBaseWithFallback returns receipt', async () => {
 
 test('reconcileConcepts validates and reconciles', async () => {
   const mockFs = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
@@ -917,6 +959,7 @@ test('reconcileConcepts validates and reconciles', async () => {
 
 test('reconcileConcepts throws for invalid canonical path', async () => {
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
@@ -935,6 +978,7 @@ test('reconcileConcepts throws for invalid canonical path', async () => {
 
 test('reconcileConcepts throws for no operations', async () => {
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',
@@ -953,6 +997,7 @@ test('reconcileConcepts throws for no operations', async () => {
 
 test('reconcileConcepts throws for missing canonical operation', async () => {
   const fileSystem = {
+    exists: async () => false,
     mkdir: async () => undefined,
     readdir: async () => [],
     readFile: async () => '',

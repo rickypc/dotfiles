@@ -1,7 +1,9 @@
 import { describe, expect, mock, test } from 'bun:test';
+import { tmpdir } from 'node:os';
 
 import {
   createNodeFileSystem,
+  nodeFileSystem,
   parentDirectory,
   readText,
   removeFile,
@@ -13,6 +15,7 @@ describe('filesystem', () => {
     const readDirectory = mock(async () => []);
     const readFile = mock(async () => 'content');
     const fileSystem = createNodeFileSystem({
+      exists: async () => false,
       mkdir: mock(async () => undefined),
       readDirectory,
       readFile,
@@ -41,6 +44,7 @@ describe('filesystem', () => {
   test('reads text through the injected filesystem boundary', async () => {
     const readFile = mock(async () => 'content');
     const fileSystem = {
+      exists: async () => false,
       mkdir: mock(),
       readFile,
       rm: mock(),
@@ -53,7 +57,13 @@ describe('filesystem', () => {
   test('creates the parent before writing text', async () => {
     const mkdir = mock(async () => undefined);
     const writeFile = mock(async () => undefined);
-    const fileSystem = { mkdir, readFile: mock(), rm: mock(), writeFile };
+    const fileSystem = {
+      exists: async () => false,
+      mkdir,
+      readFile: mock(),
+      rm: mock(),
+      writeFile,
+    };
     await writeText(fileSystem, '/one/two.txt', 'content');
     expect(mkdir).toHaveBeenCalledWith('/one', { recursive: true });
     expect(writeFile).toHaveBeenCalledWith('/one/two.txt', 'content', 'utf8');
@@ -62,6 +72,7 @@ describe('filesystem', () => {
   test('removes a file through the injected filesystem boundary', async () => {
     const rm = mock(async () => undefined);
     const fileSystem = {
+      exists: async () => false,
       mkdir: mock(),
       readFile: mock(),
       rm,
@@ -69,5 +80,16 @@ describe('filesystem', () => {
     };
     await removeFile(fileSystem, '/one.txt');
     expect(rm).toHaveBeenCalledWith('/one.txt', { force: true });
+  });
+
+  test('the node adapter exists probe answers for present and missing paths', async () => {
+    const path = `${tmpdir()}/filesystem-exists-${process.pid}.txt`;
+    await expect(nodeFileSystem.exists(path)).resolves.toBeFalse();
+    await Bun.write(path, 'content');
+    try {
+      await expect(nodeFileSystem.exists(path)).resolves.toBeTrue();
+    } finally {
+      await nodeFileSystem.rm(path, { force: true });
+    }
   });
 });

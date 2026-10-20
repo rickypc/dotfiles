@@ -1,5 +1,6 @@
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 
+import type { CommandSpec } from '../../utils/contracts.js';
 import {
   commandText,
   rgFilesCommand,
@@ -17,6 +18,8 @@ test('builds the shared literal and file-name rg commands', () => {
       '2',
       '--line-number',
       '--fixed-strings',
+      '--hidden',
+      '--no-ignore',
       '--glob',
       '!**/.git/**',
       '--glob',
@@ -29,6 +32,8 @@ test('builds the shared literal and file-name rg commands', () => {
   expect(rgLiteralCommand('/repo', 'Needle', true).args).toContain('--ignore-case');
   expect(rgFilesCommand('/repo').args).toEqual([
     '--files',
+    '--hidden',
+    '--no-ignore',
     '--glob',
     '!**/.git/**',
     '--glob',
@@ -47,11 +52,12 @@ test('builds the shared literal and file-name rg commands', () => {
 
 test('stops after a literal match and records skipped strategies', async () => {
   const commands: string[] = [];
+  // CommandExecutor is the process-spawning boundary; every test injects a mock executor.
   const receipt = await stagedRgSearch(
-    async (spec) => {
+    mock(async (spec: CommandSpec) => {
       commands.push(spec.args[0] ?? '');
       return { code: 0, stderr: '', stdout: '/repo/file.ts:3:Needle' };
-    },
+    }),
     '/repo',
     'Needle',
   );
@@ -69,7 +75,7 @@ test('tries case-insensitive content after an exact miss', async () => {
     { code: 0, stderr: '', stdout: '/repo/file.ts:3:needle' },
   ];
   const receipt = await stagedRgSearch(
-    async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' },
+    mock(async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' }),
     '/repo',
     'Needle',
   );
@@ -79,11 +85,11 @@ test('tries case-insensitive content after an exact miss', async () => {
 
 test('preserves contextual rg output without color codes', async () => {
   const receipt = await stagedRgSearch(
-    async () => ({
+    mock(async () => ({
       code: 0,
       stderr: '',
       stdout: '/repo/file.ts-1-before\n/repo/file.ts:2:Needle\n/repo/file.ts-3-after',
-    }),
+    })),
     '/repo',
     'Needle',
   );
@@ -99,7 +105,7 @@ test('tries file-name discovery after content misses and records command errors'
     { code: 0, stderr: '', stdout: '/repo/needle-file.ts\n/repo/other.ts' },
   ];
   const receipt = await stagedRgSearch(
-    async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' },
+    mock(async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' }),
     '/repo',
     'needle',
   );
@@ -110,24 +116,32 @@ test('tries file-name discovery after content misses and records command errors'
   expect(receipt.attempts.map((item) => item.status)).toEqual(['not-found', 'error', 'found']);
   await expect(
     stagedRgSearch(
-      async () => {
+      mock(async () => {
         throw new Error('unavailable');
-      },
+      }),
       '/repo',
       'needle',
     ),
   ).resolves.toMatchObject({ found: false });
   await expect(
-    stagedRgSearch(async () => ({ code: 1, stderr: '', stdout: '' }), 'relative', 'needle'),
+    stagedRgSearch(
+      mock(async () => ({ code: 1, stderr: '', stdout: '' })),
+      'relative',
+      'needle',
+    ),
   ).rejects.toThrow('absolute');
   await expect(
-    stagedRgSearch(async () => ({ code: 1, stderr: '', stdout: '' }), '/repo', ' '),
+    stagedRgSearch(
+      mock(async () => ({ code: 1, stderr: '', stdout: '' })),
+      '/repo',
+      ' ',
+    ),
   ).rejects.toThrow('query');
 });
 
 test('does not treat stderr-only diagnostics as a content match', async () => {
   const receipt = await stagedRgSearch(
-    async () => ({ code: 0, stderr: 'warning: ignored path', stdout: '' }),
+    mock(async () => ({ code: 0, stderr: 'warning: ignored path', stdout: '' })),
     '/repo',
     'needle',
   );
@@ -137,4 +151,20 @@ test('does not treat stderr-only diagnostics as a content match', async () => {
     detail: 'warning: ignored path',
     status: 'not-found',
   });
+});
+
+test('staged rg commands stay ignore-transparent under the approved root', () => {
+  const literal = rgLiteralCommand('/repo', 'Needle', false).args;
+  const insensitive = rgLiteralCommand('/repo', 'Needle', true).args;
+  const files = rgFilesCommand('/repo').args;
+  for (const args of [literal, insensitive, files]) {
+    expect(args).toContain('--hidden');
+    expect(args).toContain('--no-ignore');
+  }
+  const receipts = skippedRgAttempts('/repo', 'Needle', 'Skipped for the test.');
+  expect(receipts).toHaveLength(3);
+  for (const attempt of receipts) {
+    expect(attempt.command).toContain('--hidden');
+    expect(attempt.command).toContain('--no-ignore');
+  }
 });
