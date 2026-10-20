@@ -3,265 +3,292 @@ name: skill-manager
 description: >-
   Use this skill when creating, updating, reviewing, renaming, synchronizing, optimizing,
   validating, or repairing an Agent Skill. It governs scope, trigger descriptions, progressive
-  disclosure, scripts, evals, references, deterministic validation, and evidence-gated closeout.
+  disclosure, scripts, evals, references, deterministic validation, and evidence-gated closeout. Use
+  it for agent instruction documents too, including AGENTS*.md; it governs their lifecycle, scope,
+  authority, routing, validation, and closeout.
 argument-hint: <operation> [arguments]
 ---
 
-# Skill Manager - Create, Maintain, and Govern Skills
+# Skill Manager - Govern Agent Skills and Instructions
 
 ## 1. Role & Scope
 
-Skill Manager is the sole owner of every skill lifecycle request: create, update, review, rename,
-synchronize, optimize, validate, or repair a skill, including specialized capability skills. It owns
-the selected package's frontmatter, normal path, router, delegated owners, references, assets,
-matrices, prose/link review, validation, and closeout evidence. Domain skills may supply knowledge
-or execute delegated work, but they do not mutate skill packages.
+Skill Manager owns lifecycle work for Agent Skill packages and user-authorized agent instruction
+documents. Instruction documents include `AGENTS*.md` and equivalent runtime-selected policies,
+workflow guides, and agent playbooks. It owns scope, routing, references, validation, and closeout;
+the existing policy or domain owner retains authority over its requirements and decisions.
 
-The `quality-engine` owns evaluation state and receipts; Skill Manager owns the skill contract,
-resources, references, matrices, repair packet, and final changed-file/evidence handoff. Read
-[skill-lifecycle.md](references/skill-lifecycle.md) for the method,
-[skill-template.md](references/skill-template.md) for the shared seven-part contract,
-[agent-skills-guidance.md](references/agent-skills-guidance.md) for Agent Skills specification and
-creation practices, and [index.md](references/index.md) for the map. Load the Agent Skills guidance
-for package design, description, evaluation, script, or specification decisions.
+For Agent Skills, Skill Manager owns frontmatter, normal path, router, delegated owners, references,
+assets, matrices, prose and link review, package validation, and closeout evidence. Domain skills may
+supply knowledge or execute delegated work, but they do not mutate a skill package. For instruction
+files, Skill Manager checks the active instruction chain, preserves its owner and format, and does
+not force instruction files into the skill template.
+
+The `quality-engine` owns evaluation state and receipts. Skill Manager owns the skill contract,
+instruction maintenance procedure, resources, matrices, repair packet, and final evidence handoff.
+Read [skill-lifecycle.md](references/skill-lifecycle.md) for the lifecycle,
+[skill-template.md](references/skill-template.md) for the seven-part Agent Skill contract,
+[agent-skills-guidance.md](references/agent-skills-guidance.md) for Agent Skills requirements, and
+[index.md](references/index.md) for the package map. Load the guidance for package design,
+description, evaluation, script, or specification decisions.
 
 ## 2. Usage
 
-Use this skill for any Agent Skill creation, update, review, rename, synchronization, optimization,
-validation, or repair request.
+Use this skill for Agent Skill creation, update, review, rename, synchronization, optimization,
+validation, and repair, and for user-authorized lifecycle work on an agent instruction document.
 
 ```text
-/skill-manager init <skill-path> [description]         # create a new skill scaffold
-/skill-manager validate <skill-path>                   # validate one skill package
-/skill-manager review <root> [additional-root]         # review prose and links
-/skill-manager evaluate <phase> <matrix> <skill-file>  # run one matrix phase
-/skill-manager batch <review-id> <phase> <pairs>       # evaluate multiple targets
-/skill-manager packet <review-id> <state> <skill-path> # return the next repair action
-/skill-manager validate-skills                         # validate every global skill package
-
-# Usage governance: commands are the canonical information and action routes.
-# Put required arguments in <name>, optional arguments in [name], and no
-# arguments in -. Keep normal calls first, alternatives at their decision
-# point, and recovery last. Do not duplicate this contract in another table.
-# Every referenced command must be defined above; dependencies belong in the
-# Ordered Execution Chain.
+/skill-manager instructions <file-path> <operation>   # maintain one instruction document
+/skill-manager init <skill-path> [description]        # create an Agent Skill scaffold
+/skill-manager validate <skill-path>                  # validate one Agent Skill package
+/skill-manager review <root> [additional-root]        # review prose, policy chain, and links
+/skill-manager evaluate <phase> <matrix> <skill-file> # evaluate one frozen matrix phase
+/skill-manager batch <review-id> <phase> <pairs>      # evaluate multiple skill targets
+/skill-manager packet <review-id> <state> <path>      # create the next repair action packet
+/skill-manager validate-skills                        # validate global Agent Skill packages
+# Usage governance: keep required <name> and optional [name] arguments explicit.
 ```
 
-Required and optional arguments are visible on each command line:
+For the `instructions` route, `<operation>` is `create`, `update`, `review`, `rename`, `synchronize`,
+`optimize`, `validate`, or `repair`. `<file-path>` is the exact absolute instruction path;
+`<skill-path>` is the absolute package directory. `[additional-root]` is an optional absolute static
+root used when a runtime adapter or neighboring static consumer must be reviewed. The `/skill-manager`
+routes are agent workflows, not terminal commands. Use the owning scripts only for their documented
+mechanical checks. For evaluation, `<phase>` is `baseline`, `candidate`, or `challenge`; batch
+evaluation accepts `baseline` or `candidate`. `<matrix>` and `<skill-file>` are absolute JSONL matrix
+and skill-file paths. `<pairs>` contains one or more absolute matrix and skill-file path pairs.
+`<review-id>` is the persisted review identifier. `<state>` is `candidate-checked`,
+`candidate-requested`, or `draft`, as returned by the workflow. `[description]` is optional scaffold
+metadata limited to 1,024 characters.
 
-- `<operation>`: one of the operations shown above.
-- `<skill-path>`: an absolute selected skill directory, or the exact skill file required by the
-  command.
-- `[additional-root]`: an optional absolute static root, used when a runtime adapter or neighboring
-  static consumer must be reviewed.
-- `<phase>`: `baseline`, `candidate`, or `challenge` for evaluation; `baseline` or `candidate` for
-  batch evaluation.
-- `<matrix>` and `<skill-file>`: absolute JSONL matrix and skill-file paths.
-- `<pairs>`: one or more matrix/skill-file path pairs for batch evaluation.
-- `<review-id>` and `<state>`: the persisted review identifier and state-derived packet state.
-- `[description]`: optional scaffold metadata, limited to 1,024 characters.
-
-Treat this block as the canonical command grammar. Keep the `#` comments column-aligned, put
-optional arguments in `[brackets]`, and describe the observable result or next action rather than
-repeating the command name. `/skill-manager` is an agent workflow; do not execute the slash form in
-a terminal.
+Usage governance: the aligned block is the only invocation catalog. Use `<name>` for required
+arguments, `[name]` for optional arguments, and `-` when a command takes none. Keep comments
+column-aligned; put normal actions first, alternatives at their decision point, and recovery last.
+Describe the observable result or next action in each comment. Define every referenced command in
+the block and put its dependencies in `Ordered Execution Chain`.
 
 ### Domain-owned command and information tables
 
-The aligned block above is the only invocation catalog for `/skill-manager`. Do not duplicate that
-router in another section. A skill may still need a command-options table outside its own `Usage`
-section when the table documents a delegated command or information source, such as a
-context-retrieval route. Put that table under the section that owns the route; it is an information
-contract, not a second invocation grammar. Use exactly these four columns:
+Put domain-owned command and information tables outside the invocation catalog under their owning
+section, with exactly four columns:
 
 `Command or information` | `Arguments` | `When to use` | `Additional information`
 
-Keep one downstream route per row. Preserve the owner command and argument placeholders, state the
-observable condition for use, and put receipts, fallbacks, restrictions, or implementation details
+Keep one downstream route per row. Preserve owner commands and argument placeholders, state the
+observable condition for use, and put receipts, fallbacks, restrictions, and implementation details
 in the final column. Review all sections and linked prose for this distinction: reject duplicate
-skill invocation catalogs, but retain a necessary owner-specific four-column table outside `Usage`.
+invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
 
 ## 3. Immutable Operational Rules
 
-- Preserve one owner for each command, information path, router, and completion decision. Do not
-  create a second router or duplicate a neighboring owner.
-- Define and **freeze the frozen matrix** before edits. Each case has typed assertions, failure
-  mode, repair boundary, and independent verifier. Never weaken an assertion, change the same matrix
-  to make a candidate pass, or reuse stale evidence.
-- Start from persisted state: **Resume or prepare** one matching review run before editing. Preserve
-  existing user changes and unresolved questions.
-- Guard every in-scope durable Markdown file with `/md-compress` begin/finalize before/after prose
-  edits, including unchanged linked prose. Preserve protected runtime/configuration boundaries and
-  ignored state.
+- Preserve one owner for each policy decision, command, information path, router, and completion
+  gate. Skill Manager governs the file lifecycle; it does not replace the file's policy owner.
+- Resolve the active instruction chain from runtime and repository evidence before editing. An
+  `AGENTS*.md` filename alone does not prove that the file is active. Follow explicit lane and path
+  exclusions; never use an inactive file as a workaround.
+- A child policy must extend its applicable parent. Preserve precedence, ownership, and all
+  unrelated user changes. Preserve user-owned changes. Never replace parent policy, invent missing
+  authority, or edit outside the user-authorized scope.
+- Keep the target document's existing format and governing requirements. Apply the seven-section
+  contract only to Agent Skill `SKILL.md` files; do not force instruction files into the skill
+  template.
 - Keep normal-path guidance inline, branch-only detail in one owned reference, and external sources
-  only for authority/discovery that cannot be co-located. Prune duplicate, stale, no-op,
+  only for authority or discovery that cannot be co-located. Prune duplicate, stale, no-op,
   speculative, negation-only, and fluffy prose.
-- Keep `SKILL.md` under 500 lines and approximately 5,000 tokens; use progressive disclosure with
-  relative, one-level-deep links to focused `references/`, `scripts/`, and `assets/` resources.
-- Prefer a useful picture over a thousand words: put the smallest clear command example, table, or
-  text diagram before prose, then keep the prose only for decisions, boundaries, predicates, and
-  proof that the picture cannot express.
-- Write descriptions as concise, imperative trigger guidance: state the user intent and the skill's
-  job, include indirect contexts and useful keywords, define adjacent boundaries, and keep the field
-  at or below 1,024 characters. The description is the activation boundary: do not add a separate
-  `trigger` frontmatter field. Test it with realistic should-trigger and should-not-trigger prompts,
-  including near-miss negative cases, record trigger rates across repeated runs where supported, and
-  use a fixed train/validation split; select by validation performance and do not overfit to
-  individual failed keywords. `argument-hint` is retained only as a caller/UI input hint and does
-  not control activation. When a skill's Usage contract exposes caller-supplied arguments, add a
-  matching compact `argument-hint` to its frontmatter; omit it only when the skill truly accepts no
-  caller input.
-- For output evals, compare clean with-skill and without-skill (or prior-version) runs, vary
-  phrasing and edge cases, add assertions after observing outputs, require concrete assertion-level
-  evidence for each grade, use deterministic verifiers for mechanical checks, inspect outputs and
-  assertions manually, and retain timing/token, variance, and pass-rate deltas. Remove assertions
-  that are always-pass or always-fail in both configurations and investigate outliers.
-- Prefer one-off commands for existing tools; bundle repeated or fragile logic in `scripts/`.
-  Reference bundled scripts with skill-root-relative paths, document dependencies and `--help`, keep
-  scripts non-interactive, accept inputs through arguments/environment/stdin, emit structured
-  output, and make errors state the problem, expected input, and what the agent should try next.
-- Capture a materially repeated workflow as skill guidance instead of re-deriving it per session:
-  extract the stable inputs, ordered steps, boundaries, validation, and recovery; make the
-  act-check-react loop explicit (perform the action, verify with the named check, react to the
-  result at that boundary); and preserve human judgment as explicit escalation or decision
-  points, never hardcoded verdicts. Extracted guidance stays generic: no session-specific tools,
-  paths, or one-off payloads.
-- Treat the seven headings as the document architecture, not as a wrapper. For an existing skill,
-  make a content-ownership map first, then rewrite the entire source in place: move every retained
-  paragraph, table, code block, and branch rule into one owning section or nested subsection and
-  remove superseded blocks. Never prepend a seven-section shell over the old skill, append the old
-  body after section 7, duplicate a command catalog, or add filler to satisfy the heading count.
-  Sections need not have equal length.
-- Never claim closure from a score or measurement. Deterministic validation, prose/link review,
-  matrix receipts, project gates, and owner review decide pass/failure.
+- Prefer the smallest clear command example, table, or text diagram before prose. Keep prose for
+  decisions, boundaries, predicates, and proof that the example, table, or diagram cannot express.
+- For a skill package change, define and freeze the quality matrix before editing. Every case needs
+  typed assertions, failure mode, repair boundary, and independent verifier. Never weaken the frozen
+  matrix or reuse stale evidence.
+- Resume or prepare the matching quality-engine review before editing. If that state or a required
+  verifier is unavailable, state the exact blocker and stop before the governed edit.
+- Use `/md-compress` begin/finalize for every in-scope durable Markdown file, including linked prose
+  reviewed without edits. Preserve protected tokens, runtime configuration, ignored state, and
+  backups; stop on a guard failure.
+- For global `.agents` roots, read `.agents/.gitignore` before inventory. Never edit protected
+  `.agents` configuration files such as `.gitignore`, `biome.jsonc`, `bunfig.toml`, `LICENSE`,
+  `NOTICE`, `package.json`, or `tsconfig.json`.
+- Keep `SKILL.md` below 500 lines and about 5,000 tokens. Use progressive disclosure and focused,
+  relative, one-level links. Reusable guidance uses placeholders, not machine-specific paths.
+- Write skill descriptions as concise, imperative trigger guidance: state the user intent and job,
+  relevant indirect contexts, useful keywords, and neighboring boundaries; limit them to 1,024
+  characters. The `description` field owns activation;
+  `argument-hint` does not control activation. Do not add a competing `trigger` field. Test trigger
+  changes with balanced, realistic positive and near-miss negative prompts and repeated runs through
+  the actual registered agent where available.
+  Keep `argument-hint` only as a compact caller/UI hint. When `Usage` exposes caller-supplied
+  arguments, provide a matching hint; omit it only when the skill accepts no caller input.
+- For output evaluations, compare clean with-skill and without-skill or prior-version runs. Vary
+  wording and edge cases, inspect assertion-level evidence, use deterministic checks for mechanical
+  claims, review actual outputs, and record timing, token use, variance, and pass-rate changes.
+- Prefer one-off commands for existing tools. Bundle repeated or fragile logic in `scripts/`, use
+  skill-root-relative paths, document dependencies, and pin versions when reproducibility matters.
+  Scripts must accept inputs through arguments, environment, or stdin, expose concise `--help`,
+  emit structured output, and give errors that state the problem, expected
+  input, and next action.
+- Capture materially repeated workflows as reusable guidance: stable inputs, ordered steps,
+  boundaries, validation, and recovery. Make the act-check-react loop explicit: perform the action,
+  verify with the named check, and react to its result at that boundary. Preserve human judgment as
+  escalation or decision points, not hardcoded verdicts. Keep extracted guidance generic; omit
+  session-specific tools, paths, and one-off payloads.
+- Keep the seven section headings as a skill document's architecture. For an existing skill, map
+  content ownership first, rewrite the entire source in place, move retained content under one owner
+  or nested subsection, and remove superseded blocks. A heading count alone does not prove cohesion;
+  never leave a detached second half or add filler. Sections need not have equal length.
+  Map every retained paragraph, table, code block, and branch rule to one owning section or linked
+  reference. Never prepend a seven-section shell, append the old body after section 7, or duplicate
+  the invocation catalog.
+- Never claim closure from a score or measurement. Deterministic checks, matrix receipts, policy and
+  link review, applicable project gates, and owner review decide pass or failure.
 
 ## 4. Input & Context Schema
 
-- **Required:** An absolute skill path or static root, the lifecycle operation, and the applicable
-  matrix/eval assets.
-- **Optional:** Additional static roots, review id, candidate/challenge phase, delegated receipt, or
-  a forward-test request.
-- **Context:** Frontmatter, all canonical and linked durable Markdown, scripts, assets, eval
-  matrices/rubrics, local links, static consumers, ignore rules, project and coding-assistant
-  policies, existing user changes, and configured gates.
-- **Unknowns:** Missing owner/source/matrix/verifier, invalid scope, stale link, missing resource,
-  unresolved adapter, or unclear completion proof is a repair or clarification stop. Do not invent a
-  score, provider, credential, or evidence.
-- **Existing-document migration:** Record a content-ownership map before editing. Each retained
-  block must have one of the seven section owners or an explicitly linked reference; mark obsolete
-  blocks for removal rather than carrying them forward as a detached second half.
+- **Required:** The requested lifecycle operation, exact absolute target path or static root,
+  artifact type, applicable policy owner, and proof needed to close the change. Skill changes also
+  require the applicable matrix and evaluation assets.
+- **Optional:** Additional static roots, a review id, a skill selector, candidate or challenge
+  phase, delegated receipt, or forward-test request.
+- **Context:** Active parent and child instructions, runtime file precedence, linked durable prose,
+  package resources, consumers, ignore rules, user changes, matrix and rubric, and configured gates.
+- **Unknowns:** Missing authority, active-path resolution, source, matrix, verifier, access, or
+  completion proof; invalid scope; stale link; missing resource; or unresolved adapter is a stop.
+  Ask only for the missing fact that changes scope or correctness. Do not invent a score, provider,
+  credential, source, or evidence.
+- **Skill migration:** Record a content-ownership map before rewriting. Every retained block belongs
+  to one of the seven sections or a linked reference; obsolete blocks are removed.
+- **Instruction maintenance:** Record which files are active, their parent/child relationships, and
+  why each is in scope. Do not infer applicability from a filename or edit an excluded lane.
 
-For global `.agents` review, read `.agents/.gitignore` before inventorying the review set. Exclude
-every ignored path and machine-local runtime/coverage state; include every non-ignored declared
-static path. Load `<project>/AGENTS.md` when it exists as an additional project policy. It must
-extend `~/.agents/AGENTS.md` when that global project policy is available. When a
-coding-assistant-specific policy exists, load `<coding-assistant>/AGENTS.md`; it follows the same
-rule and must extend `~/.agents/AGENTS.md` when available.
+For a global `.agents` review, read `.agents/.gitignore` first. Exclude every ignored path and
+machine-local runtime or coverage state; include every applicable declared non-ignored static path,
+including project, coding-assistant, and runtime-selected override roots. Verify that each existing
+child policy extends its available parent. Keep reusable guidance placeholder-based; put concrete
+paths only in the corresponding local policy.
 
 ## 5. Ordered Execution Chain
 
 ```text
-request -> scope and owner -> persisted review state -> frozen matrix
-        -> guarded edit -> candidate/challenge evaluation -> validation and gate
+request -> artifact and active owner -> review state and frozen matrix
+        -> Markdown guards -> RED -> cohesive candidate -> GREEN/REFACTOR/challenge
+        -> deterministic validation -> owner review and gate -> closeout
 ```
 
-1. **Intake:** Resolve the package and its linked local prose, declared static roots, consumers,
-   user changes, ignore scope, and adapter boundary. Follow links recursively, inventory the
-   existing document's top-level and nested content, map each block to an owner section, and record
-   the review set before baseline.
-2. **Prepare evidence:** Resume or prepare the review id, define the non-filler matrix and
-   fingerprint, record source fingerprints, run RED without the candidate guidance, and retain
-   observed failures/rationalizations.
-3. **Guard and edit:** Run `/md-compress` begin for every durable Markdown in the review set. Apply
-   one compatible candidate batch only to approved paths, using the seven headings as the real
-   document structure. Rewrite the complete `SKILL.md` in place; put the canonical invocation
-   grammar in Usage, routing rules in Router Governance, and branch or downstream
-   command-information tables in the section that owns them. Use nested subsections when needed, and
-   remove superseded or duplicate legacy prose.
-4. **Evaluate:** Run GREEN against the **same matrix**, require a changed **source fingerprint**,
-   then run REFACTOR to close new loopholes. For trigger-description changes, run the fixed
-   trigger-query set in `evals/trigger-queries.json` with repeated samples through the actual
-   registered agent, classify invocation by whether the skill loaded, and choose the generalizing
-   iteration from the fixed validation split. For output changes, compare clean with-skill and
-   without-skill/prior-version runs, grade each assertion with evidence, capture timing/token
-   deltas, and manually review outputs. Issue challenge evidence only from the same candidate source
-   and matrix.
-5. **Finalize and gate:** Run each returned Markdown finalize action, validate
-   frontmatter/structure/resources, review prose and links, run applicable candidate/challenge
-   checks and project gates, then return the changed-file handoff or a targeted repair packet.
+1. **Resolve:** Identify the exact artifact and operation. For instructions, establish the active
+   file, its owner, parent chain, exclusions, and consumers. For a skill, resolve its package,
+   linked prose, static roots, consumers, ignore scope, and adapter. Follow local prose links
+   recursively, inventory top-level and nested content, map each block to an owner, and record the
+   review set before baseline.
+2. **Prepare evidence:** Preserve existing user changes. Resume or prepare the matching review,
+   define a non-filler matrix, freeze its fingerprint, record source fingerprints, and run RED before
+   editing. Retain exact failures and rationalizations. For instructions, capture the authority chain
+   and relevant requirements.
+3. **Guard and edit:** Begin `/md-compress` for each in-scope durable Markdown file. Apply one
+   compatible batch only to authorized paths. Keep an instruction document in its existing format.
+   For a skill, map content ownership and rewrite the complete source in place as one cohesive
+   seven-section document. Keep invocation grammar in `Usage`, routing rules with their owner, and
+   branch or downstream command-information tables in their owning section. Use nested subsections
+   where needed and remove superseded blocks.
+4. **Check:** Run GREEN against the same matrix and require a changed source fingerprint. Use
+   REFACTOR to close new loopholes, then run challenge cases against the same candidate source and
+   matrix. For trigger changes, use `evals/trigger-queries.json`, repeated runs through the actual
+   registered agent, and the fixed validation split. For output changes, compare clean with-skill and
+   without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
+   deltas, and manually review outputs. For instructions, review precedence, active-path selection,
+   links, cross-file conflicts, and the exact requested rule.
+5. **Finalize:** Run every exact Markdown finalize action. Validate frontmatter, structure, and
+   resources or the instruction format; review links and policy inheritance; then run applicable
+   project gates. React to failed checks at that boundary. Never hide a failure or cross an owner
+   boundary.
 
-If a project gate emits a non-blocked action packet, execute its validated required action groups
-through the owning command's explicit apply route, verify its allowed paths and forbidden actions,
-and rerun the identical gate. Do not treat the packet as display-only evidence or a user handoff. A
+If a project gate returns a non-blocked action packet, apply its validated required action groups
+through the explicit apply route owned by that command. Verify allowed paths and forbidden actions,
+then rerun the identical gate. Never display or hand off a safe packet without applying it. A
 missing, blocked, ambiguous, or unsafe packet is a repair stop.
 
 ### Review scope, prose, and link integrity
 
-The review set is `SKILL.md`, every linked local prose asset, every declared static methodology
-root, and the applicable adapter. Verify each linked local prose asset exists inside approved scope,
-names the intended owner, and is not stale, duplicated, or redirected through an unrelated router.
-Review every durable Markdown file with `/md-compress`, even when unchanged; that transaction proves
-token preservation but does not replace the prose, authority, or link review. JSONL matrices,
-manifests, and source code remain separate deterministic artifacts.
+The review set includes the target, every linked local prose asset, declared static roots, and the
+applicable adapter. Read `.agents/.gitignore` before inventory and exclude ignored paths. Include
+`<project>/AGENTS.md`, `<coding-assistant>/AGENTS.md`, and `~/.agents/AGENTS.md` as additional static
+roots when applicable. Verify that each child extends its parent rather than replacing it. Every
+local link must exist within approved scope, name its intended owner, and be current; reject stale,
+duplicate, or unrelated-router links. Use `/md-compress` begin/finalize for every in-scope durable
+Markdown file, including linked prose reviewed without edits. Markdown guards prove token
+preservation, not correct authority or meaning. JSONL matrices, manifests, and source code use
+their own deterministic checks. Keep concrete project or assistant path details in local policy.
 
-### Project and coding-assistant policy ownership
+The policy owner remains authoritative for content. A project or coding-assistant policy may narrow
+scope or strengthen its parent; it must not silently replace it. Follow explicit runtime precedence
+when both a base file and an override exist.
 
-When `<project>/AGENTS.md` or `<coding-assistant>/AGENTS.md` exists, include it as an additional
-static root and verify that it extends the available `~/.agents/AGENTS.md` policy rather than
-replacing it. Keep reusable guidance placeholder-based with `<project>` and `<coding-assistant>`;
-materialize the actual project or assistant path only in the corresponding local policy.
+### Evaluation contract
 
-### Evidence lifecycle: Matrix, RED/GREEN/REFACTOR, and pressure evidence
+Each `evals/rubric.md` defines machine-readable `schemaVersion`, `requiredCaseFields`,
+`requiredVisibility`, `minimumPassRate`, and fixed `verifierIds`. Reject missing or unknown verifier
+ids. Run declared verifiers only through the in-process fixed registry; arbitrary shell commands and
+descriptive verifier prose are not executable evidence. Candidate and challenge receipts must show
+that independent verifiers actually ran.
 
-The RED-GREEN-REFACTOR loop is mandatory for behavior-changing guidance:
+Use the frozen `evals/cases.jsonl` and, when applicable, `evals/trigger-queries.json`. Record the
+matrix fingerprint before RED and keep it unchanged through candidate and challenge; record source
+fingerprints for every phase. **RED** runs without the candidate and preserves exact failures and
+rationalizations. **GREEN** applies the smallest repair to the same matrix. **REFACTOR** identifies
+new rationalizations, adds targeted counters, and reruns candidate and challenge checks until stable.
+Choose the guidance form from baseline evidence: a bright-line rule, counter, and red flag for
+pressure failures; a positive recipe or structural contract for wrong shape; and a
+predicate/action/boundary for conditional behavior.
 
-1. **RED:** Run the baseline without the candidate and preserve the exact failure/rationalization
-   evidence.
-2. **GREEN:** Apply the smallest repair and rerun the same frozen matrix.
-3. **REFACTOR:** Identify new rationalizations, add targeted counters, and rerun candidate/challenge
-   checks until stable.
+For discipline evaluations, use a no-guidance control, at least three combined pressures, 5+
+independent samples where supported, manual review of flagged outputs, captured rationalizations,
+and variance as a signal. Remove always-pass or always-fail assertions, inspect outliers, and retain
+the evidence; scores or measurements do not close a review.
 
-Choose guidance form from the baseline: a bright-line rule, counter, and red flag for pressure
-failures; a positive recipe/structural contract for wrong shape; and a predicate/action/boundary for
-conditional behavior. For a discipline skill use a no-guidance control, at least three combined
-pressures, **5+** independent samples where supported, **manual** review of flagged outputs,
-captured rationalizations, and **variance** as a signal. Record pressure results without confusing a
-**score or measurement** with closure.
+Description evaluations use a fixed train/validation split, balanced `should-trigger` and
+`should-not-trigger` cases, repeated runs, and observed trigger rates from the actual registered
+agent. Classify invocation by whether the skill loaded. Use training failures to guide edits, choose
+the generalizing iteration from held-out validation, and do not overfit exact failed-query keywords.
 
-### Evaluation and verifier contract
+For output evaluations, compare clean with-skill and without-skill or prior-version runs, vary
+phrasing and edge cases, then add assertions based on observed outputs. Retain concrete
+assertion-level evidence for each grade, use deterministic verifiers for mechanical claims, and
+manually review actual outputs. Record timing/token, pass-rate, and variance deltas. Remove
+assertions that always pass or fail in both configurations; inspect inconsistent outputs and outliers.
 
-Every `evals/rubric.md` has machine-readable `schemaVersion`, `requiredCaseFields`,
-`requiredVisibility`, `minimumPassRate`, and fixed `verifierIds`. The evaluator rejects
-missing/unknown verifier IDs and runs each declared verifier through the in-process fixed registry;
-arbitrary shell commands or descriptive verifier prose are not executable evidence. Candidate and
-challenge receipts include executed independent-verifier checks.
+Scripts used by the workflow must be non-interactive, expose `--help`, and emit structured output.
+Errors should say what failed, what was expected, and what the agent should try next.
 
 ## 6. Output & Completion Contract
 
-Success returns a valid package, reviewed scope, matrix fingerprint, baseline/ candidate/challenge
-source fingerprints, changed files, Markdown transaction receipts, frontmatter/resource/link
-findings, deterministic validation, owner review, project gate results, limitations, and a final
-handoff. The cohesion review must show that the seven headings contain the migrated contract, every
-retained block has one owner, no detached second half remains, and heading count was not achieved
-with filler. Resolve the final gate in this order: the user-approved gate configured in `aidx.json`,
-then `.agents test`, then `bun run test`. Run the selected gate completely and retain its exact
-command and result; all required checks within it must pass.
+For a skill, return the reviewed package, matrix and source fingerprints, evaluation receipts,
+changed files, Markdown transactions, frontmatter/resource/link findings, deterministic validation,
+owner review, project gates, limitations, and handoff. The cohesion review proves all retained
+content has one owner, the seven headings contain the migrated contract, no detached second half
+remains, and heading count was not achieved with filler.
 
-Failure returns the exact finding, failed assertion, owner boundary, missing resource/link,
-matrix/source mismatch, or gate output plus the repair packet. No score, measurement, intention,
-candidate receipt, or partial green check closes the review. Do not use provider-driven training or
-an unavailable external owner as a hidden dependency.
+For an instruction file, return the exact changed files, active policy chain, authority and
+inheritance findings, Markdown transactions, link and format checks, project gates, limitations, and
+handoff. Confirm that the child still extends its parent and unrelated user changes remain intact.
+
+Failure names the exact finding, failed assertion, owner boundary, missing resource or link, stale
+receipt, matrix/source mismatch, or gate output, with its repair packet. Do not claim completion
+from a score, measurement, intent, candidate receipt, partial green check, provider-driven training,
+or unavailable external owner. For skill packages, the final gate is the project-approved `finalGate`
+in `aidx.json`, otherwise `.agents`'s `bun run test`, otherwise `bun run test`. Run the selected gate
+completely, retain its exact command and result,
+and require every check to pass.
 
 ## 7. Evaluation Anchors
 
-- **Canonical:** A skill update resumes a review, freezes a matrix, runs RED, maps existing content,
-  guards Markdown, rewrites one cohesive seven-section candidate, runs GREEN and REFACTOR,
-  challenges the same source/matrix, validates, reviews, and gates.
-- **Boundary:** Wrong owner, weakened assertion, broken link, ignored runtime state, missing
-  adapter/resource, stale receipt, detached second half, filler, or failed deterministic gate stops
-  closure. A seven-heading count alone is not proof of cohesion.
-- **Challenge:** A skill requiring judgment, research, interaction, or delegation keeps uncertainty
-  and ownership inside the seven sections rather than imposing a robotic exact-output persona.
-- **Independent verifier:** The `quality-engine`, deterministic validator, matrix/source
-  fingerprints, Markdown protection, prose/link review, and project gates independently verify
-  closure.
+- **Canonical:** Skill updates use one frozen matrix, RED/GREEN/REFACTOR, a cohesive seven-section
+  rewrite, challenge evidence, deterministic validation, prose review, and the configured gate.
+- **Instruction lifecycle:** `AGENTS*.md` and equivalent agent policies use the same owner, evidence,
+  guard, and closeout discipline while retaining their own format and policy authority.
+- **Boundary:** Wrong owner, inactive target, broken inheritance, changed user work, weakened
+  assertion or matrix, broken link, missing adapter or resource, stale receipt, ignored protected
+  state, detached or filler skill content, or failed deterministic gate stops closure. A seven-heading
+  count alone is not proof of cohesion.
+- **Challenge:** Preserve uncertainty and delegated judgment; do not impose brittle exact-output
+  behavior on skills or instructions that require research, interaction, or owner decisions.
+- **Independent verifier:** Quality-engine receipts, deterministic validation, matrix and source
+  fingerprints, Markdown token checks, active-policy review, links, and project gates independently
+  verify closure.

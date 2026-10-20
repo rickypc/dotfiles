@@ -45,7 +45,7 @@ aidlc
 .homebrew
 .IdentityService
 .idlerc
-.kiro*
+# .kiro*
 .lesshst
 .lima
 .litert-lm

@@ -142,25 +142,26 @@ or information tables. `argument-hint` is only a hint; the Usage section and own
 authoritative grammar and may contain alternate routes, optional arguments, or additional
 boundaries.
 
-| Skill                        | Quick-start input                                                       | Use when                                                                                                                                            |
-| ---------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/aidp`                      | `<goal-and-concerns>`                                                   | An incomplete or complete request needs evidence intake, clarification, and one explicit six-section execution plan handed to `/aidx`.              |
-| `/aidx`                      | `<plan-path-relative-or-absolute>`                                      | One materialized six-section plan needs deterministic execution, delegated ownership, fresh verification, and mapped completion or repair evidence. |
+| Skill                        | Quick-start input                                                       | Use when                                                                                                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/aidp`                      | `<goal-and-concerns>`                                                   | An incomplete or complete request needs evidence intake, clarification, and one explicit six-section execution plan handed to `/aidx`.                                          |
+| `/aidx`                      | `<plan-path-relative-or-absolute>`                                      | One materialized six-section plan needs deterministic execution, delegated ownership, fresh verification, and mapped completion or repair evidence.                             |
 | `/repo-search`               | `<approved-root> <query...>`                                            | Repository, file, symbol, call-path, architecture, connection, or binary-content discovery is needed; read Usage for the three wrapper verbs and the unified response contract. |
-| `/knowledge-base`            | `<operation> <private-kb-root> <scope-or-request>`                      | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed.                                                  |
-| `/biome-checker`             | `<path> [path...]`                                                      | Explicit JavaScript or TypeScript paths need Biome, bun check, and declaration-order checks. |
-| `/bun-test-generator`        | `<sut-path> <all\|method-list\|method-range>`                           | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted.                                   |
-| `/frontend-design`           | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>`   | A user-facing web UI is created, redesigned, or visually refreshed.                                                                                 |
-| `/react`                     | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | React or React Native implementation is in scope after design/content inputs are approved.                                                          |
-| `/playwright-test-generator` | `<criteria> <project-root> <playwright-runner>`                         | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests.                           |
-| `/content-writer`            | `<objective> <audience> <format> <constraints> <citation-style>`        | Research-backed content must be drafted, refreshed, or validated.                                                                                   |
-| `/md-compress`               | `begin\|finalize <absolute-markdown-path>`                              | Durable Markdown needs lossless compression with a verified temporary backup.                                                                       |
-| `/skill-manager`             | `<operation> [arguments]`                                               | Any skill needs to be created, updated, reviewed, renamed, synchronized, optimized, validated, or repaired.                                         |
+| `/knowledge-base`            | `<operation> <private-kb-root> <scope-or-request>`                      | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed.                                                                              |
+| `/biome-checker`             | `<path> [path...]`                                                      | Explicit JavaScript or TypeScript paths need Biome, bun check, and declaration-order checks.                                                                                    |
+| `/bun-test-generator`        | `<sut-path> <all\|method-list\|method-range>`                           | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted.                                                               |
+| `/frontend-design`           | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>`   | A user-facing web UI is created, redesigned, or visually refreshed.                                                                                                             |
+| `/react`                     | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | React or React Native implementation is in scope after design/content inputs are approved.                                                                                      |
+| `/playwright-test-generator` | `<criteria> <project-root> <playwright-runner>`                         | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests.                                                       |
+| `/content-writer`            | `<objective> <audience> <format> <constraints> <citation-style>`        | Research-backed content must be drafted, refreshed, or validated.                                                                                                               |
+| `/md-compress`               | `begin\|finalize <absolute-markdown-path>`                              | Durable Markdown needs lossless compression with a verified temporary backup.                                                                                                   |
+| `/skill-manager`             | `<operation> [arguments]`                                               | An Agent Skill or agent-instruction document, including `AGENTS*.md`, needs lifecycle work.                                                                                     |
 
 Skill ownership rules:
 
-- `/skill-manager` owns every skill-package lifecycle request, including frontmatter, resources,
-  matrices, prose/link review, validation, and closure. Read
+- `/skill-manager` owns every Agent Skill and agent-instruction lifecycle request, including
+  `AGENTS*.md`, resources, routing, authority-chain review, validation, and closure. It preserves
+  the content authority and format of each instruction owner. Read
   `<agents-root>/skills/skill-manager/SKILL.md` as the owning skill.
 - `/repo-search` owns caller-facing repository discovery through its wrapper; do not bypass it with
   an alternate index or backend. Read `<agents-root>/skills/repo-search/SKILL.md` as the owning
@@ -294,10 +295,11 @@ Keep these units atomic when wrapping; splitting any of them changes meaning or 
 Never let a wrapped continuation line begin with structure: an ordered-list marker (`N.` or `N)`),
 `>`, `#`, `[`, `{`, or a JSX tag. A continuation line starting with `N.` silently becomes a new
 ordered-list item, and one starting with a tag turns an inline element into a flow element. A bare
-`[` is a reference-definition hazard, but a complete inline link `[text](target)` is exempt: its
-label is followed by a target, never `:`, so it cannot parse as a reference or footnote definition
-and may lead a continuation line. When an inline JSX element must begin a continuation line, keep
-the preceding space with `&nbsp;` so the rendered text does not lose it.
+`[` is a reference-definition hazard, but a complete inline link with a bracketed label and
+parenthesized target is exempt: its label is followed by a target, never `:`, so it cannot parse as
+a reference or footnote definition and may lead a continuation line. When an inline JSX element must
+begin a continuation line, keep the preceding space with `&nbsp;` so the rendered text does not lose
+it.
 
 Citation, footnote, and source blocks carry their own alignment. A footnote definition's
 continuation lines are indented to align under the label text, so a wider `[^N]:` marker shifts
