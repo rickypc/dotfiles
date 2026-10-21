@@ -12,11 +12,12 @@ unified JSON envelope, so the response contract never changes between scenarios.
 | File or path discovery with no index | `search <root> <literal>` | `source: "fallback"`, `results[].location` as `path:line`, caveat notes the missing index | Matrix `repo-search-path-only`; live: search an unindexed root for a literal that exists |
 | Symbol, class, or attribute on an indexed root | `search <root> <name>` | `source: "graph"`, identity-field matches, `reliability.indexedAt` | Matrix `repo-search-identity-fields`; live: search an indexed root for one function name |
 | Connection between two symbols | `search <root> "<a> ... <b>"` | one `connection` result built from the depth-one inbound and outbound traces | Live: name two symbols that call each other; `engine.md` Search pipeline step 3 |
-| Files surrounding a keyword | `search <root> <keyword>` | merged `symbol` results plus the `directories` cluster | Live: pick a keyword that clusters in one subsystem |
-| Text fragment with a focus | `read <root> <file> [query...]` | `source: "file"`, `location` is `path:start-end` | Live: read one known file with and without the focus query |
+| Files surrounding a keyword | `search <root> <keyword>` with no graph identity-field match | merged `symbol` results plus the `directories` cluster | Live: search an indexed root for a code literal absent from symbol names and file paths |
+| Text fragment or range | `read <root> <file> [query...]` or an explicit line range | `source: "file"`, `location` is `path:start-end` | Live: read a known file with and without a query (the fragment is unchanged), then read an explicit line range |
 | Symbol snippet | `read <root> <dotted.qualified.name>` | `source: "symbol"`, snippet lines; indexes once when no index matches | Live: read a qualified name resolved from the indexed root |
 | Binary content | `read <root> <binary-file> [query...]` | `source: "binary"`, `binary-gate:classify` and `binary-route:*` receipts | Matrix `repo-search-binary-gate`; live: read one sqlite or asar file with a query |
 | Several indexed reads for one decision | `inspect <root> <jsonl>` | one receipt per declared operation, in request order | Live: declare `architecture`, `search-graph`, and `search-code` in one request file |
+| Inspect with no matching index | `inspect <root> <jsonl>` | `status: "error"`, a `resolve-index` attempt, and no operation results | Live: inspect an unindexed root and confirm that the wrapper returns an error without indexing |
 | Transport loss (backend down or denied) | any verb | transport receipt in `attempts[0]`; the staged fallback answers or the caveat says no transport | Matrix `repo-search-transport-receipt`; live: run once with `REPO_SEARCH_TRANSPORT_FORCE=none` |
 
 ## Reading the envelope

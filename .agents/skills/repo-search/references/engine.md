@@ -87,6 +87,10 @@ a range); binary or bundle-shaped files, URLs, PIDs, and process names route thr
 router. Symbol reads resolve the index, then index only when no matching index exists, re-check
 status, and retry the requested read once before reading the snippet.
 
+`inspect` requires a ready matching project index. If no index matches the root, the wrapper returns
+the `resolve-index` error receipt and runs none of the requested operations. It does not create or
+retry an index.
+
 ## Redaction
 
 `redactBackendStorePaths` rewrites every occurrence of the backend storage directory to

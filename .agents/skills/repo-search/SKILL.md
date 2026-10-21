@@ -59,7 +59,8 @@ in [usage-patterns.md](references/usage-patterns.md).
 - **Script-owned transport:** The script probes the transports once per run; the MCP stdio transport
   is primary and the CLI transport is the fallback, and the staged local search answers when neither
   transport works. The caller never chooses, bans, or hand-runs a transport, and never claims the
-  backend is unavailable without the script's transport receipt.- **Backend-store isolation:**
+  backend is unavailable without the script's transport receipt.
+- **Backend-store isolation:**
   Callers never access the backend storage; the backend binary owns it and every path inside it is
   redacted to `<backend-store>` in all wrapper output. A cache-private or sandbox denial is a
   transport failure - never an empty result and never backend unavailability - and stays inside the
@@ -69,16 +70,18 @@ in [usage-patterns.md](references/usage-patterns.md).
   caller-side substitute for the wrapper.
 - **Approved root:** The approved root is explicit and never inferred, and every file target must
   stay under it.
-- **Index discipline:** search never creates an index - a missing or not-ready index is a caveat and
-  the local fallback answers; `read` and `inspect` index only when no matching index exists, then
-  `re-check status` and `retry the requested read once`.
-- **Query pipeline:** The script runs graph search, then code search, merges the hits (graph matches
-  count only through identity fields: `name`, `qualified_name`, `file_path`, `path`), traces the
-  connection between two symbols when the query names both, clusters the files surrounding a
-  keyword, and falls back to the staged literal search (`rg-literal`, case-insensitive literal,
-  file names, hidden- and ignore-transparent under the approved root via `--hidden --no-ignore`)
-  only when indexed discovery finds nothing. The staged fallback stops at the first exact literal
-  match and the caller must never repeat a listed attempt.
+- **Index discipline:** search never creates an index; a missing or not-ready index is a caveat and
+  the local fallback answers. The `read` path indexes only when no matching index exists; the
+  `inspect` path requires a ready matching index and returns an error receipt without indexing when
+  none exists. After a symbol read indexes, `re-check status` and `retry the requested read once`.
+- **Query pipeline:** The script runs graph search first and accepts graph matches only through
+  identity fields: `name`, `qualified_name`, `file_path`, and `path`. When no graph identity-field
+  match remains, it runs code search and merges its results, including the directory cluster. It
+  traces the connection between two symbols when the query names both and falls back to the staged
+  literal search (`rg-literal`, case-insensitive literal, file names, hidden- and ignore-transparent
+  under the approved root via `--hidden --no-ignore`) only when indexed discovery finds nothing. The
+  staged fallback stops at the first exact literal match and the caller must never repeat a listed
+  attempt.
 - **Binary rules:** The content gate classifies every located candidate by bytes - a NUL byte or
   invalid UTF-8 plus magic bytes, with `file` mime corroboration, never extension-only. classify
   always, decode as needed. The eighteen-row binary router in
@@ -92,8 +95,9 @@ in [usage-patterns.md](references/usage-patterns.md).
 ## 4. Input & Context Schema
 
 - **Required:** One approved absolute root and one of: a query string for `search`; a target for
-  `read` (an absolute file path, a dotted qualified name, a URL, a PID, or an exact process name)
-  plus optional binary queries; one JSONL request path for `inspect`.
+  `read` (an absolute file path, optionally with a `:start` or `:start-end` range, a dotted
+  qualified name, a URL, a PID, or an exact process name) plus optional binary queries; one JSONL
+  request path for `inspect` on a root with a ready matching index.
 - **Optional:** Known subsystem boundaries, prior receipts, or one bounded batch of distinct
   independent reads through `inspect`. Duplicate normalized queries are rejected.
 - **Unknowns:** A missing index, a denied transport, or an empty result is reported in the envelope
