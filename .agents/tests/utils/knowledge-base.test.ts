@@ -619,6 +619,144 @@ test('searches validated KB concepts and returns an empty result when absent', a
   await expect(searchKnowledgeBase(failing, '/kb', 'x')).rejects.toThrow('directory failure');
 });
 
+test('searchKnowledgeBase skips files with invalid OKF metadata', async () => {
+  const valid = renderOkfConcept(
+    {
+      description: 'Reusable test practice.',
+      tags: ['test'],
+      title: 'Fixture practice',
+      type: 'practice',
+    },
+    'Always preserve verified evidence.',
+  );
+  const invalid = '---\ntitle: Broken\n---\n\nAlways preserve verified evidence but invalid.\n';
+  const files = new Map([
+    ['/kb/shared/practice/fixture.md', valid],
+    ['/kb/shared/practice/broken.md', invalid],
+  ]);
+  const entries = new Map([
+    ['/kb', [{ isDirectory: () => true, name: 'shared' }]],
+    ['/kb/shared', [{ isDirectory: () => true, name: 'practice' }]],
+    [
+      '/kb/shared/practice',
+      [
+        { isDirectory: () => false, name: 'fixture.md' },
+        { isDirectory: () => false, name: 'broken.md' },
+      ],
+    ],
+  ]);
+  const fileSystem = {
+    exists: async () => false,
+    mkdir: async () => undefined,
+    readdir: async (path: string) => entries.get(path) ?? [],
+    readFile: async (path: string) => files.get(path) ?? '',
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  };
+  await expect(searchKnowledgeBase(fileSystem, '/kb', 'verified')).resolves.toEqual([
+    {
+      description: 'Reusable test practice.',
+      path: 'shared/practice/fixture.md',
+      title: 'Fixture practice',
+      type: 'practice',
+    },
+  ]);
+});
+
+test('uses the built-in transport fallback by default', async () => {
+  const previous = Bun.env.REPO_SEARCH_TRANSPORT_FORCE;
+  Bun.env.REPO_SEARCH_TRANSPORT_FORCE = 'none';
+  try {
+    const fileSystem = {
+      exists: async () => false,
+      mkdir: async () => undefined,
+      readdir: async () => [],
+      readFile: async () => '',
+      rm: async () => undefined,
+      writeFile: async () => undefined,
+    };
+    const executor = async () => ({ code: 1, stderr: '', stdout: '' });
+    const receipt = await searchKnowledgeBaseWithFallback(
+      fileSystem,
+      executor,
+      '/kb',
+      'idx',
+      'query',
+    );
+    expect(receipt.concepts).toEqual([]);
+    expect(receipt.discovery.transport).toBe('none');
+    expect(
+      receipt.discovery.attempts.some(
+        (attempt) => attempt.strategy === 'transport-probe' && attempt.status === 'skipped',
+      ),
+    ).toBe(true);
+  } finally {
+    if (previous === undefined) {
+      delete Bun.env.REPO_SEARCH_TRANSPORT_FORCE;
+    } else {
+      Bun.env.REPO_SEARCH_TRANSPORT_FORCE = previous;
+    }
+  }
+});
+
+test('searchKnowledgeBase ranks title matches before body-only matches', async () => {
+  const bodyOnly = renderOkfConcept(
+    {
+      description: 'An unrelated description.',
+      tags: ['test'],
+      title: 'Unrelated title',
+      type: 'lesson',
+    },
+    'Always preserve verified evidence in practice.',
+  );
+  const titleMatch = renderOkfConcept(
+    {
+      description: 'Practice guidance for fixtures.',
+      tags: ['test'],
+      title: 'Fixture practice',
+      type: 'practice',
+    },
+    'Something else entirely.',
+  );
+  const files = new Map([
+    ['/kb/shared/practice/body.md', bodyOnly],
+    ['/kb/shared/practice/title.md', titleMatch],
+  ]);
+  const entries = new Map([
+    ['/kb', [{ isDirectory: () => true, name: 'shared' }]],
+    ['/kb/shared', [{ isDirectory: () => true, name: 'practice' }]],
+    [
+      '/kb/shared/practice',
+      [
+        { isDirectory: () => false, name: 'body.md' },
+        { isDirectory: () => false, name: 'title.md' },
+      ],
+    ],
+  ]);
+  const fileSystem = {
+    exists: async () => false,
+    mkdir: async () => undefined,
+    readdir: async (path: string) => entries.get(path) ?? [],
+    readFile: async (path: string) => files.get(path) ?? '',
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  };
+  await expect(searchKnowledgeBase(fileSystem, '/kb', 'practice')).resolves.toEqual([
+    {
+      description: 'Practice guidance for fixtures.',
+      path: 'shared/practice/title.md',
+      title: 'Fixture practice',
+      type: 'practice',
+    },
+    {
+      description: 'An unrelated description.',
+      path: 'shared/practice/body.md',
+      title: 'Unrelated title',
+      type: 'lesson',
+    },
+  ]);
+});
+
 test('listKbScopeIndexes returns scope directories excluding shared', async () => {
   const fileSystem = {
     readdir: async () => [

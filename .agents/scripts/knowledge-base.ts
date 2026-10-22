@@ -677,30 +677,42 @@ export const searchKnowledgeBase = async (
   if (!kbRoot.startsWith('/')) {
     throw new Error('KB root must be an absolute path.');
   }
-  const needle = query.trim().toLowerCase();
-  if (!needle) {
+  const tokens = [...new Set(query.trim().toLocaleLowerCase('en-US').split(/\s+/u))].filter(
+    (token) => token.length > 0,
+  );
+  if (tokens.length === 0) {
     throw new Error('KB search query is required.');
   }
-  const results: KnowledgeSearchResult[] = [];
+  const normalizedRoot = kbRoot.replace(/\/$/u, '');
+  const results: (KnowledgeSearchResult & { readonly weight: number })[] = [];
   const resultForEntry = async (
     directory: string,
     entry: DirectoryEntry,
-  ): Promise<KnowledgeSearchResult | undefined> => {
+  ): Promise<(KnowledgeSearchResult & { readonly weight: number }) | undefined> => {
     if (entry.name === 'index.md' || !entry.name.endsWith('.md')) {
       return undefined;
     }
     const path = `${directory}/${entry.name}`;
     const content = await readText(fileSystem, path);
-    const metadata = parseOkfConcept(content);
-    const searchable = `${path}\n${metadata.title}\n${metadata.description}\n${content}`;
-    if (!searchable.toLowerCase().includes(needle)) {
+    let metadata: OkfMetadata;
+    try {
+      metadata = parseOkfConcept(content);
+    } catch {
       return undefined;
     }
+    const searchable = `${path}\n${metadata.title}\n${metadata.description}\n${content}`;
+    const haystack = searchable.toLowerCase();
+    if (!tokens.every((token) => haystack.includes(token))) {
+      return undefined;
+    }
+    const headline = `${metadata.title}\n${metadata.description}`.toLowerCase();
+    const weight = tokens.filter((token) => headline.includes(token)).length;
     return {
       description: metadata.description,
-      path: path.slice(kbRoot.replace(/\/$/u, '').length + 1),
+      path: path.slice(normalizedRoot.length + 1),
       title: metadata.title,
       type: metadata.type,
+      weight,
     };
   };
   const walk = async (directory: string): Promise<void> => {
@@ -717,8 +729,10 @@ export const searchKnowledgeBase = async (
       }
     }
   };
-  await walk(kbRoot.replace(/\/$/u, ''));
-  return results;
+  await walk(normalizedRoot);
+  return results
+    .sort((left, right) => right.weight - left.weight || left.path.localeCompare(right.path))
+    .map(({ weight: _weight, ...result }) => result);
 };
 
 export const searchKnowledgeBaseWithFallback = async (

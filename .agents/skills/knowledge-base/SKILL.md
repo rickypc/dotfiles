@@ -217,20 +217,26 @@ bypass this skill's root/index ownership. Organization, team, and project record
 
 ### Search and batch retrieval
 
-For one keyword search, use the combined command; it performs **repo-search discovery first**, uses
-the staged fallback only when needed, resolves results through validated OKF concepts, and returns
-every attempt as `found`, `not-found`, `error`, or `skipped`:
+All KB lookups run through repo-search utilities inside the owning script: `repoSearchDiscover`
+supplies the one envelope contract, and the script resolves results through validated OKF concepts.
+The caller never chooses a transport and never interprets transports; the script reports every
+attempt as `found`, `not-found`, `error`, or `skipped`, and **do not rerun any listed command**.
 
-The retrieval order is repo-search discovery first, then the validated staged fallback; do not skip
-the authoritative index check.
+One command shape returns one receipt with one validated concept list:
 
 ```bash
 bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<kb-repo-search-index>" "<query>"
 ```
 
-For several independent terms use `search-batch` with one to four distinct queries. Read the receipt
-and **do not rerun any listed command**. If the index is unavailable or stale, use the staged
-fallback and ask the user to refresh the named index; do not create another one.
+The receipt carries `concepts`, `discovery`, and `kbInfo`. The discovery envelope is an audit
+receipt only; the concepts list is the answer. Concept matching is token-based across the path,
+title, description, and body of every concept, so body-term recall works regardless of index
+freshness: a stale index can degrade discovery, but it cannot hide a concept whose body contains the
+query terms. Results are deduplicated and ordered by title/description coverage.
+
+For several independent terms use `search-batch` with one to four distinct queries. If the index is
+unavailable or stale, the receipt still returns validated concepts; ask the user to refresh the
+named index, and do not create another one.
 
 ## 6. Output & Completion Contract
 
