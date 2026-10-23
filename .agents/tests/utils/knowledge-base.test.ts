@@ -745,6 +745,41 @@ test('searchKnowledgeBase ranks title matches before body-only matches', async (
   ]);
 });
 
+test('searchKnowledgeBase matches plural queries against singular bodies', async () => {
+  const concept = renderOkfConcept(
+    {
+      description: 'Practice guidance for every developer.',
+      tags: ['test'],
+      title: 'Fixture practice',
+      type: 'practice',
+    },
+    'Something else entirely.',
+  );
+  const files = new Map([['/kb/shared/practice/fixture.md', concept]]);
+  const entries = new Map([
+    ['/kb', [{ isDirectory: () => true, name: 'shared' }]],
+    ['/kb/shared', [{ isDirectory: () => true, name: 'practice' }]],
+    ['/kb/shared/practice', [{ isDirectory: () => false, name: 'fixture.md' }]],
+  ]);
+  const fileSystem = {
+    exists: async () => false,
+    mkdir: async () => undefined,
+    readdir: async (path: string) => entries.get(path) ?? [],
+    readFile: async (path: string) => files.get(path) ?? '',
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  };
+  await expect(searchKnowledgeBase(fileSystem, '/kb', 'developers')).resolves.toEqual([
+    {
+      description: 'Practice guidance for every developer.',
+      path: 'shared/practice/fixture.md',
+      title: 'Fixture practice',
+      type: 'practice',
+    },
+  ]);
+  await expect(searchKnowledgeBase(fileSystem, '/kb', 'gas')).resolves.toEqual([]);
+});
+
 test('listKbScopeIndexes returns scope directories excluding shared', async () => {
   const fileSystem = {
     readdir: async () => [

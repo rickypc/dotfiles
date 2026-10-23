@@ -656,6 +656,13 @@ const runReadCommand = async (
   return runBatchSearchCommand(args, batchSearch, write);
 };
 
+const tokenMatches = (haystack: string, token: string): boolean => {
+  if (haystack.includes(token)) {
+    return true;
+  }
+  return token.endsWith('s') && token.length > 3 && haystack.includes(token.slice(0, -1));
+};
+
 export const searchKnowledgeBase = async (
   fileSystem: FileSystem,
   kbRoot: string,
@@ -689,11 +696,11 @@ export const searchKnowledgeBase = async (
     }
     const searchable = `${path}\n${metadata.title}\n${metadata.description}\n${content}`;
     const haystack = searchable.toLowerCase();
-    if (!tokens.every((token) => haystack.includes(token))) {
+    if (!tokens.every((token) => tokenMatches(haystack, token))) {
       return undefined;
     }
     const headline = `${metadata.title}\n${metadata.description}`.toLowerCase();
-    const weight = tokens.filter((token) => headline.includes(token)).length;
+    const weight = tokens.filter((token) => tokenMatches(headline, token)).length;
     return {
       description: metadata.description,
       path: path.slice(normalizedRoot.length + 1),
