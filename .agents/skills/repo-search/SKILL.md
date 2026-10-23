@@ -1,21 +1,9 @@
 ---
+
 name: repo-search
-description: >-
-  Deterministic repository, file, and binary-content discovery engine behind one wrapper script. The
-  script probes the codebase-memory transports itself (MCP stdio first, CLI fallback, local staged
-  search when neither answers), resolves the project index, runs graph, code, connection, and binary
-  searches, and prints one unified JSON response contract with status, transport, source, located
-  results, and reliability on every route. A content gate classifies binaries by magic bytes and
-  mime type and routes them through an eighteen-row binary router. Callers pass an approved root
-  plus a query; the script does the rest and the backend storage never leaks.
+description: Deterministic repository, file, and binary-content discovery engine behind one wrapper script. The script probes the codebase-memory transports itself (MCP stdio first, CLI fallback, local staged search when neither answers), resolves the project index, runs graph, code, connection, and binary searches, and prints one unified JSON response contract with status, transport, source, located results, and reliability on every route. A content gate classifies binaries by magic bytes and mime type and routes them through an eighteen-row binary router. Callers pass an approved root plus a query; the script does the rest and the backend storage never leaks.
 argument-hint: <approved-root> <query...> | read <approved-root> <target> [query...] | inspect <approved-root> <jsonl-path>
-capabilities:
-  - Script-owned transport probe (MCP stdio primary, CLI fallback)
-  - One unified JSON response contract on every route
-  - Deterministic three-verb caller grammar
-  - Backend-store redaction (<backend-store>)
-  - Content-based binary gate plus eighteen-row binary router
-  - Ordered staged fallback with named receipt strategies
+capabilities: ["Script-owned transport probe (MCP stdio primary, CLI fallback)", One unified JSON response contract on every route, Deterministic three-verb caller grammar, Backend-store redaction (<backend-store>), Content-based binary gate plus eighteen-row binary router, Ordered staged fallback with named receipt strategies]
 ---
 
 # Repo Search

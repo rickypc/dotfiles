@@ -1,9 +1,7 @@
 ---
+
 name: playwright-test-generator
-description: >-
-  Generate and retain project-local Playwright browser regression tests from accepted user-facing
-  web criteria. Use when a web UI, browser workflow, responsive layout, or explicitly budgeted
-  browser-performance behavior needs durable automated coverage.
+description: Generate and retain project-local Playwright browser regression tests from accepted user-facing web criteria. Use when a web UI, browser workflow, responsive layout, or explicitly budgeted browser-performance behavior needs durable automated coverage.
 argument-hint: <criteria> <project-root> <playwright-runner>
 ---
 
@@ -97,12 +95,12 @@ accepted criteria -> project/runner discovery -> coverage matrix -> real flow
 Read the project manifest/configuration before using any command. Placeholders below are values
 declared by that project.
 
-| When | Required inputs | Project action | Result and next action |
-| --- | --- | --- | --- |
-| Discover ownership | `<project-root>` | Read manifest and Playwright configuration. | Confirm runner, test path, start path, browser projects, and artifacts. |
-| Run retained flow | `<project-playwright-test-command>`, `<test-path>` | `<project-playwright-test-command> <test-path>` | Focused proof for one accepted flow; map it to the criterion. |
-| Run configured browser | Command, test path, `<configured-browser>` | `<project-playwright-test-command> <test-path> --project <configured-browser>` | Browser-specific proof only for a configured project. |
-| Collect diagnostic trace | Command, test path, `<project-trace-option>` | `<project-playwright-test-command> <test-path> <project-trace-option>` | Project-owned debug artifact, not a final gate; repair then rerun. |
+| When                     | Required inputs                                    | Project action                                                                 | Result and next action                                                  |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Discover ownership       | `<project-root>`                                   | Read manifest and Playwright configuration.                                    | Confirm runner, test path, start path, browser projects, and artifacts. |
+| Run retained flow        | `<project-playwright-test-command>`, `<test-path>` | `<project-playwright-test-command> <test-path>`                                | Focused proof for one accepted flow; map it to the criterion.           |
+| Run configured browser   | Command, test path, `<configured-browser>`         | `<project-playwright-test-command> <test-path> --project <configured-browser>` | Browser-specific proof only for a configured project.                   |
+| Collect diagnostic trace | Command, test path, `<project-trace-option>`       | `<project-playwright-test-command> <test-path> <project-trace-option>`         | Project-owned debug artifact, not a final gate; repair then rerun.      |
 
 ### Browser and environment handoff
 

@@ -1,20 +1,12 @@
 ---
+
 schemaVersion: 1
-requiredCaseFields:
-  - id
-  - visibility
-  - scenario
-  - assertions
-  - failureMode
-  - repairBoundary
-  - independentVerifier
-requiredVisibility:
-  - candidate
-  - challenge
+requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]
+requiredVisibility: [candidate, challenge]
 minimumPassRate: 1
-verifierIds:
-  - source-structure
+verifierIds: [source-structure]
 ---
+
 # Biome TSC Checker Evaluation Rubric
 
 The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable

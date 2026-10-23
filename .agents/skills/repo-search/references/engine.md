@@ -8,7 +8,6 @@ Branch-only detail for the wrapper engine in `utils/repo-search.ts`,
 
 `probeRepoSearchTransport` runs once per wrapper invocation and is the only authority on backend
 availability. It tries, in order:
-
 1. **MCP stdio transport (primary):** spawn the backend binary with no arguments as a stdio MCP
    server, complete the `initialize` handshake, and issue one `tools/call list_projects` probe. The
    official `@modelcontextprotocol/sdk` client is used when installed; a zero-dependency built-in
@@ -34,9 +33,18 @@ Every route prints exactly one JSON envelope with identical keys:
   "transport": "mcp | cli | none",
   "source": "graph | code | symbol | file | binary | fallback | none",
   "query": { "root": "...", "index": "... | null", "input": ["..."] },
-  "results": [{ "kind": "...", "name": "...", "location": "...", "detail": "..." }],
-  "reliability": { "backend": "...", "indexedAt": "...", "note": "...", "caveats": [] },
-  "attempts": [{ "strategy": "...", "status": "...", "command": "...", "detail": "..." }],
+  "results": [
+    { "kind": "...", "name": "...", "location": "...", "detail": "..." }
+  ],
+  "reliability": {
+    "backend": "...",
+    "indexedAt": "...",
+    "note": "...",
+    "caveats": []
+  },
+  "attempts": [
+    { "strategy": "...", "status": "...", "command": "...", "detail": "..." }
+  ],
   "next": ["..."]
 }
 ```
@@ -51,7 +59,6 @@ wrapper exits 1 exactly when `status` is `error`.
 
 The backend emits human-oriented tables inside the MCP envelope; the engine parses them
 deterministically instead of trusting raw output:
-
 - `list_projects`: rows of `name root_path branch` after the `projects:` header; double-quoted paths
   with spaces are honored.
 - `index_status`: top-level `key: value` lines; readiness is exactly `status: ready`, freshness is

@@ -1,11 +1,7 @@
 ---
+
 name: skill-manager
-description: >-
-  Use this skill when creating, updating, reviewing, renaming, synchronizing, optimizing,
-  validating, or repairing an Agent Skill. It governs scope, trigger descriptions, progressive
-  disclosure, scripts, evals, references, deterministic validation, and evidence-gated closeout. Use
-  it for agent instruction documents too, including AGENTS*.md; it governs their lifecycle, scope,
-  authority, routing, validation, and closeout.
+description: Use this skill when creating, updating, reviewing, renaming, synchronizing, optimizing, validating, or repairing an Agent Skill. It governs scope, trigger descriptions, progressive disclosure, scripts, evals, references, deterministic validation, and evidence-gated closeout. Use it for agent instruction documents too, including AGENTS*.md; it governs their lifecycle, scope, authority, routing, validation, and closeout.
 argument-hint: <operation> [arguments]
 ---
 

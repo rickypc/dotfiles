@@ -1,8 +1,7 @@
 ---
+
 name: md-compress
-description: >-
-  Losslessly distill durable Markdown while preserving protected Markdown tokens and a verified
-  backup.
+description: Losslessly distill durable Markdown while preserving protected Markdown tokens and a verified backup.
 argument-hint: begin|finalize <absolute-markdown-path>
 ---
 
@@ -86,12 +85,12 @@ eligible source -> begin guard -> protected edit -> exact finalize
 
 ### Direct transaction contract
 
-| Command or information | Arguments | When to use | Additional information |
-| --- | --- | --- | --- |
-| `begin` | `<absolute-markdown-path>` | Direct durable Markdown edit with one eligible source and no caller packet | `bun <agents-root>/scripts/md-compress.ts begin "<absolute-markdown-path>"`; returns source, backup/lock, and one exact `finalize` action. |
-| `edit` | `<returned-source-path>` | Between the returned `begin` and `finalize` actions | Do not start another transaction or change arguments; make only the protected edit. |
-| `finalize` | `<absolute-markdown-path>` | Final validation using the exact action returned by `begin` | `bun <agents-root>/scripts/md-compress.ts finalize "<absolute-markdown-path>"`; validates protected tokens, removes temporary files, and returns `done`. |
-| `guard` | `<absolute-markdown-path>` | No-edit validation after KB reconcile or similar no-change pass | `bun <agents-root>/scripts/md-compress.ts guard "<absolute-markdown-path>"`; runs begin+finalize in one shot, returns `guarded`. |
+| Command or information | Arguments                  | When to use                                                                | Additional information                                                                                                                                   |
+| ---------------------- | -------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `begin`                | `<absolute-markdown-path>` | Direct durable Markdown edit with one eligible source and no caller packet | `bun <agents-root>/scripts/md-compress.ts begin "<absolute-markdown-path>"`; returns source, backup/lock, and one exact `finalize` action.               |
+| `edit`                 | `<returned-source-path>`   | Between the returned `begin` and `finalize` actions                        | Do not start another transaction or change arguments; make only the protected edit.                                                                      |
+| `finalize`             | `<absolute-markdown-path>` | Final validation using the exact action returned by `begin`                | `bun <agents-root>/scripts/md-compress.ts finalize "<absolute-markdown-path>"`; validates protected tokens, removes temporary files, and returns `done`. |
+| `guard`                | `<absolute-markdown-path>` | No-edit validation after KB reconcile or similar no-change pass            | `bun <agents-root>/scripts/md-compress.ts guard "<absolute-markdown-path>"`; runs begin+finalize in one shot, returns `guarded`.                         |
 
 The removal-authorization manifest is a JSON object with this shape:
 

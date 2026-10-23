@@ -26,7 +26,6 @@ metadata.
 
 Keep `SKILL.md` under 500 lines and put only the normal path, trigger contract, delegation table,
 safety boundaries, and closeout proof there. Choose bundled resources by function:
-
 - `references/` for branch-specific knowledge, templates, schemas, and maps;
 - `scripts/` for repeated deterministic work or fragile validation;
 - `assets/` for files consumed by the skill's output, not instructions.
@@ -60,7 +59,6 @@ Chain begins with a compact plain-text diagram, followed by the explanatory step
 ## 5. Freeze quality before judging the candidate
 
 Define a non-filler JSONL matrix before candidate edits. Every case needs:
-
 - a unique scenario and visibility;
 - typed assertions;
 - a concrete failure mode;

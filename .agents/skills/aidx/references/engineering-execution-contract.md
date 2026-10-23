@@ -18,19 +18,18 @@ Use the observed repository language/framework profile, not a guessed one, and a
 rules first. Preserve established seams and prove the risks listed here only when the changed
 surface matches them:
 
-| Surface | Execute with these checks |
-|---|---|
-| C#, Java, PHP, Python | Preserve transport/service/data seams; validate inputs; keep authorization separate; inspect serialization, transactions, errors, and persistence. |
-| Go, Rust | Preserve ownership and cancellation; inspect contextual errors, resource lifetime, concurrency, races, unsafe scope, and task boundaries. |
-| TypeScript | Pair compile-time types with runtime validation; preserve async, exported-type, serialization, and configuration contracts; avoid unsafe casts. |
-| React/React Native | Preserve state ownership, routing, lifecycle, platform differences, and existing data/cache conventions; verify user-visible states. |
-| Web/HTML/CSS | Preserve semantic structure; verify keyboard, focus, labels, contrast, responsive layout, safe sinks, reduced motion, and loading/empty/error behavior. |
+| Surface               | Execute with these checks                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C#, Java, PHP, Python | Preserve transport/service/data seams; validate inputs; keep authorization separate; inspect serialization, transactions, errors, and persistence.      |
+| Go, Rust              | Preserve ownership and cancellation; inspect contextual errors, resource lifetime, concurrency, races, unsafe scope, and task boundaries.               |
+| TypeScript            | Pair compile-time types with runtime validation; preserve async, exported-type, serialization, and configuration contracts; avoid unsafe casts.         |
+| React/React Native    | Preserve state ownership, routing, lifecycle, platform differences, and existing data/cache conventions; verify user-visible states.                    |
+| Web/HTML/CSS          | Preserve semantic structure; verify keyboard, focus, labels, contrast, responsive layout, safe sinks, reduced motion, and loading/empty/error behavior. |
 
 ## Role routing during execution
 
 Route only to owners named by the plan. The role table is a quality lens, not permission to expand
 scope:
-
 - Product: confirm the implemented behavior still matches observable acceptance, exclusions, and
   preserved behavior.
 - Architect: confirm extension points, interfaces, data ownership, compatibility, reversibility,

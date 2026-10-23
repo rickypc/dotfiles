@@ -1,7 +1,7 @@
 ---
+
 name: aidx
-description: >-
-  Read a user-supplied six-section plan path and execute its instructions deterministically.
+description: Read a user-supplied six-section plan path and execute its instructions deterministically.
 argument-hint: <plan-path-relative-or-absolute>
 ---
 
@@ -34,7 +34,6 @@ The unannotated grammar is:
 ```
 
 Required:
-
 - `<plan-path-relative-or-absolute>`: one AIDP Markdown plan path.
 
 `/aidx` is an agent workflow, not a terminal command. It executes the supplied plan and returns
@@ -159,7 +158,6 @@ or validate this closeout, it must stop and must not distill or remove the plan.
 
 Only after that closeout succeeds, classify the plan before retiring the source file. Retirement is
 mandatory, not optional, once the closeout and the chosen disposition are verified:
-
 - **Distill then remove:** If the plan contains verified, reusable decisions, patterns, lessons, or
   evidence not already held by the configured private KB, invoke
   `/knowledge-base import-plan <plan-path> --remove-source`. The plan importer requires the source

@@ -1,4 +1,5 @@
 ---
+
 name: aidp
 description: Turn a user request into one explicit six-section execution plan and hand it to /aidx.
 argument-hint: <goal-and-concerns>
@@ -33,7 +34,6 @@ The unannotated grammar is:
 ```
 
 Required:
-
 - `<goal-and-concerns>`: the user's request and any supplied context to turn into one execution
   plan.
 
@@ -112,11 +112,11 @@ Use the owner command contracts below. Let each owner resolve its own data store
 search uses the configured private-KB root. Do not substitute search commands or treat a missing
 result as an answer.
 
-| Command or information | Arguments | When to use | Additional information |
-| --- | --- | --- | --- |
-| `/repo-search` path search | `<approved-root>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"`; returns repository/code evidence and one ordered receipt while hiding index selection and fallback details. |
+| Command or information            | Arguments                                                          | When to use                                                               | Additional information                                                                                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/repo-search` path search        | `<approved-root>` `<query>`                                        | Every request, before clarification                                       | `bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"`; returns repository/code evidence and one ordered receipt while hiding index selection and fallback details.          |
 | `/repo-search` indexed inspection | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>` | When several independent implementation reads are needed for one decision | `bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"`; use only the owner-defined JSONL operations and preserve its receipt. |
-| `/knowledge-base` search | `<private-kb-root>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; uses private-KB local-only mode and returns validated concepts plus the discovery receipt. |
+| `/knowledge-base` search          | `<private-kb-root>` `<query>`                                      | Every request, before clarification                                       | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; uses private-KB local-only mode and returns validated concepts plus the discovery receipt.               |
 
 The Knowledge Base local-only mode applies only to private-KB discovery. Direct repo-search calls
 keep their owner-defined behavior.
@@ -159,7 +159,6 @@ assumption is invalid and must not be handed off.
 
 Any of the following, when the user has not explicitly decided it and verified evidence has not
 established it, is a forbidden assumption:
-
 - A scope, ownership, or boundary the user did not confirm.
 - A framework, library, command, gate string, or API shape inferred from
   "how these projects usually work" rather than verified against the repo or `package.json`.
@@ -171,16 +170,14 @@ established it, is a forbidden assumption:
 ### The only allowed fill-ins
 
 The only values AIDP may write without a user decision are:
-
 - Values returned by `/repo-search` or `/knowledge-base` receipts, cited with the receipt path.
 - Values the user typed in this turn or a prior turn of this session, quoted.
-- A labelled, explicit `assumption:` marker used only to *flag* an assumption for the user - but a
+- A labelled, explicit `assumption:` marker used only to _flag_ an assumption for the user - but a
   flagged assumption never satisfies a requirement; it is a clarification stop, not a resolution.
 
 ### Mechanical enforcement
 
 The plan author and the validator enforce this mechanically as well as in prose:
-
 - Every workflow step that asserts a user decision MUST carry a `decision:` or `clarified:` marker
   followed by the decision text or the user's quoted answer. A step asserting a decision without the
   marker fails validation.
@@ -234,7 +231,6 @@ the plan author.
 The Agent Role / Human Owner / Authority & Escalation block has this shape; do not invent an
 alternative shape, and do not omit any of the four sub-bullets when the plan crosses a project,
 brownfield, or cross-cutting boundary:
-
 - **Agent Role (Identity).** Name the plan author (the AIDP skill running in this turn) and
   explicitly state that the AIDP skill does NOT execute the plan; AIDP produces one durable Markdown
   plan and a `/aidx` handoff. The executor of every workflow step is the AIDX skill invoked with
@@ -344,21 +340,26 @@ mismatch.
 # <title>
 
 ## 1. TARGET DIRECTIVES
+
 ...
 ## 2. VARIABLE DEFINITION MATRIX
+
 ...
 ## 3. CHRONOLOGICAL WORKFLOW
+
 ...
 ## 4. TOOL STRATEGY & FALLBACKS
+
 ...
 ## 5. SYSTEMATIC VERIFICATION CHECKLIST
+
 ...
 ## 6. RIGID OUTPUT SCHEMA
+
 ...
 ```
 
 Author each section with these minimum contents:
-
 - **TARGET DIRECTIVES:** one objective, included ownership, and explicit exclusions.
 - **VARIABLE DEFINITION MATRIX:** every required path, value, source fragment, dependency, strict
   type, and required/optional state.

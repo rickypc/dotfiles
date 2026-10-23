@@ -1,20 +1,12 @@
 ---
+
 schemaVersion: 1
-requiredCaseFields:
-  - id
-  - visibility
-  - scenario
-  - assertions
-  - failureMode
-  - repairBoundary
-  - independentVerifier
-requiredVisibility:
-  - candidate
-  - challenge
+requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]
+requiredVisibility: [candidate, challenge]
 minimumPassRate: 1
-verifierIds:
-  - source-structure
+verifierIds: [source-structure]
 ---
+
 # AIDX evaluation rubric
 
 Measure whether AIDX safely reads one supplied plan, executes it sequentially, uses only named

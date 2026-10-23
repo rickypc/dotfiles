@@ -1,9 +1,7 @@
 ---
+
 name: frontend-design
-description: >-
-  Define or review a user-facing web UI's visual direction, interaction states, responsive behavior,
-  and accessibility. Use when a request creates, redesigns, or visually refreshes a web interface;
-  do not use for ordinary behavior-only changes.
+description: Define or review a user-facing web UI's visual direction, interaction states, responsive behavior, and accessibility. Use when a request creates, redesigns, or visually refreshes a web interface; do not use for ordinary behavior-only changes.
 argument-hint: <ui-brief> <affected-screens> <design-system> <acceptance-criteria>
 ---
 
@@ -132,12 +130,12 @@ brief and context -> design direction -> state/accessibility definition
 
 The retained browser owner is `playwright-test-generator`.
 
-| Concern | Owner | Handoff condition |
-| --- | --- | --- |
-| Visual direction, hierarchy, states, responsive/accessibility definition | `/frontend-design` | Complete definition is critiqued and approved. |
-| Product-meaningful UI copy, help, onboarding, empty/error wording | `/content-writer` | Content contract is researched/validated before implementation handoff. |
-| React or React Native component/state/effect/platform implementation | `/react` | Accepted design and finalized content are supplied. |
-| Retained browser regression tests | `/playwright-test-generator` | Design is approved and user-facing criteria need project-local coverage. |
+| Concern                                                                  | Owner                        | Handoff condition                                                        |
+| ------------------------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------ |
+| Visual direction, hierarchy, states, responsive/accessibility definition | `/frontend-design`           | Complete definition is critiqued and approved.                           |
+| Product-meaningful UI copy, help, onboarding, empty/error wording        | `/content-writer`            | Content contract is researched/validated before implementation handoff.  |
+| React or React Native component/state/effect/platform implementation     | `/react`                     | Accepted design and finalized content are supplied.                      |
+| Retained browser regression tests                                        | `/playwright-test-generator` | Design is approved and user-facing criteria need project-local coverage. |
 
 ## 6. Output & Completion Contract
 

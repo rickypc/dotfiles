@@ -1,4 +1,5 @@
 ---
+
 name: content-writer
 description: Research, draft, refresh, and validate credible content with preserved quotations.
 argument-hint: <objective> <audience> <format> <constraints> <citation-style>
@@ -121,18 +122,18 @@ the audience, and the result to be exactly `ready`.
 
 ### Content quality matrix
 
-| Criterion | Pass evidence |
-| --- | --- |
-| Claim coverage | every material claim maps to an admissible source |
-| Citation accuracy | each citation supports the claim it is attached to |
-| Quotation fidelity | every quotation byte-identical, continuation lines included |
-| Information density | no section collapses below the host document's paragraph/word floor |
-| Link retention | every pre-existing inline link is preserved |
-| Voice neutrality | no repeated filler framing; no second person outside quotations |
-| Human voice | no repeated template sentence, no "X rather than Y" tic, no process metadiscourse |
-| Register fidelity | instructional/liturgical procedure, order, and wording unchanged |
-| Source attribution | each source line carries publisher, date, and URL |
-| MDX safety | renderer-sensitive tokens are inline code; prose filled to the 100-character band; no continuation line starts with structure |
+| Criterion           | Pass evidence                                                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Claim coverage      | every material claim maps to an admissible source                                                                             |
+| Citation accuracy   | each citation supports the claim it is attached to                                                                            |
+| Quotation fidelity  | every quotation byte-identical, continuation lines included                                                                   |
+| Information density | no section collapses below the host document's paragraph/word floor                                                           |
+| Link retention      | every pre-existing inline link is preserved                                                                                   |
+| Voice neutrality    | no repeated filler framing; no second person outside quotations                                                               |
+| Human voice         | no repeated template sentence, no "X rather than Y" tic, no process metadiscourse                                             |
+| Register fidelity   | instructional/liturgical procedure, order, and wording unchanged                                                              |
+| Source attribution  | each source line carries publisher, date, and URL                                                                             |
+| MDX safety          | renderer-sensitive tokens are inline code; prose filled to the 100-character band; no continuation line starts with structure |
 
 `needs-input` names the focused missing decision; `blocked` names the evidence, approval, or format
 boundary. Fluency, citation count, or an outline is not proof. Never conceal unsupported claims or

@@ -1,8 +1,7 @@
 ---
+
 name: biome-checker
-description: >-
-  Run Biome, bun check, and declaration-order checks for explicitly selected JavaScript or
-  TypeScript paths.
+description: Run Biome, bun check, and declaration-order checks for explicitly selected JavaScript or TypeScript paths.
 argument-hint: <path> [path...]
 ---
 

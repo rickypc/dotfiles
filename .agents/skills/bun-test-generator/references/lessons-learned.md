@@ -97,7 +97,10 @@ const advanceTimers = (ms: number) => {
   }
   for (const id of expired) {
     const timer = timers.get(id);
-    if (timer) { timers.delete(id); timer.callback(); }
+    if (timer) {
+      timers.delete(id);
+      timer.callback();
+    }
   }
 };
 
@@ -138,7 +141,9 @@ const spawn = mock(() => ({
 // Mock globals
 const originalEnv = Bun.env;
 Bun.env = { ...Bun.env, TEST_VAR: 'value' };
-afterEach(() => { Bun.env = originalEnv; });
+afterEach(() => {
+  Bun.env = originalEnv;
+});
 ```
 
 **Anti-pattern**: Using real implementations in unit tests.
@@ -169,15 +174,15 @@ afterEach(() => {
 
 ## <pattern:slow-test-anti-patterns>
 
-| Pattern | Fast Alternative |
-|---------|------------------|
+| Pattern                 | Fast Alternative                   |
+| ----------------------- | ---------------------------------- |
 | Real `setTimeout(1000)` | Fake timer + `advanceTimers(1000)` |
-| Real file I/O | Mock filesystem module |
-| Real network calls | Mock fetch/http modules |
-| Real process spawn | Mock spawner function |
-| Real stdin read | Inject mocked `readInput` |
-| Real random/UUID | Mock `crypto.randomUUID` |
-| Real Date/clock | Mock `Date.now` or use fixed time |
+| Real file I/O           | Mock filesystem module             |
+| Real network calls      | Mock fetch/http modules            |
+| Real process spawn      | Mock spawner function              |
+| Real stdin read         | Inject mocked `readInput`          |
+| Real random/UUID        | Mock `crypto.randomUUID`           |
+| Real Date/clock         | Mock `Date.now` or use fixed time  |
 
 ---
 

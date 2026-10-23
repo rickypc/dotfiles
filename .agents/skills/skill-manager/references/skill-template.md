@@ -97,7 +97,6 @@ cannot show.
 Start this section with a compact plain-text flow diagram showing the normal route and its major
 handoffs. Then explain only the decisions, boundaries, predicates, and proof the diagram cannot
 express. The diagram is a map, not a second command router.
-
 1. **Intake:** Parse and validate the required inputs and boundaries.
 2. **Normal path:** Perform the skill-owned steps in their actual dependency order.
 3. **Branching:** Name observable predicates for alternatives and recovery paths.

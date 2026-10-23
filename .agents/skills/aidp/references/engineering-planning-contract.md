@@ -12,7 +12,6 @@ not permission to invent a fact. For brownfield work, capture current behavior, 
 consumers, data/protocol boundaries, existing proof, compatibility, and uncertainty.
 
 Build one compact evidence set before decomposition:
-
 - Research record: sources read, observed facts, unknowns, and search limits.
 - Requirements record: actor/trigger, outcome, success and failure behavior, preserved behavior,
   exclusions, constraints, dependencies, and one proof per acceptance item.
@@ -78,33 +77,33 @@ Read the common rules first. Select only profiles supported by repository eviden
 a guessed extension. Combine the selected profile with project instructions and the configured final
 gate.
 
-| Observed language or surface | Planning obligations | Proof emphasis |
-|---|---|---|
-| C# | Preserve handler/service/repository seams; make nullability, cancellation, disposal, binding, serialization, and authorization explicit. | Validation, missing/forbidden resource, cancellation, persistence, contract. |
-| Go | Preserve small consumer-owned interfaces; propagate context and deadlines; check contextual errors; inspect goroutine, channel, race, and cleanup ownership. | Table-driven boundary cases plus race/concurrency proof when affected. |
-| Java | Preserve controller/service/repository/module boundaries; make nullability, exception translation, transactions, retries, idempotency, and DTO/schema compatibility explicit. | Unit, integration, persistence, response, and failure behavior. |
-| PHP | Follow the project typing/error model; keep actions focused; validate identifiers; preserve model/query boundaries; inspect policy, tenant scope, uploads, queues, and transactions. | Existing PHPUnit/framework conventions, including invalid and forbidden requests. |
-| Python | Preserve type, mutability, exception, async, schema, and persistence conventions; avoid blocking async paths and mutable defaults. | Success, validation, permission, error, async, and persistence cases. |
-| React Native | Treat navigation, permissions, lifecycle, offline behavior, platform divergence, touch targets, focus, and device resources as behavior. | Component/device/browser-owned user-path proof and platform differences. |
-| React | Keep state with its narrowest owner; preserve routing/data/cache conventions; specify loading, empty, error, retry, keyboard, focus, semantic, and responsive states. | User-visible outcomes at existing component/integration/browser boundaries. |
-| Rust | Model ownership, borrowing, error variants, invariants, unsafe scope, task lifetime, locking, and cancellation explicitly. | Parsing, serialization, error variants, public API, and concurrency. |
-| TypeScript | Separate static types from runtime validation; avoid unsafe casts; preserve async/resource/config contracts and exported types. | Runtime behavior plus type-sensitive edge cases. |
-| Web/HTML/CSS | Start with semantic HTML; specify keyboard/focus, labels, contrast, responsive, reduced motion, loading/empty/error states, safe sinks, and browser boundaries. | Existing browser/accessibility capability and named user journey. |
+| Observed language or surface | Planning obligations                                                                                                                                                                 | Proof emphasis                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| C#                           | Preserve handler/service/repository seams; make nullability, cancellation, disposal, binding, serialization, and authorization explicit.                                             | Validation, missing/forbidden resource, cancellation, persistence, contract.      |
+| Go                           | Preserve small consumer-owned interfaces; propagate context and deadlines; check contextual errors; inspect goroutine, channel, race, and cleanup ownership.                         | Table-driven boundary cases plus race/concurrency proof when affected.            |
+| Java                         | Preserve controller/service/repository/module boundaries; make nullability, exception translation, transactions, retries, idempotency, and DTO/schema compatibility explicit.        | Unit, integration, persistence, response, and failure behavior.                   |
+| PHP                          | Follow the project typing/error model; keep actions focused; validate identifiers; preserve model/query boundaries; inspect policy, tenant scope, uploads, queues, and transactions. | Existing PHPUnit/framework conventions, including invalid and forbidden requests. |
+| Python                       | Preserve type, mutability, exception, async, schema, and persistence conventions; avoid blocking async paths and mutable defaults.                                                   | Success, validation, permission, error, async, and persistence cases.             |
+| React Native                 | Treat navigation, permissions, lifecycle, offline behavior, platform divergence, touch targets, focus, and device resources as behavior.                                             | Component/device/browser-owned user-path proof and platform differences.          |
+| React                        | Keep state with its narrowest owner; preserve routing/data/cache conventions; specify loading, empty, error, retry, keyboard, focus, semantic, and responsive states.                | User-visible outcomes at existing component/integration/browser boundaries.       |
+| Rust                         | Model ownership, borrowing, error variants, invariants, unsafe scope, task lifetime, locking, and cancellation explicitly.                                                           | Parsing, serialization, error variants, public API, and concurrency.              |
+| TypeScript                   | Separate static types from runtime validation; avoid unsafe casts; preserve async/resource/config contracts and exported types.                                                      | Runtime behavior plus type-sensitive edge cases.                                  |
+| Web/HTML/CSS                 | Start with semantic HTML; specify keyboard/focus, labels, contrast, responsive, reduced motion, loading/empty/error states, safe sinks, and browser boundaries.                      | Existing browser/accessibility capability and named user journey.                 |
 
 ## Role routing
 
 Use only roles relevant to the request. Roles provide perspective, not extra scope or a second
 workflow.
 
-| Role | Invoke when | Required contribution |
-|---|---|---|
-| Product | Intent or scope is incomplete. | Separate requested, preserved, constrained, assumed, and excluded behavior; make acceptance observable. |
-| Architect | Boundaries, interfaces, data ownership, compatibility, or material trade-offs change. | Smallest design, alternatives, reversibility, dependencies, NFRs, migration/rollback; add the conditional decision-quality and owner/retirement check when direction risk appears. |
-| Developer | Implementation units need definition. | Reuse conventions, map call chain/change surface, preserve public signatures, and avoid unrelated cleanup. |
-| Quality | Acceptance or final verification is at risk. | Acceptance-to-proof matrix, success/failure/boundary cases, final-gate distinction, limitations. |
-| Security | Trust, secrets, permissions, external inputs, data handling, or supply chain is in scope. | Concrete boundaries, controls, and proof; state inapplicability when evidence supports it. |
-| Design | The request changes a user-facing experience. | Flow, visible states, responsive behavior, semantic/accessibility obligations, and browser proof. |
-| Delivery | Multiple units, dependencies, risks, or sequencing decisions exist. | Approval-ready handoff, dependency/risk/value order, completion proof, and re-plan triggers. |
+| Role      | Invoke when                                                                               | Required contribution                                                                                                                                                              |
+| --------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product   | Intent or scope is incomplete.                                                            | Separate requested, preserved, constrained, assumed, and excluded behavior; make acceptance observable.                                                                            |
+| Architect | Boundaries, interfaces, data ownership, compatibility, or material trade-offs change.     | Smallest design, alternatives, reversibility, dependencies, NFRs, migration/rollback; add the conditional decision-quality and owner/retirement check when direction risk appears. |
+| Developer | Implementation units need definition.                                                     | Reuse conventions, map call chain/change surface, preserve public signatures, and avoid unrelated cleanup.                                                                         |
+| Quality   | Acceptance or final verification is at risk.                                              | Acceptance-to-proof matrix, success/failure/boundary cases, final-gate distinction, limitations.                                                                                   |
+| Security  | Trust, secrets, permissions, external inputs, data handling, or supply chain is in scope. | Concrete boundaries, controls, and proof; state inapplicability when evidence supports it.                                                                                         |
+| Design    | The request changes a user-facing experience.                                             | Flow, visible states, responsive behavior, semantic/accessibility obligations, and browser proof.                                                                                  |
+| Delivery  | Multiple units, dependencies, risks, or sequencing decisions exist.                       | Approval-ready handoff, dependency/risk/value order, completion proof, and re-plan triggers.                                                                                       |
 
 ## UI, NFR, and delivery gates
 

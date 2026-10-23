@@ -1,20 +1,12 @@
 ---
+
 schemaVersion: 1
-requiredCaseFields:
-  - id
-  - visibility
-  - scenario
-  - assertions
-  - failureMode
-  - repairBoundary
-  - independentVerifier
-requiredVisibility:
-  - candidate
-  - challenge
+requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]
+requiredVisibility: [candidate, challenge]
 minimumPassRate: 1
-verifierIds:
-  - source-structure
+verifierIds: [source-structure]
 ---
+
 # AIDP evaluation rubric
 
 Measure whether AIDP creates a complete, fail-closed, prose-only plan with typed inputs, owned

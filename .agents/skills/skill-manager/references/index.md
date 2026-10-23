@@ -1,7 +1,6 @@
 # Skill Manager reference map
 
 Load only the branch needed for the selected skill request.
-
 - [skill-lifecycle.md](skill-lifecycle.md) - create, update, rename, and closeout method.
 - [agent-skills-guidance.md](agent-skills-guidance.md) - Agent Skills specification, description
   optimization, eval design, and script interfaces.

@@ -1,8 +1,7 @@
 ---
+
 name: knowledge-base
-description: >-
-  Retrieve, capture, validate, and distill durable knowledge stored in the Open Knowledge Format
-  (OKF).
+description: Retrieve, capture, validate, and distill durable knowledge stored in the Open Knowledge Format (OKF).
 argument-hint: <operation> <private-kb-root> <scope-or-request>
 ---
 
@@ -132,7 +131,6 @@ whose `from` and `to` values are operation paths, and each operation's `metadata
 the common directory prefix shared between the `from` directory and the `to` path. Prepend `../` for
 each remaining directory level in the `from` path after the common prefix, then append the remaining
 `to` path. Three concrete examples:
-
 - Same directory: `from` = `idx/sub/A.md`, `to` = `idx/sub/B.md` → `](B.md)`
 - Adjacent subject: `from` = `idx/sub1/A.md`, `to` = `idx/sub2/B.md` → `](../sub2/B.md)`
 - Two levels up: `from` = `idx/sub1/sub2/A.md`, `to` = `idx/sub3/B.md` → `](../../sub3/B.md)`
@@ -212,12 +210,12 @@ Do not use `rg` as a private-KB authority, and do not use `/knowledge-base` or `
 bypass this skill's root/index ownership. Organization, team, and project records retain their
 `ALWAYS`/`NEVER` precedence.
 
-| Command or information | Arguments | When to use | Additional information |
-| --- | --- | --- | --- |
-| `import-plan` | `<relative-or-absolute-plan-path>` | A completed AIDX plan must become durable knowledge | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>`; the importer preserves the source and returns a receipt. AIDX may remove the source afterward when its retirement rule and user scope authorize it. |
-| `search` | `<private-kb-root> <query>` | Retrieve validated concepts with a local repo-search receipt | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; searches the configured KB root. |
-| `related` | `<private-kb-root> <query>` | Before a distillation decision | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"`; choose one explicit disposition. |
-| `reconcile` | `<private-kb-root> <absolute-reconciliation-request-path>` | An approved multi-concept plan is complete | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"`; then guard every changed concept. |
+| Command or information | Arguments                                                  | When to use                                                  | Additional information                                                                                                                                                                                                                          |
+| ---------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `import-plan`          | `<relative-or-absolute-plan-path>`                         | A completed AIDX plan must become durable knowledge          | `bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>`; the importer preserves the source and returns a receipt. AIDX may remove the source afterward when its retirement rule and user scope authorize it. |
+| `search`               | `<private-kb-root> <query>`                                | Retrieve validated concepts with a local repo-search receipt | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; searches the configured KB root.                                                                                                                            |
+| `related`              | `<private-kb-root> <query>`                                | Before a distillation decision                               | `bun <agents-root>/scripts/knowledge-base.ts related "<private-kb-root>" "<query>"`; choose one explicit disposition.                                                                                                                           |
+| `reconcile`            | `<private-kb-root> <absolute-reconciliation-request-path>` | An approved multi-concept plan is complete                   | `bun <agents-root>/scripts/knowledge-base.ts reconcile "<private-kb-root>" "<absolute-reconciliation-request-path>"`; then guard every changed concept.                                                                                         |
 
 ### Search and batch retrieval
 

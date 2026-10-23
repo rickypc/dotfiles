@@ -1,8 +1,7 @@
 ---
+
 name: react
-description: >-
-  Implement and review React and React Native interfaces with shared guidance for state, effects,
-  data, accessibility, performance, platform behavior, transitions, and user-visible tests.
+description: Implement and review React and React Native interfaces with shared guidance for state, effects, data, accessibility, performance, platform behavior, transitions, and user-visible tests.
 argument-hint: <react-or-react-native-scope> <approved-design> <acceptance-criteria>
 ---
 
