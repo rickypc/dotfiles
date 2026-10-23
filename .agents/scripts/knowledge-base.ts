@@ -464,6 +464,13 @@ const stringMetadata = (data: Record<string, unknown>, key: string): string => {
   return value;
 };
 
+const tokenMatches = (haystack: string, token: string): boolean => {
+  if (haystack.includes(token)) {
+    return true;
+  }
+  return token.endsWith('s') && token.length > 3 && haystack.includes(token.slice(0, -1));
+};
+
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search takes one KB root and a query; search-batch takes one KB root and 1-4 unique queries.';
 
@@ -654,13 +661,6 @@ const runReadCommand = async (
     return runSearchCommand(args, search, discover, write);
   }
   return runBatchSearchCommand(args, batchSearch, write);
-};
-
-const tokenMatches = (haystack: string, token: string): boolean => {
-  if (haystack.includes(token)) {
-    return true;
-  }
-  return token.endsWith('s') && token.length > 3 && haystack.includes(token.slice(0, -1));
 };
 
 export const searchKnowledgeBase = async (
