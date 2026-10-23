@@ -8,12 +8,6 @@ import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import { type BatchTask, runBatched } from '../utils/quality-engine/batch.js';
 import { type RepoSearchEnvelope, repoSearchDiscover } from '../utils/repo-search.js';
-import {
-  probeRepoSearchTransport,
-  type RepoSearchTransport,
-  type RepoSearchTransportOptions,
-} from '../utils/repo-search-transport.js';
-import type { SearchAttempt } from '../utils/search-fallback.js';
 import { defaultMoveSourceToTrash } from './trash.js';
 
 type BatchSearchDependency = typeof searchKnowledgeBaseBatch;
@@ -335,17 +329,11 @@ const runBatchSearchCommand = async (
   batchSearch: typeof searchKnowledgeBaseBatch,
   write: (message: string) => void,
 ): Promise<boolean> => {
-  const [command, value, repoSearchIndex, ...queries] = args;
-  if (command !== 'search-batch' || !value || !repoSearchIndex || queries.length === 0) {
+  const [command, kbRoot, ...queries] = args;
+  if (command !== 'search-batch' || !kbRoot || queries.length === 0) {
     return false;
   }
-  write(
-    JSON.stringify(
-      await batchSearch(nodeFileSystem, bunExecutor, value, repoSearchIndex, queries),
-      null,
-      2,
-    ),
-  );
+  write(JSON.stringify(await batchSearch(nodeFileSystem, bunExecutor, kbRoot, queries), null, 2));
   return true;
 };
 
@@ -441,25 +429,24 @@ const runSearchCommand = async (
   discover: typeof searchKnowledgeBaseWithFallback,
   write: (message: string) => void,
 ): Promise<boolean> => {
-  const [command, value, first, second] = args;
-  if ((command !== 'search' && command !== 'related') || !value || !first) {
+  const [command, kbRoot, ...queryParts] = args;
+  if ((command !== 'search' && command !== 'related') || !kbRoot || queryParts.length === 0) {
     return false;
   }
-  if (args.length === 3) {
+  const query = queryParts.join(' ').trim();
+  if (!query) {
+    return false;
+  }
+  if (command === 'related') {
     const [concepts, kbInfo] = await Promise.all([
-      search(nodeFileSystem, value, first),
-      buildKbInfo(nodeFileSystem, value),
+      search(nodeFileSystem, kbRoot, query),
+      buildKbInfo(nodeFileSystem, kbRoot),
     ]);
     write(JSON.stringify({ concepts, kbInfo }, null, 2));
     return true;
   }
-  if (command === 'search' && second && args.length === 4) {
-    write(
-      JSON.stringify(await discover(nodeFileSystem, bunExecutor, value, first, second), null, 2),
-    );
-    return true;
-  }
-  return false;
+  write(JSON.stringify(await discover(nodeFileSystem, bunExecutor, kbRoot, query), null, 2));
+  return true;
 };
 
 export const scopeIndexPath = (path: string): string => {
@@ -478,7 +465,7 @@ const stringMetadata = (data: Record<string, unknown>, key: string): string => {
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search-batch takes one KB root, one repo-search index, and 1-4 unique queries.';
+  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search takes one KB root and a query; search-batch takes one KB root and 1-4 unique queries.';
 
 export const validateLesson = (lesson: Lesson): void => {
   for (const [name, value] of Object.entries(lesson)) {
@@ -739,47 +726,34 @@ export const searchKnowledgeBaseWithFallback = async (
   fileSystem: FileSystem,
   executor: CommandExecutor,
   kbRoot: string,
-  repoSearchIndex: string,
   query: string,
-  probeTransport: (options: RepoSearchTransportOptions) => Promise<{
-    readonly attempt: SearchAttempt;
-    readonly transport: RepoSearchTransport | null;
-  }> = probeRepoSearchTransport,
 ): Promise<KnowledgeBaseSearchReceipt> => {
   const conceptsPromise = searchKnowledgeBase(fileSystem, kbRoot, query);
   const kbInfoPromise = buildKbInfo(fileSystem, kbRoot);
-  const probed = await probeTransport({ executor });
-  try {
-    const [concepts, discovery, kbInfo] = await Promise.all([
-      conceptsPromise,
-      repoSearchDiscover({
-        allowedRoots: [kbRoot],
-        executor,
-        indexHint: repoSearchIndex,
-        probe: probed.attempt,
-        query,
-        root: kbRoot,
-        transport: probed.transport,
-      }),
-      kbInfoPromise,
-    ]);
-    return {
-      concepts,
-      discovery,
-      kbInfo,
-    };
-  } finally {
-    await probed.transport?.close();
-  }
+  const [concepts, discovery, kbInfo] = await Promise.all([
+    conceptsPromise,
+    repoSearchDiscover({
+      allowedRoots: [kbRoot],
+      discoveryMode: 'private-kb-local',
+      executor,
+      query,
+      root: kbRoot,
+      transport: null,
+    }),
+    kbInfoPromise,
+  ]);
+  return {
+    concepts,
+    discovery,
+    kbInfo,
+  };
 };
 
 export const searchKnowledgeBaseBatch = async (
   fileSystem: FileSystem,
   executor: CommandExecutor,
   kbRoot: string,
-  repoSearchIndex: string,
   queries: readonly string[],
-  probeTransport: Parameters<typeof searchKnowledgeBaseWithFallback>[5] = probeRepoSearchTransport,
 ): Promise<readonly KnowledgeBaseBatchSearchResult[]> => {
   if (queries.length === 0 || queries.length > maxKnowledgeBaseBatchSize) {
     throw new Error(`KB search-batch requires 1-${maxKnowledgeBaseBatchSize} queries.`);
@@ -794,15 +768,7 @@ export const searchKnowledgeBaseBatch = async (
   const tasks: BatchTask<KnowledgeBaseSearchReceipt>[] = queries.map((query, index) => ({
     id: `query-${index}`,
     mode: 'read-only',
-    run: () =>
-      searchKnowledgeBaseWithFallback(
-        fileSystem,
-        executor,
-        kbRoot,
-        repoSearchIndex,
-        query,
-        probeTransport,
-      ),
+    run: () => searchKnowledgeBaseWithFallback(fileSystem, executor, kbRoot, query),
   }));
   const receipts = await runBatched(tasks);
   const receiptById = new Map(receipts.map((result) => [result.id, result.value]));

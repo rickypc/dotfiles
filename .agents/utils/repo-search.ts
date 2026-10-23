@@ -39,6 +39,7 @@ interface ParsedSearchGraph {
 
 export interface RepoSearchDiscoverRequest {
   readonly allowedRoots: readonly string[];
+  readonly discoveryMode?: 'indexed-project' | 'private-kb-local';
   readonly executor: CommandExecutor;
   readonly indexHint?: string;
   readonly probe?: SearchAttempt;
@@ -591,14 +592,22 @@ export const repoSearchDiscover = async (
   if (!query) {
     throw new Error('Search query is required.');
   }
-  const attempts: SearchAttempt[] = request.probe ? [request.probe] : [];
+  const privateKbLocal = request.discoveryMode === 'private-kb-local';
+  const attempts: SearchAttempt[] = privateKbLocal || !request.probe ? [] : [request.probe];
   const caveats: string[] = [];
   let index: string | null = null;
   let indexedAt: string | null = null;
   let indexUsable = false;
   let results: RepoSearchResult[] = [];
   let source: RepoSearchEnvelope['source'] = 'none';
-  if (request.transport) {
+  if (privateKbLocal) {
+    attempts.push(
+      skippedAttempt(
+        'resolve-index',
+        'Skipped: private KB local-only mode searches the configured KB root directly.',
+      ),
+    );
+  } else if (request.transport) {
     const listed = await callAttempt(
       request.transport,
       backendCall('list_projects', {}),
@@ -707,7 +716,7 @@ export const repoSearchDiscover = async (
   const next: string[] = results.some((result) => result.kind === 'symbol')
     ? ['read <approved-root> <qualified-name> for one snippet']
     : [];
-  if (!found && !request.transport) {
+  if (!found && !request.transport && !privateKbLocal) {
     next.push('Restore the backend transport for indexed discovery.');
   }
   return redactEnvelope({
@@ -717,17 +726,22 @@ export const repoSearchDiscover = async (
     ok: true,
     query: { index, input: [query], root: request.root },
     reliability: {
-      backend: request.transport ? `codebase-memory-mcp via ${request.transport.kind}` : null,
+      backend:
+        request.transport && !privateKbLocal
+          ? `codebase-memory-mcp via ${request.transport.kind}`
+          : null,
       caveats,
       indexedAt,
-      note: `${indexUsable ? `Index ${index} ready.` : 'No usable project index for this run.'}${
-        request.indexHint ? ` (requested index: ${request.indexHint})` : ''
-      }`,
+      note: privateKbLocal
+        ? 'Private KB local-only search.'
+        : `${indexUsable ? `Index ${index} ready.` : 'No usable project index for this run.'}${
+            request.indexHint ? ` (requested index: ${request.indexHint})` : ''
+          }`,
     },
     results,
     source,
     status: found ? 'found' : 'empty',
-    transport: transportKind(request.transport),
+    transport: privateKbLocal ? 'none' : transportKind(request.transport),
     verb: 'search',
   });
 };

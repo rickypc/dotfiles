@@ -1,4 +1,4 @@
-import { expect, mock, test } from 'bun:test';
+import { expect, test } from 'bun:test';
 
 import {
   buildKbInfo,
@@ -663,40 +663,28 @@ test('searchKnowledgeBase skips files with invalid OKF metadata', async () => {
   ]);
 });
 
-test('uses the built-in transport fallback by default', async () => {
-  const previous = Bun.env.REPO_SEARCH_TRANSPORT_FORCE;
-  Bun.env.REPO_SEARCH_TRANSPORT_FORCE = 'none';
-  try {
-    const fileSystem = {
-      exists: async () => false,
-      mkdir: async () => undefined,
-      readdir: async () => [],
-      readFile: async () => '',
-      rm: async () => undefined,
-      writeFile: async () => undefined,
-    };
-    const executor = async () => ({ code: 1, stderr: '', stdout: '' });
-    const receipt = await searchKnowledgeBaseWithFallback(
-      fileSystem,
-      executor,
-      '/kb',
-      'idx',
-      'query',
-    );
-    expect(receipt.concepts).toEqual([]);
-    expect(receipt.discovery.transport).toBe('none');
-    expect(
-      receipt.discovery.attempts.some(
-        (attempt) => attempt.strategy === 'transport-probe' && attempt.status === 'skipped',
-      ),
-    ).toBe(true);
-  } finally {
-    if (previous === undefined) {
-      delete Bun.env.REPO_SEARCH_TRANSPORT_FORCE;
-    } else {
-      Bun.env.REPO_SEARCH_TRANSPORT_FORCE = previous;
-    }
-  }
+test('uses private KB local-only discovery without a codebase-memory index', async () => {
+  const fileSystem = {
+    exists: async () => false,
+    mkdir: async () => undefined,
+    readdir: async () => [],
+    readFile: async () => '',
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  };
+  const executor = async () => ({ code: 1, stderr: '', stdout: '' });
+  const receipt = await searchKnowledgeBaseWithFallback(fileSystem, executor, '/kb', 'query');
+
+  expect(receipt.concepts).toEqual([]);
+  expect(receipt.discovery).toMatchObject({
+    query: { index: null, root: '/kb' },
+    reliability: {
+      backend: null,
+      caveats: [],
+      note: 'Private KB local-only search.',
+    },
+    transport: 'none',
+  });
 });
 
 test('searchKnowledgeBase ranks title matches before body-only matches', async () => {
@@ -809,23 +797,12 @@ test('combines repo-search discovery with validated KB search results', async ()
     writeFile: async () => undefined,
   };
   const outputs = [{ code: 0, stderr: '', stdout: '/kb/shared/practice/fixture.md:3:verified' }];
-  const probe = mock(async () => ({
-    attempt: {
-      command: 'probe',
-      detail: 'No backend transport answered.',
-      status: 'skipped' as const,
-      strategy: 'transport-probe',
-    },
-    transport: null,
-  }));
   await expect(
     searchKnowledgeBaseWithFallback(
       fileSystem,
       async () => outputs.shift() ?? { code: 1, stderr: '', stdout: '' },
       '/kb',
-      'kb-index',
       'verified',
-      probe,
     ),
   ).resolves.toMatchObject({
     concepts: [{ path: 'shared/practice/fixture.md' }],
@@ -843,44 +820,23 @@ test('batches bounded distinct KB queries and rejects duplicates', async () => {
     writeFile: async () => undefined,
   };
   const executor = async () => ({ code: 0, stderr: '', stdout: 'ready' });
-  const probe = mock(async () => ({
-    attempt: {
-      command: 'probe',
-      detail: 'No backend transport answered.',
-      status: 'skipped' as const,
-      strategy: 'transport-probe',
-    },
-    transport: null,
-  }));
   await expect(
-    searchKnowledgeBaseBatch(
-      fileSystem,
-      executor,
-      '/kb',
-      'kb-index',
-      ['verifier', 'temporary path'],
-      probe,
-    ),
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', ['verifier', 'temporary path']),
   ).resolves.toHaveLength(2);
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['Verifier', ' verifier ']),
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', ['Verifier', ' verifier ']),
   ).rejects.toThrow('unique');
+  await expect(searchKnowledgeBaseBatch(fileSystem, executor, '/kb', [''])).rejects.toThrow(
+    'nonblank',
+  );
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['']),
-  ).rejects.toThrow('nonblank');
-  await expect(
-    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', 'kb-index', ['a', 'b', 'c', 'd', 'e']),
+    searchKnowledgeBaseBatch(fileSystem, executor, '/kb', ['a', 'b', 'c', 'd', 'e']),
   ).rejects.toThrow('1-4');
 });
 
-test('starts local KB lookup while repo-search discovery waits for index readiness', async () => {
-  let releaseStatus:
-    | ((value: { code: number; stderr: string; stdout: string }) => void)
-    | undefined;
-  const status = new Promise<{ code: number; stderr: string; stdout: string }>((resolve) => {
-    releaseStatus = resolve;
-  });
+test('starts local KB and local repo-search discovery without an index probe', async () => {
   let localLookupStarted = false;
+  let localDiscoveryStarted = false;
   const fileSystem = {
     exists: async () => false,
     mkdir: async () => undefined,
@@ -894,21 +850,17 @@ test('starts local KB lookup while repo-search discovery waits for index readine
   };
   const result = searchKnowledgeBaseWithFallback(
     fileSystem,
-    async () => status,
+    async () => {
+      localDiscoveryStarted = true;
+      return { code: 0, stderr: '', stdout: '' };
+    },
     '/kb',
-    'kb-index',
     'verified',
-    mock(async () => ({
-      attempt: {
-        command: 'probe',
-        detail: 'No backend transport answered.',
-        status: 'skipped' as const,
-        strategy: 'transport-probe',
-      },
-      transport: null,
-    })),
   );
   expect(localLookupStarted).toBeTrue();
-  releaseStatus?.({ code: 0, stderr: '', stdout: 'ready' });
-  await expect(result).resolves.toMatchObject({ concepts: [] });
+  await expect(result).resolves.toMatchObject({
+    concepts: [],
+    discovery: { reliability: { caveats: [] }, transport: 'none' },
+  });
+  expect(localDiscoveryStarted).toBeTrue();
 });

@@ -242,6 +242,44 @@ test('search answers from the graph stage with located results and reliability',
   expect(envelope.next).toEqual(['read <approved-root> <qualified-name> for one snippet']);
 });
 
+test('private KB local-only mode searches files without resolving a project index', async () => {
+  const transport = fakeTransport(() => new Error('Private KB search must not call the backend.'));
+  const gateRunner = mock(async () => ({ attempts: [], found: false, output: '' }));
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/kb'],
+      discoveryMode: 'private-kb-local',
+      executor: executorFor('/kb/concept.md:1: Snowflake'),
+      probe: probeAttempt,
+      query: 'Snowflake',
+      root: '/kb',
+      transport,
+    },
+    gateRunner,
+  );
+
+  expect(envelope).toMatchObject({
+    found: true,
+    query: { index: null, root: '/kb' },
+    reliability: {
+      backend: null,
+      caveats: [],
+      note: 'Private KB local-only search.',
+    },
+    source: 'fallback',
+    status: 'found',
+    transport: 'none',
+  });
+  expect(envelope.attempts).toContainEqual({
+    command: 'resolve-index',
+    detail: 'Skipped: private KB local-only mode searches the configured KB root directly.',
+    status: 'skipped',
+    strategy: 'resolve-index',
+  });
+  expect(transport.call).not.toHaveBeenCalled();
+  expect(gateRunner).toHaveBeenCalledTimes(1);
+});
+
 test('search falls through to code results and clusters when graph has no identity match', async () => {
   const transport = fakeTransport((call) => {
     if (call.tool === 'list_projects') {
@@ -396,7 +434,7 @@ test('search gates binary candidates and reports router evidence', async () => {
   expect(envelope.next).toEqual([]);
 });
 
-test('search rejects invalid roots and blank queries before any backend call', async () => {
+test('search rejects invalid roots and blank queries before contacting the backend', async () => {
   const transport = fakeTransport(() => backendError('unexpected call'));
   await expect(
     repoSearchDiscover({

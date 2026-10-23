@@ -108,14 +108,18 @@ limits, and unresolved decisions before asking the user anything.
 
 ### Context retrieval command options
 
-Use the owner command contracts below. Do not calculate an index, substitute a different search
-command, or treat a missing result as an answer.
+Use the owner command contracts below. Let each owner resolve its own data store. The Knowledge Base
+search uses the configured private-KB root. Do not substitute search commands or treat a missing
+result as an answer.
 
 | Command or information | Arguments | When to use | Additional information |
 | --- | --- | --- | --- |
 | `/repo-search` path search | `<approved-root>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"`; returns repository/code evidence and one ordered receipt while hiding index selection and fallback details. |
 | `/repo-search` indexed inspection | `<approved-root>` `<absolute-jsonl-request-path-under-os-tempdir>` | When several independent implementation reads are needed for one decision | `bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"`; use only the owner-defined JSONL operations and preserve its receipt. |
-| `/knowledge-base` search | `<private-kb-root>` `<repo-search-index>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<repo-search-index>" "<query>"`; returns validated business-context concepts plus discovery and fallback receipts. |
+| `/knowledge-base` search | `<private-kb-root>` `<query>` | Every request, before clarification | `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; uses private-KB local-only mode and returns validated concepts plus the discovery receipt. |
+
+The Knowledge Base local-only mode applies only to private-KB discovery. Direct repo-search calls
+keep their owner-defined behavior.
 
 Repository evidence answers what exists and how the implementation is structured. Private knowledge
 answers the applicable business intent, constraints, terminology, ownership, and precedent. AIDP

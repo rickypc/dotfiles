@@ -545,23 +545,26 @@ test('run handles search fallback and related commands', async () => {
       }) as Awaited<ReturnType<typeof searchKnowledgeBaseWithFallback>>,
   );
 
-  await run(['search', '/kb', 'index', 'query'], write, captureStub, search, discover);
+  await run(['search', '/kb', 'query'], write, captureStub, search, discover);
   await run(['related', '/kb', 'query'], write, captureStub, search, discover);
 
   expect(discover).toHaveBeenCalled();
+  expect(discover.mock.calls[0]?.[2]).toBe('/kb');
+  expect(discover.mock.calls[0]?.[3]).toBe('query');
   expect(search).toHaveBeenCalled();
   expect(write).toHaveBeenCalledTimes(2);
 });
 
 test('run rejects malformed search command shapes', async () => {
   await expect(run(['search', '/kb'])).rejects.toThrow(usage());
-  await expect(run(['related', '/kb', 'query', 'extra'])).rejects.toThrow(usage());
+  await expect(run(['related', '/kb'])).rejects.toThrow(usage());
+  await expect(run(['search', '/kb', '   '])).rejects.toThrow(usage());
 });
 
 test('run handles search-batch command', async () => {
   const write = mock();
   await run(
-    ['search-batch', '/kb', 'index', 'query1', 'query2'],
+    ['search-batch', '/kb', 'query1', 'query2'],
     write,
     captureStub,
     searchStub,
@@ -852,54 +855,36 @@ test('runWhenMain delegates only when invoked as the main module', async () => {
 
 test('searchKnowledgeBaseBatch searches multiple queries', async () => {
   const mockFs = makeFileSystem();
-  const probe = mock(async () => ({
-    attempt: {
-      command: 'probe',
-      detail: 'No backend transport answered.',
-      status: 'skipped' as const,
-      strategy: 'transport-probe' as const,
-    },
-    transport: null,
-  }));
-
-  const results = await searchKnowledgeBaseBatch(
-    mockFs,
-    commandExecutor,
-    '/kb',
-    'index',
-    ['query1', 'query2'],
-    probe,
-  );
+  const results = await searchKnowledgeBaseBatch(mockFs, commandExecutor, '/kb', [
+    'query1',
+    'query2',
+  ]);
   expect(results.length).toBe(2);
   expect(results[0].query).toBe('query1');
   expect(results[1].query).toBe('query2');
-  expect(probe).toHaveBeenCalledTimes(2);
+  expect(results.every((result) => result.receipt.discovery.reliability.caveats.length === 0)).toBe(
+    true,
+  );
 });
 
 test('searchKnowledgeBaseBatch throws for empty queries', async () => {
   const fileSystem = makeFileSystem();
-  await expect(
-    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', []),
-  ).rejects.toThrow('KB search-batch requires 1-4 queries.');
+  await expect(searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', [])).rejects.toThrow(
+    'KB search-batch requires 1-4 queries.',
+  );
 });
 
 test('searchKnowledgeBaseBatch throws for too many queries', async () => {
   const fileSystem = makeFileSystem();
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', [
-      'q1',
-      'q2',
-      'q3',
-      'q4',
-      'q5',
-    ]),
+    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', ['q1', 'q2', 'q3', 'q4', 'q5']),
   ).rejects.toThrow('KB search-batch requires 1-4 queries.');
 });
 
 test('searchKnowledgeBaseBatch throws for duplicate queries', async () => {
   const fileSystem = makeFileSystem();
   await expect(
-    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', 'index', ['query', 'query']),
+    searchKnowledgeBaseBatch(fileSystem, commandExecutor, '/kb', ['query', 'query']),
   ).rejects.toThrow('KB search-batch queries must be unique after normalization.');
 });
 
@@ -907,25 +892,20 @@ test('searchKnowledgeBaseBatch throws for duplicate queries', async () => {
 test('searchKnowledgeBaseWithFallback returns receipt', async () => {
   const mockFs = makeFileSystem();
 
-  const result = await searchKnowledgeBaseWithFallback(
-    mockFs,
-    commandExecutor,
-    '/kb',
-    'index',
-    'query',
-    mock(async () => ({
-      attempt: {
-        command: 'probe',
-        detail: 'No backend transport answered.',
-        status: 'skipped' as const,
-        strategy: 'transport-probe' as const,
+  const result = await searchKnowledgeBaseWithFallback(mockFs, commandExecutor, '/kb', 'query');
+  expect(result).toMatchObject({
+    concepts: [],
+    discovery: {
+      query: { index: null, root: '/kb' },
+      reliability: {
+        backend: null,
+        caveats: [],
+        note: 'Private KB local-only search.',
       },
-      transport: null,
-    })),
-  );
-  expect(result.concepts).toBeDefined();
-  expect(result.discovery).toBeDefined();
-  expect(result.kbInfo).toBeDefined();
+      transport: 'none',
+    },
+    kbInfo: { resolvedRoot: '/kb' },
+  });
 });
 
 test('reconcileConcepts validates and reconciles', async () => {
