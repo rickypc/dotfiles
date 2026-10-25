@@ -1,11 +1,28 @@
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
+import * as realCrypto from 'node:crypto';
+import * as realModule from 'node:module';
+import realParser from 'tree-sitter';
+import realGrammars from 'tree-sitter-typescript';
+import * as realContracts from '../../utils/contracts.js';
+import * as realController from '../../utils/quality-engine/controller.js';
+import * as realPacket from '../../utils/quality-engine/packet.js';
+import * as realReceipt from '../../utils/quality-engine/receipt.js';
 
-import {
+mock.module('node:crypto', () => realCrypto);
+mock.module('node:module', () => realModule);
+mock.module('tree-sitter', () => ({ default: realParser }));
+mock.module('tree-sitter-typescript', () => realGrammars);
+mock.module('./contracts.js', () => realContracts);
+mock.module('./quality-engine/controller.js', () => realController);
+mock.module('./quality-engine/packet.js', () => realPacket);
+mock.module('./quality-engine/receipt.js', () => realReceipt);
+
+const {
   declarationOrderCheck,
   evaluateDeclarationOrderLifecycle,
   fixDeclarationOrder,
   inspectDeclarationOrder,
-} from '../../utils/declaration-order.js';
+} = await import('../../utils/declaration-order.js');
 
 test('orders types after imports and runtime declarations by dependency then name', () => {
   const report = inspectDeclarationOrder(
@@ -69,11 +86,11 @@ test('makes type placement actionable and reports runtime dependency uncertainty
         'Do not move a declaration across a reported barrier or blocked group.',
         'Do not add, remove, rename, or merge declarations.',
       ],
-      intentId: expect.any(String),
+      intentId: expect.stringContaining('declaration-order-'),
       knownUserQuestions: [],
       nextPhase: 'candidate',
-      packetFingerprint: expect.any(String),
-      packetId: expect.any(String),
+      packetFingerprint: expect.stringContaining(''),
+      packetId: expect.stringContaining('declaration-order-'),
       requiredActionGroups: [
         {
           allowedPaths: ['/repo/blocked.ts'],
@@ -424,5 +441,45 @@ test('uses the shared evidence controller for baseline, candidate, and challenge
         'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
       ),
     }),
-  ).toEqual(expect.objectContaining({ receipt: expect.any(Object) }));
+  ).toEqual(expect.objectContaining({ receipt: expect.objectContaining({}) }));
+});
+
+test('records baseline ordering facts without an action packet for a canonical source', () => {
+  const cleanReport = inspectDeclarationOrder(
+    '/repo/clean.ts',
+    'function alpha() {}\nfunction zebra() {}',
+  );
+  expect(cleanReport.packet).toBeUndefined();
+  const result = evaluateDeclarationOrderLifecycle({
+    baselineSourceFingerprint: cleanReport.sourceFingerprint,
+    matrixFingerprint: 'declaration-order-matrix',
+    phase: 'baseline',
+    report: cleanReport,
+  });
+  expect(result.receipt.state).toBe('baseline_recorded');
+  expect(result.receipt.checks[0]).toEqual(
+    expect.objectContaining({
+      detail: 'Ordering facts recorded; no action packet is required.',
+      name: 'declaration-order-facts',
+      status: 'passed',
+    }),
+  );
+});
+
+test('leaves an already-ordered runtime group untouched while reordering a violating group', () => {
+  const fixed = fixDeclarationOrder(
+    '/repo/mixed-groups.ts',
+    [
+      'function zebra() { return alpha(); }',
+      'function alpha() { return 1; }',
+      'const boundary = 1;',
+      'function charlie() {}',
+      'function delta() {}',
+    ].join('\n'),
+  );
+  expect(fixed.changed).toBe(true);
+  expect(fixed.report).toEqual(expect.objectContaining({ blockers: [], violations: [] }));
+  expect(fixed.source).toBe(
+    'function alpha() { return 1; }\n\nfunction zebra() { return alpha(); }\nconst boundary = 1;\nfunction charlie() {}\nfunction delta() {}',
+  );
 });

@@ -1,17 +1,21 @@
 import { expect, mock, test } from 'bun:test';
-
-import {
-  inspectRepoSearch,
-  parseRepoSearchInspectionJsonl,
-  type RepoSearchInspectionOperation,
-  repoSearchInspectionCall,
-} from '../../utils/repo-search-inspection.js';
+import * as realRepoSearch from '../../utils/repo-search.js';
+import type { RepoSearchInspectionOperation } from '../../utils/repo-search-inspection.js';
 import type {
   RepoSearchBackendCall,
   RepoSearchBackendResult,
   RepoSearchTransport,
 } from '../../utils/repo-search-transport.js';
+import * as realTransport from '../../utils/repo-search-transport.js';
 import type { SearchAttempt } from '../../utils/search-fallback.js';
+import * as realSearchFallback from '../../utils/search-fallback.js';
+
+mock.module('./repo-search.js', () => realRepoSearch);
+mock.module('./repo-search-transport.js', () => realTransport);
+mock.module('./search-fallback.js', () => realSearchFallback);
+
+const { inspectRepoSearch, parseRepoSearchInspectionJsonl, repoSearchInspectionCall } =
+  await import('../../utils/repo-search-inspection.js');
 
 const projectsTable = [
   'projects: 1  (cols: name root_path branch)',
@@ -177,4 +181,25 @@ test('inspection parsing rejects malformed operations and labels every op', asyn
     { operation: 'schema' },
   ]);
   expect(projectsTable).toContain('repo /repo main');
+});
+
+test('reports the all-reads-errored caveats when every declared inspection read errors', async () => {
+  const transport = fakeTransport((call) =>
+    call.tool === 'index_status' ? backendText(readyStatus) : backendError('backend refused'),
+  );
+  const envelope = await inspectRepoSearch(transport, { index: 'repo', root: '/repo' }, [
+    { operation: 'schema' },
+    { operation: 'architecture', path: 'src' },
+  ]);
+  expect(envelope).toMatchObject({
+    found: false,
+    ok: true,
+    reliability: { caveats: ['Every inspection read errored.'] },
+    source: 'none',
+    status: 'error',
+  });
+  expect(envelope.results.map((result) => result.detail)).toEqual([
+    'backend refused',
+    'backend refused',
+  ]);
 });

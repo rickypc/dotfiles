@@ -15,10 +15,10 @@ workflow guides, and agent playbooks. It owns scope, routing, references, valida
 the existing policy or domain owner retains authority over its requirements and decisions.
 
 For Agent Skills, Skill Manager owns frontmatter, normal path, router, delegated owners, references,
-assets, matrices, prose and link review, package validation, and closeout evidence. Domain skills may
-supply knowledge or execute delegated work, but they do not mutate a skill package. For instruction
-files, Skill Manager checks the active instruction chain, preserves its owner and format, and does
-not force instruction files into the skill template.
+assets, matrices, prose and link review, package validation, and closeout evidence. Domain skills
+may supply knowledge or execute delegated work, but they do not mutate a skill package. For
+instruction files, Skill Manager checks the active instruction chain, preserves its owner and
+format, and does not force instruction files into the skill template.
 
 The `quality-engine` owns evaluation state and receipts. Skill Manager owns the skill contract,
 instruction maintenance procedure, resources, matrices, repair packet, and final evidence handoff.
@@ -45,17 +45,17 @@ validation, and repair, and for user-authorized lifecycle work on an agent instr
 # Usage governance: keep required <name> and optional [name] arguments explicit.
 ```
 
-For the `instructions` route, `<operation>` is `create`, `update`, `review`, `rename`, `synchronize`,
-`optimize`, `validate`, or `repair`. `<file-path>` is the exact absolute instruction path;
-`<skill-path>` is the absolute package directory. `[additional-root]` is an optional absolute static
-root used when a runtime adapter or neighboring static consumer must be reviewed. The `/skill-manager`
-routes are agent workflows, not terminal commands. Use the owning scripts only for their documented
-mechanical checks. For evaluation, `<phase>` is `baseline`, `candidate`, or `challenge`; batch
-evaluation accepts `baseline` or `candidate`. `<matrix>` and `<skill-file>` are absolute JSONL matrix
-and skill-file paths. `<pairs>` contains one or more absolute matrix and skill-file path pairs.
-`<review-id>` is the persisted review identifier. `<state>` is `candidate-checked`,
-`candidate-requested`, or `draft`, as returned by the workflow. `[description]` is optional scaffold
-metadata limited to 1,024 characters.
+For the `instructions` route, `<operation>` is `create`, `update`, `review`, `rename`,
+`synchronize`, `optimize`, `validate`, or `repair`. `<file-path>` is the exact absolute instruction
+path; `<skill-path>` is the absolute package directory. `[additional-root]` is an optional absolute
+static root used when a runtime adapter or neighboring static consumer must be reviewed. The
+`/skill-manager` routes are agent workflows, not terminal commands. Use the owning scripts only for
+their documented mechanical checks. For evaluation, `<phase>` is `baseline`, `candidate`, or
+`challenge`; batch evaluation accepts `baseline` or `candidate`. `<matrix>` and `<skill-file>` are
+absolute JSONL matrix and skill-file paths. `<pairs>` contains one or more absolute matrix and
+skill-file path pairs. `<review-id>` is the persisted review identifier. `<state>` is
+`candidate-checked`, `candidate-requested`, or `draft`, as returned by the workflow. `[description]`
+is optional scaffold metadata limited to 1,024 characters.
 
 Usage governance: the aligned block is the only invocation catalog. Use `<name>` for required
 arguments, `[name]` for optional arguments, and `-` when a command takes none. Keep comments
@@ -175,9 +175,9 @@ request -> artifact and active owner -> review state and frozen matrix
    recursively, inventory top-level and nested content, map each block to an owner, and record the
    review set before baseline.
 2. **Prepare evidence:** Preserve existing user changes. Resume or prepare the matching review,
-   define a non-filler matrix, freeze its fingerprint, record source fingerprints, and run RED before
-   editing. Retain exact failures and rationalizations. For instructions, capture the authority chain
-   and relevant requirements.
+   define a non-filler matrix, freeze its fingerprint, record source fingerprints, and run RED
+   before editing. Retain exact failures and rationalizations. For instructions, capture the
+   authority chain and relevant requirements.
 3. **Guard and edit:** Begin `/md-compress` for each in-scope durable Markdown file. Apply one
    compatible batch only to authorized paths. Keep an instruction document in its existing format.
    For a skill, map content ownership and rewrite the complete source in place as one cohesive
@@ -187,8 +187,8 @@ request -> artifact and active owner -> review state and frozen matrix
 4. **Check:** Run GREEN against the same matrix and require a changed source fingerprint. Use
    REFACTOR to close new loopholes, then run challenge cases against the same candidate source and
    matrix. For trigger changes, use `evals/trigger-queries.json`, repeated runs through the actual
-   registered agent, and the fixed validation split. For output changes, compare clean with-skill and
-   without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
+   registered agent, and the fixed validation split. For output changes, compare clean with-skill
+   and without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
    deltas, and manually review outputs. For instructions, review precedence, active-path selection,
    links, cross-file conflicts, and the exact requested rule.
 5. **Finalize:** Run every exact Markdown finalize action. Validate frontmatter, structure, and
@@ -205,13 +205,13 @@ missing, blocked, ambiguous, or unsafe packet is a repair stop.
 
 The review set includes the target, every linked local prose asset, declared static roots, and the
 applicable adapter. Read `.agents/.gitignore` before inventory and exclude ignored paths. Include
-`<project>/AGENTS.md`, `<coding-assistant>/AGENTS.md`, and `~/.agents/AGENTS.md` as additional static
-roots when applicable. Verify that each child extends its parent rather than replacing it. Every
-local link must exist within approved scope, name its intended owner, and be current; reject stale,
-duplicate, or unrelated-router links. Use `/md-compress` begin/finalize for every in-scope durable
-Markdown file, including linked prose reviewed without edits. Markdown guards prove token
-preservation, not correct authority or meaning. JSONL matrices, manifests, and source code use
-their own deterministic checks. Keep concrete project or assistant path details in local policy.
+`<project>/AGENTS.md`, `<coding-assistant>/AGENTS.md`, and `~/.agents/AGENTS.md` as additional
+static roots when applicable. Verify that each child extends its parent rather than replacing it.
+Every local link must exist within approved scope, name its intended owner, and be current; reject
+stale, duplicate, or unrelated-router links. Use `/md-compress` begin/finalize for every in-scope
+durable Markdown file, including linked prose reviewed without edits. Markdown guards prove token
+preservation, not correct authority or meaning. JSONL matrices, manifests, and source code use their
+own deterministic checks. Keep concrete project or assistant path details in local policy.
 
 The policy owner remains authoritative for content. A project or coding-assistant policy may narrow
 scope or strengthen its parent; it must not silently replace it. Follow explicit runtime precedence
@@ -229,9 +229,9 @@ Use the frozen `evals/cases.jsonl` and, when applicable, `evals/trigger-queries.
 matrix fingerprint before RED and keep it unchanged through candidate and challenge; record source
 fingerprints for every phase. **RED** runs without the candidate and preserves exact failures and
 rationalizations. **GREEN** applies the smallest repair to the same matrix. **REFACTOR** identifies
-new rationalizations, adds targeted counters, and reruns candidate and challenge checks until stable.
-Choose the guidance form from baseline evidence: a bright-line rule, counter, and red flag for
-pressure failures; a positive recipe or structural contract for wrong shape; and a
+new rationalizations, adds targeted counters, and reruns candidate and challenge checks until
+stable. Choose the guidance form from baseline evidence: a bright-line rule, counter, and red flag
+for pressure failures; a positive recipe or structural contract for wrong shape; and a
 predicate/action/boundary for conditional behavior.
 
 For discipline evaluations, use a no-guidance control, at least three combined pressures, 5+
@@ -248,7 +248,8 @@ For output evaluations, compare clean with-skill and without-skill or prior-vers
 phrasing and edge cases, then add assertions based on observed outputs. Retain concrete
 assertion-level evidence for each grade, use deterministic verifiers for mechanical claims, and
 manually review actual outputs. Record timing/token, pass-rate, and variance deltas. Remove
-assertions that always pass or fail in both configurations; inspect inconsistent outputs and outliers.
+assertions that always pass or fail in both configurations; inspect inconsistent outputs and
+outliers.
 
 Scripts used by the workflow must be non-interactive, expose `--help`, and emit structured output.
 Errors should say what failed, what was expected, and what the agent should try next.
@@ -268,21 +269,20 @@ handoff. Confirm that the child still extends its parent and unrelated user chan
 Failure names the exact finding, failed assertion, owner boundary, missing resource or link, stale
 receipt, matrix/source mismatch, or gate output, with its repair packet. Do not claim completion
 from a score, measurement, intent, candidate receipt, partial green check, provider-driven training,
-or unavailable external owner. For skill packages, the final gate is the project-approved `finalGate`
-in `aidx.json`, otherwise `.agents`'s `bun run test`, otherwise `bun run test`. Run the selected gate
-completely, retain its exact command and result,
-and require every check to pass.
+or unavailable external owner. For skill packages, the final gate is the project-approved
+`finalGate` in `aidx.json`, otherwise `.agents`'s `bun run test`, otherwise `bun run test`. Run the
+selected gate completely, retain its exact command and result, and require every check to pass.
 
 ## 7. Evaluation Anchors
 
 - **Canonical:** Skill updates use one frozen matrix, RED/GREEN/REFACTOR, a cohesive seven-section
   rewrite, challenge evidence, deterministic validation, prose review, and the configured gate.
-- **Instruction lifecycle:** `AGENTS*.md` and equivalent agent policies use the same owner, evidence,
-  guard, and closeout discipline while retaining their own format and policy authority.
+- **Instruction lifecycle:** `AGENTS*.md` and equivalent agent policies use the same owner,
+  evidence, guard, and closeout discipline while retaining their own format and policy authority.
 - **Boundary:** Wrong owner, inactive target, broken inheritance, changed user work, weakened
   assertion or matrix, broken link, missing adapter or resource, stale receipt, ignored protected
-  state, detached or filler skill content, or failed deterministic gate stops closure. A seven-heading
-  count alone is not proof of cohesion.
+  state, detached or filler skill content, or failed deterministic gate stops closure. A
+  seven-heading count alone is not proof of cohesion.
 - **Challenge:** Preserve uncertainty and delegated judgment; do not impose brittle exact-output
   behavior on skills or instructions that require research, interaction, or owner decisions.
 - **Independent verifier:** Quality-engine receipts, deterministic validation, matrix and source

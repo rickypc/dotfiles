@@ -1,10 +1,14 @@
-import { expect, test } from 'bun:test';
-
+import { expect, mock, test } from 'bun:test';
+import * as realContracts from '../../../utils/contracts.js';
 import type { MatrixCase } from '../../../utils/quality-engine/matrix.js';
-import {
-  isMatrixVerifierId,
-  runIndependentVerifier,
-} from '../../../utils/quality-engine/verifier.js';
+import * as realMatrix from '../../../utils/quality-engine/matrix.js';
+
+mock.module('../contracts.js', () => realContracts);
+mock.module('./matrix.js', () => realMatrix);
+
+const { isMatrixVerifierId, runIndependentVerifier } = await import(
+  '../../../utils/quality-engine/verifier.js'
+);
 
 const matrixCase: MatrixCase = {
   assertions: [{ expected: 'Use the skill', kind: 'required-text' }],
@@ -73,4 +77,17 @@ test('rejects an unknown verifier without executing a command', () => {
       { delegatedChecks: {}, ownedFiles: new Set(), text: '' },
     ),
   ).toMatchObject({ status: 'blocked' });
+});
+
+test('fails a source whose frontmatter starts the text but lacks name and description', () => {
+  expect(
+    runIndependentVerifier(matrixCase, {
+      delegatedChecks: {},
+      ownedFiles: new Set(),
+      text: '---\nnotes: only\n---\nUse the skill.',
+    }),
+  ).toMatchObject({
+    detail: 'Source must have valid name/description frontmatter and instructions.',
+    status: 'failed',
+  });
 });

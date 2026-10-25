@@ -1,18 +1,37 @@
 import { expect, mock, test } from 'bun:test';
+import * as realOs from 'node:os';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import * as realSdkClient from '@modelcontextprotocol/sdk/client/index.js';
+import * as realSdkStdio from '@modelcontextprotocol/sdk/client/stdio.js';
+import * as realBunModule from 'bun';
+import * as realContracts from '../../utils/contracts.js';
+import * as realProcessModule from '../../utils/process.js';
+import type {
+  RepoSearchBackendResult,
+  RepoSearchTransport,
+} from '../../utils/repo-search-transport.js';
+import * as realSearchFallback from '../../utils/search-fallback.js';
 
-import {
+// Tool-call timeouts run on real timers; the hang fixture proves the timeout path end to end, and
+// the stdio fixture servers exercise the real spawn boundaries.
+mock.module('node:os', () => realOs);
+mock.module('./contracts.js', () => realContracts);
+mock.module('./process.js', () => realProcessModule);
+mock.module('./search-fallback.js', () => realSearchFallback);
+mock.module('@modelcontextprotocol/sdk/client/index.js', () => realSdkClient);
+mock.module('@modelcontextprotocol/sdk/client/stdio.js', () => realSdkStdio);
+mock.module('bun', () => realBunModule);
+
+const {
   createBuiltinMcpClient,
   createSdkMcpClient,
   parseBackendEnvelope,
   probeRepoSearchTransport,
-  type RepoSearchBackendResult,
-  type RepoSearchTransport,
   redactBackendStorePaths,
   repoSearchBackendBinary,
   repoSearchCliCommand,
-} from '../../utils/repo-search-transport.js';
+} = await import('../../utils/repo-search-transport.js');
 
 const fixtureServer = join(import.meta.dir, '..', 'fixtures', 'fake-mcp-server.ts');
 
@@ -305,4 +324,68 @@ test('the built-in client times out a hanging tool call', async () => {
   }
   await expect(client.callTool('hang', {}, 50)).rejects.toThrow('timed out');
   await client.close();
+});
+
+test('the built-in client ignores non-JSON server output while settling initialize', async () => {
+  const junkServer = [
+    "Bun.stdout.write('server banner text\\n');",
+    // biome-ignore lint/security/noSecrets: deterministic test or regex fixture content, not a credential
+    'Bun.stdout.write(\'{"jsonrpc":"2.0","id":1,"error":{"message":"boom"}}\\n\');',
+  ].join('');
+  await expect(createBuiltinMcpClient('bun', ['-e', junkServer])).resolves.toBeUndefined();
+});
+
+test('parseBackendEnvelope keeps scanning past a JSON object without a content key', () => {
+  expect(parseBackendEnvelope('{"noise": true}\n{"content":[{"text":"second"}]}')).toEqual({
+    error: null,
+    isError: false,
+    text: 'second',
+  });
+});
+
+test('the probe survives a failed probe call whose close also throws', async () => {
+  const executor = mock(async () => result(envelopeLine('projects: 0')));
+  const probe = await probeRepoSearchTransport({
+    executor,
+    mcpClientFactory: () => [
+      async () => ({
+        callTool: async () => {
+          throw new Error('probe call failed');
+        },
+        close: async () => {
+          throw new Error('close also failed');
+        },
+      }),
+    ],
+  });
+  expect(probe.transport?.kind).toBe('cli');
+  expect(probe.attempt.detail).toContain('CLI transport is the fallback');
+});
+
+test('the built-in client rejects pending waiters when the stdout read stream fails', async () => {
+  const bunGlobal = Bun as { spawn: typeof Bun.spawn };
+  const realSpawn = bunGlobal.spawn;
+  const spawnCommands: string[][] = [];
+  const killSignals: number[] = [];
+  try {
+    bunGlobal.spawn = ((options: { cmd: readonly string[] }) => {
+      spawnCommands.push([...options.cmd]);
+      return {
+        kill: async (signal?: number) => {
+          killSignals.push(signal ?? 0);
+        },
+        stdin: { flush: () => {}, write: () => 0 },
+        stdout: new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.error(new Error('stdout read failed'));
+          },
+        }),
+      };
+    }) as unknown as typeof Bun.spawn;
+    await expect(createBuiltinMcpClient('bun', ['-e', ''])).resolves.toBeUndefined();
+  } finally {
+    bunGlobal.spawn = realSpawn;
+  }
+  expect(spawnCommands).toEqual([['bun', '-e', '']]);
+  expect(killSignals).toEqual([9]);
 });

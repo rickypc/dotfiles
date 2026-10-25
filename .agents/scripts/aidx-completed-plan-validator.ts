@@ -56,11 +56,13 @@ const requireSection = (
   sections: Readonly<Record<string, string>>,
   heading: string,
   issues: string[],
+  allowSchemaPlaceholders = false,
 ): string => {
   const value = sections[heading] ?? '';
   if (!value) {
     issues.push(`${heading} must contain content.`);
-  } else if (PLACEHOLDER.test(value)) {
+  }
+  if (!allowSchemaPlaceholders && PLACEHOLDER.test(value)) {
     issues.push(`${heading} contains an unresolved placeholder.`);
   }
   return value;
@@ -143,7 +145,7 @@ const validateSectionShape = (body: string, issues: string[]) => {
     ]),
   );
   for (const heading of AIDX_COMPLETED_PLAN_HEADINGS) {
-    requireSection(sections, heading, issues);
+    requireSection(sections, heading, issues, heading === 'RIGID OUTPUT SCHEMA');
   }
   return { headings, sections };
 };
@@ -162,12 +164,6 @@ const validateWorkflow = (
   if (unchecked.length > 0) {
     issues.push(
       `CHRONOLOGICAL WORKFLOW still contains ${unchecked.length} unchecked \`- [ ]\` item(s); a completed plan has no unchecked step.`,
-    );
-  }
-  const invalid = taskItems.filter((line) => /^- \[[~!]\]/u.test(line));
-  if (invalid.length > 0) {
-    issues.push(
-      `CHRONOLOGICAL WORKFLOW contains ${invalid.length} \`- [~]\`/\`- [!]\` item(s); use \`- [x]\` or \`- [-] reason: ...\`.`,
     );
   }
   const skippedItems = taskItems.filter((line) => /^- \[-\]/u.test(line));

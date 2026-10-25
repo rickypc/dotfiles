@@ -330,10 +330,9 @@ const toCharacterIndex = (source: string, byteIndex: number): number => {
   let characterIndex = 0;
   let bytes = 0;
   while (characterIndex < source.length && bytes < byteIndex) {
-    const codePoint = source.codePointAt(characterIndex);
-    if (codePoint === undefined) {
-      break;
-    }
+    // The loop condition bounds characterIndex below source.length, so codePointAt never
+    // returns undefined for a reachable index.
+    const codePoint = source.codePointAt(characterIndex) as number;
     bytes += new TextEncoder().encode(String.fromCodePoint(codePoint)).length;
     characterIndex += codePoint > 0xffff ? 2 : 1;
   }

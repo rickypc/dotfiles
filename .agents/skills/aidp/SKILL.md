@@ -27,17 +27,8 @@ accepts only that request/context; it does not accept a plan path or implementat
 /aidp <goal-and-concerns> # turn a request into one explicit execution plan
 ```
 
-The unannotated grammar is:
-
-```text
-/aidp <goal-and-concerns>
-```
-
-Required:
-- `<goal-and-concerns>`: the user's request and any supplied context to turn into one execution
-  plan.
-
-`/aidp` is an agent workflow, not a terminal command. It returns one plan path and the `/aidx`
+`<goal-and-concerns>` is the user's request plus any supplied context, turned into one execution
+plan. `/aidp` is an agent workflow, not a terminal command. It returns one plan path and the `/aidx`
 handoff command.
 
 ## 3. Immutable Operational Rules
@@ -192,11 +183,12 @@ The plan author and the validator enforce this mechanically as well as in prose:
 
 ### Ask order
 
-Retrieve evidence first (`/repo-search`, `/knowledge-base`), then ask one material question at a
-time. State what decision each answer unlocks and the smallest consequence of each answer. Do not
-bundle questions. Do not write the plan until every material question is answered and every
-assumption is either resolved by evidence or explicitly flagged as an open clarification stop that
-the user has seen. A user preference is not a requirement until the user decides it.
+Retrieve evidence first (`/repo-search`, `/knowledge-base`), then ask all remaining material
+questions in ONE batched round - each specific and self-contained, stating the decision it unlocks
+and the smallest consequence of each answer. Do not write the plan until every material question is
+answered and every assumption is either resolved by evidence or explicitly flagged as an open
+clarification stop that the user has seen. A user preference is not a requirement until the user
+decides it.
 
 ## 4. Input & Context Schema
 
@@ -281,9 +273,14 @@ Give concrete ingest-and-verify, process-and-transform, and synthesize steps. Ea
 target, responsibility, dependency, reason, expected result, preserved behavior, failure or boundary
 case, and focused proof. Each step is independently testable and MUST be written as an unchecked
 Markdown task item beginning `- [ ]`. These `[ ]` items are the execution checklist that AIDX must
-update; do not use prose-only steps or pre-mark them complete. For material work, decompose only
-after the requirements and design decisions are explicit; identify the smallest units, their
-dependency order, and the fact that would require re-planning.
+update; do not use prose-only steps or pre-mark them complete. Write each step as ONE line beginning
+`- [ ]` - the plan validator reads only that first line, so every required per-step field (target,
+responsibility, dependency, reason, expected result, preserved behavior, failure case, proof) and
+any `decision:`/`clarified:` marker must appear on it; the assumption-smell scan matches literal
+words (`assume`, `likely`, `presumably`, `standard`, `typical`, `usually`, `default to`, `I will`,
+`we will`, `by convention`) anywhere in a section. For material work, decompose only after the
+requirements and design decisions are explicit; identify the smallest units, their dependency order,
+and the fact that would require re-planning.
 
 Group the steps into explicit phase blocks. Write each phase as an H3 `### Phase N - <name>`
 heading (numbered ascending from 1), followed by one prose paragraph declaring the three enforced
@@ -430,17 +427,16 @@ questions; repeat retrieval and questioning as needed; then write the complete p
 material questions are resolved. The retrieval step is mandatory even when the request appears
 familiar or the caller supplies an index-like value.
 
-The No-Assumption Covenant above governs this loop. Ask one material question at a time, explain
-what decision it unlocks, and state the smallest consequence of each meaningful answer. Never fill
-an unknown with a plausible default, convention, inferred preference, silent branch, or
+The No-Assumption Covenant above governs this loop. Ask every remaining material question in ONE
+batched round - each question specific and self-contained, stating the decision it unlocks and the
+smallest consequence of each answer; re-batch once in one round when an answer changes the decision
+surface, never dripping questions one per round (owner preference, 2026-10-24). Never fill an
+unknown with a plausible default, convention, inferred preference, silent branch, or
 `should probably` - a guess phrased as a tentative sentence is still a guess and is forbidden by the
-covenant. If the answer changes targets, ownership, scope, behavior, safety, architecture,
-dependencies, or proof, retrieve the affected repository and private-knowledge context again before
-asking the next question. Keep asking focused questions until no material ambiguity remains; if the
-user has not resolved one, stop and do not write or hand off a plan. A user preference is not a
-requirement until the user decides or evidence establishes it. A conditional branch is either
-completed with evidence or skipped with a factual inapplicability reason; it is never a hidden
-prerequisite.
+covenant. If an answer changes targets, ownership, scope, safety, or proof, retrieve the affected
+context again before the next round; when no material ambiguity remains, write the plan; otherwise
+stop and do not write or hand off. A conditional branch is either completed with evidence or
+skipped with a factual inapplicability reason; it is never a hidden prerequisite.
 
 ## 6. Output & Completion Contract
 
@@ -486,8 +482,9 @@ unresolved placeholders, typed variable declarations, numbered workflow steps gr
 required workflow proof fields, a decision or clarified marker on every step that asserts a user
 decision, a no-assumption smell-phrase scan rejecting unflagged assumptions, primary method
 ownership, concrete fallback, mapped verification coverage, and an explicit output schema. It
-returns one JSON receipt on success and every actionable finding on failure. It validates AIDP plans
-only; it does not parse, complete, import, delete, or execute plans.
+returns one JSON receipt on success and every actionable finding on failure; it reads only the FIRST
+line of each workflow item, so per-step fields must sit on that line (see CHRONOLOGICAL WORKFLOW).
+It validates AIDP plans only; it does not parse, complete, import, delete, or execute plans.
 
 On failure, report the exact missing evidence or validation finding and whether the prior plan was
 preserved. Never claim a plan was written when it was not.

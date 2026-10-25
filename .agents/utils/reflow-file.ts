@@ -434,11 +434,7 @@ const mkBlock = (
   options: ReflowOptions,
 ): ReflowBlock => {
   const violations: ReflowBlock['violations'] = [];
-  for (let k = start; k <= end; k++) {
-    const rec = recs[k];
-    if (!rec) {
-      continue;
-    }
+  for (const rec of recs.slice(start, end + 1)) {
     const len = cpLen(rec.raw);
     if (len > options.width) {
       violations.push({ len, line: rec.n });

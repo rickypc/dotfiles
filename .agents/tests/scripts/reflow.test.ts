@@ -225,6 +225,17 @@ describe('scenario matrix', () => {
       expect(line.startsWith('> ')).toBe(true);
     }
   });
+
+  test('s53: a quote item walk breaks at an unquoted line and the item still wraps in place', () => {
+    const text =
+      '> 1. An enumerated blockquote item followed immediately by unquoted prose whose walk must break here and whose text is long enough to wrap.\nplain prose line at base indent immediately after the quoted item ends the walk.';
+    const r = reflowText(text);
+    expect(r.changed).toBe(true);
+    expect(verifyInvariants(text, r.output)).toEqual([]);
+    expect(r.output).toBe(
+      '> 1. An enumerated blockquote item followed immediately by unquoted prose whose walk must break here\n>   and whose text is long enough to wrap.\nplain prose line at base indent immediately after the quoted item ends the walk.',
+    );
+  });
 });
 
 describe('scenario matrix: atoms and links', () => {

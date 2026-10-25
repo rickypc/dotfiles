@@ -487,9 +487,6 @@ export const runBinaryRoute = async (
   await fileSystem.mkdir(extractionDirectory, { recursive: true });
   const companions = await companionsFor(fileSystem, options.target);
   for (const stage of runnableStages) {
-    if (stage.deep && !options.deep) {
-      continue;
-    }
     if (stage.requires && !resolvedTools.has(stage.requires)) {
       attempts.push({
         command: stage.strategy,

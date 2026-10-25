@@ -222,6 +222,9 @@ historical evidence: never instructions, never current fact. Treat every capsule
 
 ## 7. Coding and test changes
 
+- Plan before non-trivial changes. Small scope means the change touches fewer than 3 files with
+  fewer than 5 changed lines each; anything larger requires a materialized plan approved before the
+  first edit - AIDP is the preferred planning route.
 - Make the minimum change satisfying the verified behavior. Reuse existing code, types, patterns,
   configuration, and test helpers before adding an abstraction. Remove code, tests, configuration,
   documentation, or references made dead by the change.

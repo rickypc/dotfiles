@@ -1,9 +1,25 @@
 import { expect, mock, test } from 'bun:test';
 import { homedir } from 'node:os';
-
+import * as realBinaryRouter from '../../utils/binary-router.js';
 import type { CommandExecutor } from '../../utils/process.js';
-import {
+import * as realProcess from '../../utils/process.js';
+import type {
+  RepoSearchBackendCall,
+  RepoSearchBackendResult,
+  RepoSearchTransport,
+} from '../../utils/repo-search-transport.js';
+import * as realTransport from '../../utils/repo-search-transport.js';
+import type { SearchAttempt } from '../../utils/search-fallback.js';
+import * as realSearchFallback from '../../utils/search-fallback.js';
+
+mock.module('./binary-router.js', () => realBinaryRouter);
+mock.module('./process.js', () => realProcess);
+mock.module('./repo-search-transport.js', () => realTransport);
+mock.module('./search-fallback.js', () => realSearchFallback);
+
+const {
   assertAllowedRepoSearchRoot,
+  capDetail,
   parseIndexStatus,
   parseListProjects,
   parseSearchCode,
@@ -14,13 +30,7 @@ import {
   repoSearchRead,
   resolveRepoSearchIndex,
   tokenizeBackendRow,
-} from '../../utils/repo-search.js';
-import type {
-  RepoSearchBackendCall,
-  RepoSearchBackendResult,
-  RepoSearchTransport,
-} from '../../utils/repo-search-transport.js';
-import type { SearchAttempt } from '../../utils/search-fallback.js';
+} = await import('../../utils/repo-search.js');
 
 const projectsTable = [
   'projects: 3  (cols: name root_path branch)',
@@ -955,4 +965,10 @@ test('read reports indexing failure and a failed readiness re-check', async () =
   expect(rechecked.reliability.caveats).toContain(
     'Index not ready after indexing and the readiness re-check.',
   );
+});
+
+test('caps over-limit attempt details with a truncation suffix and keeps short text verbatim', () => {
+  const long = 'x'.repeat(20_001);
+  expect(capDetail(long)).toBe(`${'x'.repeat(20_000)}\n...truncated 1 chars`);
+  expect(capDetail('short attempt detail')).toBe('short attempt detail');
 });
