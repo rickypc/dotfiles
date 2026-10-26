@@ -64,6 +64,20 @@ scope:
   were respected, then rerun the identical gate. Execute the packet; do not display, summarize, or
   hand it to the user. Missing, blocked, ambiguous, or unsafe packets are stops.
 
+### Dependency verification and anomaly protocol
+
+- Before building on any framework or dependency behavior, verify the installed source (for example
+  the compiled theme under `node_modules`) instead of recalling documentation; an internal contract
+  such as a theme component ignoring its `children` prop invalidates a whole design route before any
+  code is written.
+- When a verification result contradicts the expectation, instrument the real pipeline (dump the
+  actual tree, input, or compiled output) before hypothesizing; reconstructed guesses burn full
+  build cycles.
+- Run the focused static checks (lint, type check, focused coverage on the changed SUT) before every
+  full final-gate attempt; lint residuals must not be discovered by the gate.
+- Never close with a known regression: surface it to the human owner as an open decision instead of
+  shipping it inside a limitations note.
+
 ## Large multi-file fan-out
 
 For a plan touching many independent files, fan out one subagent per work packet or content group,
