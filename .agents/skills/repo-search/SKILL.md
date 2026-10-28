@@ -58,6 +58,16 @@ in [usage-patterns.md](references/usage-patterns.md).
   caller-side substitute for the wrapper.
 - **Approved root:** The approved root is explicit and never inferred, and every file target must
   stay under it.
+- **Multi-repository coverage:** When a request names or links to a bounded set of repositories,
+  enumerate the full repository inventory from that source before searching. For each root, run one wrapper search per repository root
+  and return one status for every root, retaining one receipt for each. A parent-root search, one
+  matching repository, or the first empty result does not establish coverage for the set.
+- **Dependency and vulnerability scope:** Search every root for the exact package and advisory
+  identifiers and relevant distribution names. Inspect direct and transitive dependencies through
+  manifests, lockfiles, Dockerfiles, and base-image package sources; include build definitions and
+  bundled or vendored artifacts when relevant. Absence from an application manifest alone does not
+  clear a packaged image. Route located binary candidates through the binary workflow; mark
+  unavailable artifact evidence unverified.
 - **Index discipline:** search never creates an index; a missing or not-ready index is a caveat and
   the local fallback answers. The `read` path indexes only when no matching index exists; the
   `inspect` path requires a ready matching index and returns an error receipt without indexing when
@@ -95,19 +105,23 @@ in [usage-patterns.md](references/usage-patterns.md).
 ## 5. Ordered Execution Chain
 
 ```text
-request -> parse verb and approved root -> transport probe -> run one wrapper command
-        -> read the JSON envelope -> answer from results and reliability -> stop
+request -> enumerate approved root(s) when a bounded set is named
+        -> run one wrapper command per root -> read every JSON envelope
+        -> report one evidence-backed status per expected root -> stop
 ```
 
-1. **Intake:** Confirm the approved root and the question, then run exactly one wrapper command.
-   `read` classifies the target deterministically: URL, PID, absolute file, dotted symbol, then
-   exact process name.
-2. **Read the envelope:** The envelope states what happened (`status`), how it ran (`transport`,
+1. **Intake:** Confirm the approved root or enumerate every expected root from the supplied bounded
+   source. For a multi-root question, issue one wrapper search per root; do not search only the
+   parent or stop after a match. `read` classifies the target deterministically: URL, PID, absolute
+   file, dotted symbol, then exact process name.
+2. **Read every envelope:** Each envelope states what happened (`status`), how it ran (`transport`,
    `source`), where the information was found (`results[].location`), how reliable it is
    (`reliability.indexedAt`, `reliability.caveats`), every executed or skipped attempt (`attempts`),
-   and the suggested next step (`next`).
-3. **Answer:** Report the evidence-backed answer. Stop when the question is structurally answered;
-   when the envelope is empty, follow `next` or stop - never guess.
+   and the suggested next step (`next`). For dependency questions, also inspect relevant manifests,
+   lockfiles, build files, Dockerfiles, base-image package sources, and located bundled artifacts.
+3. **Answer:** Report one evidence-backed status for every expected root. Treat missing roots as unverified; mark failed or
+   uninspected roots and artifacts unverified. An empty result in one root does not clear another;
+   when an envelope is empty, follow `next` or stop - never guess.
 
 ## 6. Output & Completion Contract
 
@@ -123,6 +137,9 @@ request -> parse verb and approved root -> transport probe -> run one wrapper co
   Search status: [FOUND / EMPTY / ERROR, with the transport and source tokens]
   Uncertainty: [Remaining caveat from reliability, or none]
   ```
+
+  For a bounded multi-repository question, include every expected root and its status; roots without
+  a successful, scoped search remain unverified.
 
 - **Failure:** Name the failing stage, the envelope status, and the exact receipt; hand
   implementation or skill-package changes to the owning skill and never claim a root cause from a

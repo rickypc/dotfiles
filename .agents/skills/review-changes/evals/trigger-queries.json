@@ -1,0 +1,137 @@
+{
+  "pass_threshold": 0.5,
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Review this Python diff against the acceptance criteria.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Can you review this Java patch before merge?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Please do a read-only code review of these PHP changes.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Check my TypeScript branch for behavior gaps and repository conventions.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Review this Go diff against the specification I provided.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Take a fresh look at these Ruby changes and return actionable findings.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-13",
+      "query": "Review this patch. I have not included the ticket or expected behavior yet.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Where are the repository's coding standards documented? Do not review code.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "How do I sort these declarations alphabetically?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Implement the Python feature described here.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Write unit tests for this Java class.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Explain what this PHP function does.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Summarize this branch without judging the changes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "I need a code review for this Swift diff against the product requirements.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Review the Rust changes for correctness and idiomatic use.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Inspect this pull request and report only evidence-backed issues.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Please review my CSS and JavaScript changes against the linked design requirements.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Refactor this helper to remove duplication.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Run the test suite and tell me what failed.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "What are common Python naming conventions?",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Draft a pull request description for this patch.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "review-changes",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed from revision decisions."
+  }
+}

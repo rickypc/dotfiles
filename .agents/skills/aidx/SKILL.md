@@ -77,6 +77,14 @@ retained in the owned reference above.
 The plan names the applicable Product, Architect, Developer, Quality, Security, Design, and Delivery
 owner.
 
+For a code-changing plan, invoke `/review-changes` during its Review work packet. The review skill
+must run in a new, isolated child session without the parent conversation history. Pass the full
+diff, the complete requirements source, repository guidance, language/version evidence, and minimum
+nearby code context. Do not pass the parent transcript. Carry review findings into the plan's
+evidence. If the reviewer asks a material question, ask the user, wait, and start a new isolated
+review with the complete updated packet. `/review-changes` is read-only and does not replace the
+plan's required validation. Skip this handoff when the plan contains no code changes.
+
 Read the one path pasted by the user unchanged, accept either a relative or absolute form, then
 canonicalize and verify that it is a regular Markdown file under
 `<agents-root>/plans/<repo-search-index>/`. Reject missing, directory, traversal, symlink-escaping,

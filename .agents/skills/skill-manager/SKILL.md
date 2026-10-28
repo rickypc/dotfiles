@@ -98,9 +98,21 @@ invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
   matrix or reuse stale evidence.
 - Resume or prepare the matching quality-engine review before editing. If that state or a required
   verifier is unavailable, state the exact blocker and stop before the governed edit.
-- Use `/md-compress` begin/finalize for every in-scope durable Markdown file, including linked prose
-  reviewed without edits. Preserve protected tokens, runtime configuration, ignored state, and
-  backups; stop on a guard failure.
+- For no-edit Markdown passes, use `/md-compress guard <absolute-markdown-path>`. The guard returns
+  `guarded`; require that receipt before continuing. For edits, process one Markdown source at a
+  time. Only use begin, edit, and finalize when changing the source: call `/md-compress begin
+  <absolute-markdown-path>` immediately before editing, edit only the returned source in the same
+  session, then call the exact returned `/md-compress finalize <absolute-markdown-path>` action
+  immediately and require the `done` receipt before opening another transaction or running unrelated
+  work. The `edit` step is the caller's file edit, not a `/md-compress` command; the standalone
+  tokens `begin` and `finalize` name the two `/md-compress` actions. Preserve protected tokens,
+  runtime configuration, ignored state, backups, and locks.
+- If a Markdown guard or finalization fails, preserve the backup and lock. Before declaring a
+  blocker, search the private knowledge base and persistent user memory for recovery matching the
+  exact error. Verify any recovery against the owning skill and current state; apply only a
+  supported recovery. If none applies, report the exact failure and preserve the transaction state.
+  Never manually alter or discard its backup or lock, or start a replacement transaction for that
+  source.
 - For global `.agents` roots, read `.agents/.gitignore` before inventory. Never edit protected
   `.agents` configuration files such as `.gitignore`, `biome.jsonc`, `bunfig.toml`, `LICENSE`,
   `NOTICE`, `package.json`, or `tsconfig.json`.
@@ -178,9 +190,12 @@ request -> artifact and active owner -> review state and frozen matrix
    define a non-filler matrix, freeze its fingerprint, record source fingerprints, and run RED
    before editing. Retain exact failures and rationalizations. For instructions, capture the
    authority chain and relevant requirements.
-3. **Guard and edit:** Begin `/md-compress` for each in-scope durable Markdown file. Apply one
-   compatible batch only to authorized paths. Keep an instruction document in its existing format.
-   For a skill, map content ownership and rewrite the complete source in place as one cohesive
+3. **Guard and edit:** For no-edit Markdown passes, use
+   `/md-compress guard <absolute-markdown-path>`. The guard returns `guarded`; require that receipt
+   before continuing. For edits, process durable Markdown serially: call `/md-compress begin`, edit
+   only its returned source, then call its exact `/md-compress finalize` action and require `done`
+   before any other work or transaction. Keep an instruction document in its existing format. For a
+   skill, map content ownership and rewrite the complete source in place as one cohesive
    seven-section document. Keep invocation grammar in `Usage`, routing rules with their owner, and
    branch or downstream command-information tables in their owning section. Use nested subsections
    where needed and remove superseded blocks.
@@ -191,10 +206,12 @@ request -> artifact and active owner -> review state and frozen matrix
    and without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
    deltas, and manually review outputs. For instructions, review precedence, active-path selection,
    links, cross-file conflicts, and the exact requested rule.
-5. **Finalize:** Run every exact Markdown finalize action. Validate frontmatter, structure, and
-   resources or the instruction format; review links and policy inheritance; then run applicable
-   project gates. React to failed checks at that boundary. Never hide a failure or cross an owner
-   boundary.
+5. **Finalize:** Validate frontmatter, structure, and resources or the instruction format; review
+   links and policy inheritance; then run applicable project gates. On any Markdown guard or
+   finalization failure, preserve its backup and lock, search the private knowledge base and
+   persistent user memory for recovery matching the exact error, and follow only recovery supported
+   by the owner contract. If no supported recovery applies, report the exact failure without
+   claiming closure. Never hide a failure or cross an owner boundary.
 
 If a project gate returns a non-blocked action packet, apply its validated required action groups
 through the explicit apply route owned by that command. Verify allowed paths and forbidden actions,
@@ -208,10 +225,12 @@ applicable adapter. Read `.agents/.gitignore` before inventory and exclude ignor
 `<project>/AGENTS.md`, `<coding-assistant>/AGENTS.md`, and `~/.agents/AGENTS.md` as additional
 static roots when applicable. Verify that each child extends its parent rather than replacing it.
 Every local link must exist within approved scope, name its intended owner, and be current; reject
-stale, duplicate, or unrelated-router links. Use `/md-compress` begin/finalize for every in-scope
-durable Markdown file, including linked prose reviewed without edits. Markdown guards prove token
-preservation, not correct authority or meaning. JSONL matrices, manifests, and source code use their
-own deterministic checks. Keep concrete project or assistant path details in local policy.
+stale, duplicate, or unrelated-router links. For no-edit Markdown passes in the review set, use
+`/md-compress guard <absolute-markdown-path>` and require its `guarded` receipt. For edits, call
+`/md-compress begin`, edit the returned source, then call its exact `/md-compress finalize` action
+serially and require `done` before moving on. Markdown guards prove token preservation, not correct
+authority or meaning. JSONL matrices, manifests, and source code use their own deterministic checks.
+Keep concrete project or assistant path details in local policy.
 
 The policy owner remains authoritative for content. A project or coding-assistant policy may narrow
 scope or strengthen its parent; it must not silently replace it. Follow explicit runtime precedence
