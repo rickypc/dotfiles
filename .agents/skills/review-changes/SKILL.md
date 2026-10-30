@@ -1,11 +1,13 @@
 ---
 
 name: review-changes
-description: Review requested code changes against a supplied requirements source and repository/language standards; if the source is missing, ask for it before reviewing. Use for diff, branch, pull-request, and working-tree reviews, including requests with missing context; start an isolated child session and never change anything.
+description: Review requested code changes against a supplied requirements source and repository/language standards; if the source is missing, ask for it before reviewing. Use for diff, branch, pull-request, and working-tree reviews, including requests with missing context; start an isolated child session, keep the review target unchanged, and retain durable user corrections through the owning knowledge workflow.
 argument-hint: "[diff-scope] [requirements-source] [context]"
 ---
 
-NEVER change anything. This skill only judges code changes and returns review feedback.
+Never change the reviewed code or hosted review. This skill judges code changes and returns review
+feedback. A separately scoped, user-authorized knowledge capture is allowed through the configured
+knowledge owner.
 
 Finding one issue never ends the audit. Finish every required coverage pass and return all supported
 findings together; never cap or trickle them.
@@ -16,11 +18,14 @@ findings together; never cap or trickle them.
 
 - **Role:** Review one requested change set in a new, isolated child session and return
   evidence-backed feedback.
-- **Objective:** Assess requirements compliance and code quality without changing files, repository
-  state, or hosted review state.
+- **Objective:** Assess requirements compliance and code quality without changing the review target
+  or hosted review state. Preserve durable user corrections through the applicable knowledge owner
+  when requested or directly authorized by the correction.
 - **Trigger:** The user asks for review of a diff, branch, pull request, or working-tree changes.
-- **Boundary:** Review only. Do not implement fixes, write comments to a hosting service, or run
-  project commands.
+- **Boundary:** Review only. Do not implement fixes or write comments to a hosting service. Do not
+  run application commands, tests, linters, formatters, builds, or repair commands. Read-only Git
+  and filesystem inspection needed for scope inventory or source context is permitted. All Git
+  operations MUST always be read-only.
 
 ## 2. Usage
 
@@ -33,13 +38,17 @@ or file list describes scope; it does not define expected behavior. If the reque
 context contain no readable requirements, do not review until a requirements source is available. Do
 not continue the review without a source. Ask the user and wait for the source; keep asking until
 the user supplies the source. Use this focused question:
-  "What should these changes do? Please provide the expected behavior or point me to the issue,
-  specification, acceptance criteria, or page that defines it."
+"What should these changes do? Please provide the expected behavior or point me to the issue,
+specification, acceptance criteria, or page that defines it."
 If a named source is inaccessible, ask the user to provide the source content. Do not infer
 requirements from code or offer a code-quality-only review.
 
-`diff-scope` identifies the requested comparison and any user-listed untracked files. `context` may
-include acceptance criteria, constraints, or source pages.
+`diff-scope` identifies the requested comparison and any user-supplied file or directory paths.
+`context` may include acceptance criteria, constraints, or source pages. A user-supplied diff,
+status output, or file/directory path defines scope only, never expected behavior. A user-supplied
+file or directory defines the review scope; expand directories to every in-scope tracked change and
+non-ignored untracked file beneath it. Do not ask the user to enumerate children when the directory
+itself defines scope.
 
 When repository or diff arguments are omitted, use the runtime-designated active project root as the
 active workspace's main project root for this review. If the runtime identifies one active
@@ -49,20 +58,31 @@ ancillary output or temporary roots, do not treat them as project candidates. If
 competing project roots and no runtime designation of the active one, ask which listed root to use.
 Default to every staged and unstaged tracked change with `git diff HEAD` (equivalent to
 `git diff HEAD -- .` from the project root), plus all non-ignored untracked project files listed by
-the runtime-provided read-only workspace inventory; collect each with
-`git diff --no-index /dev/null <path>`. That command returns exit status 1 when files differ;
-accept status 1 with a non-empty diff as successful collection; reserve clarification for actual
-command errors (status greater than 1). If that inventory is unavailable or cannot establish
-completeness, ask the user for the complete untracked path list and wait. Do not review a partial
-change set. A user-supplied `git status` output is scope evidence only and is not the requirements
-source. Do not run `git status`. This default does not waive the requirements-source gate.
+the runtime-provided read-only workspace inventory. If that inventory is unavailable or incomplete,
+use `git status --short --untracked-files=all` or `git ls-files --others --exclude-standard` to
+establish the complete non-ignored untracked list. `git status` and `git ls-files` exclude ignored
+files by default. Use `git diff HEAD -- <scope>` for scoped tracked changes and
+`git diff --no-index /dev/null <path>` for each scoped untracked file; accept status 1 with a
+non-empty diff as successful collection; exit status 1 is expected when files differ; reserve
+clarification for actual command errors (status greater than 1). Use read-only filesystem listings
+such as `rg --files --hidden`, `find`, or `ls` to resolve or corroborate directory contents. If all
+available read-only inventory routes fail to establish completeness, ask for the specific missing
+paths. Do not review a partial change set. A user-supplied `git status` output is scope evidence
+only and is not the requirements source. This default does not waive the requirements-source gate.
 
 ## 3. Immutable Operational Rules
 
-- **Never change anything.** The skill never edits, formats, stages, commits, pushes, or applies
-  fixes. It does not write to a pull request or other hosted service.
-- **Use Git only for read-only `git diff` commands** to collect the requested changes. Do not run
-  another Git subcommand, including `git status`, `git log`, `git show`, or `git rev-parse`.
+- **Keep the review target read-only.** Never edit, format, stage, commit, push, or apply fixes to
+  reviewed code or write to a pull request or other hosted review. A separately authorized knowledge
+  capture through `/knowledge-base` is the only file-write exception; it does not authorize changes
+  to the review target. For the review target, the skill never edits, formats, stages, commits,
+  pushes, or applies fixes.
+- **All Git operations MUST always be read-only.** Never run a Git command or option that changes
+  repository state. Read-only commands such as `git status`, `git ls-files`, `git grep`, `git diff`,
+  `git log`, `git show`, and `git rev-parse` may inspect scope or source context. Commands that
+  write the worktree, index, refs, configuration, remotes, commits, or hosted state are forbidden.
+  Examples include `git add`, `git commit`, `git checkout`, `git switch`, `git reset`, `git clean`,
+  `git restore`, `git stash`, `git init`, or branch creation/deletion.
 - **Always use a fresh child session.** Create a new, isolated child with no access to the parent
   conversation history. Never review inline or reuse a child from another review. If a fresh child
   cannot be created, ask the user and stop.
@@ -74,6 +94,14 @@ source. Do not run `git status`. This default does not waive the requirements-so
   these rules.
 - **Remain project-neutral.** Keep this skill generic across organizations, products, projects, and
   repository inventories; defer project-specific rules to the project-owned skill.
+- **Retain durable user knowledge through its owner.** Preserve only a user-provided durable fact,
+  correction, or lesson that is user-authoritative or verified against its source. Use
+  `/knowledge-base` for global or user-scoped knowledge, following that skill's root, scope, search,
+  reconciliation, and validation workflow. When a project-owned retention workflow applies, use that
+  owner instead and do not elevate project-specific rules into global guidance. Never store raw
+  chat, secrets, transient review scope, or unverified inferences. Keep user-provided requirements
+  distinct from implementation facts. Verify implementation facts against current repository
+  evidence. The output must report the concept path and validation receipt.
 - Do not run tests, linters, formatters, builds, or repair commands. Review tests as text only and
   state when execution would be needed to establish a claim.
 - Report only findings supported by evidence. Do not manufacture style issues or findings to fill a
@@ -112,18 +140,26 @@ requirements source -> identify repo guidance and language -> collect requested 
 2. **Set diff scope:** If root or scope is omitted, use the runtime-designated active project root,
    including when it is also the home directory. Do not ask the user to repeat a single active root.
    Ignore ancillary output/temporary roots. If there are multiple competing project roots without an
-   active-root designation, name them and ask which one to use. Run `git diff HEAD` from the
-   selected root for all staged and unstaged tracked changes (equivalent to `git diff HEAD -- .`).
-   Use the runtime-provided read-only workspace inventory to identify all non-ignored untracked
-   project files and collect each with `git diff --no-index /dev/null <path>`. Treat exit status 1
-   with a non-empty diff as successful collection; reserve clarification for actual command errors
-   (status greater than 1). If the inventory is unavailable or cannot establish completeness, ask
-   the user for the complete untracked path list and wait; do not review a partial change set. A
-   user-supplied `git status` excerpt can identify paths; never run `git status`. For a supplied
-   base against the working tree, use `git diff <base>`; for committed branch changes from a
-   supplied base, use `git diff <base>...HEAD`. If the resulting diff is empty, ask the user to
-   clarify. If a command returns an actual error, ask the user to clarify. Do not guess a baseline
-   or run another Git command.
+   active-root designation, name them and ask which one to use. Run `git diff HEAD -- <scope>` for
+   staged and unstaged tracked changes. Use a runtime-provided read-only workspace inventory when
+   available; otherwise use `git status --short --untracked-files=all` or
+   `git ls-files --others --exclude-standard` for all non-ignored untracked project files and filter
+   them to the requested scope. If that inventory is unavailable or incomplete, use
+   `git status --short --untracked-files=all` or `git ls-files --others --exclude-standard` to
+   establish the complete non-ignored untracked list. A user-supplied file or directory defines the
+   review scope; expand directories to every in-scope tracked change and non-ignored untracked file
+   beneath it. Do not ask the user to enumerate children when the directory itself defines scope.
+   `git status` and `git ls-files` exclude ignored files by default. Use
+   `git diff --no-index /dev/null <path>` for each scoped untracked file; accept status 1 with a
+   non-empty diff as successful collection; exit status 1 is expected when files differ; reserve
+   clarification for actual command errors (status greater than 1). Use read-only filesystem
+   listings such as `rg --files --hidden`, `find`, or `ls` to resolve or corroborate directory
+   contents. If all available read-only inventory routes fail to establish completeness, ask for the
+   specific missing paths. Do not review a partial change set. A user-supplied `git status` output
+   is scope evidence only and is not the requirements source. For a supplied base against the
+   working tree, use `git diff <base>`; for committed branch changes from a supplied base, use
+   `git diff <base>...HEAD`. If the resulting diff is empty, ask the user to clarify. If a command
+   returns an actual error, ask the user to clarify. Do not guess a baseline.
 3. **Read the relevant code and standards:** Review every changed file and hunk; identify each
    changed language from the changed files and repository metadata. Apply language-specific best
    practices; repository guidance takes precedence over general advice. Inspect the nearby methods,
@@ -152,6 +188,13 @@ requirements source -> identify repo guidance and language -> collect requested 
    reread the full diff and changed files. Report only after the full ledger and omission-sweep
    gates pass. If a material question prevents complete review, ask before reporting; after the
    answer, start a fresh child with the updated packet.
+8. **Retain durable corrections:** After the clean child review is complete, the parent preserves
+   durable user-provided corrections or reusable lessons through the applicable knowledge owner. For
+   global or user-scoped knowledge, use `/knowledge-base` to search for an existing concept, choose
+   one owner, and create or update it with source and verification evidence. For project-specific
+   knowledge, follow the active project's retention workflow. Keep the child packet limited to
+   review evidence; do not pass unrelated parent history. Do not retain raw conversation or
+   transient review findings. Verify implementation claims against current repository evidence.
 
 ### Auditable coverage and complete handoff
 
@@ -188,7 +231,8 @@ Review output: return only review feedback and any scope limitation. Do not clai
 or approve a change. Return all supported findings from every applicable category together in one
 consolidated report, with no finding-count cap or top-N filter. Do not send progress findings,
 partial findings, or later addenda. Say when a lens has no findings and name any limitation that
-static review cannot resolve.
+static review cannot resolve. If knowledge was retained, append a short `Retained knowledge` line
+with its concept path and validation receipt; otherwise omit that line.
 
 ```text
 ## Requirements
@@ -211,7 +255,9 @@ has no findings and name any limitation that static review cannot resolve.
   and a fresh child returns separate evidence-backed findings without changing state.
 - **Boundary:** Missing or inaccessible requirements, empty diff, unclear scope, or a material
   question stops for user input rather than a guess or code-quality-only fallback.
-- **Challenge:** The child receives no parent transcript; Git is used only for `git diff`; no
-  project command is run; no programming-language-specific standard is imposed on another language.
+- **Challenge:** The child receives no parent transcript; all Git operations remain read-only;
+  runtime, Git, or filesystem inventory can establish non-ignored untracked scope; no application,
+  test, lint, format, build, or repair command is run; no programming-language-specific standard is
+  imposed on another language.
 - **Independent verifier:** `evals/cases.jsonl` is the frozen matrix for source gates, clean-session
   routing, read-only behavior, language fit, reuse/minimality, findings, and scope boundaries.
