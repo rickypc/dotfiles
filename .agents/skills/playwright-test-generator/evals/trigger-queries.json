@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Write Playwright tests for the checkout flow.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Add browser regression tests for the responsive navigation menu.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Cover the login page with durable end-to-end tests in the project.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Add a Playwright test that enforces a largest-contentful-paint budget of 2.5 seconds on the home page.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "These acceptance criteria describe a signup form flow; turn them into retained browser tests.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "The mobile layout of the dashboard keeps breaking. Add automated browser coverage for it.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Write Bun unit tests for the cart reducer.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Redesign the dashboard layout.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Run the existing browser tests and show me failures.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Install Playwright globally on my machine.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Write a Python selenium script to scrape a website.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Fix the flaky timing in this React component.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Add retained Playwright coverage for the password reset flow.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Make sure the tablet breakpoint of the pricing page is protected by browser tests.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Create e2e tests from these accepted criteria for the web checkout.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "We need a browser performance regression test with an explicit time budget for the search page.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Write unit tests for utils/money.ts.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Pick a color scheme for the page.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Review this pull request.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Measure the bundle size of the build.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "Users reported the hamburger menu breaks at 600px. Lock that down with automated browser checks.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Turn the acceptance criteria for the invoice download button into regression tests that run in a real browser.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Add a test that fails if the dashboard takes longer than 3 seconds to become interactive.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Write Cypress tests for the signup form.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Manually test the checkout on Safari and send me notes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Write a component test for the Button using Testing Library.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Cover the responsive footer and keyboard navigation with persistent browser tests.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Retain end-to-end coverage for the coupon flow in this project.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Set up browsers on my CI image.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Take a screenshot of the homepage.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Pin down the tablet layout of the pricing page with checks that run in Chromium and Firefox.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Acceptance criteria are written for the coupon flow; make them executable in a browser and keep them in the repo.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Review whether the pricing page tests I wrote are well structured.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Write unit tests for the coupon validation function.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Add retained browser tests ensuring the navbar collapses at mobile width.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Create a Playwright spec with a load-time budget for the search results page.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Record a video demo of the checkout flow.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Check the pricing page with Biome.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "ok so the coupon box on the cart page should show 'invalid code' and not hit the API when you type junk, and apply the discount when valid. lock that in with tests that drive a real browser, kept in the repo",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "need e2e coverage for the hamburger menu at 375px wide",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "our spec says the profile save button must show a success toast and fire exactly one POST. can you write the chromium/firefox tests for it so CI keeps checking it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "pls add specs under tests/e2e for the password reset flow, project already has @playwright/test in package.json",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "Product owner signed off on a 1.8s budget for the search results page to become interactive on the throttled profile. Make that a permanent automated browser check.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "checkout works today but twice this quarter someone broke the address form validation in the browser. write the tests that would have caught it, stored with the project",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "tablet and phone breakpoints on the pricing table: cards stack, toggle stays visible. need automated browser tests that stay in the repo",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Write unit tests with bun for the validateCoupon function that the checkout form calls.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "Redesign the look of the coupon box and cart page: new spacing, colors, and hover states.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "The playwright test for login fails on CI with a timeout in the sign-in step. Figure out why and fix it.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Review my PR that adds browser tests for the cart against the ticket requirements.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "Implement the cart drawer in React with a useReducer for item state and make the focus trap accessible.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "Write a 900-word blog post comparing end-to-end browser testing tools, with sources and quotes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "Which port does the dev server for the e2e suite listen on? Just curious, no changes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "add coverage in the browser for the cookie banner: accept hides it, decline hides it, choice persists after reload",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "for the checkout page, make sure bad card number shows an error and nothing gets submitted, then retain that as a test in the repo using our playwright setup",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "turn this checklist into repeatable browser tests: 1) filter by date narrows the table 2) empty state shows message 3) works at 768px",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "lighthouse is flaky so we agreed on a 3s load budget in our config file. encode it as a test in the browser suite",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "regression tests, real browser, for drag-and-drop reorder of the kanban cards pls",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Add a unit test for the kanban reorder helper function using Bun.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Make the kanban board look more modern: new card styling, motion, and dark theme direction.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "Run the playwright suite headed and tell me which specs failed.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "Fix the stale-closure bug in my React useEffect that fetches the table data.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Shrink the AGENTS.md rules file losslessly so it uses fewer tokens, keep the code fences.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "playwright-test-generator",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

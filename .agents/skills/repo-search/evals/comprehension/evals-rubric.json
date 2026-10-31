@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "the script-owned transport probe with the MCP stdio transport primary and the CLI transport as the fallback",
+      "expected": "A",
+      "id": "train-01",
+      "query": "According to the rubric, which transport is primary and which is the fallback in the script-owned transport probe?\nA) MCP stdio is primary; the CLI transport is the fallback\nB) The CLI transport is primary; MCP stdio is the fallback\nC) The caller picks whichever transport it prefers\nD) Only the staged local search is used, with no transports",
+      "split": "train"
+    },
+    {
+      "evidence": "RED, GREEN, and REFACTOR receipts are required; a score or a single successful output is not closure evidence.",
+      "expected": "B",
+      "id": "train-02",
+      "query": "A team ran the matrix once, got a high score and one good output, and wants to call the work closed. What does the rubric say?\nA) Enough: a high score proves closure\nB) Not enough: RED, GREEN, and REFACTOR receipts are required\nC) Enough: one successful output proves closure\nD) Not enough: only a GREEN receipt is needed",
+      "split": "train"
+    },
+    {
+      "evidence": "index discipline (search never creates an index; symbol reads index once and retry; inspect requires a ready matching index)",
+      "expected": "C",
+      "id": "train-03",
+      "query": "Which index rule do the candidate checks cover for the search verb?\nA) Search always creates an index first\nB) Search creates an index only for symbol queries\nC) Search never creates an index\nD) Search creates an index when the user approves it",
+      "split": "train"
+    },
+    {
+      "evidence": "the eighteen-row binary router with check-then-install",
+      "expected": "D",
+      "id": "train-04",
+      "query": "How many rows does the binary router have, according to the rubric checks?\nA) Twelve rows\nB) Sixteen rows\nC) Twenty-four rows\nD) Eighteen rows",
+      "split": "train"
+    },
+    {
+      "evidence": "naming the temporary source skill",
+      "expected": "A",
+      "id": "train-05",
+      "query": "Which of these is one of the historical failure modes the challenge checks target?\nA) Naming the temporary source skill\nB) Redacting the backend storage path\nC) Reporting a transport denial as a transport failure\nD) Using the MCP stdio transport first",
+      "split": "train"
+    },
+    {
+      "evidence": "The matrix is evaluated before and after the candidate guidance with the same source and matrix fingerprints.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "The matrix is evaluated before and after the candidate guidance. What must stay the same between the two evaluations?\nA) The score thresholds\nB) The source and matrix fingerprints\nC) The order of the cases\nD) The names of the reviewers",
+      "split": "validation"
+    },
+    {
+      "evidence": "explicit-target-only non-file routes",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "Which kinds of routes are covered by the check that they fire only on an explicit target?\nA) Container routes\nB) Text-file routes\nC) Graph routes\nD) Non-file routes",
+      "split": "validation"
+    },
+    {
+      "evidence": "the owning skill's forward test verifies the behavior in a clean context",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "The rubric says what verifies the behavior of the owning skill in a clean context?\nA) The independent source-structure checks\nB) The matrix score alone\nC) The owning skill forward test\nD) A single successful output",
+      "split": "validation"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "C",
+      "id": "train-06",
+      "query": "What minimumPassRate does the rubric frontmatter declare?\nA) 0.8\nB) 0.9\nC) 1\nD) 0.5",
+      "split": "train"
+    },
+    {
+      "evidence": "index discipline (search never creates an index; symbol reads index once and retry; inspect requires a ready matching index)",
+      "expected": "B",
+      "id": "train-07",
+      "query": "Which statement matches the index discipline the candidate checks cover?\nA) search creates an index when none exists; symbol reads never index; inspect indexes once and retries\nB) search never creates an index; symbol reads index once and retry; inspect requires a ready matching index\nC) search never creates an index; inspect indexes once and retries; symbol reads require a ready matching index\nD) search creates an index once and retries; symbol reads never index; inspect requires a ready matching index",
+      "split": "train"
+    },
+    {
+      "evidence": "naming the temporary source skill",
+      "expected": "A",
+      "id": "train-08",
+      "query": "Which of these is a challenge check target, not a candidate check?\nA) naming the temporary source skill\nB) the compact four-field report\nC) path-only discovery\nD) the eighteen-row binary router",
+      "split": "train"
+    },
+    {
+      "evidence": "transport denials reported as transport failures",
+      "expected": "D",
+      "id": "train-09",
+      "query": "How do the candidate checks say a cache-private or sandbox transport denial must be reported?\nA) as an empty result\nB) as backend unavailability\nC) as an index caveat only\nD) as a transport failure",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "Which two visibility values must the cases declare under requiredVisibility?\nA) candidate and baseline\nB) candidate and challenge\nC) challenge and regression\nD) public and private",
+      "split": "validation"
+    },
+    {
+      "evidence": "the three-verb caller grammar (search, read, inspect)",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "Which three verbs make up the caller grammar the candidate checks cover?\nA) search, read, inspect\nB) search, read, index\nC) find, read, inspect\nD) search, inspect, route",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "repo-search--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

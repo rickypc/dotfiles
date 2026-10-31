@@ -1,0 +1,103 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Measure whether AIDX safely reads one supplied plan, executes it sequentially, uses only named fallbacks, requires fresh proof, and stops on material risk.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "A reviewer asks what the AIDX evaluation rubric is meant to measure. Which answer matches the document?\nA) Whether AIDX safely reads one supplied plan, executes it sequentially, uses only named fallbacks, requires fresh proof, and stops on material risk\nB) Whether AIDX can write a new plan from a free-form request and pick its own fallbacks\nC) Whether AIDX runs every step in parallel as fast as possible and reuses old receipts\nD) Whether AIDX asks the user many requirements questions before running anything",
+      "split": "train"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "C",
+      "id": "train-02",
+      "query": "The rubric frontmatter sets minimumPassRate. What pass rate must the evaluated cases reach?\nA) Half of the cases\nB) 90 percent of the cases\nC) Every case, a rate of 1\nD) No minimum, the rate is only informational",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "D",
+      "id": "train-03",
+      "query": "Which two visibility values must the evaluation cases include, according to requiredVisibility?\nA) public and private\nB) hidden and shown\nC) train and validation\nD) candidate and challenge",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "B",
+      "id": "train-04",
+      "query": "Which verifier id does the rubric frontmatter list under verifierIds?\nA) plan-validator\nB) source-structure\nC) final-gate\nD) hidden-character",
+      "split": "train"
+    },
+    {
+      "evidence": "Challenge unsafe paths, guessing, plan mutation, stale receipts, and skipped workflow actions.",
+      "expected": "C",
+      "id": "train-05",
+      "query": "An evaluation case shows AIDX accepting a receipt from an earlier run as proof that a step is done now. Which kind of failure is this, as the rubric names it?\nA) A skipped workflow action\nB) Plan mutation\nC) A stale receipt\nD) An unsafe path",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "Which field in requiredCaseFields records how a case is expected to go wrong?\nA) scenario\nB) failureMode\nC) assertions\nD) visibility",
+      "split": "validation"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "What value does the rubric frontmatter give for schemaVersion?\nA) 0\nB) 2\nC) 3\nD) 1",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "Which required case field limits how far a repair may go?\nA) repairBoundary\nB) independentVerifier\nC) scenario\nD) id",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "C",
+      "id": "train-06",
+      "query": "Which list is exactly the rubric's requiredCaseFields?\nA) [id, visibility, scenario, assertions, failureMode, independentVerifier]\nB) [id, scenario, assertions, failureMode, repairBoundary, independentVerifier]\nC) [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]\nD) [id, visibility, scenario, assertions, failureMode, repairBoundary, verifierIds]",
+      "split": "train"
+    },
+    {
+      "evidence": "Challenge unsafe paths, guessing, plan mutation, stale receipts, and skipped workflow actions.",
+      "expected": "A",
+      "id": "train-07",
+      "query": "Which list names what the rubric says to challenge?\nA) Unsafe paths, guessing, plan mutation, stale receipts, and skipped workflow actions\nB) Unsafe paths, guessing, plan mutation, stale receipts, and low coverage numbers\nC) Unsafe paths, guessing, plan mutation, unlisted fallbacks, and skipped workflow actions\nD) Unsafe commands, guessing, plan mutation, stale receipts, and skipped workflow actions",
+      "split": "train"
+    },
+    {
+      "evidence": "Measure whether AIDX safely reads one supplied plan, executes it sequentially, uses only named fallbacks, requires fresh proof, and stops on material risk.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "Which sentence matches what the rubric measures about AIDX?\nA) It reads one plan, executes in parallel batches, uses only named fallbacks, requires fresh proof, and stops on material risk\nB) It reads one plan, executes sequentially, uses any concrete fallback, requires fresh proof, and stops on material risk\nC) It reads one plan, executes sequentially, uses only named fallbacks, accepts earlier receipts, and stops on material risk\nD) It reads one plan, executes sequentially, uses only named fallbacks, requires fresh proof, and stops on material risk",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "In the rubric's requiredCaseFields list, which field comes immediately after assertions?\nA) scenario\nB) failureMode\nC) repairBoundary\nD) independentVerifier",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "How many fields does the rubric's requiredCaseFields list name?\nA) 5\nB) 6\nC) 7\nD) 8",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidx--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

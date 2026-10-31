@@ -35,6 +35,10 @@ export interface SkillCatalogEntry {
 
 export const NO_SKILL_ANSWER = 'NO_SKILL';
 
+export const DOCUMENT_INSTRUCTIONS =
+  'You are a reader with no other knowledge. Use only the document in this bundle. Each prompt '
+  + 'is a question with lettered options. Answer with exactly one option letter and nothing else.';
+
 export const ROUTER_INSTRUCTIONS =
   'You are the skill router of an agent runtime. The catalog lists every skill that can be '
   + 'loaded. For the user query, answer with exactly one skill name from the catalog that the '

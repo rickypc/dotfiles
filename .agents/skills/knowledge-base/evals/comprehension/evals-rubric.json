@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Verify durable knowledge records stored in OKF (Open Knowledge Format), their indexes, and",
+      "expected": "B",
+      "id": "train-01",
+      "query": "An agent reads the knowledge base evaluation rubric. According to it, what does the rubric verify?\nA) Raw chat transcripts stored in a database\nB) Durable knowledge records stored in OKF, their indexes, and evidence-based lesson capture\nC) Only the speed of search queries\nD) Browser tests for a web page",
+      "split": "train"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "C",
+      "id": "train-02",
+      "query": "The rubric frontmatter sets minimumPassRate to 1. A run passes 9 of 10 cases. What does the rubric say about this run?\nA) It passes because 90 percent is high enough\nB) It passes if the failed case is a challenge case\nC) It fails because the minimum pass rate of 1 means every case must pass\nD) It passes if the verifier is source-structure",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "A",
+      "id": "train-03",
+      "query": "Which two visibility values does the rubric require evaluation cases to cover?\nA) candidate and challenge\nB) public and private\nC) candidate and hidden\nD) train and validation",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "D",
+      "id": "train-04",
+      "query": "Which verifier id does the rubric frontmatter list?\nA) okf-validator\nB) index-checker\nC) guard-finalize\nD) source-structure",
+      "split": "train"
+    },
+    {
+      "evidence": "contract, and evaluation anchors. The canonical matrix checks each heading and challenges brittle",
+      "expected": "B",
+      "id": "train-05",
+      "query": "What does the canonical matrix do with brittle language in the skill contract?\nA) It rewrites the language automatically\nB) It checks each heading and challenges brittle exact-output or robotic-persona language\nC) It ignores wording and only counts words\nD) It deletes sections that sound robotic",
+      "split": "train"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "The rubric says the package conforms to a shared skill contract. How many parts does that contract have?\nA) Five\nB) Six\nC) Seven\nD) Eight",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "Which field must every evaluation case include besides id, visibility, scenario, assertions, failureMode, and repairBoundary?\nA) independentVerifier\nB) author\nC) createdAt\nD) priority",
+      "split": "validation"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "What is the schemaVersion value in the rubric frontmatter?\nA) 0\nB) 2\nC) 3\nD) 1",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "A",
+      "id": "train-06",
+      "query": "An evaluation case in the knowledge-base rubric sets visibility to \"public\". Is that allowed?\nA) No; visibility must be candidate or challenge\nB) Yes; public is allowed beside candidate and challenge\nC) Yes, but only if the verifier is source-structure\nD) No; visibility must be candidate or hidden",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "B",
+      "id": "train-07",
+      "query": "Which list is the exact set of required case fields in the rubric?\nA) id, visibility, scenario, assertions, failureMode, repairBoundary, verifierId\nB) id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier\nC) id, visibility, scenario, assertions, failureMode, remediation, independentVerifier\nD) id, visibility, scenario, expectedOutput, failureMode, repairBoundary, independentVerifier",
+      "split": "train"
+    },
+    {
+      "evidence": "contract: role and scope, usage, immutable",
+      "expected": "C",
+      "id": "train-08",
+      "query": "In the shared seven-part skill contract, which part is named immediately after \"role and scope\"?\nA) immutable operational rules\nB) input and context schema\nC) usage\nD) ordered execution chain",
+      "split": "train"
+    },
+    {
+      "evidence": "Verify durable knowledge records stored in OKF (Open Knowledge Format), their indexes, and",
+      "expected": "D",
+      "id": "train-09",
+      "query": "What does OKF stand for in the rubric?\nA) Open Knowledge Framework\nB) Ordered Knowledge Format\nC) Open Knowledge File\nD) Open Knowledge Format",
+      "split": "train"
+    },
+    {
+      "evidence": "exact-output or robotic-persona language; the contract must remain compatible with this skill's",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "The rubric says the shared contract must remain compatible with which boundary of this skill?\nA) its speed, cost, and cache boundary\nB) its persona, tone, and output-format boundary\nC) its uncertainty, ownership, and proof boundary\nD) its retrieval, ranking, and index boundary",
+      "split": "validation"
+    },
+    {
+      "evidence": "operational rules, input and context schema, ordered execution chain, output and completion",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "In the shared seven-part contract, which part is listed immediately before \"output and completion contract\"?\nA) input and context schema\nB) ordered execution chain\nC) immutable operational rules\nD) evaluation anchors",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "knowledge-base--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Where is the retry logic implemented in this repo?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Find the file that defines UserSession.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Who calls validatePayment, and what does it call in turn?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Show me the architecture of this project at a high level.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Locate the Biome configuration file.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "What is inside this unknown binary file in the build folder?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "What did we decide about retries? Check our private knowledge base.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Review my pull request for the retry change.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Fix the bug in src/retry.ts line 40.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Explain this code snippet I pasted: const x = a ?? b.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Write a function that retries an async call.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Run the tests in tests/retry.test.ts.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Which module owns the session token refresh?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Find every place that reads the DATABASE_URL environment variable.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Trace the call path from the HTTP handler to the database layer.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Where does this repo define its lint rules?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Capture this finding in the knowledge base.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Create a new skill for log analysis.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Summarize what this function does; here is the code.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Add a retry decorator to my fetch helper.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "I need to find the Dockerfile for the worker service.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "What calls into the payments module from outside it?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Which files import the logger and in what ways?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "grep is really slow on my laptop. Any tips?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Generate a call graph diagram for this code that I pasted.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Search the web for the latest Bun release notes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Is there already a helper somewhere that parses duration strings?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "List where feature flags are defined in this codebase.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Search our knowledge base for the on-call runbook.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Open src/index.ts and fix the typo on line 3.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "I forget which module wraps the S3 client. Can you find it?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Show me who depends on the config loader, including indirect callers.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Open src/config.ts and add a default timeout.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "What does the S3 SDK recommend for retries? Check the web docs.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Which test files exercise the config loader?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Find any binary assets checked in under the repo root and tell me what they are.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Capture this decision about S3 in the KB.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Write a function to parse S3 URIs.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "where does the jwt refresh token get rotated, i keep grepping and getting nowhere",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "/Users/me/work/billing - which modules end up calling chargeCard indirectly?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "got a weird .dat blob out of the installer zip, no idea what format it is. can you tell me what's in it?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "is log4j-core 2.14 pulled in anywhere across our three service repos, including docker base images?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "how are the pieces of this monorepo wired together? just the big picture before I touch anything",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "where's the tsconfig for the worker package",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "how does symbol parseConfig connect to loadEnv in ~/src/app",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Write unit tests for the parseConfig function in src/config.ts",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "Check what we recorded in our private knowledge base about why we chose sqlite over postgres",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "Review the diff on my branch against the ticket requirements and tell me if the search module change is right",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Add a Playwright test that the file search box in the web app returns results after typing",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "Update the routing description of my skill so it triggers on file lookups more reliably",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "Explain the difference between a binary tree and a binary search tree",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "Rename the function fetchUser to loadUser in src/api.ts and update the call sites",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "which file defines the retry backoff constants? lowercase typo sorry, repo is /code/payments",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "Need to know who imports utils/date.ts before I change its signature. Also lunch is at noon.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "this exe in dist/ is packed or something, strings shows garbage. what is it?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "scan the repos in the platform org list for any use of the deprecated sdk and give me a status per repo",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "find every place the feature flag NEW_CHECKOUT is read",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Compress my architecture.md to save tokens without losing the code fences",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Draft a plan for migrating our search service to a new index, then hand it off for execution",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "Run biome over src/search/index.ts and fix the lint errors",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "Build a React search results page with a debounced input and accessible listbox",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Which is faster for searching a large text file, grep or ripgrep? Just curious in general.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "repo-search",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

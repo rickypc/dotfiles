@@ -1,0 +1,103 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "C",
+      "id": "train-01",
+      "query": "A reviewer reads the rubric frontmatter. What minimum pass rate does it set?\nA) 0.5\nB) 0.8\nC) 1\nD) 0.95",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "A",
+      "id": "train-02",
+      "query": "Which verifier id does the rubric frontmatter list?\nA) source-structure\nB) unit-coverage\nC) browser-snapshot\nD) lint-only",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "D",
+      "id": "train-03",
+      "query": "Which visibility values must every case use according to the rubric frontmatter?\nA) public and private\nB) draft and final\nC) visible and hidden\nD) candidate and challenge",
+      "split": "train"
+    },
+    {
+      "evidence": "Each case checks a deterministic contract in the skill source.",
+      "expected": "B",
+      "id": "train-04",
+      "query": "What does each case in the rubric check?\nA) The visual look of the rendered UI\nB) A deterministic contract in the skill source\nC) The speed of the test runner\nD) The wording of the commit message",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "C",
+      "id": "train-05",
+      "query": "Which of these is a required case field?\nA) severity\nB) timeout\nC) repairBoundary\nD) author",
+      "split": "train"
+    },
+    {
+      "evidence": "both pass before the skill is accepted.",
+      "expected": "A",
+      "id": "validation-01",
+      "query": "Candidate cases pass but challenge cases fail. Is the skill accepted?\nA) No, both must pass before the skill is accepted\nB) Yes, candidate cases are enough\nC) Yes, if most challenge cases pass\nD) Yes, after a manual override",
+      "split": "validation"
+    },
+    {
+      "evidence": "This matrix does not replace project tests, browser or",
+      "expected": "B",
+      "id": "validation-02",
+      "query": "Every matrix case passes. What else is still needed?\nA) Nothing, the matrix replaces them\nB) Project tests, browser or device proof, accessibility review, and the project final gate remain required\nC) Only the project final gate\nD) Only the accessibility review",
+      "split": "validation"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "How many parts does the shared skill contract named in the rubric have?\nA) Three\nB) Five\nC) Nine\nD) Seven",
+      "split": "validation"
+    },
+    {
+      "evidence": "contract, and evaluation anchors. The canonical matrix checks each heading and challenges brittle",
+      "expected": "B",
+      "id": "train-06",
+      "query": "The rubric says the canonical matrix challenges certain language in the skill. Which language?\nA) Long headings and deep nesting\nB) Brittle exact-output or robotic-persona language\nC) Missing citations and unlinked sources\nD) Informal tone and contractions",
+      "split": "train"
+    },
+    {
+      "evidence": "uncertainty, ownership, and proof boundary.",
+      "expected": "D",
+      "id": "train-07",
+      "query": "The rubric says the shared seven-part contract must stay compatible with which three things of this skill?\nA) Speed, size, and style\nB) Ownership, approval, and release timing\nC) Uncertainty, accessibility, and proof boundary\nD) Uncertainty, ownership, and proof boundary",
+      "split": "train"
+    },
+    {
+      "evidence": "6. output and completion contract (right after the ordered execution chain);",
+      "expected": "A",
+      "id": "train-08",
+      "query": "In the shared seven-part skill contract, which part comes immediately after the ordered execution chain?\nA) Output and completion contract\nB) Evaluation anchors\nC) Input and context schema\nD) Immutable operational rules",
+      "split": "train"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "What value does the rubric frontmatter give for schemaVersion?\nA) 0\nB) 2\nC) 1\nD) 7",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "Which exact field name is the last entry of requiredCaseFields?\nA) independentVerification\nB) independentVerifier\nC) verifierId\nD) failureMode",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "react--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

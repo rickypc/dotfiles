@@ -1,0 +1,299 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "AIDP\naccepts only that request/context; it does not accept a plan path or implementation arguments.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "A user types `/aidp /some/path/to/existing-plan.md` and asks AIDP to run that plan. What does AIDP do?\nA) It does not accept a plan path; AIDP accepts only a request or supporting context and does not execute plans\nB) It executes the plan step by step\nC) It opens the plan and marks finished steps with [x]\nD) It validates the plan and then hands it to /aidx",
+      "split": "train"
+    },
+    {
+      "evidence": "Resolve the plan root from the active AIDP skill location, never from the repo-search index.",
+      "expected": "B",
+      "id": "train-02",
+      "query": "The repo-search index value contains a token that looks like another repository's path. How must AIDP resolve the plan root?\nA) Use that token to refine the plan root\nB) Resolve it from the active AIDP skill location, walking up to the containing .agents directory, and treat the index only as one safe path segment\nC) Use the current shell directory as the plan root\nD) Replace the agents root with the project named in the index",
+      "split": "train"
+    },
+    {
+      "evidence": "If the skill location,\ncontaining `.agents` directory, or destination relationship cannot be established, stop instead of\nderiving a project path from the index or writing a partial plan.",
+      "expected": "C",
+      "id": "train-03",
+      "query": "AIDP cannot establish where the containing .agents directory is, so the destination cannot be proven to sit below the plans directory. What must it do?\nA) Derive a project path from the index and write there\nB) Write a partial plan to the current directory\nC) Stop instead of deriving a path or writing a partial plan\nD) Write the plan and ask the validator to fix the path",
+      "split": "train"
+    },
+    {
+      "evidence": "Retrieve private context through `/knowledge-base`\nbefore asking the user anything.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "The user request is a one-line sentence and AIDP has questions. What must it do before asking the user anything?\nA) Ask the questions right away because the request is incomplete\nB) Write a draft plan with flagged assumptions\nC) Retrieve only repository evidence and skip private knowledge\nD) Retrieve repository evidence with /repo-search and private context with /knowledge-base, and record both receipts and the facts, limits, and unresolved decisions",
+      "split": "train"
+    },
+    {
+      "evidence": "ask all remaining material\nquestions in ONE batched round - each specific and self-contained",
+      "expected": "B",
+      "id": "train-05",
+      "query": "After retrieval, AIDP has five material questions. How should it ask them?\nA) One question per round, so the user is not overwhelmed\nB) All remaining material questions in one batched round, each specific and self-contained\nC) Only the most important question, guessing the other four\nD) None; it writes the plan and lists the questions at the end",
+      "split": "train"
+    },
+    {
+      "evidence": "**The document H1 must equal the frontmatter `title` verbatim.**",
+      "expected": "C",
+      "id": "train-06",
+      "query": "A candidate plan has the frontmatter title \"Add retry to uploader\" but the first heading says \"# Uploader retry plan\". What happens?\nA) It passes, because the heading may be a shorter form of the title\nB) It passes if the six H2 sections are present\nC) The validator rejects it; the H1 must equal the frontmatter title verbatim\nD) The validator rewrites the heading to match",
+      "split": "train"
+    },
+    {
+      "evidence": "the six sections are written `## 1. TARGET DIRECTIVES` through\n`## 6. RIGID OUTPUT SCHEMA` (H2, numbered, the numeral then a period then a space then the all-caps\ntitle).",
+      "expected": "D",
+      "id": "train-07",
+      "query": "How must the six plan sections be written?\nA) As H1 headings without numbers\nB) As H3 headings with friendly names such as Goals\nC) As unnumbered H2 headings with aliases allowed\nD) As numbered H2 headings with all-caps titles, such as `## 1. TARGET DIRECTIVES`",
+      "split": "train"
+    },
+    {
+      "evidence": "Write each step as ONE line beginning\n`- [ ]` - the plan validator reads only that first line",
+      "expected": "A",
+      "id": "train-08",
+      "query": "The plan validator reads workflow steps. Where must all per-step fields such as target, dependency, expected result, and proof appear?\nA) On the single first line of the `- [ ]` item\nB) In indented paragraphs under the item\nC) In a table at the end of the section\nD) In the phase heading",
+      "split": "train"
+    },
+    {
+      "evidence": "Every task item sits inside a phase block, each phase block carries at least one step, and the\nvalidator rejects a workflow without phase blocks.",
+      "expected": "C",
+      "id": "train-09",
+      "query": "How is the CHRONOLOGICAL WORKFLOW section grouped?\nA) One flat list of steps with no headings\nB) Into audit, build, and test tables\nC) Into `### Phase N - <name>` blocks, each declaring Phase inputs, Completion criteria, and Resume point, with at least one step\nD) Into phases only when the plan has more than ten steps",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not paste `(owner: AIDX)` (or any other executor attribution)\non every step - that is noise",
+      "expected": "D",
+      "id": "train-10",
+      "query": "A plan author wants to add `(owner: AIDX)` to every workflow step. What does the skill say?\nA) Do it, so each step shows who executes it\nB) Do it only for steps that edit files\nC) Do it only for the first step of each phase\nD) Do not; the responsibility field is written only when the executor deviates from the default AIDX executor",
+      "split": "train"
+    },
+    {
+      "evidence": "the gate is `bun run test` (the agents-root\ndefault) when no project override exists",
+      "expected": "A",
+      "id": "train-11",
+      "query": "A project has no override in package.json or aidx.json. What final-gate command should the plan name?\nA) `bun run test`, the agents-root default, verified before writing the plan\nB) `npm run test:lint && npm run test:unit && npm run test:e2e && npm run build`\nC) Whatever gate the planner thinks is typical\nD) No gate, because the sanitizer step is enough",
+      "split": "train"
+    },
+    {
+      "evidence": "Never pass `--write` without reviewing the dry-run first",
+      "expected": "B",
+      "id": "train-12",
+      "query": "How must the hidden-character sanitizer be used in the plan's final steps?\nA) Run with --write directly on the gate step\nB) Preview it with a dry run, review the preview, then apply it once with --write, as steps placed immediately before the final-gate step\nC) Run it only after the final gate passes\nD) Run it with --write twice to be sure",
+      "split": "train"
+    },
+    {
+      "evidence": "a flagged assumption never satisfies a requirement; it is a clarification stop, not a resolution.",
+      "expected": "D",
+      "id": "train-13",
+      "query": "AIDP cannot resolve a material unknown, so it writes an `assumption:` marker in the plan and continues. Is that allowed?\nA) Yes, a flagged assumption satisfies the requirement\nB) Yes, if the user is told after handoff\nC) Yes, if the assumption is a common project convention\nD) No; a flagged assumption never satisfies a requirement and is a clarification stop, not a resolution",
+      "split": "train"
+    },
+    {
+      "evidence": "Every workflow step that asserts a user decision MUST carry a `decision:` or `clarified:` marker",
+      "expected": "C",
+      "id": "train-14",
+      "query": "A workflow step says the user chose to keep the old API. What must that step carry?\nA) An `owner:` marker\nB) A `likely:` marker\nC) A `decision:` or `clarified:` marker followed by the decision text or the user's quoted answer\nD) No marker, since the decision is obvious",
+      "split": "train"
+    },
+    {
+      "evidence": "the fenced block must contain only the `/aidx`\ncommand.",
+      "expected": "B",
+      "id": "train-15",
+      "query": "The standalone validator exits with status zero. What must the handoff contain?\nA) Only the plan text pasted in chat\nB) The line `Plan: [<absolute-plan-path>](<absolute-plan-path>)` and a fenced block holding only the `/aidx` command, then stop\nC) The `/aidx` command, the validator receipt, and a summary of every step\nD) A link and a list of open questions",
+      "split": "train"
+    },
+    {
+      "evidence": "If validation fails, report every finding and preserve the prior plan when one\nexists; do not hand off an invalid candidate.",
+      "expected": "A",
+      "id": "train-16",
+      "query": "Validation of a new candidate fails and an older plan with the same slug exists. What does AIDP do?\nA) Reports every finding, preserves the prior plan, and does not hand off the invalid candidate\nB) Overwrites the prior plan with the candidate anyway\nC) Hands off the candidate and reports findings later\nD) Deletes the prior plan and retries",
+      "split": "train"
+    },
+    {
+      "evidence": "When the need is speculative, surface that decision and do not manufacture a plan.",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "The requested change looks speculative and may already be covered by the current project. What should AIDP do before decomposing?\nA) Write a small plan anyway\nB) Plan the change and mark it optional\nC) Surface that decision and not manufacture a plan\nD) Add scaffolding for later use",
+      "split": "validation"
+    },
+    {
+      "evidence": "Keep simple, clearly bounded work on the\nfast path; do not add ceremony when the pass would not change the decision surface.",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "A small, clearly bounded change has no competing paths or ownership risk. What does the skill say about the decision-quality pass?\nA) Keep it on the fast path and add no ceremony when the pass would not change the decision surface\nB) Always run the full pass\nC) Run the pass and use it as the completion gate\nD) Run the pass only after execution",
+      "split": "validation"
+    },
+    {
+      "evidence": "An existing same-slug plan is updated in place\nonly after the complete replacement validates; a failed candidate leaves it unchanged.",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "A plan with the same slug already exists and AIDP has a replacement. When may the existing plan be updated?\nA) Immediately, writing over it line by line\nB) After the first section of the replacement validates\nC) Never; a new slug is always required\nD) In place, only after the complete replacement validates; a failed candidate leaves it unchanged",
+      "split": "validation"
+    },
+    {
+      "evidence": "If a target changes a skill package, the plan must name `/skill-manager`\nbefore that change and require its validation and review evidence.",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "A plan's target changes a skill package. What must the plan do?\nA) Edit the package files directly in the first step\nB) Name `/skill-manager` before that change and require its validation and review evidence\nC) Name `/aidx` as the owner of the skill package\nD) Skip validation because the package is small",
+      "split": "validation"
+    },
+    {
+      "evidence": "The slug is stable, descriptive,\nand no longer than 160 characters.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "How long may the summary slug in the plan file name be?\nA) No longer than 160 characters\nB) No longer than 80 characters\nC) No longer than 255 characters\nD) There is no limit",
+      "split": "validation"
+    },
+    {
+      "evidence": "Values returned by `/repo-search` or `/knowledge-base` receipts, cited with the receipt path.",
+      "expected": "C",
+      "id": "validation-06",
+      "query": "Which values may AIDP write into a plan without a user decision?\nA) Values from a framework's usual shape\nB) Values it infers from earlier unrelated projects\nC) Values returned by /repo-search or /knowledge-base receipts and cited with the receipt path, or values the user typed in this session, quoted\nD) Any value that the validator accepts",
+      "split": "validation"
+    },
+    {
+      "evidence": "For a\nrefactor, require a baseline, preservation invariant, coverage gap, explicit exclusion, and smallest\nsafe increment.",
+      "expected": "B",
+      "id": "validation-07",
+      "query": "The request is a refactor. What does the skill require the plan to include?\nA) Only a list of files to rename\nB) A baseline, preservation invariant, coverage gap, explicit exclusion, and smallest safe increment\nC) A full rewrite of the module with new abstractions\nD) A new test framework",
+      "split": "validation"
+    },
+    {
+      "evidence": "the gate is `bun run test` (the agents-root\ndefault) when no project override exists, otherwise it is `aidx.json`'s `finalGate`",
+      "expected": "B",
+      "id": "train-17",
+      "query": "A project's package.json has a test script, and the project also has an aidx.json whose finalGate is `bun run check:all`. Which gate does the plan name?\nA) `bun run test`, because it is the agents-root default\nB) `bun run check:all`, from aidx.json finalGate\nC) `npm run test && npm run test:e2e`\nD) `bun run check:all && bun run test`",
+      "split": "train"
+    },
+    {
+      "evidence": "The\n  validator's no-assumption pass is structural, not semantic",
+      "expected": "D",
+      "id": "train-18",
+      "query": "A workflow step reads \"- [ ] Use the standard library parser ...\" with every required field present but no decision:, clarified:, assumption:, or evidence marker near the word standard. What does the validator do?\nA) Passes, because the scan judges meaning and a standard library is legitimate\nB) Passes, because the step carries all its proof fields\nC) Passes, but only warns in the receipt\nD) Fails, because the scan matches the literal word and no marker is adjacent",
+      "split": "train"
+    },
+    {
+      "evidence": "responsibility field only when the executor for a step deviates from the default AIDX executor",
+      "expected": "A",
+      "id": "train-19",
+      "query": "One workflow step must be carried out by a different skill than the default AIDX executor. What does the plan do on that step?\nA) Writes the responsibility field naming that executor\nB) Omits the responsibility field, as it is never written\nC) Writes `(owner: AIDX)` on that step and on every other step\nD) Moves the human owner into that step",
+      "split": "train"
+    },
+    {
+      "evidence": "**Resume point:** what the execution checkpoint records at the boundary (completed work,\nvalidation receipts, next action)",
+      "expected": "C",
+      "id": "train-20",
+      "query": "In a phase block, what does the Resume point declare?\nA) What the phase consumes\nB) The observable end state of the phase and its proof\nC) What the execution checkpoint records at the boundary: completed work, validation receipts, next action\nD) The command that restarts the whole plan from Phase 1",
+      "split": "train"
+    },
+    {
+      "evidence": "AIDX owns the\nlater transition to `- [x]` for completed work or `- [-]` with a factual reason for an intentionally\nskipped step.",
+      "expected": "B",
+      "id": "train-21",
+      "query": "One workflow step was intentionally skipped as inapplicable. Who records it, and how?\nA) AIDP marks it `- [x]` before handoff\nB) AIDX marks it `- [-]` with a factual reason\nC) AIDX deletes the step line\nD) AIDP marks it `- [-]` before handoff",
+      "split": "train"
+    },
+    {
+      "evidence": "The canonical plan path is\nthen `<agents-root>/plans/<repo-search-index>/<summary-slug-160-chars>.md`.",
+      "expected": "A",
+      "id": "train-22",
+      "query": "The AIDP skill sits at /home/dev/.agents/skills/aidp/SKILL.md, the repo-search index is `shop-api`, and the slug is `add-retry`. Where is the plan written?\nA) /home/dev/.agents/plans/shop-api/add-retry.md\nB) /home/dev/.agents/skills/aidp/plans/shop-api/add-retry.md\nC) /home/dev/shop-api/plans/add-retry.md\nD) /home/dev/.agents/plans/add-retry/shop-api.md",
+      "split": "train"
+    },
+    {
+      "evidence": "title: \"<summary>\"\nrepo_search_index: \"<repo-search-index>\"\ncreated_at: \"<YYYY-MM-DD>\"\nupdated_at: \"<YYYY-MM-DD>\"\nstatus: \"pending\"",
+      "expected": "D",
+      "id": "train-23",
+      "query": "Which frontmatter fields does the plan use?\nA) title, created_at, updated_at, status\nB) title, repo_search_index, created_at, updated_at, owner\nC) title, repo_search_index, created_at, status\nD) title, repo_search_index, created_at, updated_at, status",
+      "split": "train"
+    },
+    {
+      "evidence": "re-batch once in one round when an answer changes the decision\nsurface, never dripping questions one per round",
+      "expected": "C",
+      "id": "train-24",
+      "query": "AIDP asked its batched round of questions and one answer changes target ownership. What does it do next?\nA) Asks the new questions one per round as they come up\nB) Writes the plan now with the updated ownership\nC) Retrieves the affected context again, then re-batches the new questions once in one round\nD) Restarts from intake and asks a single question",
+      "split": "train"
+    },
+    {
+      "evidence": "Escalation Signal: the finding that requires a product, design, architecture, or user decision.",
+      "expected": "A",
+      "id": "train-25",
+      "query": "In the decision-quality pass record, which line holds the finding that requires a product, design, architecture, or user decision?\nA) Escalation Signal\nB) Non-negotiables\nC) Assumptions to Drop\nD) Smallest Sufficient Path",
+      "split": "train"
+    },
+    {
+      "evidence": "`bun <agents-root>/scripts/knowledge-base.ts search \"<private-kb-root>\" \"<query>\"`",
+      "expected": "D",
+      "id": "train-26",
+      "query": "Which is the context-retrieval command for the private knowledge base?\nA) `bun <agents-root>/scripts/knowledge-base.ts search \"<query>\" \"<private-kb-root>\"`\nB) `bun <agents-root>/scripts/repo-search.ts \"<private-kb-root>\" \"<query>\"`\nC) `bun <agents-root>/scripts/knowledge-base.ts search \"<approved-root>\" \"<query>\"`\nD) `bun <agents-root>/scripts/knowledge-base.ts search \"<private-kb-root>\" \"<query>\"`",
+      "split": "train"
+    },
+    {
+      "evidence": "Write atomically at the canonical path. After writing, run the\nstandalone validator against that exact absolute path. Only after a zero exit status may AIDP hand",
+      "expected": "C",
+      "id": "train-27",
+      "query": "AIDP has finished its clarification loop. Which order is correct?\nA) Hand off, then run the validator, then write the plan\nB) Write the plan, hand off, then run the validator on the folder\nC) Validate the candidate, write atomically at the canonical path, run the standalone validator on that exact absolute path, hand off only after a zero exit\nD) Write the plan, run the validator, hand off even if it exits non-zero and report findings later",
+      "split": "train"
+    },
+    {
+      "evidence": "do not add other H1/H2 headings to the body.",
+      "expected": "B",
+      "id": "train-28",
+      "query": "A plan author wants to add an extra `## Appendix` H2 section after section 6 for notes. What does the skill say?\nA) Allowed if it is numbered 7\nB) Not allowed; do not add other H1/H2 headings to the body\nC) Allowed if it is written as an H1\nD) Allowed if the frontmatter title mentions it",
+      "split": "train"
+    },
+    {
+      "evidence": "The Knowledge Base local-only mode applies only to private-KB discovery. Direct repo-search calls\nkeep their owner-defined behavior.",
+      "expected": "C",
+      "id": "validation-08",
+      "query": "AIDP calls /repo-search directly for implementation evidence. What does the skill say about the Knowledge Base local-only mode?\nA) It also applies to that repo-search call\nB) It applies to all discovery\nC) It applies only to private-KB discovery; direct repo-search keeps its owner-defined behavior\nD) It applies only to repo-search inspect",
+      "split": "validation"
+    },
+    {
+      "evidence": "then the standard library, native platform capability, or an already-installed dependency before\nproposing custom code",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "A needed feature has no existing extension point, but the standard library already does the job. What does the skill prefer?\nA) Use the standard library before proposing custom code\nB) Write a custom helper because it is neater\nC) Add a new abstraction for later reuse\nD) Add configuration for later variants",
+      "split": "validation"
+    },
+    {
+      "evidence": "The retrieval step is mandatory even when the request appears\nfamiliar or the caller supplies an index-like value.",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "The caller supplies an index-like value and says retrieval is unnecessary because the request is familiar. What does AIDP do?\nA) Skips /repo-search and uses the supplied value\nB) Skips /knowledge-base only\nC) Uses the supplied value as the index and goes straight to questions\nD) Still performs the retrieval step, which is mandatory",
+      "split": "validation"
+    },
+    {
+      "evidence": "include loading, empty, error,\nrecovery, keyboard, responsive, and accessibility states only when the request is user-facing.",
+      "expected": "B",
+      "id": "validation-11",
+      "query": "The request is a backend queue-worker change with no user-facing surface. Does the plan include loading, empty, error, keyboard, and responsive states?\nA) Yes, always, for completeness\nB) No; those states are included only when the request is user-facing\nC) Only the error state\nD) Yes, if the plan has more than one phase",
+      "split": "validation"
+    },
+    {
+      "evidence": "create Research\nrecord, Requirements record, Design record, Units record, and Delivery record before handoff.",
+      "expected": "A",
+      "id": "validation-12",
+      "query": "Which five records must AIDP create before handoff?\nA) Research, Requirements, Design, Units, and Delivery records\nB) Research, Requirements, Design, Security, and Delivery records\nC) Product, Architect, Developer, Quality, and Delivery records\nD) Research, Design, Units, Quality, and Delivery records",
+      "split": "validation"
+    },
+    {
+      "evidence": "If the plan adds a branch, record the retirement trigger or falsifier\nand the evidence that would return the work to baseline.",
+      "expected": "D",
+      "id": "validation-13",
+      "query": "A plan adds a fallback branch. What must it record?\nA) Only that the branch exists\nB) Approval from the human owner\nC) The validator receipt for the branch\nD) The retirement trigger or falsifier, and the evidence that would return the work to baseline",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidp--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

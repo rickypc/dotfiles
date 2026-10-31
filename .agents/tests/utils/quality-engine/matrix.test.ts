@@ -5,6 +5,7 @@ import {
   evaluateMatrix,
   type MatrixCase,
   matrixFingerprintFor,
+  matrixRatchetViolations,
   validateMatrix,
 } from '../../../utils/quality-engine/matrix.js';
 
@@ -112,4 +113,28 @@ test('rejects unknown verifiers and malformed matrix records', () => {
     validateMatrix([{ ...candidateCase, independentVerifier: 'unknown' as never }]),
   ).toThrow('independent verifier');
   expect(() => validateMatrix([null as never])).toThrow('unique');
+});
+
+test('rejects a matrix edit that removes a case or weakens a frozen assertion', () => {
+  expect(matrixRatchetViolations([candidateCase], [candidateCase])).toEqual([]);
+  const extended = {
+    ...candidateCase,
+    assertions: [...candidateCase.assertions, { expected: 'More', kind: 'required-text' as const }],
+  };
+  expect(
+    matrixRatchetViolations([candidateCase], [extended, { ...candidateCase, id: 'new' }]),
+  ).toEqual([]);
+  expect(matrixRatchetViolations([candidateCase], [])).toEqual(['Case scope was removed.']);
+  expect(
+    matrixRatchetViolations(
+      [candidateCase],
+      [{ ...candidateCase, assertions: [{ expected: 'Use the skill', kind: 'forbidden-text' }] }],
+    ),
+  ).toEqual(['Case scope dropped required-text assertion: Use the skill']);
+  expect(
+    matrixRatchetViolations(
+      [candidateCase],
+      [{ ...candidateCase, independentVerifier: 'matrix-shape', visibility: 'challenge' }],
+    ),
+  ).toEqual(['Case scope changed visibility.', 'Case scope changed its independent verifier.']);
 });

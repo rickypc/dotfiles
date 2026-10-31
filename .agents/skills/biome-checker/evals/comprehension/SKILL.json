@@ -1,0 +1,285 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "A selected JavaScript path reports Biome plus bun-check `not-applicable`;",
+      "expected": "C",
+      "id": "train-01",
+      "query": "The user selects one path, src/util.mjs, a JavaScript file. What does the receipt report for it?\nA) Biome only, with no entry for type checking\nB) Biome and a bun check type check\nC) Biome, plus bun-check reported as not-applicable\nD) bun check only, because Biome does not run on JavaScript",
+      "split": "train"
+    },
+    {
+      "evidence": "do not change target configuration or dependencies to obtain a green",
+      "expected": "B",
+      "id": "train-02",
+      "query": "Biome fails on a selected file because of a rule in the target project's own configuration. An agent wants a green result. What must it do?\nA) Loosen the rule in the target project's configuration, then rerun\nB) Leave the target configuration and dependencies alone and report the failure\nC) Add the missing dependency to the target package.json, then rerun\nD) Skip Biome for that path and report only the type check",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not cross or repair them.",
+      "expected": "D",
+      "id": "train-03",
+      "query": "A selected TypeScript file has a top-level function call (a side-effecting statement) in the middle of its declarations. How does the declaration-order check treat it?\nA) It moves the statement to the top of the file\nB) It ignores the statement and reorders the declarations around it\nC) It deletes the statement because it is not a declaration\nD) It treats the statement as a barrier and does not cross or repair it",
+      "split": "train"
+    },
+    {
+      "evidence": "entry, and immediately apply the packet through",
+      "expected": "A",
+      "id": "train-04",
+      "query": "The declaration-order check returns status failed with a non-null action packet that lists allowed paths. What must the agent do?\nA) Immediately apply the packet with declaration-order.ts --apply on one allowed path\nB) Only show the packet to the user and stop\nC) Hand-edit the declarations in whatever order looks best\nD) Run Biome with autofix on the whole directory",
+      "split": "train"
+    },
+    {
+      "evidence": "report the duplicate, shadowing, or cycle and make no edit.",
+      "expected": "C",
+      "id": "train-05",
+      "query": "The declaration-order check returns status blocked because of a duplicate declaration name. What does the agent do?\nA) Rename one of the duplicates and rerun\nB) Delete the later duplicate and rerun\nC) Report the duplicate and make no edit\nD) Apply the packet with --apply anyway",
+      "split": "train"
+    },
+    {
+      "evidence": "A path passes only when status is `passed` and `actionPacket` is `null`.",
+      "expected": "B",
+      "id": "train-06",
+      "query": "One permitted reorder batch has been applied to a file. When does the path count as passing?\nA) As soon as the apply command exits without an error\nB) After rerunning the same complete command, status is passed and actionPacket is null\nC) After Biome alone passes on the edited file\nD) After the agent reads the file and sees the order looks right",
+      "split": "train"
+    },
+    {
+      "evidence": "Interfaces and type aliases form one contiguous alphabetical block immediately after imports.",
+      "expected": "D",
+      "id": "train-07",
+      "query": "Where do interfaces and type aliases go in the canonical declaration order?\nA) Spread next to the runtime code that uses them\nB) At the very end of the file\nC) At the top of the file, before the imports\nD) In one contiguous alphabetical block right after the imports",
+      "split": "train"
+    },
+    {
+      "evidence": "The checker does not use comment regions as ordering metadata.",
+      "expected": "A",
+      "id": "train-08",
+      "query": "A file has comment banners such as \"// ---- helpers ----\". An agent wants to add or move banners so the checker accepts the order. What is true?\nA) The checker does not use comment regions as ordering metadata, so banners must not be used that way\nB) Banners are required to mark each ordering section\nC) Banners are allowed only above runtime declarations\nD) Banners are used by the checker when imports are missing",
+      "split": "train"
+    },
+    {
+      "evidence": "are explicit stops. Report the exact path and",
+      "expected": "C",
+      "id": "train-09",
+      "query": "The user selects a path ending in .py. What does the skill do?\nA) Runs Biome on it anyway and reports the result\nB) Treats it like JavaScript and reports bun-check not-applicable\nC) Stops and reports the exact path and diagnostic for the unsupported extension\nD) Silently drops the path and checks the remaining paths",
+      "split": "train"
+    },
+    {
+      "evidence": "Without `--apply`, declaration-order inspection never edits a source file and returns one JSON",
+      "expected": "B",
+      "id": "train-10",
+      "query": "An agent runs declaration-order.ts on a path without the --apply flag. What does this run do to the source file?\nA) It reorders declarations when the order is wrong\nB) It never edits the file and returns one JSON object\nC) It edits the file only when the status is blocked\nD) It rewrites imports to match the shared configuration",
+      "split": "train"
+    },
+    {
+      "evidence": "infer green from a partial command or a passing unrelated path.",
+      "expected": "D",
+      "id": "train-11",
+      "query": "The selected path src/a.ts fails its type check, but an unrelated path src/b.ts passes cleanly. Can the agent report a green result for the task?\nA) Yes, because at least one path passed\nB) Yes, if the failing path is only a type error\nC) Yes, after rerunning only the passing path\nD) No, a passing unrelated path or partial command never proves green\n",
+      "split": "train"
+    },
+    {
+      "evidence": "other supported extensions use TypeScript grammar.",
+      "expected": "A",
+      "id": "train-12",
+      "query": "Which grammar does the declaration-order check use for a file named worker.mts?\nA) The TypeScript grammar\nB) The TSX grammar\nC) The JavaScript grammar\nD) No grammar; .mts files are skipped",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not autofix unrelated files.",
+      "expected": "C",
+      "id": "train-13",
+      "query": "The user selected only src/a.ts. While checking, the agent sees lint problems in src/b.ts, which was not selected. What should it do?\nA) Fix src/b.ts too, since it is in the same package\nB) Add src/b.ts to the selected paths and check it\nC) Not autofix unrelated files; return receipts for the selected path only\nD) Stop the whole run and ask for a new path list",
+      "split": "train"
+    },
+    {
+      "evidence": "It always reports both gate results and fails when either fails.",
+      "expected": "B",
+      "id": "train-14",
+      "query": "In the global test:lint gate, Biome passes but declaration-order inspection fails. What is the outcome?\nA) The gate passes because Biome passed\nB) The gate fails and both gate results are reported\nC) The gate is skipped until the all-skill validator runs\nD) The gate reports only the declaration-order result",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not invent a reorder when the action packet is absent.",
+      "expected": "D",
+      "id": "train-15",
+      "query": "The declaration-order result is failed but the action packet is absent. What does the agent do?\nA) Work out a reasonable reorder by hand\nB) Add comment regions that describe the intended order\nC) Run --apply on the path without a packet\nD) Not invent a reorder, and report the missing action packet",
+      "split": "train"
+    },
+    {
+      "evidence": "change declaration bodies, signatures, comments, imports, exports, names, or configuration.",
+      "expected": "D",
+      "id": "validation-01",
+      "query": "A returned packet's reorder would only work if a function signature were rewritten. What is allowed?\nA) Rewrite the signature as long as the body stays the same\nB) Rewrite the signature if a comment explains it\nC) Rename the function and update its exports\nD) Nothing; the reorder never changes bodies, signatures, comments, imports, exports, names, or configuration",
+      "split": "validation"
+    },
+    {
+      "evidence": "Runtime declarations are dependency-first and alphabetical among independent declarations.",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "Two runtime declarations in a file do not depend on each other. In what order do they belong?\nA) Alphabetical, as independent declarations; dependencies come first\nB) In the order they were written\nC) Longest declaration first\nD) Exported declarations first, then private ones",
+      "split": "validation"
+    },
+    {
+      "evidence": "emits one checked-file summary; failure output retains only failed or blocked paths and their action",
+      "expected": "B",
+      "id": "validation-03",
+      "query": "The global gate runs on a healthy tree where every file passes. What does it emit?\nA) One line per checked file\nB) One checked-file summary\nC) Nothing at all\nD) Only the declaration-order packets",
+      "split": "validation"
+    },
+    {
+      "evidence": "The JSON receipt and exit status are the proof.",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "What serves as the proof that a focused check succeeded?\nA) The agent's own summary of what it ran\nB) The absence of any error text in chat\nC) The JSON receipt and exit status\nD) A passing test for an unrelated path",
+      "split": "validation"
+    },
+    {
+      "evidence": "packet is applied and the identical checker is rerun.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "A declaration-order failure has a safe packet. The agent applied the packet but has not rerun the checker. Is failure handling complete?\nA) No, it is complete only after the identical checker is rerun\nB) Yes, applying the packet completes it\nC) Yes, once the user is told the packet was applied\nD) No, the agent must also run Biome autofix on the directory",
+      "split": "validation"
+    },
+    {
+      "evidence": "summary mode for a concise multi-file receipt.",
+      "expected": "B",
+      "id": "validation-06",
+      "query": "The user passes many paths that share one check boundary and wants a concise multi-file receipt. Which optional input applies?\nA) A comment-defined region list\nB) A grouped path list with summary mode\nC) A shorthand argument that skips Biome\nD) A path list with --apply to fix them all",
+      "split": "validation"
+    },
+    {
+      "evidence": "`--apply` is allowed only after reviewing a failed packet",
+      "expected": "D",
+      "id": "train-16",
+      "query": "A selected TypeScript file has a noncanonical declaration order. The agent has not run the declaration-order inspection yet, but wants to save time by running declaration-order.ts --apply on it right away. What does the skill say?\nA) Allowed, because --apply is the fastest route to a passing file\nB) Allowed, but only if Biome has already passed\nC) Allowed, but only for a path that has no imports\nD) Not allowed; --apply is allowed only after reviewing a failed packet",
+      "split": "train"
+    },
+    {
+      "evidence": "`.jsx`/`.tsx` use TSX grammar;",
+      "expected": "A",
+      "id": "train-17",
+      "query": "The user selects app.jsx. Which grammar does the declaration-order check use, and what does the receipt say for the type check?\nA) TSX grammar; bun-check is not-applicable\nB) TypeScript grammar; bun check runs\nC) TSX grammar; bun check runs\nD) TypeScript grammar; bun-check is not-applicable",
+      "split": "train"
+    },
+    {
+      "evidence": "a `status: \"failed\"` result must include a packet with",
+      "expected": "B",
+      "id": "train-18",
+      "query": "Which statement describes a declaration-order result with status failed?\nA) It has no action\nB) It must include a packet with title and forbiddenActions\nC) It has no permitted reorder\nD) It includes only the path and detail, never a packet",
+      "split": "train"
+    },
+    {
+      "evidence": "a failure in any checker fails the gate and must be",
+      "expected": "C",
+      "id": "train-19",
+      "query": "In the global test:lint gate, Biome and declaration-order inspection both pass, but the all-skill validator fails. What is the outcome?\nA) The gate passes because two of three checkers passed\nB) The gate fails and only the validator result is reported, hiding the others\nC) The gate fails and the validator failure is reported separately\nD) The gate is retried until the validator passes",
+      "split": "train"
+    },
+    {
+      "evidence": "Treat imports, unrecognized or side-effecting top-level statements, duplicate providers, shadowed",
+      "expected": "A",
+      "id": "train-20",
+      "query": "A selected file has an import statement in the middle of its declarations, and an agent wants to move a declaration above that import to reach canonical order. What does the skill say?\nA) Imports are barriers; do not cross or repair them\nB) Move it, because canonical order puts runtime code before imports\nC) Move it, but only if no declaration body changes\nD) Move it, then add a comment explaining the new order",
+      "split": "train"
+    },
+    {
+      "evidence": "`<agents-root>/biome.jsonc`; do not change target configuration or dependencies to obtain a green",
+      "expected": "C",
+      "id": "train-21",
+      "query": "A selected file lives in a package whose own folder contains a looser biome.jsonc. Which Biome configuration does the skill use?\nA) The looser biome.jsonc in the package folder\nB) A merge of the package config and the shared config\nC) The shared <agents-root>/biome.jsonc\nD) Whichever config is nearest to the file",
+      "split": "train"
+    },
+    {
+      "evidence": "complete command for another selected path; do not invent shorthand arguments or section-marker",
+      "expected": "B",
+      "id": "train-22",
+      "query": "The agent has run declaration-order.ts on src/a.ts and now must check src/b.ts as well. What does the skill require?\nA) Add src/b.ts as an extra argument to the same command\nB) Repeat the complete command for src/b.ts\nC) Use a shorthand argument that covers all paths\nD) Add a section-marker comment so the checker covers both",
+      "split": "train"
+    },
+    {
+      "evidence": "A failed or blocked checker is evidence to return to the owning implementation/test skill.",
+      "expected": "D",
+      "id": "train-23",
+      "query": "bun check reports a type error in a selected TypeScript path. What does the skill do with this result?\nA) Fix the type error in the source itself\nB) Loosen the compiler options in the target configuration\nC) Mark the path green and report only Biome\nD) Return the failed result as evidence to the owning implementation or test skill",
+      "split": "train"
+    },
+    {
+      "evidence": "Run the type check with `bun check` for",
+      "expected": "B",
+      "id": "train-24",
+      "query": "The user selects server.cts and legacy.cjs. Which receipts does the skill report?\nA) bun check for both files\nB) bun check for server.cts; bun-check not-applicable for legacy.cjs\nC) bun-check not-applicable for both files\nD) bun-check not-applicable for server.cts; bun check for legacy.cjs",
+      "split": "train"
+    },
+    {
+      "evidence": "Interfaces and type aliases form one contiguous alphabetical block immediately after imports.",
+      "expected": "A",
+      "id": "train-25",
+      "query": "After the imports, a file has interface Beta, type alias Alpha, and interface Gamma. Which order is canonical?\nA) Alpha, Beta, Gamma, in one alphabetical block\nB) Beta, Gamma, then Alpha, because interfaces come before type aliases\nC) Alpha, then Beta and Gamma, because type aliases come first\nD) The order in which they were written",
+      "split": "train"
+    },
+    {
+      "evidence": "Runtime declarations are dependency-first and alphabetical among independent declarations.",
+      "expected": "C",
+      "id": "train-26",
+      "query": "A file has two runtime declarations: const alpha, which uses zeta, and const zeta, which has no dependencies. There is no cycle. Which order is canonical?\nA) alpha, then zeta, because alphabetical order wins\nB) Either order is accepted\nC) zeta, then alpha, because dependencies come first\nD) The checker reports a barrier and edits nothing",
+      "split": "train"
+    },
+    {
+      "evidence": "The global final gate, when selected, remains the final decision.",
+      "expected": "D",
+      "id": "train-27",
+      "query": "All selected paths pass their focused checks, but the user selected the global final gate and it fails. What is the status of the work?\nA) Done, because the focused checks passed\nB) Done, but with a warning in the receipt\nC) Done, once the gate is rerun on one path only\nD) Not done; the global final gate remains the final decision",
+      "split": "train"
+    },
+    {
+      "evidence": "move only whole declarations in the packet's",
+      "expected": "C",
+      "id": "validation-07",
+      "query": "A failed packet lists only src/a.ts in allowedPaths. The agent also notices that src/b.ts has noncanonical order. What may it reorder?\nA) Both files, since both are noncanonical\nB) src/b.ts first, then src/a.ts\nC) Whole declarations in src/a.ts only\nD) Individual statements in either file",
+      "split": "validation"
+    },
+    {
+      "evidence": "selected paths -> package/config resolution -> Biome and bun check",
+      "expected": "B",
+      "id": "validation-08",
+      "query": "What is the order of the ordered execution chain for a TypeScript path?\nA) Declaration-order check, permitted reorder, Biome and bun check, receipt\nB) Biome and bun check, declaration-order check, permitted reorder, receipt\nC) Permitted reorder, Biome and bun check, declaration-order check, receipt\nD) Biome, receipt, declaration-order check, then bun check",
+      "split": "validation"
+    },
+    {
+      "evidence": "Rerun the same complete command after one permitted reorder batch.",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "The agent ran bun <agents-root>/scripts/declaration-order.ts src/a.ts, got status failed, and applied the packet with --apply. Which command does it rerun to verify?\nA) The same declaration-order.ts inspection command without --apply\nB) declaration-order.ts --apply again\nC) declaration-order.ts --summary only\nD) biome-checker.ts alone",
+      "split": "validation"
+    },
+    {
+      "evidence": "runs Biome, declaration-order inspection for every TypeScript source, and",
+      "expected": "B",
+      "id": "validation-10",
+      "query": "Which checkers does the global bun run test:lint gate run?\nA) Biome only\nB) Biome, declaration-order inspection for every TypeScript source, and the all-skill validator\nC) Biome, bun check, and the all-skill validator\nD) Declaration-order inspection and bun check",
+      "split": "validation"
+    },
+    {
+      "evidence": "failure output retains only failed or blocked paths",
+      "expected": "C",
+      "id": "validation-11",
+      "query": "The global gate fails because 2 of 500 files failed. What does the failure output contain?\nA) A receipt line for all 500 files\nB) A single checked-file summary and nothing else\nC) Only the failed or blocked paths and their action packets\nD) Only the first failing path",
+      "split": "validation"
+    },
+    {
+      "evidence": "Inspect only direct program children with Tree-sitter's concrete syntax tree.",
+      "expected": "D",
+      "id": "validation-12",
+      "query": "A selected file has a function whose inner body contains a side-effecting call, nested inside the function. How much of the syntax tree does the declaration-order check inspect?\nA) The whole tree, recursively\nB) Only exported declarations\nC) Only the comments\nD) Only direct program children",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "biome-checker--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

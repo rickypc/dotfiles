@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Generate Bun tests for src/lib/parse.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Convert this Jest test file to a Bun test: tests/cart.test.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Add unit tests for the formatCurrency function in utils/money.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "My test for the cache module is failing after a refactor; repair the test.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Rename the test file for utils/slug.ts to match the new SUT path and update it.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Delete the obsolete tests for legacy-auth.ts, but follow the proper test workflow.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Write Playwright tests for the login page.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Run the test suite and tell me what fails.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Explain how mock.module works in Bun.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Write pytest tests for this Python module.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Check src/lib/parse.ts with Biome.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Implement the parse function so the failing spec passes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "I changed src/queue/worker.ts. Cover the retry method with quality Bun tests.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Port the Jest suite for the pricing helper to Bun, keeping behavior evidence.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Add tests for methods 2 through 5 of the Router class.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "We deleted a feature; remove its unit tests the sanctioned way.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Add an end-to-end browser test for checkout.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "What is a good code coverage threshold?",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Generate TypeScript types from this JSON schema.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Debug why this React component re-renders.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "src/billing/proration.ts has zero tests and it handles money. Can you cover it properly?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Our Jest tests need to go away; move tests/legacy/session.test.js over to Bun.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "The tests for the date helper are brittle and over-mocked. Rewrite them so they exercise the real code.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Add test coverage badges to the README.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Write a test plan document for the QA team.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Make the failing assertion in the checkout spec pass by changing the code.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Create thorough unit tests for just the parse and serialize methods of src/codec.ts.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Someone renamed utils/slug.ts to utils/slugify.ts; the tests need to follow.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Run bun test with coverage and summarize the results.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Write a load test for the API with k6.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Whoever deleted legacy/session.ts forgot its tests; clean them up properly.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Tests for src/pricing/discount.ts exist but they mock the thing under test. Fix that.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Add a Playwright test for the discount banner.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "What is the right way to organize tests in a monorepo? General advice please.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Port every Jest mock in tests/payments to Bun's mock approach while keeping the real SUT.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Generate tests for the add and remove methods of src/cart/store.ts only.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Run the unit tests for src/pricing and list failures.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Write acceptance criteria for the discount feature.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "lib/backoff.ts has zero coverage and the retry math is scary. can u cover it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "jest -> bun migration for src/db/pool.test.js, thx",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "We ripped src/auth/legacy.ts out last week and tests/auth/legacy.test.ts is just sitting there failing on import. Clean that up please.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "the stubs for fs and fetch in my downloader tests keep leaking into other test files and breaking them, fix the tests",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "moved src/helpers/dates.ts to src/shared/dates.ts, the test needs to follow it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "need specs for the debounce util. plain TS file, bun runtime",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "formatDuration, parseDuration and clampDuration in time.ts only have tests that check they're defined. Redo them so they actually catch regressions.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "add browser tests that check the nav collapses into a hamburger on a 375px viewport",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "run lint and declaration-order checks on tests/cart.test.ts and src/cart.ts",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "find every test file that imports src/cache.ts",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "review my PR that adds unit tests to the payment module against the ticket requirements",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "implement a useDebounce hook with cleanup on unmount",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "whats the difference between toEqual and toStrictEqual",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "write table-driven tests for ParseConfig in config.go",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "need tests for src/ws/reconnect.ts, only the backoff and close handlers",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "convert __tests__/money.test.js off jest, mocks included",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "the spec for csv-export got brittle after I renamed the function; sort it out",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "tests for src/util/ids.ts are orphaned since I dropped uuid support. retire them",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "unit tests pls for lib/retry.ts, whole file. anything touching network or clock should be faked",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "plan how we roll out unit-test coverage across the monorepo, ask me whatever you need first",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "execute the plan at plans/add-tests.md",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "write a sourced blog post about mocking strategies in unit tests",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "redesign the test results dashboard page with a new look and dark mode",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "how do I set a coverage threshold in bunfig.toml",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "bun-test-generator",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

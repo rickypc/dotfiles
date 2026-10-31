@@ -3,11 +3,15 @@ import * as path from 'node:path';
 import realMatter from 'gray-matter';
 
 interface AllSkillsFixtureOptions {
+  readonly agentsFiles?: readonly (readonly [string, string])[];
+  readonly agentsNames?: readonly string[];
+  readonly comprehension?: readonly (readonly [string, string])[];
   readonly evalFiles?: readonly string[];
   readonly matrix?: string;
   readonly rubric?: string | null;
   readonly skills?: readonly string[];
   readonly source?: string;
+  readonly triggerQueries?: string | null;
 }
 
 mock.module('node:path', () => path);
@@ -24,6 +28,7 @@ const {
   parseSkillRubric,
   reviewSkillProse,
   validateAllSkills,
+  validateInstructionSets,
   validateSkill,
 } = await import('../../utils/skill-manager.js');
 
@@ -380,6 +385,53 @@ test('rejects malformed rubric contracts and unauthorized matrix verifiers', asy
   ).rejects.toThrow('does not authorize every matrix verifier');
 });
 
+const comprehensionSetFor = (subject: string, target: string, kind = 'comprehension'): string =>
+  JSON.stringify({
+    kind,
+    queries: [
+      ['t1', 'train', 'A'],
+      ['t2', 'train', 'B'],
+      ['v1', 'validation', 'C'],
+      ['v2', 'validation', 'A'],
+    ].map(([id, split, expected]) => ({
+      expected,
+      id,
+      query: `Question ${id}?\nA) one\nB) two\nC) three`,
+      split,
+    })),
+    runs_per_query: 3,
+    skill_name: subject,
+    target,
+  });
+
+const demoComprehensionFiles = (): readonly (readonly [string, string])[] => [
+  [
+    '/tmp/.agents/skills/demo/evals/comprehension/SKILL.json',
+    comprehensionSetFor('demo--SKILL', '../../SKILL.md'),
+  ],
+  [
+    '/tmp/.agents/skills/demo/evals/comprehension/evals-rubric.json',
+    comprehensionSetFor('demo--evals-rubric', '../../evals/rubric.md'),
+  ],
+];
+
+const triggerQueriesFor = (skillName = 'demo', negatives = 2): string =>
+  JSON.stringify({
+    pass_threshold: 0.5,
+    queries: ['train', 'validation'].flatMap((split) => [
+      { id: `${split}-p1`, query: `${split} positive one`, should_trigger: true, split },
+      { id: `${split}-p2`, query: `${split} positive two`, should_trigger: true, split },
+      ...Array.from({ length: negatives }, (_, index) => ({
+        id: `${split}-n${index}`,
+        query: `${split} negative ${index}`,
+        should_trigger: false,
+        split,
+      })),
+    ]),
+    runs_per_query: 3,
+    skill_name: skillName,
+  });
+
 test('validates every skill matrix, rubric, and prose link under one skills root', async () => {
   const matrix = [
     JSON.stringify({
@@ -410,11 +462,14 @@ test('validates every skill matrix, rubric, and prose link under one skills root
     ],
     ['/tmp/.agents/skills/demo/evals/cases.jsonl', matrix],
     ['/tmp/.agents/skills/demo/evals/rubric.md', validRubric],
+    ['/tmp/.agents/skills/demo/evals/trigger-queries.json', triggerQueriesFor()],
+    ...demoComprehensionFiles(),
   ]);
   const directories: Record<string, readonly string[]> = {
     '/tmp/.agents/skills': ['demo'],
     '/tmp/.agents/skills/demo': ['SKILL.md', 'evals'],
-    '/tmp/.agents/skills/demo/evals': ['cases.jsonl', 'rubric.md'],
+    '/tmp/.agents/skills/demo/evals': ['cases.jsonl', 'rubric.md', 'comprehension'],
+    '/tmp/.agents/skills/demo/evals/comprehension': ['SKILL.json', 'evals-rubric.json'],
   };
   const fileSystem = {
     readdir: async (path: string) =>
@@ -468,6 +523,22 @@ const matrixRowFor = (visibility: 'candidate' | 'challenge'): string =>
 
 const fullSkillMatrix = [matrixRowFor('candidate'), matrixRowFor('challenge')].join('\n');
 
+const optionalSkillFilesFor = (
+  options: AllSkillsFixtureOptions,
+): readonly (readonly [string, string])[] => [
+  ...(options.triggerQueries === null
+    ? []
+    : ([
+        [
+          '/tmp/.agents/skills/demo/evals/trigger-queries.json',
+          options.triggerQueries ?? triggerQueriesFor(),
+        ],
+      ] as const)),
+  ...(options.rubric === null
+    ? []
+    : ([['/tmp/.agents/skills/demo/evals/rubric.md', options.rubric ?? validRubric]] as const)),
+];
+
 const allSkillsFileSystemFor = (options: AllSkillsFixtureOptions = {}) => {
   const evalFiles = options.evalFiles ?? ['cases.jsonl', 'rubric.md'];
   const skills = options.skills ?? ['demo'];
@@ -475,14 +546,16 @@ const allSkillsFileSystemFor = (options: AllSkillsFixtureOptions = {}) => {
     ['/tmp/.agents/skills/demo/SKILL.md', options.source ?? demoSkillSource],
     ['/tmp/.agents/skills/demo/evals/cases.jsonl', options.matrix ?? fullSkillMatrix],
     ['/tmp/.agents/skills/demo/evals/other.jsonl', options.matrix ?? fullSkillMatrix],
+    ...(options.comprehension ?? demoComprehensionFiles()),
+    ...(options.agentsFiles ?? []),
+    ...optionalSkillFilesFor(options),
   ]);
-  if (options.rubric !== null) {
-    files.set('/tmp/.agents/skills/demo/evals/rubric.md', options.rubric ?? validRubric);
-  }
   const directories: Record<string, readonly string[]> = {
+    '/tmp/.agents': ['skills', ...(options.agentsNames ?? [])],
     '/tmp/.agents/skills': skills,
     '/tmp/.agents/skills/demo': ['SKILL.md', 'evals'],
-    '/tmp/.agents/skills/demo/evals': evalFiles,
+    '/tmp/.agents/skills/demo/evals': [...evalFiles, 'comprehension'],
+    '/tmp/.agents/skills/demo/evals/comprehension': ['SKILL.json', 'evals-rubric.json'],
   };
   return {
     readdir: async (path: string) =>
@@ -570,6 +643,72 @@ test('reports every deterministic all-skill validation boundary', async () => {
       '/tmp/.agents/skills',
     ),
   ).rejects.toThrow('directory listing support');
+});
+
+test('requires a valid, balanced trigger query set named for the skill', async () => {
+  const validate = (triggerQueries: string | null) =>
+    validateAllSkills(allSkillsFileSystemFor({ triggerQueries }), '/tmp/.agents/skills');
+  await expect(validate(null)).rejects.toThrow('trigger query set is missing');
+  await expect(validate(triggerQueriesFor('other'))).rejects.toThrow(
+    'skill_name other does not match the skill directory',
+  );
+  await expect(validate(triggerQueriesFor('demo', 1))).rejects.toThrow(
+    'Trigger query set is invalid: Split train needs at least two',
+  );
+});
+
+test('requires a matching comprehension set for every markdown file in a skill', async () => {
+  const validate = (comprehension: readonly (readonly [string, string])[]) =>
+    validateAllSkills(allSkillsFileSystemFor({ comprehension }), '/tmp/.agents/skills');
+  const [skillSet, rubricSet] = demoComprehensionFiles() as [
+    readonly [string, string],
+    readonly [string, string],
+  ];
+  const rubricPath = rubricSet[0];
+  await expect(validate([skillSet])).rejects.toThrow('evals-rubric.json');
+  await expect(
+    validate([skillSet, [rubricPath, comprehensionSetFor('demo--wrong', '../../evals/rubric.md')]]),
+  ).rejects.toThrow('skill_name must be demo--evals-rubric');
+  await expect(
+    validate([skillSet, [rubricPath, comprehensionSetFor('demo--evals-rubric', '../../other.md')]]),
+  ).rejects.toThrow('target must be ../../evals/rubric.md');
+  await expect(
+    validate([skillSet, [rubricPath, triggerQueriesFor('demo--evals-rubric')]]),
+  ).rejects.toThrow('kind must be comprehension');
+});
+
+test('requires a comprehension set for AGENTS and CLAUDE instruction documents', async () => {
+  const instruction = (name: string, set?: string): readonly (readonly [string, string])[] => [
+    [`/tmp/.agents/${name}`, '# Policy'],
+    ...(set === undefined
+      ? []
+      : ([[`/tmp/.agents/evals/${name.replace(/\.md$/u, '')}.json`, set]] as const)),
+  ];
+  const run = (names: readonly string[], files: readonly (readonly [string, string])[]) =>
+    validateAllSkills(
+      allSkillsFileSystemFor({ agentsFiles: files, agentsNames: names }),
+      '/tmp/.agents/skills',
+    );
+  await expect(run(['AGENTS.md'], instruction('AGENTS.md'))).rejects.toThrow(
+    'AGENTS.json: the trigger query set is missing',
+  );
+  await expect(
+    run(
+      ['AGENTS.md', 'notes.md'],
+      instruction('AGENTS.md', comprehensionSetFor('instructions--agents', '../AGENTS.md')),
+    ),
+  ).resolves.toMatchObject({ status: 'valid' });
+  await expect(
+    run(
+      ['CLAUDE.local.md'],
+      instruction(
+        'CLAUDE.local.md',
+        comprehensionSetFor('instructions--claude.local', '../CLAUDE.local.md'),
+      ),
+    ),
+  ).resolves.toMatchObject({ status: 'valid' });
+  const direct = await validateInstructionSets(allSkillsFileSystemFor(), '/tmp/.agents');
+  expect(direct).toBe(0);
 });
 
 test('parses prose-only local links and honors the runtime ignore boundary', async () => {

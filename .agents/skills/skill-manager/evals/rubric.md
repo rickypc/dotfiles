@@ -47,6 +47,13 @@ observes whether the registered agent loaded the skill, not whether query text c
 `argument-hint` may remain as a caller/UI hint, but a separate `trigger` frontmatter field is not
 allowed.
 
+Training evidence is separate from matrix evidence. The activation metric is the pass state of
+each `evals/trigger-queries.json` query across repeated blind runs; the ledger gate keeps an edit
+only with no regression, at least one unanimous gain, an unchanged query-set fingerprint, and
+passing deterministic checks. A matrix or query set may only be extended: `ratchet` fails any
+removed case, dropped assertion, changed query, or lowered threshold. The `source-structure`
+verifier also enforces the 500-line and 1,024-character description budgets.
+
 Every migrated skill must expose a top-level `## 2. Usage` section and begin
 `## 5. Ordered Execution Chain` with a plain-text flow diagram before the step-by-step explanation.
 Usage owns invocation syntax; the execution diagram owns the normal route. A downstream command or
@@ -63,3 +70,8 @@ For global skills, include `<project>/AGENTS.md` and any `<coding-assistant>/AGE
 additional static roots when declared. Verify that each extends `~/.agents/AGENTS.md` when available
 without becoming a second policy owner. Keep reusable guidance placeholder-based and materialize
 concrete project or assistant paths only in their corresponding local policy.
+
+Query sets and comprehension sets score a query as passed only when every run agrees with its label.
+A wrong or obsolete query is retired with a written reason, never edited after a baseline. Every
+Markdown file in a skill package and every `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file has a
+comprehension set, and a weak reader must answer every probe correctly on every run.

@@ -1,0 +1,278 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "/md-compress begin <absolute-markdown-path> # guard one Markdown source before editing",
+      "expected": "B",
+      "id": "train-01",
+      "query": "The user wants to compress a durable Markdown file and edit it. Which command must the agent run first?\nA) /md-compress finalize <absolute-markdown-path>\nB) /md-compress begin <absolute-markdown-path>\nC) /md-compress guard <absolute-markdown-path>\nD) Edit the file first, then run begin",
+      "split": "train"
+    },
+    {
+      "evidence": "Run `begin` before editing one eligible Markdown source, edit only the returned source, then run the",
+      "expected": "D",
+      "id": "train-02",
+      "query": "The agent ran begin and received a source path and a finalize action. What must it do next?\nA) Copy the source to a new file beside it and edit the copy\nB) Run begin again to be safe\nC) Edit any Markdown file in the repo\nD) Edit only the returned source, then run the exact returned finalize action",
+      "split": "train"
+    },
+    {
+      "evidence": "verified source. It rejects sensitive paths, raw private configuration, non-Markdown files, and work",
+      "expected": "A",
+      "id": "train-03",
+      "query": "The user asks to compress a file that holds raw private configuration, such as credentials. What must the agent do?\nA) Reject it as a sensitive path and not compress it\nB) Compress it but skip the secret lines\nC) Compress it after copying it to a temp folder\nD) Compress it only if the user says please",
+      "split": "train"
+    },
+    {
+      "evidence": "- Stop on guard or finalization failure and retain the backup/lock for repair; do not manually",
+      "expected": "C",
+      "id": "train-04",
+      "query": "Finalization fails with a protected-token error. A temp backup and lock file still exist. What should the agent do?\nA) Delete the backup and lock, then start a new transaction\nB) Delete the lock only and rerun begin\nC) Stop, keep the backup and lock for repair, and do not remove temp files by hand\nD) Overwrite the source with the backup and call it done",
+      "split": "train"
+    },
+    {
+      "evidence": "The finalize command may additionally receive one removal-authorization JSON path when the edit",
+      "expected": "C",
+      "id": "train-05",
+      "query": "An edit intentionally removes a URL, which is a protected token. What must the agent give finalize?\nA) Nothing, since a URL is only prose\nB) A comment inside the Markdown file\nC) A removal-authorization JSON path that records the exact token and a justification\nD) A second backup file",
+      "split": "train"
+    },
+    {
+      "evidence": "entries with `token`, one of the allowed `basis` values (`duplicate`, `false-positive`,",
+      "expected": "A",
+      "id": "train-06",
+      "query": "The agent writes a removal manifest entry. Which `basis` value is allowed?\nA) duplicate\nB) too-long\nC) cosmetic\nD) tidy-up",
+      "split": "train"
+    },
+    {
+      "evidence": "/md-compress guard <absolute-markdown-path> # validate without editing (begin+finalize in one shot)",
+      "expected": "D",
+      "id": "train-07",
+      "query": "After a knowledge-base reconcile, a Markdown file was not edited but still needs protected-token validation. Which command fits?\nA) begin, then leave it open\nB) finalize with no begin\nC) begin, then edit a little\nD) guard, which runs begin and finalize in one shot",
+      "split": "train"
+    },
+    {
+      "evidence": "transaction; with a valid caller packet, honor its existing guard and do not begin a second one.",
+      "expected": "B",
+      "id": "train-08",
+      "query": "Another caller already began a transaction and handed the agent a valid compression-session packet. What should the agent do?\nA) Run begin again to get a fresh backup\nB) Honor the existing guard and not begin a second one\nC) Ignore the packet and use its own source path\nD) Delete the packet's lock and restart",
+      "split": "train"
+    },
+    {
+      "evidence": "belongs in the temporary directory, never beside the durable source. Never guess `/tmp`,",
+      "expected": "A",
+      "id": "train-09",
+      "query": "Where does the backup file belong?\nA) In the operating system temporary directory, never beside the durable source\nB) Next to the source with a .bak suffix\nC) In the project root\nD) In /tmp, as a fixed path",
+      "split": "train"
+    },
+    {
+      "evidence": "verified temporary files establish proof. A smaller file or clean-looking prose alone is not proof.",
+      "expected": "C",
+      "id": "train-10",
+      "query": "The compressed file is much smaller and reads cleanly. Can the agent report success on that basis?\nA) Yes, a smaller file proves it\nB) Yes, if the prose looks clean\nC) No, proof needs protected-token validation and the done receipt\nD) Yes, if the user agrees",
+      "split": "train"
+    },
+    {
+      "evidence": "exactly unless each removed token is covered by a valid removal-authorization manifest. Never edit",
+      "expected": "D",
+      "id": "train-11",
+      "query": "The agent finds the backup differs from what it expected and wants to fix the backup by hand. Is that allowed?\nA) Yes, if the lock is removed first\nB) Yes, when the finalize step has not run yet\nC) Yes, but only with a manifest\nD) No, the backup and lock must never be edited",
+      "split": "train"
+    },
+    {
+      "evidence": "intentionally removed, provide a JSON manifest containing `sourcePath` and non-empty `removals`",
+      "expected": "B",
+      "id": "train-12",
+      "query": "A removal manifest is being written. What must it contain at the top level?\nA) Only a list of file names\nB) `sourcePath` and non-empty `removals` entries\nC) Only a justification string\nD) A copy of the whole Markdown file",
+      "split": "train"
+    },
+    {
+      "evidence": "- Do not call a provider API, model subprocess, dynamic execution, or external dependency. **Refuse",
+      "expected": "A",
+      "id": "train-13",
+      "query": "The agent thinks a model API call could compress the text faster. What does the skill say?\nA) Do not call a provider API, model subprocess, or external dependency\nB) Allowed if the file is small\nC) Allowed if the backup exists\nD) Allowed only for non-Markdown files",
+      "split": "train"
+    },
+    {
+      "evidence": "`/knowledge-base` when a durable KB record is the caller's source.",
+      "expected": "C",
+      "id": "train-14",
+      "query": "The caller's source is a durable knowledge-base record. What does the direct transaction do?\nA) Compress it without any hand-off\nB) Refuse it as non-Markdown\nC) Hand off to /knowledge-base\nD) Hand off to /skill-manager",
+      "split": "train"
+    },
+    {
+      "evidence": "4. **Verify:** Require the `done` receipt and confirm the resulting source is still eligible and",
+      "expected": "D",
+      "id": "validation-01",
+      "query": "In the Verify step, what must the agent require before treating the work as done?\nA) A shorter token count\nB) A clean git diff\nC) A passing unit test\nD) The `done` receipt, and the source still eligible and lossless",
+      "split": "validation"
+    },
+    {
+      "evidence": "every removed token to be declared, rejects stale or unrelated declarations, then removes",
+      "expected": "B",
+      "id": "validation-02",
+      "query": "A removal manifest declares a token that the edit did not actually remove. What does the guard do?\nA) Accepts it as extra safety\nB) Rejects stale or unrelated declarations\nC) Deletes the declaration silently\nD) Removes the token from the file",
+      "split": "validation"
+    },
+    {
+      "evidence": "- **Challenge:** A failed finalization does not trigger manual cleanup or a second transaction; the",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "Finalization failed. The agent is tempted to clean up manually and start a second transaction. What does the Challenge anchor say?\nA) Do not trigger manual cleanup or a second transaction; repair the source from the backup\nB) Clean up and start over\nC) Start a second transaction but keep the first lock\nD) Delete the source and restore it from git",
+      "split": "validation"
+    },
+    {
+      "evidence": "lossless. A compression receipt proves preservation, not the quality of an unrelated prose",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "A compression receipt shows done. What does it prove?\nA) That the prose quality is high\nB) That all unrelated reviews passed\nC) Preservation, not the quality of an unrelated prose review\nD) That the file is shorter than before",
+      "split": "validation"
+    },
+    {
+      "evidence": "explicit stops. The source is never guessed.",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "The given path is missing or was changed outside the session. What should the agent do?\nA) Guess the closest matching file and continue\nB) Create an empty file at that path\nC) Search the repo for a similar file\nD) Stop, since such paths are explicit stops and the source is never guessed",
+      "split": "validation"
+    },
+    {
+      "evidence": "preserves recovery state. Do not claim completion while the backup/lock remains required for repair.",
+      "expected": "A",
+      "id": "validation-06",
+      "query": "Finalization failed, but the backup and lock are still needed for repair. May the agent say the work is complete?\nA) No, do not claim completion while the backup/lock remains required for repair\nB) Yes, if the source was edited\nC) Yes, if the file is smaller\nD) Yes, after renaming the lock file",
+      "split": "validation"
+    },
+    {
+      "evidence": "it runs begin+finalize in one shot and returns `{\"status\":\"guarded\"}`.",
+      "expected": "B",
+      "id": "train-15",
+      "query": "The agent runs `guard` on a Markdown file after a KB reconcile. What status does it return?\nA) done\nB) guarded\nC) begun\nD) compressed",
+      "split": "train"
+    },
+    {
+      "evidence": "`superseded-contract`, or `user-request`), and a substantive `justification`. The guard requires",
+      "expected": "A",
+      "id": "train-16",
+      "query": "The user explicitly asked to remove a link from the document. The link is not a duplicate. Which `basis` value goes in the removal manifest entry?\nA) user-request\nB) duplicate\nC) superseded-contract\nD) false-positive",
+      "split": "train"
+    },
+    {
+      "evidence": "every removed token to be declared, rejects stale or unrelated declarations, then removes",
+      "expected": "C",
+      "id": "train-17",
+      "query": "When does the guard remove the temporary files?\nA) Right after begin returns\nB) Right after the edit is saved\nC) Only after validation succeeds\nD) Whenever finalization fails, to start clean",
+      "split": "train"
+    },
+    {
+      "evidence": "When another caller returns a `/md-compress` compression-session packet, honor its exact source and",
+      "expected": "D",
+      "id": "train-18",
+      "query": "Another caller returns a valid `/md-compress` compression-session packet with a source and a finalize action. After editing, which finalize does the agent run?\nA) The direct `begin` form, then its own finalize\nB) A `guard` command on the same path\nC) The direct finalize form with a path the agent picks\nD) The exact finalize action from the packet",
+      "split": "train"
+    },
+    {
+      "evidence": "sensitive paths**, non-Markdown files, raw private configuration, and paths not owned by the",
+      "expected": "B",
+      "id": "train-19",
+      "query": "A user asks to compress a valid Markdown file that is not owned by the active session. What must the agent do?\nA) Compress it anyway because it is Markdown\nB) Refuse it\nC) Compress it with a removal manifest\nD) Compress it but skip its code fences",
+      "split": "train"
+    },
+    {
+      "evidence": "Between the returned `begin` and `finalize` actions",
+      "expected": "C",
+      "id": "train-20",
+      "query": "In the direct transaction table, which argument does the `edit` row take?\nA) The backup path\nB) The lock path\nC) The returned source path\nD) The removal-authorization JSON path",
+      "split": "train"
+    },
+    {
+      "evidence": "No-edit validation after KB reconcile or similar no-change pass",
+      "expected": "A",
+      "id": "train-21",
+      "query": "The agent wants to edit a file and use `guard` to save a step. What does the table say `guard` is for?\nA) No-edit validation after KB reconcile or a similar no-change pass\nB) Editing and finalizing in one shot\nC) Starting a transaction and leaving it open\nD) Repairing a failed finalization",
+      "split": "train"
+    },
+    {
+      "evidence": "- **Boundary:** A sensitive path, non-Markdown file, altered backup, or changed session is rejected",
+      "expected": "D",
+      "id": "train-22",
+      "query": "The agent edited the backup file by hand before finalizing. What does the Boundary anchor say happens?\nA) The finalize step repairs the backup\nB) The change is accepted if the token set matches\nC) The backup is replaced with a fresh copy\nD) It is rejected and retained for recovery",
+      "split": "train"
+    },
+    {
+      "evidence": "prose without altering protected tokens or changing the document's meaning.",
+      "expected": "A",
+      "id": "train-23",
+      "query": "Which edit is allowed during the Edit step?\nA) Delete a sentence that repeats an earlier one, leaving inline code unchanged\nB) Shorten a long URL to its domain\nC) Reword a command inside a code fence to be shorter\nD) Delete the frontmatter description to save tokens",
+      "split": "train"
+    },
+    {
+      "evidence": "Failure names the rejected path, guard state, protected-token mismatch, or finalization error and",
+      "expected": "C",
+      "id": "train-24",
+      "query": "A guard failure occurs. Which items must the failure report name?\nA) The tokens saved and the new file size\nB) The model used and the runtime\nC) The rejected path, guard state, protected-token mismatch, or finalization error\nD) The prose quality score and the line count",
+      "split": "train"
+    },
+    {
+      "evidence": "returns source, backup/lock, and one exact `finalize` action.",
+      "expected": "D",
+      "id": "train-25",
+      "query": "What does the direct `begin` command return?\nA) A `done` receipt\nB) A `guarded` status\nC) A removal-authorization manifest\nD) The source, backup/lock, and one exact finalize action",
+      "split": "train"
+    },
+    {
+      "evidence": "Protected-token validation, any explicit removal authorization, and the owner-managed removal of",
+      "expected": "B",
+      "id": "train-26",
+      "query": "After the edit, the agent deletes the temporary files by hand and says it is done. According to the completion contract, what establishes proof?\nA) The agent deleting the temporary files itself\nB) Protected-token validation, any removal authorization, and owner-managed removal of verified temporary files\nC) The temporary files no longer existing, however they were removed\nD) A shorter file with clean prose",
+      "split": "train"
+    },
+    {
+      "evidence": "bun <agents-root>/scripts/md-compress.ts begin \"<absolute-markdown-path>\"`; returns source, backup/lock, and one exact `finalize` action.",
+      "expected": "C",
+      "id": "validation-07",
+      "query": "Which is the exact direct command to begin the guard?\nA) bun <agents-root>/scripts/md-compress.ts \"<absolute-markdown-path>\" begin\nB) bun <agents-root>/scripts/md-compress.ts guard \"<absolute-markdown-path>\"\nC) bun <agents-root>/scripts/md-compress.ts begin \"<absolute-markdown-path>\"\nD) bun <agents-root>/scripts/md-compress.ts finalize \"<absolute-markdown-path>\"",
+      "split": "validation"
+    },
+    {
+      "evidence": "- **Independent verifier:** Protected-token comparison, finalization receipt, and eligibility checks",
+      "expected": "A",
+      "id": "validation-08",
+      "query": "Which set of checks does the Independent verifier anchor name?\nA) Protected-token comparison, finalization receipt, and eligibility checks\nB) File size comparison, prose review, and link count\nC) Unit tests, lint, and a git diff\nD) Backup timestamp, lock age, and user approval",
+      "split": "validation"
+    },
+    {
+      "evidence": "recovery state; repair only the selected source.",
+      "expected": "D",
+      "id": "validation-09",
+      "query": "Finalization failed on a.md. While recovering, the agent notices a typo in b.md, another Markdown file. What may it repair?\nA) Both a.md and b.md\nB) Only b.md, since a.md is locked\nC) Neither, until a new transaction starts\nD) Only the selected source, a.md",
+      "split": "validation"
+    },
+    {
+      "evidence": "explicit authorization manifest that records the exact token and a reviewable justification.",
+      "expected": "B",
+      "id": "validation-10",
+      "query": "The agent wants to remove a code fence that is an obvious duplicate. What must it do?\nA) Remove it, since duplicates need no declaration\nB) Pass finalize a manifest recording the exact token, a basis, and a justification\nC) Remove it and leave a comment in the file\nD) Remove it and run guard instead of finalize",
+      "split": "validation"
+    },
+    {
+      "evidence": "3. **Finalize:** Execute the exact returned `finalize` action. If protected tokens were",
+      "expected": "C",
+      "id": "validation-11",
+      "query": "Protected tokens will be intentionally removed. At which step is the JSON manifest provided?\nA) Intake, together with begin\nB) Edit, passed to the edit step\nC) Finalize, together with the returned finalize action\nD) Verify, after the done receipt",
+      "split": "validation"
+    },
+    {
+      "evidence": "This skill owns the lossless guard, compression, and finalization transaction for durable Markdown",
+      "expected": "D",
+      "id": "validation-12",
+      "query": "Which request fits the md-compress skill?\nA) Trim a Markdown file that holds raw private configuration with API tokens\nB) Compress a Markdown file owned by another session\nC) Shrink a JSON policy file\nD) Losslessly trim a durable Markdown instruction file at an absolute path owned by this session",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "md-compress--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

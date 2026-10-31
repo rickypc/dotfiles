@@ -1,0 +1,82 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "[train-protocol.md](train-protocol.md) - in-session training loop, metric definitions, blind measurement, never-worse gate, saturation, and suite runs.",
+      "expected": "B",
+      "id": "train-01",
+      "query": "An agent is about to run a blind measurement for a training loop and needs the metric definitions and never-worse gate. Which reference does the map point to?\nA) skill-lifecycle.md\nB) train-protocol.md\nC) skill-template.md\nD) agent-skills-guidance.md",
+      "split": "train"
+    },
+    {
+      "evidence": "[skill-template.md](skill-template.md) - the mandatory seven-part contract for role, usage, rules,",
+      "expected": "D",
+      "id": "train-02",
+      "query": "An agent needs the mandatory seven-part contract for role, usage, rules, inputs, execution, completion, and evaluation anchors. Which reference holds it?\nA) train-protocol.md\nB) agent-skills-guidance.md\nC) skill-lifecycle.md\nD) skill-template.md",
+      "split": "train"
+    },
+    {
+      "evidence": "Load only the branch needed for the selected skill request.",
+      "expected": "A",
+      "id": "train-03",
+      "query": "An agent is handling a request to rename one skill. How should it use this map?\nA) Load only the branch needed for the selected skill request\nB) Load every reference in order before starting\nC) Load only index.md and skip the rest\nD) Load the references alphabetically until one applies",
+      "split": "train"
+    },
+    {
+      "evidence": "[agent-skills-guidance.md](agent-skills-guidance.md) - Agent Skills specification, description",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "An agent needs the Agent Skills specification, description optimization, eval design, and script interfaces. Which reference covers them?\nA) skill-lifecycle.md\nB) train-protocol.md\nC) agent-skills-guidance.md\nD) skill-template.md",
+      "split": "validation"
+    },
+    {
+      "evidence": "`../evals/rubric.md` - evaluation-surface rules and independent evidence expectations.",
+      "expected": "B",
+      "id": "validation-02",
+      "query": "An agent wants the evaluation-surface rules and independent evidence expectations. Where does the map send it?\nA) skill-lifecycle.md\nB) ../evals/rubric.md\nC) train-protocol.md\nD) ../evals/cases.jsonl",
+      "split": "validation"
+    },
+    {
+      "evidence": "[skill-lifecycle.md](skill-lifecycle.md) - create, update, rename, and closeout method.",
+      "expected": "C",
+      "id": "train-04",
+      "query": "An agent needs two things: the closeout method for a skill change, and the rules for script interfaces. Which two map entries does it load?\nA) skill-lifecycle.md and train-protocol.md\nB) skill-template.md and agent-skills-guidance.md\nC) skill-lifecycle.md and agent-skills-guidance.md\nD) ../evals/rubric.md and agent-skills-guidance.md",
+      "split": "train"
+    },
+    {
+      "evidence": "- `../evals/rubric.md` - evaluation-surface rules and independent evidence expectations.",
+      "expected": "D",
+      "id": "train-05",
+      "query": "In the reference map, which entry points to a file outside the references folder?\nA) skill-template.md\nB) train-protocol.md\nC) agent-skills-guidance.md\nD) ../evals/rubric.md",
+      "split": "train"
+    },
+    {
+      "evidence": "[skill-lifecycle.md](skill-lifecycle.md) - create, update, rename, and closeout method.",
+      "expected": "A",
+      "id": "train-06",
+      "query": "Which description does the map give for skill-lifecycle.md?\nA) Create, update, rename, and closeout method.\nB) The mandatory seven-part contract.\nC) In-session training loop and metric definitions.\nD) Evaluation-surface rules and independent evidence expectations.",
+      "split": "train"
+    },
+    {
+      "evidence": "[agent-skills-guidance.md](agent-skills-guidance.md) - Agent Skills specification, description optimization, eval design, and script interfaces.",
+      "expected": "B",
+      "id": "validation-03",
+      "query": "An agent needs eval design guidance and also the evaluation-surface rules with independent evidence expectations. Which pair of entries does the map point to?\nA) skill-lifecycle.md and ../evals/rubric.md\nB) agent-skills-guidance.md and ../evals/rubric.md\nC) agent-skills-guidance.md and skill-template.md\nD) train-protocol.md and ../evals/rubric.md",
+      "split": "validation"
+    },
+    {
+      "evidence": "- `../evals/rubric.md` - evaluation-surface rules and independent evidence expectations.",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "How many entries does the reference map list in total, counting the entry outside the references folder?\nA) 3\nB) 4\nC) 6\nD) 5",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--references-index",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/index.md"
+}

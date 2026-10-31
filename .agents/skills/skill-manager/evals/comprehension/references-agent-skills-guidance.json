@@ -1,0 +1,111 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "`name` is 1-64 characters, lowercase letters/numbers/hyphens only, has no leading/trailing or consecutive hyphens, and matches the directory.",
+      "expected": "C",
+      "id": "train-01",
+      "query": "An author must name a new skill. Which name follows the specification?\nA) Pdf-Tools\nB) pdf--tools\nC) pdf-tools\nD) -pdf-tools",
+      "split": "train"
+    },
+    {
+      "evidence": "move branch-only detail into focused references for progressive disclosure.",
+      "expected": "A",
+      "id": "train-02",
+      "query": "A skill body is 700 lines because it holds detail that only one rare branch needs. What does the guidance say to do?\nA) Move the branch-only detail into focused references\nB) Raise the limit to 800 lines\nC) Delete the rare branch detail\nD) Split the file into two SKILL.md files",
+      "split": "train"
+    },
+    {
+      "evidence": "compute trigger rate and use 0.5 as a reasonable default threshold for both classes.",
+      "expected": "D",
+      "id": "train-03",
+      "query": "A trigger eval has been run three times per query. What is the reasonable default threshold for judging both should-trigger and should-not-trigger queries?\nA) 0.1\nB) 0.9\nC) 1.0\nD) 0.5",
+      "retired": "The 0.5 threshold was replaced by a rule that every run must agree, so the premise is obsolete.",
+      "split": "train"
+    },
+    {
+      "evidence": "use only train failures to guide revisions, avoid copying failed-query keywords, and select the best generalizing iteration by validation performance.",
+      "expected": "B",
+      "id": "train-04",
+      "query": "While optimizing a description, an author has train and validation results. Which failures may guide the revision?\nA) Validation failures only\nB) Train failures only\nC) Both train and validation failures\nD) Failures from fresh queries written after seeing validation",
+      "split": "train"
+    },
+    {
+      "evidence": "Scripts must be non-interactive: accept inputs through arguments, environment, or stdin.",
+      "expected": "A",
+      "id": "train-05",
+      "query": "A helper script stops and asks the user to choose from a menu before it continues. What does the script guidance require instead?\nA) Accept inputs through arguments, environment, or stdin so it is non-interactive\nB) Keep the menu but add a timeout\nC) Ask once and cache the answer in a hidden file\nD) Print the menu to stdout and wait for a keypress",
+      "split": "train"
+    },
+    {
+      "evidence": "Run each case in a clean context with the skill and without it (or against a prior version)",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "A team runs an output eval for a skill. How should each case be run?\nA) Once, with the skill only, in the current context\nB) In a clean context with the skill and without it, or against a prior version\nC) Only against the prior version\nD) Twice with the skill and never without it",
+      "split": "validation"
+    },
+    {
+      "evidence": "Remove assertions that always pass or fail in both configurations; investigate flakiness and outliers",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "After grading, one assertion passed in both the with-skill and without-skill runs for every case. What should be done?\nA) Keep it because it always passes\nB) Make it stricter wording and keep it\nC) Remove it\nD) Move it to the description",
+      "split": "validation"
+    },
+    {
+      "evidence": "Errors should say what failed, what was expected, what was received when useful, and what the agent should try next.",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "A script rejects a bad input. Which message best follows the guidance?\nA) Error: invalid\nB) Error: invalid input, see documentation\nC) Error code 22\nD) Says what failed, what was expected, what was received, and what to try next",
+      "split": "validation"
+    },
+    {
+      "evidence": "Recheck the 1,024-character limit after every revision.",
+      "expected": "D",
+      "id": "train-06",
+      "query": "An author just finished revising a skill description during optimization. Which limit must be rechecked after every revision?\nA) The 500-line body limit.\nB) The 64-character name limit.\nC) The 60/40 train/validation ratio.\nD) The 1,024-character limit.",
+      "split": "train"
+    },
+    {
+      "evidence": "Add assertions after observing the first outputs.",
+      "expected": "A",
+      "id": "train-07",
+      "query": "An author is starting an output eval. When should assertions be written?\nA) After observing the first outputs.\nB) Before running any case, from the intended answer.\nC) After the final aggregate pass rate is known.\nD) Only after a blind comparison of two versions.",
+      "split": "train"
+    },
+    {
+      "evidence": "Optional metadata is only useful when the client needs it. Treat `compatibility` and experimental `allowed-tools` as explicit, bounded contracts rather than defaults.",
+      "expected": "B",
+      "id": "train-08",
+      "query": "An author wants to add `allowed-tools` and `compatibility` to every new skill by default. What does the guidance say?\nA) Add both to every skill so clients always know the limits.\nB) Add them only when the client needs them, as explicit bounded contracts.\nC) Add `compatibility` always and `allowed-tools` never.\nD) Add both only inside the `description` field.",
+      "split": "train"
+    },
+    {
+      "evidence": "use fresh queries after optimization as a final generalization check.",
+      "expected": "C",
+      "id": "train-09",
+      "query": "Description optimization is finished and the best iteration was chosen by validation score. What final generalization check does the guidance name?\nA) Re-run the same validation queries one more time.\nB) Re-run the train queries with a higher threshold.\nC) Run fresh queries that were not used during optimization.\nD) Keyword-match the description against the failed queries.",
+      "split": "train"
+    },
+    {
+      "evidence": "Use a one-off command when an existing package already solves the task.",
+      "expected": "A",
+      "id": "validation-04",
+      "query": "A task can already be solved by an existing package that is installed. What does the script guidance say to do?\nA) Use a one-off command.\nB) Bundle a new script in `scripts/` with pinned versions.\nC) Write a script and reference it by absolute path.\nD) Add a reference file that explains the package.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Use deterministic scripts for mechanical checks and human review for style, visual quality, usability, unexpected omissions, and whether the output fits the request.",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "An output eval needs two checks: (1) the output file contains exactly three sections, and (2) the output looks visually polished. Which pairing follows the guidance?\nA) Human review for both checks.\nB) A deterministic script for the visual check and human review for the section count.\nC) A deterministic script for the section count and human review for the visual check.\nD) A blind comparison for the section count and a script for the visual check.",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--references-agent-skills-guidance",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/agent-skills-guidance.md"
+}

@@ -13,6 +13,7 @@ import { type ActionPacket, createActionPacket, fingerprint } from './quality-en
 import type { EvidenceReceipt } from './quality-engine/receipt.js';
 import { createReceipt, failedCheckNames, receiptPasses } from './quality-engine/receipt.js';
 import type { WorkflowState } from './quality-engine/state.js';
+import { loadTriggerQuerySet, querySetBalanceProblems } from './quality-engine/train.js';
 import { isMatrixVerifierId, runIndependentVerifier } from './quality-engine/verifier.js';
 
 export interface SkillInitializationReceipt {
@@ -469,7 +470,97 @@ const skillMatrixPaths = async (
   return matrixPaths;
 };
 
-const validateSkillEvaluations = async (
+const validateTriggerQueries = async (
+  fileSystem: Pick<FileSystem, 'readFile'>,
+  skillPath: string,
+): Promise<void> => {
+  const querySet = await loadTriggerQuerySet(
+    fileSystem,
+    join(skillPath, 'evals', 'trigger-queries.json'),
+  );
+  const problems = [
+    ...(querySet.skillName === basename(resolve(skillPath))
+      ? []
+      : [`skill_name ${querySet.skillName} does not match the skill directory.`]),
+    ...querySetBalanceProblems(querySet),
+  ];
+  if (problems.length > 0) {
+    throw new Error(`Trigger query set is invalid: ${problems.join(' ')}`);
+  }
+};
+
+const instructionDocumentPattern = /^(?:AGENTS|CLAUDE|GEMINI)(?:\.[^./]+)*\.md$/iu;
+
+const markdownFilesUnder = async (
+  fileSystem: Pick<FileSystem, 'readdir'>,
+  directory: string,
+): Promise<readonly string[]> => {
+  const entries = (await fileSystem.readdir?.(directory, { withFileTypes: true })) ?? [];
+  const nested = await Promise.all(
+    entries.map(async (entry) => {
+      const child = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        return markdownFilesUnder(fileSystem, child);
+      }
+      return extname(entry.name) === '.md' ? [child] : [];
+    }),
+  );
+  return nested.flat().sort();
+};
+
+const validateComprehensionSet = async (
+  fileSystem: Pick<FileSystem, 'readFile'>,
+  setPath: string,
+  expected: { readonly subject: string; readonly target: string },
+): Promise<void> => {
+  const set = await loadTriggerQuerySet(fileSystem, setPath);
+  const problems = [
+    ...(set.kind === 'comprehension' ? [] : ['kind must be comprehension.']),
+    ...(set.target === expected.target ? [] : [`target must be ${expected.target}.`]),
+    ...(set.skillName === expected.subject ? [] : [`skill_name must be ${expected.subject}.`]),
+    ...querySetBalanceProblems(set),
+  ];
+  if (problems.length > 0) {
+    throw new Error(`Comprehension set is invalid: ${setPath}: ${problems.join(' ')}`);
+  }
+};
+
+export const validateInstructionSets = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  agentsRoot: string,
+): Promise<number> => {
+  const entries = (await fileSystem.readdir?.(agentsRoot, { withFileTypes: true })) ?? [];
+  const documents = entries
+    .filter((entry) => !entry.isDirectory() && instructionDocumentPattern.test(entry.name))
+    .map((entry) => entry.name)
+    .sort();
+  for (const document of documents) {
+    const key = document.replace(/\.md$/iu, '');
+    await validateComprehensionSet(fileSystem, join(agentsRoot, 'evals', `${key}.json`), {
+      subject: `instructions--${key.toLowerCase()}`,
+      target: `../${document}`,
+    });
+  }
+  return documents.length;
+};
+
+const validateSkillComprehension = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  skillPath: string,
+): Promise<void> => {
+  const name = basename(resolve(skillPath));
+  for (const file of await markdownFilesUnder(fileSystem, skillPath)) {
+    const relativePath = relative(skillPath, file);
+    const key = relativePath.replace(/\.md$/u, '').replaceAll('/', '-');
+    await validateComprehensionSet(
+      fileSystem,
+      join(skillPath, 'evals', 'comprehension', `${key}.json`),
+      { subject: `${name}--${key}`, target: `../../${relativePath}` },
+    );
+  }
+};
+
+export const validateSkillEvaluations = async (
   fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
   skillPath: string,
 ): Promise<number> => {
@@ -524,6 +615,8 @@ const validateSkillEvaluations = async (
       `Skill evaluation requires at least one candidate and one challenge case: ${skillPath}`,
     );
   }
+  await validateTriggerQueries(fileSystem, skillPath);
+  await validateSkillComprehension(fileSystem, skillPath);
   return matrixPaths.length;
 };
 
@@ -563,6 +656,7 @@ export const validateAllSkills = async (
   if (failures.length > 0) {
     throw new Error(`Skill validation failed:\n${failures.join('\n')}`);
   }
+  await validateInstructionSets(fileSystem, dirname(root));
   const prose = await reviewSkillProse(fileSystem, [root]);
   if (prose.findings.length > 0) {
     throw new Error(

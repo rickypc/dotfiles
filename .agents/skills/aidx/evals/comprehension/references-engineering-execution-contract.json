@@ -1,0 +1,145 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Before mutation, maintain a small ledger distinguishing user facts, project instructions, fresh repository evidence, decisions, assumptions, and unknowns.",
+      "expected": "C",
+      "id": "train-01",
+      "query": "Before any mutation begins, what must the executor maintain?\nA) A running chat transcript of every command\nB) A copy of the plan saved under a new name\nC) A small ledger separating user facts, project instructions, fresh repository evidence, decisions, assumptions, and unknowns\nD) A list of ideas for extra improvements",
+      "split": "train"
+    },
+    {
+      "evidence": "A missing required field is a stop unless the plan explicitly defines a safe fallback.",
+      "expected": "A",
+      "id": "train-02",
+      "query": "A work packet has no owner field, and the plan defines no safe fallback for that gap. What does the executor do?\nA) Stop\nB) Assign itself as owner and continue\nC) Copy the owner from the previous packet\nD) Continue and note the gap in limitations",
+      "split": "train"
+    },
+    {
+      "evidence": "Use the observed repository language/framework profile, not a guessed one, and apply the common rules first.",
+      "expected": "D",
+      "id": "train-03",
+      "query": "The executor is unsure which language the repository uses. Which rule applies?\nA) Assume the most popular language and proceed\nB) Use the language named in the user's last chat message even if unverified\nC) Apply only the language-specific rules and skip the common rules\nD) Use the observed repository language and framework profile, not a guessed one, and apply the common rules first",
+      "split": "train"
+    },
+    {
+      "evidence": "Pair compile-time types with runtime validation; preserve async, exported-type, serialization, and configuration contracts; avoid unsafe casts.",
+      "expected": "B",
+      "id": "train-04",
+      "query": "The plan changes TypeScript code. Which check pair does the language routing table require?\nA) Compile-time types only, since runtime checks are slow\nB) Compile-time types paired with runtime validation, and avoiding unsafe casts\nC) Runtime validation only, since types vanish at runtime\nD) Unsafe casts where types are inconvenient",
+      "split": "train"
+    },
+    {
+      "evidence": "Route only to owners named by the plan. The role table is a quality lens, not permission to expand scope:",
+      "expected": "A",
+      "id": "train-05",
+      "query": "The plan names no Security owner, but the executor thinks a Security review would be nice. What does the document say?\nA) Route only to owners named by the plan, because the role table is not permission to expand scope\nB) Add a Security owner, because role routing always applies\nC) Add the owner and tell the user afterward\nD) Rewrite the plan to include Security",
+      "split": "train"
+    },
+    {
+      "evidence": "update that same item to `- [x]`, or to `- [-]` with a factual inapplicability reason.",
+      "expected": "C",
+      "id": "train-06",
+      "query": "A workflow item is intentionally inapplicable. How is that same item updated in the plan?\nA) Delete the line from the plan\nB) Mark it `- [x]` with no comment\nC) Mark it `- [-]` with a factual inapplicability reason\nD) Move it to a separate checklist file",
+      "split": "train"
+    },
+    {
+      "evidence": "invoke `/bun-test-generator` before authoring, freeze boundary mocks, run boundary validation, then run `/biome-checker`.",
+      "expected": "B",
+      "id": "train-07",
+      "query": "The plan changes JavaScript tests. What is the required order?\nA) Write the tests, then run /biome-checker, then invoke /bun-test-generator\nB) Invoke /bun-test-generator before authoring, freeze boundary mocks, run boundary validation, then run /biome-checker\nC) Run /biome-checker first, then author the tests by hand\nD) Skip the generator when the tests are small",
+      "split": "train"
+    },
+    {
+      "evidence": "Execute the packet; do not display, summarize, or hand it to the user.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "The final gate returns a safe, non-blocked action packet. What should the executor do with it?\nA) Display it to the user and wait\nB) Summarize it in the closeout note only\nC) Hand it to the user to apply\nD) Execute the packet after validating it, rather than displaying, summarizing, or handing it to the user",
+      "split": "train"
+    },
+    {
+      "evidence": "verify the installed source (for example the compiled theme under `node_modules`) instead of recalling documentation",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "A design depends on how a theme component handles its `children` prop. How should the executor learn that behavior?\nA) Recall it from the public documentation\nB) Verify the installed source, such as the compiled theme under node_modules\nC) Ask a teammate to remember it\nD) Try it in production and watch",
+      "split": "validation"
+    },
+    {
+      "evidence": "instrument the real pipeline (dump the actual tree, input, or compiled output) before hypothesizing",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "A verification result contradicts what the executor expected. What comes first?\nA) Form a hypothesis and rebuild repeatedly until it works\nB) Rerun the full build unchanged\nC) Loosen the expectation to match the result\nD) Instrument the real pipeline by dumping the actual tree, input, or compiled output, before hypothesizing",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never close with a known regression: surface it to the human owner as an open decision instead of shipping it inside a limitations note.",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "The executor finds a known regression just before closing. What does the document require?\nA) Surface it to the human owner as an open decision\nB) Ship it and write it into the limitations note\nC) Hide it until the next release\nD) Mark the plan complete and fix it later",
+      "split": "validation"
+    },
+    {
+      "evidence": "compare every changed file with its committed baseline through read-only `git show HEAD:<file>` (never a mutating checkout)",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "When verifying a many-file fan-out, how should each changed file be compared with its baseline?\nA) With a mutating `git checkout` of the file\nB) By eye, one file at a time\nC) Through read-only `git show HEAD:<file>` on paragraph count, word count, and unique-link retention\nD) By checking only the line count",
+      "split": "validation"
+    },
+    {
+      "evidence": "Run the focused static checks (lint, type check, focused coverage on the changed SUT) before every full final-gate attempt",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "When should lint, type check, and focused coverage on the changed code run relative to the full final gate?\nA) Only after the final gate fails\nB) Before every full final-gate attempt, so lint residuals are not discovered by the gate\nC) Never, because the final gate covers them\nD) Once at the very end, after the gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "Execute the plan's work packets in order: research, requirements, design, units, delivery, review, and validation.",
+      "expected": "B",
+      "id": "train-09",
+      "query": "In what order does the executor run the plan's work packets?\nA) Research, design, requirements, units, delivery, review, validation\nB) Research, requirements, design, units, delivery, review, validation\nC) Research, requirements, design, units, review, delivery, validation\nD) Research, requirements, design, units, delivery, validation, review",
+      "split": "train"
+    },
+    {
+      "evidence": "Preserve ownership and cancellation; inspect contextual errors, resource lifetime, concurrency, races, unsafe scope, and task boundaries.",
+      "expected": "D",
+      "id": "train-10",
+      "query": "The plan changes Go code. Which checks does the language routing table call for?\nA) Pair compile-time types with runtime validation\nB) Validate inputs and keep authorization separate\nC) Verify keyboard, focus, labels, and contrast\nD) Preserve ownership and cancellation; inspect contextual errors, resource lifetime, concurrency, and races",
+      "split": "train"
+    },
+    {
+      "evidence": "Security: verify only evidenced trust boundaries, input validation, secrets, authorization, data handling, dependency, and supply-chain controls.",
+      "expected": "A",
+      "id": "train-11",
+      "query": "The plan names a Security owner. The change touches a form with evidenced input validation and has no dependency changes. How far does the Security check go?\nA) It verifies only the evidenced trust boundaries and controls, such as the input validation\nB) It audits the whole dependency tree for supply-chain issues\nC) It builds a full threat model of the repository\nD) It is skipped because no secrets are involved",
+      "split": "train"
+    },
+    {
+      "evidence": "Treat first-pass generated output as disposable and regenerate rather than patching it.",
+      "expected": "C",
+      "id": "train-12",
+      "query": "In a many-file fan-out, subagent output for 3 of 40 files has errors. What does the document say to do?\nA) Patch the 3 files by hand\nB) Ask the subagents to edit the 3 files in place\nC) Treat first-pass output as disposable and regenerate it rather than patching\nD) Ship the 37 good files and note the 3 as limitations",
+      "split": "train"
+    },
+    {
+      "evidence": "For accepted browser criteria, invoke `/playwright-test-generator` unless retained coverage already proves the criterion.",
+      "expected": "C",
+      "id": "validation-06",
+      "query": "An accepted browser criterion is already proven by retained browser coverage. What does the executor do about `/playwright-test-generator`?\nA) Invoke it anyway to refresh the test\nB) Invoke `/bun-test-generator` instead\nC) Do not invoke it, because retained coverage already proves the criterion\nD) Invoke it only after the final gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "Delivery: verify dependency order, unit completion, risks, and the recorded sequence rationale.",
+      "expected": "B",
+      "id": "validation-07",
+      "query": "Which role verifies dependency order, unit completion, risks, and the recorded sequence rationale?\nA) Architect\nB) Delivery\nC) Product\nD) Quality",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidx--references-engineering-execution-contract",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/engineering-execution-contract.md"
+}

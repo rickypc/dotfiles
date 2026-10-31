@@ -1,0 +1,383 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Compress docs/guide.md losslessly.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Begin an md-compress transaction on AGENTS.md before I edit it.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Finalize the Markdown compression for the file I just edited.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Distill this durable Markdown while keeping every code fence and link intact.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Run the guard on README.md to confirm protected tokens are preserved.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Shorten the redundant prose in this long instruction file without changing its meaning or tokens.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Summarize this Markdown document in three bullets.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Gzip all the log files in this folder.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Minify the JavaScript bundle.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Rewrite this README to be friendlier.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Update the description in this skill so it triggers better.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Translate this Markdown file to Spanish.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Losslessly tighten docs/architecture.md; backups and token checks required.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "I edited a durable Markdown file. Run the finalize step now.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Guard this Markdown source with no edits, just validate it.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Reduce the token count of this loaded policy file while preserving URLs and inline code.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Create a table of contents for this Markdown file.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Extract the headings from this document.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Convert this Markdown to PDF.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Capture this lesson in the knowledge base.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "AGENTS.md is bloated and costs tokens every session. Trim it down but do not break any commands or links.",
+      "retired": "Ambiguous owner: trimming an AGENTS.md instruction file belongs to skill-manager under the ownership rules, so the label was wrong.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Before I rewrite docs/policy.md, open the guarded edit so the backup exists.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "I am done editing the Markdown. Close out the guarded edit.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Write a one-paragraph abstract of this long Markdown spec.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Fix the broken links in this Markdown file.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Convert this Markdown table to CSV.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Prune duplicated wording from the loaded instructions file; code blocks and URLs must stay byte-identical.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Check this Markdown is intact after my last edit with the protected-token guard.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Lint the Markdown for style problems.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Merge these two Markdown files into one.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "docs/handbook.md is bloated and loaded every session. Cut the redundancy without touching any code fences or links.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Open a protected edit session on docs/runbook.md so a verified backup exists first.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Edit AGENTS.md to add a new rule about commit messages.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Rewrite docs/handbook.md in a friendlier voice.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Shrink docs/onboarding.md losslessly; inline code and URLs must survive unchanged.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Verify the protected tokens of docs/runbook.md survived my edit and close the transaction.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Add a changelog entry to docs/handbook.md.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Create an index of every Markdown file in the repo.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "CONTRIBUTING.md at /Users/dana/proj/CONTRIBUTING.md says the same thing three different ways. cut the repetition but dont touch any links or code blocks",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "loading docs/runbook.md eats a ton of context every session. make it leaner, same info, absolute path is /Users/sam/ops/docs/runbook.md",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "I only fixed whitespace in /Users/lee/notes/setup.md. just run the no-edit validation pass on it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "i removed a duplicate URL from the doc on purpose, so finalize it with a manifest that says why it was dropped",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "Tighten the wording of our security-policy.md so it costs fewer tokens to load; every command and fenced block must stay byte-identical",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "squeeze the fluff out of /Users/amy/wiki/onboarding.md, and keep a backup somewhere safe in case something breaks",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "KB reconcile just finished and touched a record. confirm the protected tokens in /Users/kim/kb/entry.md survived, no editing",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Search our private KB for what we decided about the retry policy and record a new lesson from today's outage",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "Rewrite my draft blog post in drafts/launch.md so it's punchier and add cited sources for each claim",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "find every markdown file in this repo that contains a fenced bash block",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Write unit tests for the helper in utils/tokens.ts that counts markdown tokens",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "Review the PR that changed docs/guide.md and check it against the ticket requirements",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "Summarize README.md in two sentences",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "zip up the whole docs folder so I can email it",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "our AGENTS-style handbook /Users/joe/team/handbook.md is bloated. dedupe the prose, links and code fences must survive untouched",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "begin a guarded edit on /Users/ana/docs/api.md, im about to shorten it by hand",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "can u make /Users/tom/docs/faq.md smaller w/o changing what it says? it gets pulled into every prompt",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "Finalization failed on the doc I was compressing and the backup is still in the temp dir. repair the source and finalize again",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "Do a lossless pass over /Users/ray/docs/architecture.md: remove duplicate sentences, nothing else, verify the code fences and URLs after",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Create a new skill for compressing Markdown and validate its SKILL.md frontmatter",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Plan how we should migrate all our docs from Markdown to MDX, with phases and verification",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "Redesign the docs site layout so the Markdown pages look cleaner on mobile",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "Convert guide.md to a PDF",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Run biome and the declaration-order check on scripts/shrink.ts",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "md-compress",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

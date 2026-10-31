@@ -1,0 +1,103 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "D",
+      "id": "train-01",
+      "query": "According to the rubric frontmatter, what pass rate do evaluation cases need?\nA) 0.5\nB) 0.8\nC) 0.9\nD) 1",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "B",
+      "id": "train-02",
+      "query": "Which visibility values must evaluation cases cover, according to the rubric?\nA) public and private\nB) candidate and challenge\nC) canonical and boundary\nD) train and validation",
+      "split": "train"
+    },
+    {
+      "evidence": "Verify that barriers and cycles are reported",
+      "expected": "A",
+      "id": "train-03",
+      "query": "A scenario has a barrier or a dependency cycle in the selected source. What does the rubric say to verify?\nA) The barrier or cycle is reported rather than crossed\nB) The barrier or cycle is repaired by reordering\nC) The cycle is broken by editing declaration bodies\nD) The path is dropped from the selected set",
+      "split": "train"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract",
+      "expected": "C",
+      "id": "train-04",
+      "query": "How many parts does the shared skill contract have that this package also conforms to?\nA) Five\nB) Six\nC) Seven\nD) Eight",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "A",
+      "id": "train-05",
+      "query": "Which required case field names the limit on what a repair may change?\nA) repairBoundary\nB) failureMode\nC) scenario\nD) assertions",
+      "split": "train"
+    },
+    {
+      "evidence": "`failed`",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "In the fresh-session JSON result protocol, which status comes with an action packet?\nA) passed\nB) blocked\nC) failed\nD) not-applicable",
+      "split": "validation"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "B",
+      "id": "validation-02",
+      "query": "Which verifier id does the rubric frontmatter list?\nA) shell-output\nB) source-structure\nC) exact-match\nD) persona-check",
+      "split": "validation"
+    },
+    {
+      "evidence": "without target configuration changes or semantic declaration edits.",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "What must selected-path verification avoid, according to the rubric?\nA) Running Biome on TypeScript\nB) Reporting any lint results\nC) Checking more than one path\nD) Target configuration changes and semantic declaration edits",
+      "split": "validation"
+    },
+    {
+      "evidence": "The canonical matrix checks each heading and challenges brittle exact-output or robotic-persona language",
+      "expected": "B",
+      "id": "train-06",
+      "query": "What does the rubric say the canonical matrix does with the seven headings and with persona language?\nA) It checks the headings but ignores persona language\nB) It checks each heading and challenges brittle exact-output or robotic-persona language\nC) It checks only the first heading and the last heading\nD) It challenges every heading and accepts any persona language",
+      "split": "train"
+    },
+    {
+      "evidence": "`blocked` without a permitted reorder",
+      "expected": "C",
+      "id": "train-07",
+      "query": "In the fresh-session JSON result protocol, which status means there is no permitted reorder?\nA) passed\nB) failed\nC) blocked\nD) not-applicable",
+      "split": "train"
+    },
+    {
+      "evidence": "uncertainty, ownership, and proof boundary.",
+      "expected": "A",
+      "id": "train-08",
+      "query": "The shared contract must remain compatible with which three things of this skill?\nA) Uncertainty, ownership, and proof boundary\nB) Uncertainty, speed, and proof boundary\nC) Scope, ownership, and cost boundary\nD) Uncertainty, ownership, and persona boundary",
+      "split": "train"
+    },
+    {
+      "evidence": "Verify selected-path lint, TypeScript, and top-level declaration-order behavior without target",
+      "expected": "A",
+      "id": "validation-04",
+      "query": "Which three behaviors does the rubric say are verified for selected paths?\nA) Lint, TypeScript, and top-level declaration order\nB) Lint, unit tests, and top-level declaration order\nC) Lint, TypeScript, and import order\nD) Formatting, TypeScript, and top-level declaration order",
+      "split": "validation"
+    },
+    {
+      "evidence": "operational rules, input and context schema, ordered execution chain, output and completion",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "In the shared seven-part skill contract, which part is the fifth?\nA) Input and context schema\nB) Output and completion contract\nC) Evaluation anchors\nD) Ordered execution chain",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "biome-checker--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

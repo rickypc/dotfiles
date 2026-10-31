@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Redesign our pricing page so it feels more modern and trustworthy.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Define the visual direction, interaction states, and responsive behavior for the new analytics dashboard.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Give the settings screen a visual refresh with clear focus and error states.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Review this web UI for visual hierarchy, contrast, and mobile layout issues.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "We are creating a brand new onboarding flow for the web app. Propose the look and interaction design.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Make our marketing site look less dated and more accessible.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Fix the click handler that does not fire on the pricing page.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Implement the approved profile card design in React.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Write Playwright tests for the dashboard.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Write the marketing copy for the pricing page.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Add a new field to the signup API.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Optimize this SQL query.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Propose a visual refresh for our admin console, including empty and loading states.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "The checkout page feels cramped on phones. Redesign it for responsive use.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Design the interaction states for our new data table component on the web.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Audit this landing page design for accessibility and polish.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Make the submit button call the new endpoint.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Build the approved React Native settings screen.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Research and write an article about UI trends.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Fix the memory leak in the websocket client.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "The app works but looks like it was built in 2012. Make it feel current without changing what it does.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "What should the empty, loading, error, and hover states look like for the new invoice table?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Our site fails contrast checks and breaks on small screens. Rework how it looks and behaves visually.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Change the invoice table to sort by date descending by default.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Convert this Figma-approved card into a Vue component.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Persist the dark-mode toggle choice in localStorage.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Rethink the visual style of our docs website, including mobile and keyboard focus.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Design how the multi-step form should look and respond on different screen sizes.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Update the Tailwind version in package.json.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Write alt text for these product images.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Decide the layout, typography, and focus styles for our new help center before engineering starts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Our dashboard is accurate but exhausting to look at. Propose how it should look and react to input.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Implement the help center search box in React.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Write the help center article about resetting passwords.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Define responsive breakpoints and interaction states for the checkout redesign.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Review this mock-up for accessibility and visual hierarchy before we build it.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Bump the CSS framework to the latest version.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Make the Save button call POST /settings.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "stakeholders say the quote builder looks like a tax form. sketch 3 directions for how it should look and feel, we have tailwind tokens already",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "need a design for the new team-invite modal on our web app: what happens on keyboard focus, when the email is invalid, and while it's sending?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "our customer portal looks rough on tablets and nobody can tell which buttons are primary. rethink it before eng starts anything.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "pls come up w/ the look for a web app for a dog-walking startup. no codebase yet, brand is playful, green-ish",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "What should the notification drawer do under prefers-reduced-motion, and how does it collapse on narrow screens?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "Compare a sidebar layout vs a top nav for our admin tool and recommend one given our design system.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "Here's the brief for the booking widget redesign. Don't write any code yet. I want the hierarchy, spacing, color and states signed off first.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "The approved design for the notification drawer is done. Build it as a React component with the open state and a focus trap.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "Add retained Playwright coverage proving the nav collapses to a hamburger below 600px.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "Draft the onboarding tooltip text and help-center article for the invoice screen, research-backed with cited sources.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Write bun tests for the formatCurrency helper that the pricing table uses.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "The pricing table total is off by a cent because of rounding. Fix the calculation.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "Update the skill that guides our UI work so its description mentions dark mode.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "where in the repo is the design token file that defines the button colors?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "we're adding dark mode to the web dashboard. what should it look like, including contrast and the focus ring?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "landing page v2 is a blank slate. give me 2-3 concepts with trade-offs and your pick.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "the signup wizard feels clunky. rethink step layout, validation states, and mobile.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "tabs vs accordion for the faq on our site?? which looks better and is more accessible",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "need a spec for a toast/snackbar system in our web app: stacking, keyboard dismissal, motion",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Implement the approved checkout screen in React Native, including navigation and animations.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "write browser tests verifying the checkout layout holds at mobile and desktop widths",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "Write a researched blog post, with sources, on why dark mode matters for accessibility.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "Change the Save button handler's API call to use PUT instead of POST.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Compress the design-system README markdown to cut tokens but keep the code fences and links.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "frontend-design",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

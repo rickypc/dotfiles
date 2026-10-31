@@ -1,0 +1,117 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "1. **MCP stdio transport (primary):**",
+      "expected": "A",
+      "id": "train-01",
+      "query": "In what order does the transport probe try transports?\nA) MCP stdio first, then the CLI, then none (staged local search only)\nB) CLI first, then MCP stdio, then none\nC) Staged local search first, then MCP stdio, then the CLI\nD) Only the transport the caller names",
+      "split": "train"
+    },
+    {
+      "evidence": "The wrapper exits 1 exactly when `status` is `error`.",
+      "expected": "B",
+      "id": "train-02",
+      "query": "When does the wrapper exit with code 1?\nA) Whenever the result is empty\nB) Exactly when status is error\nC) Whenever ok is false or a caveat exists\nD) Whenever the transport is the CLI",
+      "split": "train"
+    },
+    {
+      "evidence": "Graph rows count only when the query appears in the identity fields (`qn` or `file`).",
+      "expected": "C",
+      "id": "train-03",
+      "query": "A graph row matches the query only in its label or detail text, not in its qn or file. Does it count?\nA) Yes, any graph row counts\nB) Yes, if the label matches\nC) No. Graph rows count only when the query appears in qn or file\nD) Only when the index is older than a day",
+      "split": "train"
+    },
+    {
+      "evidence": "Only when indexed discovery found nothing, run the staged local search",
+      "expected": "D",
+      "id": "train-04",
+      "query": "Indexed discovery found a good match. Does the staged local search also run?\nA) Yes, always, to double check\nB) Yes, but only for file names\nC) Yes, whenever there are two or more tokens\nD) No. It runs only when indexed discovery found nothing",
+      "split": "train"
+    },
+    {
+      "evidence": "it degrades to the next transport and lands in `attempts[0]` as the transport receipt",
+      "expected": "D",
+      "id": "train-05",
+      "query": "A spawn failure or handshake timeout happens during the MCP probe. What happens?\nA) It throws an error to the caller and stops\nB) It is hidden and left out of the envelope\nC) The wrapper retries MCP until it works\nD) It never throws to the caller; it degrades to the next transport and is recorded in attempts[0]",
+      "split": "train"
+    },
+    {
+      "evidence": "URL (`http(s)://`), PID (digits only), absolute file path, dotted qualified name (symbol), then exact process name.",
+      "expected": "A",
+      "id": "train-06",
+      "query": "What is the order in which read classifies a target?\nA) URL, PID, absolute file path, dotted qualified name, then exact process name\nB) Process name, PID, URL, file path, then symbol\nC) Absolute file path, URL, symbol, PID, then process name\nD) Symbol first, then everything else in request order",
+      "split": "train"
+    },
+    {
+      "evidence": "the wrapper returns the `resolve-index` error receipt and runs none of the requested operations",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "inspect is run on a root with no matching index. What does the wrapper do?\nA) Creates an index, then runs the operations\nB) Returns the resolve-index error receipt and runs none of the operations, with no indexing\nC) Runs the operations with the staged fallback\nD) Retries indexing twice, then runs the operations",
+      "split": "validation"
+    },
+    {
+      "evidence": "are environment failures, not transport failures, and are reported",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "A sandbox denial blocks a trash move and a KB-root write. How is it classified?\nA) As a transport failure\nB) As an empty result\nC) As an environment failure with its own attempt receipt, not a transport failure\nD) As proof the backend is unavailable",
+      "split": "validation"
+    },
+    {
+      "evidence": "a bounded numbered fragment (200 lines by default",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "A text file is read with no range. How much does the wrapper return by default?\nA) A bounded numbered fragment of 200 lines\nB) The whole file\nC) The first 20 lines\nD) Only the matching line",
+      "split": "validation"
+    },
+    {
+      "evidence": "`ok` is false only for hard errors (rejected root, missing transport for a symbol read)",
+      "expected": "B",
+      "id": "train-07",
+      "query": "Which situation makes the envelope field `ok` false?\nA) The search found nothing and status is empty\nB) The root was rejected\nC) Status is found but caveats is not empty\nD) The wrapper fell back to the staged local search",
+      "split": "train"
+    },
+    {
+      "evidence": "When the query has two or more tokens and two distinct symbols matched, trace both qualified names inbound and outbound at depth one and merge a `connection` result.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "A query has three tokens, but search_graph matched only one distinct symbol. What happens at the connection step?\nA) A connection result is merged from that one symbol\nB) Both directions are traced at depth two\nC) The staged local search runs instead\nD) No connection trace runs, because it needs two distinct matched symbols",
+      "split": "train"
+    },
+    {
+      "evidence": "readiness is exactly `status: ready`, freshness is `indexed_at`",
+      "expected": "A",
+      "id": "train-09",
+      "query": "index_status output shows `status: indexing` and a valid `indexed_at` line. How does the engine treat the index?\nA) Not ready, because readiness is exactly `status: ready`\nB) Ready, because `indexed_at` is present\nC) Ready, because any status line counts\nD) Ready after a single retry",
+      "split": "train"
+    },
+    {
+      "evidence": "the `!**/.git/**` and `!**/node_modules/**` exclusions still apply.",
+      "expected": "C",
+      "id": "train-10",
+      "query": "A parent repository ignores node_modules and dist, and the staged fallback runs. Which directories are still excluded?\nA) dist and dotfiles\nB) Only paths listed in the parent ignore file\nC) `.git` and `node_modules`\nD) None, because no-ignore removes every exclusion",
+      "split": "train"
+    },
+    {
+      "evidence": "Error envelopes (`isError: true` with `structuredContent.error`) become attempt receipts and hints, never silent emptiness.",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "A backend result has `isError: true` with `structuredContent.error`. How does the engine treat it?\nA) As a silent empty result\nB) As a thrown error to the caller\nC) As a reason to retry the call once\nD) As attempt receipts and hints, never silent emptiness",
+      "split": "validation"
+    },
+    {
+      "evidence": "Symbol reads resolve the index, then index only when no matching index exists, re-check status, and retry the requested read once before reading the snippet.",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "Which order does a symbol read follow?\nA) Retry the read, then index, then re-check status\nB) Resolve the index, index only when none matches, re-check status, retry the read once, then read the snippet\nC) Always index first, then resolve the index, then read the snippet\nD) Resolve the index, index when none matches, then read the snippet with no retry",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "repo-search--references-engine",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/engine.md"
+}

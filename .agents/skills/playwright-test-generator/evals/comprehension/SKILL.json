@@ -1,0 +1,278 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Use it to write or extend retained browser tests, not to review, run, or debug existing tests",
+      "expected": "B",
+      "id": "train-01",
+      "query": "The user asks the agent to debug an existing Playwright test that fails in CI. Should this skill be used?\nA) Yes, it debugs and repairs any Playwright test\nB) No, it writes or extends retained browser tests, not review, run, or debug existing ones\nC) Yes, but only when the test is a unit test\nD) Yes, but only to review the test",
+      "split": "train"
+    },
+    {
+      "evidence": "retain **one retained project regression test for every criterion** not",
+      "expected": "C",
+      "id": "train-02",
+      "query": "Five accepted criteria are given and none is covered by an existing test. How many retained project regression tests should be generated?\nA) One test that covers all five\nB) Two tests grouped by page\nC) Five tests, one for each criterion\nD) None until a human writes a plan",
+      "split": "train"
+    },
+    {
+      "evidence": "`@playwright/test`; if absent, stop.",
+      "expected": "A",
+      "id": "train-03",
+      "query": "During intake the agent finds the project does not declare a project-local `@playwright/test`. What must it do?\nA) Stop\nB) Install it globally and continue\nC) Use npx to fetch a copy and continue\nD) Write the tests anyway and fix the runner later",
+      "split": "train"
+    },
+    {
+      "evidence": "ask the user to run the declared browser command and paste the complete output including the",
+      "expected": "D",
+      "id": "train-04",
+      "query": "The browser cannot launch because of a sandbox permission error. What is the correct handling?\nA) Treat it as an application failure and edit the app code\nB) Weaken the test and accept it using an HTTP 200 check\nC) Skip the browser and claim acceptance from static checks\nD) Ask the user to run the declared browser command and paste the complete output including the launch error",
+      "split": "train"
+    },
+    {
+      "evidence": "do not invent a budget or threshold.",
+      "expected": "B",
+      "id": "train-05",
+      "query": "The user wants a performance test but no project-owned measurable budget exists. What should the agent do?\nA) Choose a common threshold such as 2 seconds and proceed\nB) Not invent a budget or threshold, so the performance branch cannot proceed until one is approved\nC) Copy a budget from another project\nD) Use the Core Web Vitals default numbers",
+      "split": "train"
+    },
+    {
+      "evidence": "**Do not claim a Core Web Vitals pass** from a local timing or",
+      "expected": "C",
+      "id": "train-06",
+      "query": "A local timing run is fast and a trace looks good. Can the agent report that the page passes Core Web Vitals?\nA) Yes, if the trace was saved\nB) Yes, if the run happened three times\nC) No, a local timing or trace result must not be claimed as a Core Web Vitals pass\nD) Yes, if the budget was invented by the agent",
+      "split": "train"
+    },
+    {
+      "evidence": "visible error/recovery and **no write request**.",
+      "expected": "A",
+      "id": "train-07",
+      "query": "A criterion says invalid input must be rejected. What must the retained test assert?\nA) The visible error and recovery, and that no write request was sent\nB) Only that the submit button was clicked\nC) Only that the page returned HTTP 200\nD) That a write request was sent and then rolled back",
+      "split": "train"
+    },
+    {
+      "evidence": "tests, weaken assertions, add a second gate, or alter global/project dependencies outside the",
+      "expected": "D",
+      "id": "train-08",
+      "query": "The new retained test runs fine with the focused command. The agent thinks the final gate is slow. What does the skill forbid?\nA) Running the focused command\nB) Inspecting traces\nC) Using semantic locators\nD) Adding a second gate",
+      "split": "train"
+    },
+    {
+      "evidence": "environment, prefer Firefox for the default run only when the project supports it; keep",
+      "expected": "B",
+      "id": "train-09",
+      "query": "Chromium is unavailable in this environment and the project supports Firefox. What does the skill say?\nA) Remove Chromium and WebKit projects from the config\nB) Prefer Firefox for the default run only when the project supports it, and keep Chromium/WebKit opt-in projects intact\nC) Always switch every run to Firefox\nD) Report the missing Chromium as a product failure",
+      "split": "train"
+    },
+    {
+      "evidence": "`.agents` boundary and hand unit-test changes to `bun-test-generator`.",
+      "expected": "C",
+      "id": "train-10",
+      "query": "While working, the agent notices a unit test needs a change. Who should handle it?\nA) This skill edits it directly\nB) The user must edit it by hand\nC) The agent hands unit-test changes to `bun-test-generator`\nD) The agent deletes the unit test",
+      "split": "train"
+    },
+    {
+      "evidence": "If the browser launches and the result reports a wrong",
+      "expected": "A",
+      "id": "train-11",
+      "query": "The browser launches fine, but the result shows the wrong page title. How should this be treated?\nA) As application evidence, diagnosed normally\nB) As an environment handoff to the user\nC) As a reason to weaken the title assertion\nD) As a reason to install a global dependency",
+      "split": "train"
+    },
+    {
+      "evidence": "dependencies, artifact policy, and single configured final gate. Never invent a fallback command.",
+      "expected": "D",
+      "id": "train-12",
+      "query": "The project's declared Playwright command is unclear and the agent knows another command that might work. What do the rules say?\nA) Use the other command as a fallback\nB) Try several commands until one works\nC) Ask nobody and guess the command from the package name\nD) Use the project's declared runner and never invent a fallback command",
+      "split": "train"
+    },
+    {
+      "evidence": "A click, page load, HTTP 200, screenshot, or source-text match alone is not acceptance",
+      "expected": "B",
+      "id": "train-13",
+      "query": "A draft test only loads the page and checks for HTTP 200. Is that acceptable evidence?\nA) Yes, a page load is enough\nB) No, a click, page load, HTTP 200, screenshot, or source-text match alone is not acceptance evidence\nC) Yes, if a screenshot is attached\nD) Yes, if the source text matches",
+      "split": "train"
+    },
+    {
+      "evidence": "The **mutation check** must catch each realistic mutation or leave the gap open.",
+      "expected": "C",
+      "id": "train-14",
+      "query": "In the mutation check, a realistic mutation of the route is not caught by the new test. What does the skill require?\nA) Ignore it, since mutations are only mental\nB) Mark the test complete anyway\nC) The check must catch each realistic mutation or leave the gap open\nD) Add a second final gate",
+      "split": "train"
+    },
+    {
+      "evidence": "Project-owned debug artifact, not a final gate; repair then rerun.",
+      "expected": "A",
+      "id": "validation-01",
+      "query": "The agent runs the project command with the project trace option to debug a failure. What is that run?\nA) A project-owned debug artifact, not a final gate; repair then rerun\nB) The final gate\nC) Proof that the criterion is accepted\nD) A replacement for the focused command",
+      "split": "validation"
+    },
+    {
+      "evidence": "the accepted criterion, not implementation or source text.",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "Where should expected outcomes in a test come from?\nA) The implementation code\nB) The page source text\nC) The existing snapshot of the current page\nD) The accepted criterion",
+      "split": "validation"
+    },
+    {
+      "evidence": "controlled-boundary assertions, traces/screenshots as applicable, mutation result, and final-gate",
+      "expected": "B",
+      "id": "validation-03",
+      "query": "Which item belongs in a successful result returned by the skill?\nA) A list of global dependencies installed\nB) Mutation result and the final-gate receipt\nC) An exploratory-only test\nD) A second gate result",
+      "split": "validation"
+    },
+    {
+      "evidence": "Use required viewports for responsive assertions and only stable project- owned visual baselines.",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "A criterion is about responsive layout. What should the test use?\nA) A single default viewport for all tests\nB) Any visual baseline that is available\nC) The required viewports and only stable project-owned visual baselines\nD) Screenshots from a local machine only",
+      "split": "validation"
+    },
+    {
+      "evidence": "Reject ambiguous or happy-path-only criteria.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "While building the coverage matrix, the agent meets a criterion that is ambiguous or covers only the happy path. What should it do?\nA) Reject it\nB) Test only the happy path\nC) Guess the missing negative path\nD) Merge it into another criterion",
+      "split": "validation"
+    },
+    {
+      "evidence": "write feedback**, call count, and controlled side effects.",
+      "expected": "D",
+      "id": "validation-06",
+      "query": "A criterion covers a valid controlled write. What should the test assert?\nA) Only that no write request occurred\nB) Only the HTTP status code\nC) Only that the form was visible\nD) Successful write feedback, call count, and controlled side effects",
+      "split": "validation"
+    },
+    {
+      "evidence": "<project-playwright-test-command> <test-path> --project <configured-browser>",
+      "expected": "A",
+      "id": "train-15",
+      "query": "The project declares chromium and firefox projects. The agent needs Firefox-only proof for the retained test. Which command form does the command table give?\nA) <project-playwright-test-command> <test-path> --project <configured-browser>\nB) <project-playwright-test-command> --project <configured-browser> <test-path>\nC) <project-playwright-test-command> <test-path> <project-trace-option>\nD) <project-playwright-test-command> --project <configured-browser>",
+      "split": "train"
+    },
+    {
+      "evidence": "Generate or update one retained project test for each uncovered criterion in the",
+      "expected": "B",
+      "id": "train-16",
+      "query": "Six accepted criteria are given. The matrix shows two are already covered exactly by existing retained tests. How many new retained tests should be generated?\nA) Six, one per criterion\nB) Four, one per uncovered criterion\nC) Two, matching the covered ones\nD) One test covering all uncovered criteria",
+      "split": "train"
+    },
+    {
+      "evidence": "Run the real flow with the project runner to discover semantic locators, states, and",
+      "expected": "C",
+      "id": "train-17",
+      "query": "In the Flow step, how does the agent discover semantic locators, states, and outcomes?\nA) Read the component source and copy its selectors\nB) Guess from CSS class names and fix them later\nC) Run the real flow with the project runner\nD) Use a global Playwright code generator outside the project",
+      "split": "train"
+    },
+    {
+      "evidence": "Run the focused project command, ensure the **single configured final",
+      "expected": "D",
+      "id": "train-18",
+      "query": "In the Verify and hand off step, what comes immediately after running the focused project command?\nA) Run the mutation check\nB) Inspect traces and screenshots\nC) Return the result to the caller\nD) Ensure the single configured final gate executes that test",
+      "split": "train"
+    },
+    {
+      "evidence": "Report the selected browser as an environment preference,",
+      "expected": "A",
+      "id": "train-19",
+      "query": "Chromium is unavailable here, so the agent ran the default with Firefox, which the project supports, and it passed. How should the selected browser be reported?\nA) As an environment preference, not a product failure\nB) As a product failure of the Chromium project\nC) As proof the Chromium and WebKit projects can be removed\nD) As an acceptance result that replaces the final gate",
+      "split": "train"
+    },
+    {
+      "evidence": "criterion, or final-gate coverage blocks generation or closure.",
+      "expected": "B",
+      "id": "train-20",
+      "query": "The new retained test passes with the focused command, but the project's single configured final gate does not execute it. What is the status?\nA) Complete, because the focused command is the proof\nB) Closure is blocked by missing final-gate coverage\nC) Complete once a second gate that runs it is added\nD) Complete once traces have been inspected",
+      "split": "train"
+    },
+    {
+      "evidence": "controlled measurement conditions. **Do not claim a Core Web Vitals pass** from a local timing or",
+      "expected": "C",
+      "id": "train-21",
+      "query": "The team approved a project-owned measurable budget for page load, but the only measurement available is a laptop run with uncontrolled background load. What does the skill allow?\nA) Generate the performance test and report a Core Web Vitals pass if under budget\nB) Generate it with a looser budget chosen by the agent\nC) Do not generate performance coverage until measurement conditions are controlled\nD) Generate it but keep only a trace as evidence",
+      "split": "train"
+    },
+    {
+      "evidence": "mentally mutate route, branch, validation, visible result,",
+      "expected": "D",
+      "id": "train-22",
+      "query": "Which list names what the agent mentally mutates when checking test integrity?\nA) route, branch, locator, visible result, and viewport\nB) route, branch, validation, timing, and side effect\nC) route, selector, validation, visible result, and clock\nD) route, branch, validation, visible result, and side effect",
+      "split": "train"
+    },
+    {
+      "evidence": "Browser-specific proof only for a configured project.",
+      "expected": "A",
+      "id": "train-23",
+      "query": "The project config declares only chromium and firefox projects. A user asks for WebKit-specific proof using --project. What follows from the command table?\nA) Not allowed, because browser-specific proof is only for a configured project\nB) Run it anyway and add webkit to the config\nC) Run it anyway and count the result as proof\nD) Replace the firefox project with webkit",
+      "split": "train"
+    },
+    {
+      "evidence": "<project-playwright-test-command> <test-path> <project-trace-option>",
+      "expected": "B",
+      "id": "train-24",
+      "query": "Which command form collects a diagnostic trace according to the command table?\nA) <project-playwright-test-command> --project <configured-browser> <project-trace-option>\nB) <project-playwright-test-command> <test-path> <project-trace-option>\nC) <project-playwright-test-command> <project-trace-option>\nD) <project-playwright-test-command> <test-path> --project <project-trace-option>",
+      "split": "train"
+    },
+    {
+      "evidence": "/playwright-test-generator <criteria> <project-root> <playwright-runner>",
+      "expected": "C",
+      "id": "train-25",
+      "query": "What is the argument order of the skill invocation?\nA) <project-root> <criteria> <playwright-runner>\nB) <criteria> <playwright-runner> <project-root>\nC) <criteria> <project-root> <playwright-runner>\nD) <playwright-runner> <criteria> <project-root>",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not create exploratory-only",
+      "expected": "D",
+      "id": "train-26",
+      "query": "The user asks for a quick throwaway test only to explore the page, with no accepted criterion to retain. What does the completion contract say?\nA) Create it and keep it as an exploratory test\nB) Create it and label it provisional\nC) Create it but exclude it from the final gate\nD) Do not create exploratory-only tests",
+      "split": "train"
+    },
+    {
+      "evidence": "**Optional:** Browser project, required viewport, responsive/performance budget, existing related",
+      "expected": "A",
+      "id": "validation-07",
+      "query": "The user supplies criteria for a login-error flow, the project root, and the runner, but no browser project, viewport, budget, or trace option. None of the criteria is about performance. What follows?\nA) Proceed, because those inputs are optional\nB) Stop, because a viewport is required\nC) Stop, because a budget is required for every test\nD) Ask for a trace option first",
+      "split": "validation"
+    },
+    {
+      "evidence": "Read manifest and Playwright configuration.",
+      "expected": "B",
+      "id": "validation-08",
+      "query": "In the command table, what is the project action for discovering ownership, and what is its required input?\nA) Run the test path; requires the test command\nB) Read manifest and Playwright configuration; requires the project root\nC) Run with --project; requires a configured browser\nD) Read the trace; requires the trace option",
+      "split": "validation"
+    },
+    {
+      "evidence": "The configured project command executing the real flow is the proof.",
+      "expected": "C",
+      "id": "validation-09",
+      "query": "Which item is named as the proof of acceptance?\nA) A screenshot of the finished page\nB) A passing mutation check alone\nC) The configured project command executing the real flow\nD) An HTTP 200 from the start command",
+      "split": "validation"
+    },
+    {
+      "evidence": "the relevant branch without a substitute.",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "Criteria include two form criteria and one performance criterion, and no project-owned budget exists. What happens?\nA) All generation stops\nB) Form tests are written and the agent invents a performance threshold\nC) Form tests are written and a performance test uses a Core Web Vitals default\nD) The performance branch stops without a substitute while the form criteria proceed",
+      "split": "validation"
+    },
+    {
+      "evidence": "viewport where material, negative/recovery paths, and the existing exact covering test. Reject",
+      "expected": "B",
+      "id": "validation-11",
+      "query": "Which set does the matrix list for each accepted criterion?\nA) Condition, action, observable outcome, source file, and final gate\nB) Condition, action, observable outcome, target viewport where material, negative/recovery paths, and the existing exact covering test\nC) Condition, action, observable outcome, viewport for every criterion, happy path only, and the existing exact covering test\nD) Condition, action, trace option, target viewport where material, negative/recovery paths, and the implementation file",
+      "split": "validation"
+    },
+    {
+      "evidence": "Prefer semantic locators and visible assertions.",
+      "expected": "A",
+      "id": "validation-12",
+      "query": "A test needs to find the Save button. What does the Assert step prefer?\nA) Semantic locators and visible assertions\nB) CSS class selectors with snapshot assertions\nC) XPath selectors with a source-text match\nD) Test IDs read from the implementation source",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "playwright-test-generator--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

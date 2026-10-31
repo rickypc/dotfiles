@@ -1,0 +1,299 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "AIDX accepts exactly `<plan-path-relative-or-absolute>` and no free-form request, plan content, or extra positional arguments.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "The user types `/aidx plans/repo/plan.md and also fix the flaky login test`. How should AIDX treat this input?\nA) It accepts exactly one plan path, with no free-form request, plan content, or extra arguments\nB) It runs the plan and then fixes the login test as a bonus\nC) It treats the extra words as plan content and appends them to the plan\nD) It asks the planner's requirements questions about the login test",
+      "split": "train"
+    },
+    {
+      "evidence": "It does not author or redesign plans, ask the planner's requirements questions, maintain a parallel state machine, or turn free-form Markdown into a shell script.",
+      "expected": "C",
+      "id": "train-02",
+      "query": "While executing, the agent thinks section 3 of the plan is badly designed and wants to restructure it. What does the role of AIDX say?\nA) Redesign the plan, then execute it\nB) Ask the user the planner's requirements questions first\nC) AIDX does not author or redesign plans; it executes the materialized plan\nD) Keep a parallel state machine with its own improved plan",
+      "split": "train"
+    },
+    {
+      "evidence": "verify that it is a regular Markdown file under `<agents-root>/plans/<repo-search-index>/`.",
+      "expected": "B",
+      "id": "train-03",
+      "query": "The supplied plan is a regular Markdown file that lives outside the agents-root plans folder for the repo index. What must AIDX do?\nA) Copy it into the plans folder and run it\nB) Reject it as an outside-tree input before mutation\nC) Run it but skip the review step\nD) Accept it because relative paths are allowed",
+      "split": "train"
+    },
+    {
+      "evidence": "after the plan passes path preflight.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "When is the engineering execution contract reference loaded?\nA) Before reading the path, to decide whether the path is safe\nB) Only after the final gate passes\nC) Never; it is for human readers only\nD) After the plan passes path preflight",
+      "split": "train"
+    },
+    {
+      "evidence": "reject a plan with prose-only workflow steps because there is no shared completion state.",
+      "expected": "A",
+      "id": "train-05",
+      "query": "The plan's CHRONOLOGICAL WORKFLOW steps are plain prose paragraphs with no checkbox items. What should AIDX do?\nA) Reject the plan, because there is no shared completion state\nB) Add the checkboxes itself and continue\nC) Keep its own separate checklist and continue\nD) Treat each paragraph as one step and continue",
+      "split": "train"
+    },
+    {
+      "evidence": "Update each exact item in place to `- [x]` after its named proof succeeds, or `- [-]` with a factual reason when the step is intentionally inapplicable.",
+      "expected": "D",
+      "id": "train-06",
+      "query": "A workflow step is intentionally inapplicable in this repository. How is it recorded?\nA) Delete the step from the plan\nB) Mark it `- [x]` so the checklist looks complete\nC) Leave it `- [ ]` and mention it in chat\nD) Update that exact item in place to `- [-]` with a factual reason",
+      "split": "train"
+    },
+    {
+      "evidence": "The review skill must run in a new, isolated child session without the parent conversation history.",
+      "expected": "B",
+      "id": "train-07",
+      "query": "A code-changing plan reaches its Review work packet. How must `/review-changes` be run?\nA) In the current session so it can see the parent conversation history\nB) In a new, isolated child session without the parent conversation history\nC) In the parent session with the transcript attached\nD) By the user, outside the workflow",
+      "split": "train"
+    },
+    {
+      "evidence": "If the reviewer asks a material question, ask the user, wait, and start a new isolated review with the complete updated packet.",
+      "expected": "C",
+      "id": "train-08",
+      "query": "The isolated reviewer asks a material question about the requirements. What does AIDX do?\nA) Answer it from its own guess and continue the same review\nB) Ignore the question and take the findings as they are\nC) Ask the user, wait, and start a new isolated review with the complete updated packet\nD) Pass the parent transcript to the reviewer so it can find the answer",
+      "split": "train"
+    },
+    {
+      "evidence": "write its checkpoint before starting the next phase: the phase name, the completed steps, the validation receipts, and the next action.",
+      "expected": "B",
+      "id": "train-09",
+      "query": "A phase's completion criteria have just passed. What must AIDX write before starting the next phase?\nA) A new plan file for the next phase\nB) A checkpoint with the phase name, completed steps, validation receipts, and next action\nC) A note listing only the files changed\nD) Nothing, until the whole plan is finished",
+      "split": "train"
+    },
+    {
+      "evidence": "continue from the last checkpoint's next action and never re-derive or silently repeat a step whose checkpoint receipt already proves it.",
+      "expected": "A",
+      "id": "train-10",
+      "query": "Execution is resumed in a fresh session after an aborted turn, and the last checkpoint already holds a receipt proving step 4. Where does AIDX continue?\nA) From the last checkpoint's next action, without repeating step 4\nB) From step 1, to be safe\nC) From step 4, repeating it to re-confirm\nD) It re-derives the whole plan state from scratch",
+      "split": "train"
+    },
+    {
+      "evidence": "Every modification is followed by its focused check before the next modification begins",
+      "expected": "D",
+      "id": "train-11",
+      "query": "AIDX has just made one modification and the next modification is ready. What is the rule?\nA) Make several modifications first, then check them together\nB) Check only at the end of the phase\nC) Skip the check if the change was small\nD) Run the focused check on the modification before the next modification begins",
+      "split": "train"
+    },
+    {
+      "evidence": "stop before mutation and report the exact failure; do not guess.",
+      "expected": "C",
+      "id": "train-12",
+      "query": "A required input in the plan is ambiguous and cannot be verified. What does AIDX do?\nA) Choose the most plausible value and continue\nB) Continue and flag the guess in the final report\nC) Stop before mutation and report the exact failure, without guessing\nD) Ask the planner's requirements questions and rewrite the plan",
+      "split": "train"
+    },
+    {
+      "evidence": "If a proof fails, preserve the plan and work, report the target and observed result, and do not claim success.",
+      "expected": "B",
+      "id": "train-13",
+      "query": "A step's proof fails when AIDX checks it. What should AIDX do?\nA) Edit the plan so that the proof passes\nB) Preserve the plan and work, report the target and observed result, and not claim success\nC) Mark the step `- [x]` and report a limitation\nD) Discard the work done so far and start over",
+      "split": "train"
+    },
+    {
+      "evidence": "never reuse `aidp-plan-validator.ts`, which requires an unchecked pending plan and rejects a completed closeout.",
+      "expected": "A",
+      "id": "train-14",
+      "query": "Which command validates the completed plan during closeout?\nA) `bun <agents-root>/scripts/aidx-completed-plan-validator.ts <absolute-plan-path>`\nB) `bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>`\nC) `bun <agents-root>/scripts/sanitize-hidden.ts .`\nD) `bun run test`",
+      "split": "train"
+    },
+    {
+      "evidence": "invoke `/knowledge-base import-plan <plan-path> --remove-source`.",
+      "expected": "C",
+      "id": "train-15",
+      "query": "A completed plan holds verified, reusable lessons that the private KB does not yet have. How is it retired?\nA) Move it to `~/.Trash/` without importing it\nB) Leave it in the plans folder for later\nC) Invoke `/knowledge-base import-plan <plan-path> --remove-source`\nD) Delete it with `rm` after copying the lessons by hand",
+      "split": "train"
+    },
+    {
+      "evidence": "files change only with `--write`, which MUST NOT be passed without reviewing a dry-run of the exact same scope first",
+      "expected": "D",
+      "id": "train-16",
+      "query": "The sanitizer command `bun <agents-root>/scripts/sanitize-hidden.ts .` is run with no extra flags. What does it do, and when may `--write` be added?\nA) It rewrites files in place; `--write` only makes it faster\nB) It rewrites files; `--write` may be added at any time\nC) It only previews, and `--write` may be added without a prior preview\nD) It only previews; `--write` must not be passed without reviewing a dry-run of the exact same scope first",
+      "split": "train"
+    },
+    {
+      "evidence": "Skip this handoff when the plan contains no code changes.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "A plan contains no code changes. What happens with the `/review-changes` handoff?\nA) It still runs in an isolated child session\nB) It is skipped\nC) It runs in the parent session instead\nD) It runs only after the final gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "record that disposition and move the source plan to `~/.Trash/` without importing it.",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "A completed plan is obsolete and holds no durable verified knowledge. What is the retirement?\nA) Import it into the KB with `--remove-source` anyway\nB) Delete it with `rm`\nC) Leave it where it is\nD) Record the disposition and move the source plan to `~/.Trash/` without importing it",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never pass `--remove-source` to a plan whose `status` frontmatter is not `completed`",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "A plan's `status` frontmatter is still `pending`. May AIDX pass `--remove-source` to the importer?\nA) No, never pass `--remove-source` to a plan whose status is not `completed`\nB) Yes, because the importer checks completion itself\nC) Yes, if the plan has no unchecked items\nD) Yes, as long as the KB write succeeds",
+      "split": "validation"
+    },
+    {
+      "evidence": "a missing `retiredTo` in the closeout is an unfinished retirement, not a soft option.",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "The importer ran, but the closeout output does not name a `retiredTo` path. How does the document describe this?\nA) An acceptable soft option\nB) A finished retirement with a small omission\nC) An unfinished retirement\nD) A reason to remove the source plan by hand",
+      "split": "validation"
+    },
+    {
+      "evidence": "once, immediately before the final gate - after every implementation and focused check, never on the gate itself.",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "When should the hidden-character sanitizer run relative to the final gate?\nA) On the gate itself, as part of it\nB) Once, immediately before the final gate, after every implementation and focused check\nC) After the final gate passes\nD) Before the first implementation step",
+      "split": "validation"
+    },
+    {
+      "evidence": "The packet is executable repair evidence, not display-only output or a user handoff.",
+      "expected": "C",
+      "id": "validation-06",
+      "query": "The final gate returns a non-blocked action packet. How does AIDX treat it?\nA) As display-only output to show the user\nB) As a user handoff to apply manually\nC) As executable repair evidence: apply it through the owner's route, verify only allowedPaths changed, and rerun the identical gate\nD) As optional advice it may ignore",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not add an unrequested abstraction, factory, configuration surface, boilerplate, or scaffolding for later.",
+      "expected": "A",
+      "id": "validation-07",
+      "query": "While implementing, the agent wants to add a factory and a new configuration surface for possible later use. What does the minimal-implementation discipline say?\nA) Do not add an unrequested abstraction, factory, configuration surface, boilerplate, or scaffolding for later\nB) Add them, since they make later changes cheaper\nC) Add them only if the plan is long\nD) Add them but keep them undocumented",
+      "split": "validation"
+    },
+    {
+      "evidence": "Then stop at the first sufficient route: remove unnecessary work, reuse an existing helper or type, use the standard library",
+      "expected": "A",
+      "id": "train-17",
+      "query": "A plan needs a config value parsed. An existing helper in the repository already parses it correctly, and the standard library could also do it. Under the minimal-implementation discipline, which route does AIDX take?\nA) Reuse the existing helper\nB) Use the standard library parser\nC) Add a new dependency that parses it\nD) Write the smallest custom parser",
+      "split": "train"
+    },
+    {
+      "evidence": "Every non-trivial branch, loop, parser, money path, or security path leaves at least one focused runnable proof through the plan's verification contract.",
+      "expected": "B",
+      "id": "train-18",
+      "query": "The plan adds a function that rounds money amounts. What proof must this money path leave?\nA) A code review comment from the reviewer is enough\nB) At least one focused runnable proof through the plan's verification contract\nC) A coverage percentage for the file\nD) A manual read of the code by the Quality owner",
+      "split": "train"
+    },
+    {
+      "evidence": "Pass the full diff, the complete requirements source, repository guidance, language/version evidence, and minimum nearby code context. Do not pass the parent transcript.",
+      "expected": "C",
+      "id": "train-19",
+      "query": "AIDX starts the isolated `/review-changes` session for a code-changing plan. Which packet is correct?\nA) Full diff, requirements source, repository guidance, language/version evidence, and the parent transcript\nB) Full diff and requirements source only\nC) Full diff, complete requirements source, repository guidance, language/version evidence, and minimum nearby code context\nD) A summary of the diff, requirements source, repository guidance, language/version evidence, and nearby code context",
+      "split": "train"
+    },
+    {
+      "evidence": "Use Section 4 only when its stated primary path is empty or fails, and retain the fallback result.",
+      "expected": "D",
+      "id": "train-20",
+      "query": "A step's primary path returned a correct, non-empty result. The plan also lists a fallback that looks faster. What does AIDX do?\nA) Switch to the fallback and keep its result\nB) Run both and keep whichever finishes first\nC) Run the fallback too and compare the results\nD) Keep the primary result and do not use the fallback",
+      "split": "train"
+    },
+    {
+      "evidence": "A minor path omission may be resolved from unambiguous local context; a material omission, scope change, unsafe action, or missing owner stops execution.",
+      "expected": "A",
+      "id": "train-21",
+      "query": "One workflow step names `config.ts` without a directory, and only one `config.ts` exists locally. A different step does not say which database to migrate. What does AIDX do?\nA) Resolve the file from local context, and stop for the database\nB) Stop for both omissions\nC) Resolve both from local context\nD) Stop for the file, and pick the most likely database",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not skip, reorder, batch, or silently broaden steps.",
+      "expected": "B",
+      "id": "train-22",
+      "query": "Steps 3 and 4 of the plan are small and independent. AIDX wants to save time. What is allowed?\nA) Run them together, then run both proofs\nB) Finish step 3 and its proof, then start step 4; do not batch\nC) Run step 4 first if it is shorter\nD) Run them together only when no fallback is involved",
+      "split": "train"
+    },
+    {
+      "evidence": "failing test, smallest implementation, green focused and relevant checks, then refactor only while green.",
+      "expected": "C",
+      "id": "train-23",
+      "query": "The plan changes behavior. Which order does AIDX use?\nA) Smallest implementation, failing test, green checks, then refactor\nB) Failing test, smallest implementation, refactor, then green checks\nC) Failing test, smallest implementation, green focused and relevant checks, then refactor only while green\nD) Failing test, smallest implementation, then refactor even if checks are red",
+      "split": "train"
+    },
+    {
+      "evidence": "follow its explicit `/bun-test-generator`, boundary-validation, and `/biome-checker` route before editing",
+      "expected": "D",
+      "id": "train-24",
+      "query": "The plan changes TypeScript tests. When does AIDX follow the test-generator route?\nA) Only after the tests are edited, to validate them\nB) Edit first, then run `/biome-checker` only\nC) Only when browser coverage is retained\nD) Before editing, following the explicit `/bun-test-generator`, boundary-validation, and `/biome-checker` route",
+      "split": "train"
+    },
+    {
+      "evidence": "If AIDX cannot write or validate this closeout, it must stop and must not distill or remove the plan.",
+      "expected": "A",
+      "id": "train-25",
+      "query": "The completed-plan validator fails. The plan holds verified reusable lessons. What does AIDX do?\nA) Stop; do not distill or remove the plan\nB) Run the KB import with `--remove-source` anyway\nC) Import without `--remove-source`, then fix the closeout\nD) Move the plan to `~/.Trash/` without importing it",
+      "split": "train"
+    },
+    {
+      "evidence": "Never remove the source yourself after the importer has already done it via the flag.",
+      "expected": "B",
+      "id": "train-26",
+      "query": "The importer ran with `--remove-source` and returned a `retiredTo` path. What does AIDX do with the source plan?\nA) Move it to `~/.Trash/` itself to be sure\nB) Nothing more to the source; it names the `retiredTo` path in the closeout\nC) Delete it with `rm`\nD) Run the importer again without the flag",
+      "split": "train"
+    },
+    {
+      "evidence": "a material concern is a stop, not permission to invent a repair.",
+      "expected": "C",
+      "id": "train-27",
+      "query": "Before starting, AIDX reads the plan and finds that one step's target conflicts with a listed exclusion. This is a material concern. What does AIDX do?\nA) Invent the smallest repair and continue\nB) Continue and record the conflict in limitations\nC) Stop and report the concern; do not invent a repair\nD) Silently skip that step and run the others",
+      "split": "train"
+    },
+    {
+      "evidence": "Execute Section 3 in order: ingest and verify, then process and transform, then synthesize.",
+      "expected": "D",
+      "id": "train-28",
+      "query": "AIDX has three actions: synthesize the report, ingest and verify the source, and process and transform the data. In which order does it execute them?\nA) Synthesize, ingest and verify, then process and transform\nB) Process and transform, ingest and verify, then synthesize\nC) Ingest and verify, synthesize, then process and transform\nD) Ingest and verify, then process and transform, then synthesize",
+      "split": "train"
+    },
+    {
+      "evidence": "Reject missing, directory, traversal, symlink-escaping, outside-tree, wrong-index, malformed, or duplicate-section inputs before mutation.",
+      "expected": "B",
+      "id": "validation-08",
+      "query": "The supplied path sits under `<agents-root>/plans/<repo-search-index>/`, but it is a symlink that resolves to a file outside that tree. What does AIDX do?\nA) Accept it because the path text is inside the tree\nB) Reject it before mutation\nC) Copy the target into the tree and use the copy\nD) Read it but do not mutate anything",
+      "split": "validation"
+    },
+    {
+      "evidence": "`/review-changes` is read-only and does not replace the plan's required validation.",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "The isolated `/review-changes` run returns no findings. The plan has its own validation steps. What does AIDX do?\nA) Still runs the plan's required validation\nB) Skips the plan's validation because the review passed\nC) Runs only the validation steps that touch changed files\nD) Asks the reviewer to run the plan's validation",
+      "split": "validation"
+    },
+    {
+      "evidence": "resumed execution still ends with the completed-plan closeout and validation.",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "A session resumed from the last checkpoint and finished all remaining steps. What about closeout?\nA) Skipped, because a checkpoint already holds receipts\nB) Optional once every step is marked done\nC) Only the sanitizer is needed\nD) Execution still ends with the completed-plan closeout and validation",
+      "split": "validation"
+    },
+    {
+      "evidence": "then re-diff so any sanitized line is part of the same closeout batch.",
+      "expected": "C",
+      "id": "validation-11",
+      "query": "AIDX just ran the sanitizer with `--write` after reviewing the dry run. What comes next?\nA) Run the final gate without checking anything\nB) Run `--write` again to confirm it is stable\nC) Re-diff so any sanitized line is part of the same closeout batch\nD) Undo the write pass if it changed files",
+      "split": "validation"
+    },
+    {
+      "evidence": "apply its required actions through the named owner's explicit apply route, verify that only `allowedPaths` changed, and rerun the identical gate.",
+      "expected": "B",
+      "id": "validation-12",
+      "query": "The final gate returned a safe non-blocked action packet. AIDX applied it through the owner's apply route and confirmed only `allowedPaths` changed. What next?\nA) Run a narrower subset of the gate\nB) Rerun the identical gate\nC) Stop and hand the packet result to the user\nD) Close out without rerunning the gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "the current checklist, receipts, acceptance mapping, and final gate must all prove the terminal state.",
+      "expected": "A",
+      "id": "validation-13",
+      "query": "A plan's frontmatter still says `status: pending`. What proves the terminal state?\nA) The current checklist, receipts, acceptance mapping, and final gate together\nB) The frontmatter `status` field alone\nC) The `status` field plus the checklist\nD) A green final gate alone",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidx--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

@@ -1,0 +1,117 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "both pass before the skill is accepted. This matrix does not replace repository tests,",
+      "expected": "A",
+      "id": "train-01",
+      "query": "An evaluation run of the frontend-design skill passes every candidate case but one challenge case fails. What is the result?\nA) The skill is not accepted, because both candidate and challenge cases must pass\nB) The skill is accepted, because most cases passed\nC) The skill is accepted if the candidate cases are enough\nD) The skill is accepted once the failed case is rerun one time",
+      "split": "train"
+    },
+    {
+      "evidence": "both pass before the skill is accepted. This matrix does not replace repository tests,",
+      "expected": "C",
+      "id": "train-02",
+      "query": "A team says the evaluation matrix passed, so the project final gate and accessibility proof can be skipped. What does the rubric say?\nA) Skipping is fine when the matrix passes\nB) Only the final gate can be skipped\nC) The matrix does not replace repository tests, implementation review, accessibility proof, or the final gate\nD) The matrix replaces repository tests but not the final gate",
+      "split": "train"
+    },
+    {
+      "evidence": "the recipe names focused questioning, alternatives, trade-offs, and a recommendation; the",
+      "expected": "B",
+      "id": "train-03",
+      "query": "For discovery behavior, the rubric separates a positive design recipe from a discipline boundary. Which pair is described correctly?\nA) The recipe prevents implementation handoff; the boundary names focused questioning and alternatives\nB) The recipe names focused questioning, alternatives, trade-offs, and a recommendation; the boundary prevents handoff before review and approval\nC) The recipe picks the visual style; the boundary lists the colors allowed\nD) The recipe allows implementation early; the boundary asks for more screenshots",
+      "split": "train"
+    },
+    {
+      "evidence": "boundary prevents implementation handoff before review and approval. Do not accept attractive visual",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A design write-up has very attractive visual prose, but some requirements are still unresolved. How should the evaluation treat it?\nA) Accept it, since good prose shows the work is done\nB) Accept it if it is long enough\nC) Accept it if the user likes it\nD) Not accept the prose as evidence that unresolved requirements were handled",
+      "split": "train"
+    },
+    {
+      "evidence": "Grounded-design cases must also preserve a current-only baseline, a reusable design context, and",
+      "expected": "A",
+      "id": "train-05",
+      "query": "Which three things must grounded-design cases preserve?\nA) A current-only baseline, a reusable design context, and explicit iteration routing\nB) A proposed-changes baseline, a color palette, and a logo\nC) A new workflow, implementation authority, and a test suite\nD) A brand name, a page count, and a deadline",
+      "split": "train"
+    },
+    {
+      "evidence": "explicit iteration routing: branch genuinely different directions, then revise the selected",
+      "expected": "C",
+      "id": "train-06",
+      "query": "During iteration, the user picks one design direction and then gives feedback on it. What does the rubric expect?\nA) Branch a new parallel variant for every piece of feedback\nB) Discard the chosen direction and start over\nC) Revise the selected direction in place while preserving its rationale\nD) Hand it to implementation without revising",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "According to the rubric header, which visibility values must the cases cover?\nA) public and private\nB) candidate and challenge\nC) visible and hidden\nD) train and validation",
+      "split": "validation"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "What minimum pass rate does the rubric require?\nA) 0.5\nB) 0.75\nC) 0.9\nD) 1, meaning every case must pass",
+      "split": "validation"
+    },
+    {
+      "evidence": "canonical matrix checks each heading and challenges brittle",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "What does the canonical matrix check about the shared seven-part skill contract?\nA) It checks each heading and challenges brittle exact-output or robotic-persona language\nB) It checks only the word count of each section\nC) It requires exact-output wording in every section\nD) It requires a robotic persona for the skill",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "B",
+      "id": "train-07",
+      "query": "Which list is the exact requiredCaseFields in the rubric header?\nA) [id, visibility, scenario, assertions, failureMode, independentVerifier]\nB) [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]\nC) [id, visibility, scenario, assertions, repairBoundary, independentVerifier]\nD) [id, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "split": "train"
+    },
+    {
+      "evidence": "role and scope, usage, immutable operational rules, input and context schema, ordered execution chain, output and completion contract, and evaluation anchors.",
+      "expected": "A",
+      "id": "train-08",
+      "query": "Which is the correct order of the seven-part skill contract?\nA) Role and scope, usage, immutable operational rules, input and context schema, ordered execution chain, output and completion contract, evaluation anchors\nB) Role and scope, immutable operational rules, usage, input and context schema, ordered execution chain, output and completion contract, evaluation anchors\nC) Usage, role and scope, immutable operational rules, input and context schema, ordered execution chain, output and completion contract, evaluation anchors\nD) Role and scope, usage, immutable operational rules, input and context schema, output and completion contract, ordered execution chain, evaluation anchors",
+      "split": "train"
+    },
+    {
+      "evidence": "uncertainty, ownership, and proof boundary",
+      "expected": "C",
+      "id": "train-09",
+      "query": "What must the seven-part contract remain compatible with, according to the rubric?\nA) The skill's visual taste, ownership, and word count\nB) The skill's uncertainty, speed, and proof boundary\nC) The skill's uncertainty, ownership, and proof boundary\nD) The skill's persona, ownership, and exact-output format",
+      "split": "train"
+    },
+    {
+      "evidence": "without introducing a separate workflow or implementation authority.",
+      "expected": "D",
+      "id": "train-10",
+      "query": "Someone says the grounded-design additions create a separate workflow that gives the skill implementation authority. What does the rubric say?\nA) That is intended, because the additions give implementation authority\nB) That is intended, as a separate workflow for iteration\nC) The additions replace the discovery recipe\nD) The additions support reusable visual judgment without a separate workflow or implementation authority",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "Which verifier id does the rubric header list?\nA) independent-verifier\nB) candidate-check\nC) source-structure\nD) final-gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "What schemaVersion does the rubric header declare?\nA) 0\nB) 1\nC) 2\nD) It declares none",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "frontend-design--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

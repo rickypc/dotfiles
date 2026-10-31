@@ -1,7 +1,7 @@
 ---
 
 name: playwright-test-generator
-description: Generate and retain project-local Playwright browser regression tests from accepted user-facing web criteria. Use when a web UI, browser workflow, responsive layout, or explicitly budgeted browser-performance behavior needs durable automated coverage.
+description: Generate and retain project-local Playwright browser regression tests from accepted user-facing web criteria. Use when a web UI, browser workflow, responsive layout, or explicitly budgeted browser-performance behavior needs durable automated coverage. Use it to write or extend retained browser tests, not to review, run, or debug existing tests and not for unit tests.
 argument-hint: <criteria> <project-root> <playwright-runner>
 ---
 

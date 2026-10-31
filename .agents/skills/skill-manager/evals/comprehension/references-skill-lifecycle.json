@@ -1,0 +1,131 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Ask only questions whose answers change the trigger, scope, ownership, safety, or validation boundary.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "While understanding a skill request, the agent has many open questions. Which questions should it ask the user?\nA) Only those whose answers change the trigger, scope, ownership, safety, or validation boundary\nB) Every question it can think of, to be safe\nC) None; it should always guess a default\nD) Only questions about the preferred file names",
+      "split": "train"
+    },
+    {
+      "evidence": "`references/` for branch-specific knowledge, templates, schemas, and maps;",
+      "expected": "C",
+      "id": "train-02",
+      "query": "A skill needs a template and a schema used only by one branch. Where do they belong?\nA) Inline in SKILL.md\nB) In `assets/`\nC) In `references/`\nD) In `scripts/`",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not add README, changelog, installation, or historical-review files merely to explain how the skill was built.",
+      "expected": "B",
+      "id": "train-03",
+      "query": "An author wants to add a changelog and a README explaining how the new skill was built. What does the method say?\nA) Add both, since documentation helps reviewers\nB) Do not add them merely to explain how the skill was built\nC) Add a README but not a changelog\nD) Add them only in the references folder",
+      "split": "train"
+    },
+    {
+      "evidence": "run the Skill Manager `init` command and then replace its placeholder body with the real contract.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "An agent is creating a brand-new skill package. What is the first action named by the method?\nA) Copy a neighboring skill's router\nB) Write the full body by hand from scratch\nC) Run the matrix baseline\nD) Run the Skill Manager `init` command, then replace its placeholder body with the real contract",
+      "split": "train"
+    },
+    {
+      "evidence": "Run challenge cases only after every candidate case passes, using the same candidate source and matrix fingerprint.",
+      "expected": "C",
+      "id": "train-05",
+      "query": "Candidate cases and challenge cases both exist in the frozen matrix. When may challenge cases be run?\nA) Before any candidate case, to find weaknesses early\nB) At the same time as the baseline\nC) Only after every candidate case passes, using the same candidate source and matrix fingerprint\nD) Whenever the author has spare time",
+      "split": "train"
+    },
+    {
+      "evidence": "Use placeholders such as `<project>`, `<coding-assistant>`, and `<agents-root>` in reusable guidance.",
+      "expected": "A",
+      "id": "train-06",
+      "query": "Reusable skill guidance must mention a project folder and the assistant's folder. How should it name them?\nA) With placeholders such as `<project>` and `<coding-assistant>`\nB) With the concrete path from the author's machine\nC) With relative paths starting at the home directory\nD) With the project's repository name",
+      "split": "train"
+    },
+    {
+      "evidence": "keep an edit only when the gate returns `accepted`, otherwise restore the baseline snapshot.",
+      "expected": "B",
+      "id": "train-07",
+      "query": "A training edit to a skill is measured and the gate does not return `accepted`. What does the method require?\nA) Keep the edit and try again later\nB) Restore the baseline snapshot\nC) Edit the ledger to mark it accepted\nD) Keep the edit but lower the threshold",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not weaken the matrix after seeing a failure, reuse a receipt from another source or matrix, or treat a score or measurement as closure evidence.",
+      "expected": "D",
+      "id": "validation-01",
+      "query": "A challenge case fails after the candidate looked good. The author considers changing the matrix so it passes. What does the method say?\nA) Weaken the matrix once, then record the reason\nB) Reuse a receipt from the earlier source\nC) Treat the measurement score as closure evidence\nD) Do not weaken the matrix after seeing a failure",
+      "split": "validation"
+    },
+    {
+      "evidence": "Supply raw artifacts, not the intended answer.",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "A complex skill is forward-tested from a clean context. What should the tester supply?\nA) Raw artifacts, not the intended answer\nB) The intended answer with the artifacts\nC) A summary of how the skill was authored\nD) Only the skill's description",
+      "split": "validation"
+    },
+    {
+      "evidence": "Treat inconsistent outputs across replications as a wording defect requiring a tighter form, not as permission to add untested prose.",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "Replicated runs of the same case give inconsistent outputs. How does the method treat this?\nA) As normal noise to ignore\nB) As permission to add extra prose that was not tested\nC) As a wording defect requiring a tighter form\nD) As proof the model is broken",
+      "split": "validation"
+    },
+    {
+      "evidence": "Capture a durable lesson only when it is specific, verified, and owned by the knowledge base",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "At closeout, the agent wants to store the raw prompts and a generic success note as a lesson. What does the method allow?\nA) Store both in the knowledge base\nB) Capture a lesson only when it is specific, verified, and owned by the knowledge base\nC) Store raw prompts but skip the success note\nD) Store the evaluation noise for later study",
+      "split": "validation"
+    },
+    {
+      "evidence": "use positive structural contracts for wrong-shaped output or omissions;",
+      "expected": "B",
+      "id": "train-08",
+      "query": "A baseline run shows a skill produces output with the wrong shape. Which test form does the method choose?\nA) Bright-line counters and red flags.\nB) Positive structural contracts.\nC) Explicit predicate/action pairs.\nD) Pressure tests with 5+ samples.",
+      "split": "train"
+    },
+    {
+      "evidence": "template echoes and quoted counterexamples are not behavioral failures.",
+      "expected": "D",
+      "id": "train-09",
+      "query": "While reviewing flagged outputs, the agent sees one output that only echoes the template text and another that quotes a counterexample. How does the method treat them?\nA) Both are behavioral failures.\nB) The template echo is a failure; the quoted counterexample is not.\nC) The quoted counterexample is a failure; the template echo is not.\nD) Neither is a behavioral failure.",
+      "split": "train"
+    },
+    {
+      "evidence": "`assets/` for files consumed by the skill's output, not instructions.",
+      "expected": "A",
+      "id": "train-10",
+      "query": "A skill's output embeds a logo image that the skill ships with. Which bundled resource directory holds it?\nA) assets/\nB) references/\nC) scripts/\nD) index.md",
+      "split": "train"
+    },
+    {
+      "evidence": "make the smallest compatible edit and update all in-scope links, maps, tests, and consumers in the same change.",
+      "expected": "C",
+      "id": "train-11",
+      "query": "The agent is updating an existing skill package. Besides the smallest compatible edit, what must change in the same change?\nA) Nothing else; links and maps are fixed in a later change.\nB) Only the tests.\nC) All in-scope links, maps, tests, and consumers.\nD) Only the frontmatter description.",
+      "split": "train"
+    },
+    {
+      "evidence": "pressure-test with a no-guidance control, at least three combined pressures, 5+ samples where supported, manual review, and variance tracking.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "A discipline skill is being pressure-tested. Which setup meets the method?\nA) A no-guidance control, at least three combined pressures, and 5+ samples where supported.\nB) A no-guidance control, one pressure at a time, and 5+ samples.\nC) A no-guidance control, three combined pressures, and a single sample.\nD) Guidance-only runs, three combined pressures, and 5+ samples.",
+      "split": "validation"
+    },
+    {
+      "evidence": "inspect neighboring skills for conventions but do not copy their unrelated routers or provider metadata.",
+      "expected": "D",
+      "id": "validation-06",
+      "query": "An agent creating a new skill inspects a neighboring skill that has its own router and provider metadata. What does the method allow?\nA) Copy the neighbor's router so the skills match.\nB) Copy only the provider metadata.\nC) Do not inspect neighboring skills at all.\nD) Take conventions from it but do not copy its unrelated routers or provider metadata.",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--references-skill-lifecycle",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/skill-lifecycle.md"
+}

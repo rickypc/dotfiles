@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "A",
+      "id": "train-01",
+      "query": "According to the rubric, what pass rate must the evaluation cases reach?\nA) Every case must pass (minimumPassRate is 1)\nB) At least half of the cases\nC) At least 90 percent of the cases\nD) Only the candidate cases must pass",
+      "split": "train"
+    },
+    {
+      "evidence": "Candidate and challenge cases must",
+      "expected": "C",
+      "id": "train-02",
+      "query": "An evaluator has run only the candidate cases and all of them passed. Under the rubric, what is the status of the skill?\nA) Accepted, because candidate cases are the main ones\nB) Accepted after one challenge case passes\nC) Not yet accepted, because candidate and challenge cases must both pass\nD) Accepted, because challenge cases are optional",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "B",
+      "id": "train-03",
+      "query": "Which two visibility values must the cases use according to the rubric?\nA) public and private\nB) candidate and challenge\nC) canonical and boundary\nD) train and validation",
+      "split": "train"
+    },
+    {
+      "evidence": "execution, test review, or the project final gate. Also verify that each retained test names a",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A team says the rubric matrix passing means the project browser tests and the project final gate can be skipped. What does the rubric say?\nA) That is correct, the matrix replaces them\nB) The matrix replaces only the final gate\nC) The matrix replaces only the test review\nD) The matrix does not replace project-owned browser execution, test review, or the project final gate",
+      "split": "train"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable",
+      "expected": "B",
+      "id": "train-05",
+      "query": "The rubric says the package conforms to a shared contract. How many parts does that contract have?\nA) Five parts\nB) Seven parts\nC) Six parts\nD) Three parts",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "Which field must every case contain according to requiredCaseFields?\nA) author\nB) timestamp\nC) independentVerifier\nD) browserName",
+      "split": "validation"
+    },
+    {
+      "evidence": "user-visible break, exercises the real flow, asserts rejection and recovery behavior where",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "In addition to the matrix, the rubric says to verify that each retained test names something. What must it name?\nA) A user-visible break\nB) The author of the test\nC) The browser version\nD) The source file line count",
+      "split": "validation"
+    },
+    {
+      "evidence": "exact-output or robotic-persona language; the contract must remain compatible with this skill's",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "What kind of language does the canonical matrix challenge in the skill contract?\nA) Language that mentions Playwright\nB) Language that uses headings\nC) Language that names a project root\nD) Brittle exact-output or robotic-persona language",
+      "split": "validation"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "C",
+      "id": "train-06",
+      "query": "Which pair of frontmatter values does the rubric declare?\nA) schemaVersion 2 and verifierIds [source-structure]\nB) schemaVersion 1 and verifierIds [final-gate]\nC) schemaVersion 1 and verifierIds [source-structure]\nD) schemaVersion 1 and verifierIds [source-structure, browser-run]",
+      "split": "train"
+    },
+    {
+      "evidence": "Each case checks a deterministic contract in the skill source.",
+      "expected": "B",
+      "id": "train-07",
+      "query": "What does each rubric case check?\nA) The live behavior of the application in a real browser\nB) A deterministic contract in the skill source\nC) The wall-clock speed of the browser project\nD) The wording of the user's original request",
+      "split": "train"
+    },
+    {
+      "evidence": "applicable, controls side-effect boundaries, and catches realistic mutations.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "Besides the matrix, which list matches what the rubric says each retained test must do?\nA) Name a user-visible break, exercise a mocked flow, assert recovery, control side-effect boundaries, catch realistic mutations\nB) Name a user-visible break, exercise the real flow, assert rejection and recovery everywhere, skip side-effect boundaries, catch realistic mutations\nC) Name an implementation break, exercise the real flow, assert rejection and recovery where applicable, control side-effect boundaries, catch realistic mutations\nD) Name a user-visible break, exercise the real flow, assert rejection and recovery where applicable, control side-effect boundaries, catch realistic mutations",
+      "split": "train"
+    },
+    {
+      "evidence": "asserts rejection and recovery behavior where",
+      "expected": "A",
+      "id": "train-09",
+      "query": "A retained test covers a criterion that has no invalid-input path. Under the rubric, when must a test assert rejection and recovery behavior?\nA) Where applicable\nB) Never, only the matrix checks it\nC) Always, for every test\nD) Only for challenge cases",
+      "split": "train"
+    },
+    {
+      "evidence": "shared seven-part skill contract: role and scope, usage, immutable",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "In the shared seven-part skill contract, which part comes immediately after usage?\nA) role and scope\nB) immutable operational rules\nC) input and context schema\nD) ordered execution chain",
+      "split": "validation"
+    },
+    {
+      "evidence": "evaluation anchors. The canonical matrix checks each heading and challenges brittle",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "What does the canonical matrix do with the contract headings and wording?\nA) It checks only the first heading and challenges missing personas\nB) It checks each heading and requires exact-output wording\nC) It checks each heading and challenges wording only when asked\nD) It checks each heading and challenges brittle exact-output or robotic-persona language",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "playwright-test-generator--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

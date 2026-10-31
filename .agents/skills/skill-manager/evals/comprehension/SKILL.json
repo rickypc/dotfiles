@@ -1,0 +1,334 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Apply the seven-section contract only to Agent Skill `SKILL.md` files; do not force instruction files into the skill template.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "The user asks Skill Manager to update an `AGENTS.md` instruction file. How should the agent treat the file's format?\nA) Keep its existing format; apply the seven-section contract only to Agent Skill `SKILL.md` files\nB) Rewrite it into the seven-section skill template\nC) Split it into a SKILL.md and a reference\nD) Convert it to a table-only format",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not use it to install, run, or invoke a skill from a catalog.",
+      "expected": "B",
+      "id": "train-02",
+      "query": "The user types: run the pdf skill from the catalog on this file. Should the agent use Skill Manager?\nA) Yes, Skill Manager invokes skills\nB) No; the description says not to use it to install, run, or invoke a skill from a catalog\nC) Yes, but only for validation\nD) Yes, if the skill is global",
+      "split": "train"
+    },
+    {
+      "evidence": "/skill-manager instructions <file-path> <operation>",
+      "expected": "C",
+      "id": "train-03",
+      "query": "Which Usage line maintains one instruction document?\nA) /skill-manager init <file-path> <operation>\nB) /skill-manager review <file-path> <operation>\nC) /skill-manager instructions <file-path> <operation>\nD) /skill-manager validate <file-path> <operation>",
+      "split": "train"
+    },
+    {
+      "evidence": "`<operation>` is `create`, `update`, `review`, `rename`, `synchronize`, `optimize`, `validate`, or `repair`.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "For the `instructions` route, which operation value is accepted?\nA) delete\nB) publish\nC) install\nD) synchronize",
+      "split": "train"
+    },
+    {
+      "evidence": "`<phase>` is `baseline`, `candidate`, or `challenge`; batch evaluation accepts `baseline` or `candidate`.",
+      "expected": "A",
+      "id": "train-05",
+      "query": "The agent runs `batch` evaluation. Which phases may it use?\nA) `baseline` or `candidate` only\nB) `baseline`, `candidate`, or `challenge`\nC) `challenge` only\nD) Any phase the matrix names",
+      "split": "train"
+    },
+    {
+      "evidence": "take `<previous>` from `git show HEAD:<path>` written under the OS temp directory.",
+      "expected": "B",
+      "id": "train-06",
+      "query": "For `ratchet`, where should `<previous>` come from?\nA) The newest uncommitted working copy\nB) `git show HEAD:<path>` written under the OS temp directory\nC) A backup the agent saved beside the file\nD) The ledger snapshot folder",
+      "split": "train"
+    },
+    {
+      "evidence": "An `AGENTS*.md` filename alone does not prove that the file is active.",
+      "expected": "C",
+      "id": "train-07",
+      "query": "The agent finds a file named AGENTS.md in a subfolder and wants to edit it as the active policy. What does the rule say?\nA) The filename proves it is active\nB) Edit it, then check later whether it was active\nC) The filename alone does not prove it is active; resolve the active chain from runtime and repository evidence\nD) Ask the user to rename it first",
+      "split": "train"
+    },
+    {
+      "evidence": "Never edit protected `.agents` configuration files such as `.gitignore`, `biome.jsonc`, `bunfig.toml`, `LICENSE`, `NOTICE`, `package.json`, or `tsconfig.json`.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "A skill review would be easier if the agent added a script entry to the `.agents` package.json. What does the rule say?\nA) Edit it with a Markdown transaction\nB) Edit it if the change is small\nC) Edit it after taking a backup\nD) Never edit protected `.agents` configuration files such as package.json",
+      "split": "train"
+    },
+    {
+      "evidence": "For no-edit Markdown passes, use `/md-compress guard <absolute-markdown-path>`. The guard returns `guarded`; require that receipt before continuing.",
+      "expected": "A",
+      "id": "train-09",
+      "query": "The agent reads a Markdown file in the review set and will not edit it. Which command applies, and what receipt must it require?\nA) `/md-compress guard <absolute-markdown-path>` and the `guarded` receipt\nB) `/md-compress begin <absolute-markdown-path>` and the `done` receipt\nC) `/md-compress finalize <absolute-markdown-path>` and the `guarded` receipt\nD) No command is needed for read-only passes",
+      "split": "train"
+    },
+    {
+      "evidence": "Never manually alter or discard its backup or lock, or start a replacement transaction for that source.",
+      "expected": "B",
+      "id": "train-10",
+      "query": "A `/md-compress finalize` call fails. What must the agent do with the backup and lock?\nA) Delete them and start a replacement transaction\nB) Preserve them and never manually alter or discard them or start a replacement transaction\nC) Edit the backup by hand to match the source\nD) Move them to the trash and retry",
+      "split": "train"
+    },
+    {
+      "evidence": "Otherwise restore the baseline snapshot. Never hand-edit the ledger or a snapshot.",
+      "expected": "C",
+      "id": "train-11",
+      "query": "A training edit's `train measure` result is `blocked`. What happens to the edit and the ledger?\nA) Keep the edit and fix the ledger by hand\nB) Keep the edit and lower the query threshold\nC) Restore the baseline snapshot; never hand-edit the ledger or a snapshot\nD) Keep the edit if validation rose",
+      "split": "train"
+    },
+    {
+      "evidence": "Only fresh child agents given the blind bundle answer router prompts; the editing agent never answers them.",
+      "expected": "D",
+      "id": "train-12",
+      "query": "Who may answer router prompts during blind training measurement?\nA) The editing agent, after hiding the labels\nB) Any agent that has read the skill\nC) The user\nD) Only fresh child agents given the blind bundle",
+      "split": "train"
+    },
+    {
+      "evidence": "The `description` field owns activation; `argument-hint` does not control activation. Do not add a competing `trigger` field.",
+      "expected": "A",
+      "id": "train-13",
+      "query": "An author wants `argument-hint` to control when a skill activates and adds a `trigger` field as backup. What does the rule say?\nA) The `description` field owns activation; `argument-hint` does not control it and no `trigger` field may be added\nB) `argument-hint` owns activation\nC) A `trigger` field may be added if kept short\nD) Both fields share activation",
+      "split": "train"
+    },
+    {
+      "evidence": "the final gate is the project-approved `finalGate` in `aidx.json`, otherwise `.agents`'s `bun run test`, otherwise `bun run test`.",
+      "expected": "B",
+      "id": "train-14",
+      "query": "A skill package has no `finalGate` in `aidx.json`, but `.agents` has a `bun run test` script. Which final gate applies?\nA) A subset of unit tests the agent chooses\nB) `.agents`'s `bun run test`\nC) No gate; matrix receipts are enough\nD) `bun run lint` only",
+      "split": "train"
+    },
+    {
+      "evidence": "held-out validation reports counts, never query text.",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "When reporting a training run, which query text may the editing agent see from the held-out validation split?\nA) Failed validation queries only\nB) All validation queries\nC) None; it reports counts, never query text\nD) Only the first validation query",
+      "split": "validation"
+    },
+    {
+      "evidence": "When the baseline already passes every query, append harder near-miss queries, ratchet, and record a new baseline; do not declare the skill optimal.",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "A training run's baseline already passes every query. What should the agent do?\nA) Declare the skill optimal\nB) End the training run with no ledger entry\nC) Delete the easiest queries to make room\nD) Append harder near-miss queries, run ratchet, and record a new baseline",
+      "split": "validation"
+    },
+    {
+      "evidence": "If that state or a required verifier is unavailable, state the exact blocker and stop before the governed edit.",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "Before editing a skill package, the matching quality-engine review state or a required verifier is unavailable. What must the agent do?\nA) State the exact blocker and stop before the governed edit\nB) Edit anyway and run the review afterward\nC) Invent a substitute verifier\nD) Skip the review and run only the final gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never display or hand off a safe packet without applying it.",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "A gate returns a non-blocked action packet that is safe. What must the agent do with it?\nA) Display it to the user and wait\nB) Apply its required action groups through the owner's apply route, then rerun the same gate\nC) Summarize it and hand it off\nD) Ignore it because the gate did not block",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never claim closure from a score or measurement.",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "A skill's migration to seven sections is finished and the measurement score is perfect. May the agent claim closure?\nA) Yes, a perfect score closes it\nB) Yes, if the heading count is seven\nC) No; deterministic checks, receipts, link review, gates, and owner review decide pass or failure\nD) Yes, after one more measurement",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never prepend a seven-section shell, append the old body after section 7, or duplicate the invocation catalog.",
+      "expected": "D",
+      "id": "validation-06",
+      "query": "While migrating an existing skill, an agent wants to keep the old body untouched below a new seven-section shell. What does the rule say?\nA) Allowed if the shell links to the old body\nB) Allowed if the old body is marked legacy\nC) Allowed for skills under 500 lines\nD) Never prepend a shell or append the old body after section 7; rewrite the whole source in place",
+      "split": "validation"
+    },
+    {
+      "evidence": "`<state>` is `candidate-checked`, `candidate-requested`, or `draft`, as returned by the workflow.",
+      "expected": "A",
+      "id": "train-15",
+      "query": "The agent runs `/skill-manager packet <review-id> <state> <path>`. Which value is accepted for `<state>`?\nA) candidate-requested\nB) candidate-passed\nC) challenge-checked\nD) baseline",
+      "split": "train"
+    },
+    {
+      "evidence": "ledger statuses are `baseline`, `attempt`, `applied`, `post-change`, and `rollback`.",
+      "expected": "B",
+      "id": "train-16",
+      "query": "The agent records a training measurement with `--status`. Which value is one of the listed ledger statuses?\nA) accepted\nB) post-change\nC) winner\nD) measured",
+      "split": "train"
+    },
+    {
+      "evidence": "`applied` must match an accepted attempt; `applied` and `post-change` allow no regression against baseline; `rollback` must equal the baseline snapshot.",
+      "expected": "C",
+      "id": "train-17",
+      "query": "The agent records `train measure --status applied`. Which condition must hold?\nA) Only that no hard check fails.\nB) The live file must equal the baseline snapshot.\nC) It must match an accepted attempt and allow no regression against baseline.\nD) At least one validation query must newly pass.",
+      "split": "train"
+    },
+    {
+      "evidence": "A new baseline is allowed only after the query set grew.",
+      "expected": "D",
+      "id": "train-18",
+      "query": "A baseline is already recorded for a frozen query set. The agent wants a second baseline. When does the table allow a new baseline?\nA) After any description edit.\nB) After any blocked attempt.\nC) After the validation counts change.\nD) Only after the query set grew.",
+      "split": "train"
+    },
+    {
+      "evidence": "Run declared verifiers only through the in-process fixed registry; arbitrary shell commands and descriptive verifier prose are not executable evidence.",
+      "expected": "A",
+      "id": "train-19",
+      "query": "A rubric lists a verifier described in prose as \"a careful person reads the output and approves\". Is that executable evidence?\nA) No; only declared verifiers run through the in-process fixed registry count.\nB) Yes, if the person signs the receipt.\nC) Yes, if a shell command prints the approval.\nD) Yes, if a candidate receipt exists.",
+      "split": "train"
+    },
+    {
+      "evidence": "call `/md-compress begin <absolute-markdown-path>` immediately before editing, edit only the returned source in the same session, then call the exact returned `/md-compress finalize",
+      "expected": "B",
+      "id": "train-20",
+      "query": "The agent must edit one durable Markdown source. Which order is correct?\nA) Finalize, edit, begin.\nB) Begin immediately before editing, edit the returned source in the same session, then run the exact returned finalize action and require `done`.\nC) Guard, edit, finalize.\nD) Begin, finalize, then edit.",
+      "split": "train"
+    },
+    {
+      "evidence": "(at least two of each per split and no polarity below a third; `validate` enforces this)",
+      "expected": "C",
+      "id": "train-21",
+      "query": "Which query split passes the `validate` polarity rule (at least two of each polarity and no polarity below a third)?\nA) 1 should-trigger and 5 should-not-trigger.\nB) 2 should-trigger and 8 should-not-trigger.\nC) 3 should-trigger and 6 should-not-trigger.\nD) 6 should-trigger and 1 should-not-trigger.",
+      "split": "train"
+    },
+    {
+      "evidence": "make one edit to `SKILL.md` through the Markdown transaction. Prefer the description; edit the body only for routing text.",
+      "expected": "D",
+      "id": "train-22",
+      "query": "Train failures remain after a baseline. How does the Reflect step say to edit?\nA) Rewrite several body sections to improve general style.\nB) Edit the descriptions of every neighbor skill at once.\nC) Edit the body first and the description last.\nD) Make one edit through the Markdown transaction, preferring the description and editing the body only for routing text.",
+      "split": "train"
+    },
+    {
+      "evidence": "When `Usage` exposes caller-supplied arguments, provide a matching hint; omit it only when the skill accepts no caller input.",
+      "expected": "A",
+      "id": "train-23",
+      "query": "A skill's Usage exposes caller-supplied arguments. What must the frontmatter `argument-hint` do?\nA) Provide a matching hint.\nB) Be omitted, because it is reserved for activation.\nC) Repeat the description text.\nD) Be added only when a `trigger` field also exists.",
+      "split": "train"
+    },
+    {
+      "evidence": "Markdown guards prove token preservation, not correct authority or meaning.",
+      "expected": "B",
+      "id": "train-24",
+      "query": "A Markdown guard returned `guarded` for a document in the review set. What does that receipt prove?\nA) The authority and meaning of the document are correct.\nB) Token preservation only.\nC) Policy inheritance was verified.\nD) Every link in the document is valid.",
+      "split": "train"
+    },
+    {
+      "evidence": "Ask only for the missing fact that changes scope or correctness.",
+      "expected": "C",
+      "id": "train-25",
+      "query": "The agent cannot tell whether an `AGENTS.md` file is the active policy. What does the Unknowns rule require?\nA) Infer it from the file name and continue.\nB) Continue and flag the doubt in the final report.\nC) Stop and ask only for the missing fact that changes scope or correctness.\nD) Ask the user a broad questionnaire about the whole project.",
+      "split": "train"
+    },
+    {
+      "evidence": "Every retained block belongs to one of the seven sections or a linked reference; obsolete blocks are removed.",
+      "expected": "D",
+      "id": "train-26",
+      "query": "While migrating an existing skill, one retained branch-only block fits none of the seven sections. Where may it go?\nA) Appended after section 7.\nB) A new eighth section.\nC) A detached second half of the document.\nD) A linked reference.",
+      "split": "train"
+    },
+    {
+      "evidence": "Exclude every ignored path and machine-local runtime or coverage state; include every applicable declared non-ignored static path",
+      "expected": "B",
+      "id": "validation-07",
+      "query": "A global review has two declared static paths: one is machine-local coverage state that is gitignored, the other is a non-ignored override root. Which belongs in the review set?\nA) Both.\nB) Only the non-ignored override root.\nC) Only the gitignored coverage path.\nD) Neither.",
+      "split": "validation"
+    },
+    {
+      "evidence": "For a training run, also return the baseline and final ledger entry ids, snapshot paths, the `train select` receipt, gained and regressed counts, the `ratchet` result, and the post-change check.",
+      "expected": "D",
+      "id": "validation-08",
+      "query": "Besides the changed-file lists, which items must a training-run report also return?\nA) Ledger entry ids, a score, and the ratchet result.\nB) Snapshot paths, validation query text, and gained counts.\nC) Only the baseline score and the winner's name.\nD) Baseline and final ledger entry ids, snapshot paths, the `train select` receipt, gained and regressed counts, the `ratchet` result, and the post-change check.",
+      "split": "validation"
+    },
+    {
+      "evidence": "`[additional-root]` is an optional absolute static root used when a runtime adapter or neighboring static consumer must be reviewed.",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "The runtime adapter of a skill lives in a different folder and must be reviewed. How is it passed to `review`?\nA) As the optional absolute `[additional-root]`.\nB) As `<root>`, replacing the skill folder.\nC) As a relative path after the skill name.\nD) It is validated separately with `validate`.",
+      "split": "validation"
+    },
+    {
+      "evidence": "**REFACTOR** identifies new rationalizations, adds targeted counters, and reruns candidate and challenge checks until stable.",
+      "expected": "C",
+      "id": "validation-10",
+      "query": "During REFACTOR the agent finds a new rationalization. What does the document say to do?\nA) Weaken the matrix so the case passes.\nB) Restart RED with a new matrix.\nC) Add a targeted counter and rerun candidate and challenge checks until stable.\nD) Record it and ignore it.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Domain skills may supply knowledge or execute delegated work, but they do not mutate a skill package.",
+      "expected": "A",
+      "id": "validation-11",
+      "query": "A domain skill that supplied knowledge now offers to rewrite a skill package's SKILL.md. What does the document say?\nA) It may supply knowledge or execute delegated work but must not mutate the skill package.\nB) It may rewrite the file when the work was delegated.\nC) It may rewrite the file once the matrix is frozen.\nD) It may rewrite only the references folder.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Follow explicit runtime precedence when both a base file and an override exist.",
+      "expected": "B",
+      "id": "validation-12",
+      "query": "Both a base policy file and an override policy file exist for the same scope. How are they handled?\nA) The base file always wins.\nB) Follow explicit runtime precedence.\nC) The override file always wins.\nD) Merge the two files into one.",
+      "split": "validation"
+    },
+    {
+      "evidence": "A mixed result is an unstable query to fix, never a pass.",
+      "expected": "B",
+      "id": "train-27",
+      "query": "A should-trigger query is run 5 times in a description evaluation. The skill loads in 4 runs and does not load in 1 run. What is the result of this query?\nA) It passes, because most runs agree with the label.\nB) It is an unstable query to fix; a mixed result is never a pass.\nC) It passes, because the hit rate is above a threshold.\nD) It passes only after the missed run is repeated until it loads.",
+      "split": "train"
+    },
+    {
+      "evidence": "all runs load the skill for a should-trigger query and none loads it for a near-miss query.",
+      "expected": "C",
+      "id": "train-28",
+      "query": "Each query below is run 5 times. Which one passes?\nA) A should-trigger query; the skill loads in 4 of 5 runs.\nB) A near-miss query; the skill loads in 1 of 5 runs.\nC) A near-miss query; the skill loads in 0 of 5 runs.\nD) A should-trigger query; the skill loads in 0 of 5 runs.",
+      "split": "train"
+    },
+    {
+      "evidence": "The same routes train a document: pass an absolute comprehension set `.json` path as the target and answer with an `answer` field holding one option letter.",
+      "expected": "D",
+      "id": "train-29",
+      "query": "The agent must train the probes of one Markdown document. Its comprehension set is the absolute file /abs/evals/AGENTS.json. Which command emits the blind bundle?\nA) /skill-manager train bundle /abs/AGENTS.md\nB) /skill-manager train bundle /abs/skills\nC) /skill-manager train measure /abs/evals/AGENTS.json --measure-only\nD) /skill-manager train bundle /abs/evals/AGENTS.json",
+      "split": "train"
+    },
+    {
+      "evidence": "Each Markdown file inside a skill package, and each `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file in the agents root, has a comprehension set.",
+      "expected": "A",
+      "id": "train-30",
+      "query": "The agents root holds GEMINI.md, README.md, and package.json. A skill package holds references/index.md. Which of these files need a comprehension set?\nA) GEMINI.md and references/index.md only.\nB) GEMINI.md only.\nC) All four files.\nD) references/index.md and README.md only.",
+      "split": "train"
+    },
+    {
+      "evidence": "rewrite until a weak reader answers every probe correctly on every run, using short sentences, one rule per sentence, and numbered lists for order.",
+      "expected": "B",
+      "id": "train-31",
+      "query": "A weak reader gets a probe wrong on every run, and the probe label is correct. What does the document say this means and what is the fix?\nA) The reader is bad; switch to a stronger reader.\nB) The document is unclear; rewrite it with short sentences, one rule per sentence, and numbered lists for order.\nC) The probe is obsolete; retire it.\nD) The document is fine; record a new baseline.",
+      "split": "train"
+    },
+    {
+      "evidence": "A wrong or obsolete query is retired with a written reason, never edited or deleted.",
+      "expected": "A",
+      "id": "validation-13",
+      "query": "After a baseline is recorded, a query label is found to be wrong. What must the agent do?\nA) Keep the query in the set and retire it with a written reason; never edit or delete it.\nB) Edit the label in place and keep the baseline.\nC) Delete the query so the set stays correct.\nD) Edit the label and lower the threshold.",
+      "split": "validation"
+    },
+    {
+      "evidence": "no query that passed at baseline fails, and at least one query newly passes on every run. Otherwise restore the baseline snapshot.",
+      "expected": "B",
+      "id": "validation-14",
+      "query": "A query passed in all 3 runs at baseline. After an edit it passes in only 2 of 3 runs. A different query now passes in all 3 runs. Deterministic checks pass and the query set is unchanged. What happens?\nA) The edit is accepted, because a query newly passes on every run.\nB) The edit is not kept and the baseline snapshot is restored, because a query that passed at baseline now fails.\nC) The edit is accepted, because 2 of 3 runs still agree.\nD) The edit is kept and the ledger is fixed by hand.",
+      "split": "validation"
+    },
+    {
+      "evidence": "`clear` is true when every query passes on every run; that is the goal state for every skill and every document.",
+      "expected": "C",
+      "id": "validation-15",
+      "query": "A train measure on a document comprehension set shows 29 of 30 probes pass on every run. The last probe passes in 2 of 3 runs. Is `clear` true?\nA) Yes, because 29 of 30 is nearly all.\nB) Yes, because most runs of the last probe pass.\nC) No, because `clear` needs every query to pass on every run.\nD) No, but only the validation split must pass every run.",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

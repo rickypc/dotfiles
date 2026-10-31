@@ -1,0 +1,292 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Keep the original non-English quotation and ask before adding",
+      "expected": "C",
+      "id": "train-01",
+      "query": "A source contains a quotation in Spanish. The audience reads only English and a translation would help them. What must the agent do?\nA) Replace the Spanish with an English translation\nB) Keep the Spanish and add a transliteration without asking\nC) Keep the original Spanish and ask before adding any translation\nD) Drop the quotation and paraphrase it",
+      "split": "train"
+    },
+    {
+      "evidence": "include its continuation lines that omit the leading `>`; a strict `^>` extractor silently",
+      "expected": "A",
+      "id": "train-02",
+      "query": "An agent extracts a Markdown blockquote. Some continuation lines of the quotation do not start with `>`. How must the extraction treat them?\nA) Include those continuation lines in the quotation\nB) Stop at the first line that lacks the leading `>`\nC) Move those lines into the reader-facing prose\nD) Delete those lines as formatting noise",
+      "split": "train"
+    },
+    {
+      "evidence": "frames it, attribute the framing, or escalate it to the owner; never promote an unsupported",
+      "expected": "B",
+      "id": "train-03",
+      "query": "The source says a relic was blessed by a saint, but only tradition supports this. How should the draft treat the claim?\nA) State it as a plain fact\nB) State it as the tradition frames it, attribute the framing, or escalate it to the owner\nC) Infer it is probably true and state it with a hedge\nD) Delete it without telling anyone",
+      "split": "train"
+    },
+    {
+      "evidence": "as the tradition presents it and keep the caveat out of reader-facing prose.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A tradition item has thin or missing provenance. Where does the caveat about that go?\nA) In a warning sentence inside the reader-facing prose\nB) In a footnote that readers see\nC) In the opening paragraph of the draft\nD) In the ledger, while the item is presented as the tradition presents it",
+      "split": "train"
+    },
+    {
+      "evidence": "Vary sentence openers across parallel items, never repeat one",
+      "expected": "A",
+      "id": "train-05",
+      "query": "The draft has a list of five parallel items. Which writing approach does the skill require?\nA) Vary the sentence openers across the items\nB) Use the same template sentence for each item for consistency\nC) Start every item with the same word\nD) Explain the research process in each item",
+      "split": "train"
+    },
+    {
+      "evidence": "procedural, or liturgical text earns prose corrections only-grammar, punctuation, and",
+      "expected": "C",
+      "id": "train-06",
+      "query": "The source is a liturgical prayer with a run-on sentence and a missing comma. What may the agent change?\nA) Rewrite the prayer in fuller modern prose\nB) Reorder the steps to read more clearly\nC) Fix grammar, punctuation, and run-ons only, leaving order and recited wording alone\nD) Leave every error, because nothing may be changed",
+      "split": "train"
+    },
+    {
+      "evidence": "renderer-sensitive tokens in inline code so MDX renders them literally, and keep every quotation",
+      "expected": "B",
+      "id": "train-07",
+      "query": "The MDX draft contains a formula-like token that the renderer might misread. What should the agent do?\nA) Escape it with backslashes\nB) Wrap it in inline code so MDX renders it literally\nC) Remove the token from the draft\nD) Put it in bold text",
+      "split": "train"
+    },
+    {
+      "evidence": "Wrap prose to 100 characters as a band, not a ceiling: refill prose a file",
+      "expected": "D",
+      "id": "train-08",
+      "query": "An existing file wraps its prose at 80 characters. How should the agent wrap the prose it handles?\nA) Keep 80, because the file already does\nB) Wrap at 60 to be safe\nC) Do not wrap it at all\nD) Refill it to the 100-character band, running past 80",
+      "split": "train"
+    },
+    {
+      "evidence": "an ordered-list marker, `>`, `#`, `[`, `{`, or a tag; keep footnote and citation continuation",
+      "expected": "A",
+      "id": "train-09",
+      "query": "While wrapping prose, a line break would put \"2.\" at the start of a continuation line. What is the rule?\nA) Never begin a continuation line with an ordered-list marker, so choose another break\nB) That is fine, because the renderer ignores it\nC) Put a backslash before the \"2.\"\nD) Convert the paragraph into a numbered list",
+      "split": "train"
+    },
+    {
+      "evidence": "Discovery-only material cannot close a",
+      "expected": "C",
+      "id": "train-10",
+      "query": "The only source for a material claim is a forum post found during discovery. Can it close the claim?\nA) Yes, if it is recent\nB) Yes, if two forum posts agree\nC) No, discovery-only material cannot close a material claim\nD) Yes, if the claim is minor",
+      "split": "train"
+    },
+    {
+      "evidence": "Return exactly `ready`, `needs-input`, or",
+      "expected": "B",
+      "id": "train-11",
+      "query": "Which exact values may the skill return at the end of verification?\nA) done, failed, or skipped\nB) ready, needs-input, or blocked\nC) approved, rejected, or pending\nD) pass, warn, or fail",
+      "split": "train"
+    },
+    {
+      "evidence": "The verified current fact wins; reject obsolete and unverified claims instead of preserving a",
+      "expected": "D",
+      "id": "train-12",
+      "query": "In refresh mode, a draft-only claim conflicts with live evidence. Which one wins?\nA) The draft claim, since it was written first\nB) The older source, since it is more established\nC) Both, kept in a chronological log\nD) The verified current fact",
+      "split": "train"
+    },
+    {
+      "evidence": "ask one focused question when audience, language, refresh state, or evidence",
+      "expected": "C",
+      "id": "train-13",
+      "query": "The audience is unclear and the answer would change the draft. What does the skill do?\nA) Guess the most likely audience and proceed\nB) Ask a long list of questions\nC) Ask one focused question\nD) Write for a general audience without asking",
+      "split": "train"
+    },
+    {
+      "evidence": "Keep the research ledger separate from reader-facing prose.",
+      "expected": "A",
+      "id": "train-14",
+      "query": "Where does the research ledger belong relative to the reader-facing prose?\nA) Kept separate from the reader-facing prose\nB) Merged into the body as inline notes\nC) Placed at the top of the article for readers\nD) Discarded once the draft is done",
+      "split": "train"
+    },
+    {
+      "evidence": "In refresh mode, inventory the existing",
+      "expected": "B",
+      "id": "train-15",
+      "query": "The task is a refresh of existing content. What must happen first, before drafting?\nA) Write a new outline from memory\nB) Inventory the existing source\nC) Enable SEO and GEO modes\nD) Translate the existing quotations",
+      "split": "train"
+    },
+    {
+      "evidence": "SEO and GEO are one paired mode: enable both or neither.",
+      "expected": "D",
+      "id": "validation-01",
+      "query": "The user asks for SEO work only and does not mention GEO. What does the skill say about the SEO and GEO modes?\nA) Enable SEO alone\nB) Enable GEO alone\nC) Enable SEO and run GEO later if time allows\nD) Enable both or neither, because they are one paired mode",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not lower the evidence standard to",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "A deadline is tight and the user suggests accepting weaker sources to finish on time. What does the skill require?\nA) Accept weaker sources for non-critical claims\nB) Accept weaker sources and mark them with a note\nC) Keep the evidence standard and do not lower it for the deadline\nD) Skip citations for this draft",
+      "split": "validation"
+    },
+    {
+      "evidence": "is `needs-input` or `blocked`, not an invitation to write",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "The agent finds unsupported claims and unresolved language handling. How should it treat these unknowns?\nA) As `needs-input` or `blocked`\nB) As an invitation to write plausible prose\nC) As claims to fill from memory\nD) As items to delete silently",
+      "split": "validation"
+    },
+    {
+      "evidence": "the audience, and the result to be exactly `ready`.",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "What must be true for the work to count as complete?\nA) The draft is fluent and has many citations\nB) Every material claim has an admissible source, each citation supports its claim, structure fits the audience, and the result is exactly `ready`\nC) An outline exists and the user has read it\nD) The ledger is empty",
+      "split": "validation"
+    },
+    {
+      "evidence": "no repeated filler framing; no second person outside quotations",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "The content quality matrix has a voice neutrality row. What does passing it require?\nA) Second person addressed to the reader throughout\nB) A chatty opening on every section\nC) Repeated filler framing for rhythm\nD) No repeated filler framing and no second person outside quotations",
+      "split": "validation"
+    },
+    {
+      "evidence": "every pre-existing inline link is preserved",
+      "expected": "C",
+      "id": "validation-06",
+      "query": "The refreshed draft rewrote a paragraph that contained two inline links. What does the quality matrix require about those links?\nA) Keep only the first link\nB) Replace them with plain text URLs\nC) Every pre-existing inline link is preserved\nD) Remove links to older sources",
+      "split": "validation"
+    },
+    {
+      "evidence": "A request combines refresh and SEO/GEO while leaving a non-English quotation",
+      "expected": "B",
+      "id": "validation-07",
+      "query": "A request combines refresh and SEO/GEO and leaves a non-English quotation unresolved. What does the skill do?\nA) Translate the quotation and enable only SEO\nB) Preserve the source, enable both modes only together, and return `needs-input`\nC) Drop the quotation and return `ready`\nD) Return `blocked` and stop without enabling any mode",
+      "split": "validation"
+    },
+    {
+      "evidence": "`needs-input` names the focused missing decision;",
+      "expected": "A",
+      "id": "train-16",
+      "query": "A draft is returned with the status `needs-input`. What must that status name?\nA) The focused missing decision\nB) The evidence, approval, or format boundary\nC) Every source the agent consulted\nD) The full research ledger",
+      "split": "train"
+    },
+    {
+      "evidence": "Never split an inline code span, a link's text or target",
+      "expected": "B",
+      "id": "train-17",
+      "query": "While wrapping prose to 100 characters, a link's target would run past the limit if kept whole on one line. What does the skill require?\nA) Break the line inside the link text\nB) Keep the whole link unsplit, even if the line runs long\nC) Break between the link text and its target\nD) Shorten the target by removing the path",
+      "split": "train"
+    },
+    {
+      "evidence": "keep footnote and citation continuation",
+      "expected": "C",
+      "id": "train-18",
+      "query": "A footnote definition's continuation line must be wrapped. How is it placed?\nA) Flush left so it stays inside the 100 band\nB) Joined onto the first line of the footnote\nC) Indent-aligned under the footnote's label\nD) Indented four spaces whatever the label width",
+      "split": "train"
+    },
+    {
+      "evidence": "keep the preceding space with `&nbsp;`",
+      "expected": "D",
+      "id": "train-19",
+      "query": "A wrapped continuation line would start with an inline JSX element. What must the agent do?\nA) Start the line with the tag as is\nB) Put a backslash before the tag\nC) Move the tag to start the next paragraph\nD) Keep the preceding space with `&nbsp;`",
+      "split": "train"
+    },
+    {
+      "evidence": "Explanatory content earns full prose;",
+      "expected": "A",
+      "id": "train-20",
+      "query": "The source is an explanatory essay with clumsy run-ons and awkward sentences. What treatment does the skill give it?\nA) Full prose treatment, since explanatory content earns full prose\nB) Prose corrections only, grammar, punctuation, and run-ons\nC) No changes, because the order must stay untouched\nD) Conversion into a bulleted procedure",
+      "split": "train"
+    },
+    {
+      "evidence": "Reader-facing\n  prose does not discuss the writing, research, or verification process.",
+      "expected": "B",
+      "id": "train-21",
+      "query": "Which reader-facing sentence fits the skill's human-voice rules?\nA) \"After checking three databases, we found the figure.\"\nB) \"The reservoir holds 4 billion litres.\"\nC) \"Our research confirmed the reservoir size.\"\nD) \"Verification showed the figure holds.\"",
+      "split": "train"
+    },
+    {
+      "evidence": "drop the \"not X but Y\" and \"X rather than Y\" tic.",
+      "expected": "C",
+      "id": "train-22",
+      "query": "Which sentence breaks the human-voice rule about repeated tics?\nA) \"The lab trains analysts and also hosts talks.\"\nB) \"Funding grew in 2020.\"\nC) \"The lab is a hub, not a classroom.\"\nD) \"Three teams share the space.\"",
+      "split": "train"
+    },
+    {
+      "evidence": "cannot meet the standard, retain the gap and stop.",
+      "expected": "D",
+      "id": "train-23",
+      "query": "Nine claims have admissible sources. The tenth has only a weak source. What does the skill require?\nA) Drop the tenth claim silently and return `ready`\nB) Keep the tenth claim with a hedge and return `ready`\nC) Fill the tenth claim from memory\nD) Retain the gap and stop, not returning `ready`",
+      "split": "train"
+    },
+    {
+      "evidence": "classify them as current, confirmed-and- missing, conflicted/obsolete, or unverified.",
+      "expected": "A",
+      "id": "train-24",
+      "query": "In refresh mode, a draft-only claim is verified by live evidence but is absent from the current source. How is it classified?\nA) confirmed-and-missing\nB) current\nC) conflicted/obsolete\nD) unverified",
+      "split": "train"
+    },
+    {
+      "evidence": "each source line carries publisher, date, and URL",
+      "expected": "B",
+      "id": "train-25",
+      "query": "Which source line passes the Source attribution row of the quality matrix?\nA) Smith, 2021\nB) Census Bureau, 2020-04-01, https://example.org/census\nC) Census Bureau, https://example.org/census\nD) 2020-04-01, https://example.org/census",
+      "split": "train"
+    },
+    {
+      "evidence": "no section collapses below the host document's paragraph/word floor",
+      "expected": "C",
+      "id": "train-26",
+      "query": "A refreshed draft cuts one section down to a single sentence, though the host document sections each run several paragraphs. Which quality matrix row fails?\nA) Link retention\nB) Claim coverage\nC) Information density\nD) Register fidelity",
+      "split": "train"
+    },
+    {
+      "evidence": "**Optional:** New versus refresh mode, existing-content inventory, paired SEO/GEO mode, supplied",
+      "expected": "D",
+      "id": "train-27",
+      "query": "Which input is optional rather than required?\nA) Citation style\nB) Audience\nC) Format\nD) New versus refresh mode",
+      "split": "train"
+    },
+    {
+      "evidence": "and wait for approval when publication ownership is external.",
+      "expected": "B",
+      "id": "validation-08",
+      "query": "Verification passed and the publication is owned by an external editorial team. What does the agent do?\nA) Publish the draft itself and return `ready`\nB) Return `ready` and wait for approval\nC) Return `ready` and end without waiting\nD) Return `needs-input` and discard the draft",
+      "split": "validation"
+    },
+    {
+      "evidence": "brief -> source research -> evidence ledger -> draft -> claim verification",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "Which sequence matches the execution chain?\nA) brief, source research, evidence ledger, draft, claim verification, approval\nB) brief, draft, source research, evidence ledger, claim verification, approval\nC) brief, evidence ledger, source research, draft, claim verification, approval\nD) brief, source research, draft, evidence ledger, claim verification, approval",
+      "split": "validation"
+    },
+    {
+      "evidence": "it does not invent facts, silently translate quotations, or replace domain approval and publication ownership.",
+      "expected": "C",
+      "id": "validation-10",
+      "query": "The user asks the skill to draft content and also sign it off as the domain expert and publish it. What does the skill do?\nA) Sign off and publish after the draft passes\nB) Sign off but leave publishing to others\nC) Produce the draft and evidence record only, leaving domain approval and publication to their owners\nD) Publish but leave domain sign-off to the user",
+      "split": "validation"
+    },
+    {
+      "evidence": "document contract-reader, job, format, defining takeaway,",
+      "expected": "D",
+      "id": "validation-11",
+      "query": "Which item belongs in the compact document contract the agent writes before outlining?\nA) A word count target\nB) A keyword list\nC) A tone palette\nD) The defining takeaway",
+      "split": "validation"
+    },
+    {
+      "evidence": "orient the reader with job, constraint, trigger, and place among",
+      "expected": "C",
+      "id": "validation-12",
+      "query": "The skill is drafting documentation. What must the opening orient the reader to?\nA) Job, constraint, owner, and place among nearby documents\nB) Job, constraint, trigger, and changelog\nC) Job, constraint, trigger, and place among nearby documents\nD) Goal, audience, tone, and place among nearby documents",
+      "split": "validation"
+    },
+    {
+      "evidence": "every quotation byte-identical, continuation lines included",
+      "expected": "B",
+      "id": "validation-13",
+      "query": "A quotation block has lines longer than 100 characters. What happens to it during wrapping?\nA) Wrap it at 100\nB) Leave it byte-identical\nC) Wrap it at 80\nD) Wrap it but keep every word",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "content-writer--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

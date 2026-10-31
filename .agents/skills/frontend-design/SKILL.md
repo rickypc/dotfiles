@@ -1,7 +1,7 @@
 ---
 
 name: frontend-design
-description: Define or review a user-facing web UI's visual direction, interaction states, responsive behavior, and accessibility. Use when a request creates, redesigns, or visually refreshes a web interface; do not use for ordinary behavior-only changes.
+description: Define or review a user-facing web UI's visual direction, interaction states, responsive behavior, and accessibility. Use when a request creates, redesigns, or visually refreshes a web interface, or asks which UI pattern (tabs, accordion, modal, layout, colors) looks better or is more accessible; do not use for ordinary behavior-only changes, and do not use to convert an already approved design into component code.
 argument-hint: <ui-brief> <affected-screens> <design-system> <acceptance-criteria>
 ---
 

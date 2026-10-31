@@ -68,6 +68,33 @@ export const matrixFingerprintFor = (cases: readonly MatrixCase[]): string =>
     cases.map(canonicalCaseFor).sort((left, right) => left.id.localeCompare(right.id, 'en')),
   );
 
+export const matrixRatchetViolations = (
+  previous: readonly MatrixCase[],
+  next: readonly MatrixCase[],
+): string[] => {
+  const nextById = new Map(next.map((matrixCase) => [matrixCase.id, matrixCase]));
+  return previous.flatMap((before) => {
+    const after = nextById.get(before.id);
+    if (!after) {
+      return [`Case ${before.id} was removed.`];
+    }
+    const kept = new Set(after.assertions.map(({ expected, kind }) => `${kind}\u0000${expected}`));
+    const dropped = before.assertions.filter(
+      ({ expected, kind }) => !kept.has(`${kind}\u0000${expected}`),
+    );
+    const problems = dropped.map(
+      ({ expected, kind }) => `Case ${before.id} dropped ${kind} assertion: ${expected}`,
+    );
+    if (after.visibility !== before.visibility) {
+      problems.push(`Case ${before.id} changed visibility.`);
+    }
+    if (after.independentVerifier !== before.independentVerifier) {
+      problems.push(`Case ${before.id} changed its independent verifier.`);
+    }
+    return problems;
+  });
+};
+
 const normalized = (value: string): string => value.replaceAll(/\s+/gu, ' ').trim();
 
 const ownedFileResultFor = (

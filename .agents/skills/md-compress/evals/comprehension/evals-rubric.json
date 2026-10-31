@@ -1,0 +1,103 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "C",
+      "id": "train-01",
+      "query": "A reviewer checks which visibility values every evaluation case must be able to carry in the md-compress rubric. Which pair is required?\nA) public and private\nB) draft and final\nC) candidate and challenge\nD) canonical and boundary",
+      "split": "train"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "A",
+      "id": "train-02",
+      "query": "An eval run for md-compress passes 9 of 10 cases. The rubric sets the minimum pass rate. What does the rubric require?\nA) A pass rate of 1, so every case must pass\nB) A pass rate of 0.9\nC) A pass rate of 0.5\nD) No minimum, because the matrix decides",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "D",
+      "id": "train-03",
+      "query": "A new eval case is written for md-compress. Which field must it include, according to the rubric's required case fields?\nA) author\nB) timestamp\nC) expectedOutputText\nD) independentVerifier",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "B",
+      "id": "train-04",
+      "query": "Which verifier id does the md-compress rubric list for checking cases?\nA) token-count\nB) source-structure\nC) prose-quality\nD) file-size",
+      "split": "train"
+    },
+    {
+      "evidence": "Verify preservation, transaction safety, and refusal of unsafe inputs.",
+      "expected": "A",
+      "id": "train-05",
+      "query": "What three things does the rubric say the evaluation must verify for md-compress?\nA) Preservation, transaction safety, and refusal of unsafe inputs\nB) Shorter output, faster runtime, and friendly tone\nC) Prose style, heading order, and link count\nD) Provider speed, model accuracy, and cost",
+      "split": "train"
+    },
+    {
+      "evidence": "exact-output or robotic-persona language; the contract must remain compatible with this skill's",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "The rubric says the canonical matrix challenges certain wording in a skill. Which wording does it challenge?\nA) Long headings and short sections\nB) Brittle exact-output or robotic-persona language\nC) Any mention of a backup file\nD) Use of code fences in examples",
+      "split": "validation"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "The rubric says the package must conform to a shared skill contract. How many parts does that contract have?\nA) Four parts\nB) Five parts\nC) Six parts\nD) Seven parts",
+      "split": "validation"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "What is the schemaVersion value in the md-compress rubric frontmatter?\nA) 0\nB) 2\nC) 1\nD) 7",
+      "split": "validation"
+    },
+    {
+      "evidence": "skill contract: role and scope, usage, immutable",
+      "expected": "B",
+      "id": "train-06",
+      "query": "The rubric lists the parts of the shared skill contract in order. Which part comes immediately after \"usage\"?\nA) input and context schema\nB) immutable operational rules\nC) ordered execution chain\nD) role and scope",
+      "split": "train"
+    },
+    {
+      "evidence": "The canonical matrix checks each heading and challenges brittle",
+      "expected": "D",
+      "id": "train-07",
+      "query": "The rubric says the canonical matrix checks something for the contract. What does it check?\nA) each sentence\nB) each link\nC) each code fence\nD) each heading",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "A",
+      "id": "train-08",
+      "query": "Two of the required case fields in the rubric describe failure and repair. Which pair of names is exactly right?\nA) failureMode and repairBoundary\nB) failureCause and repairScope\nC) failureMode and repairScope\nD) failureCause and repairBoundary",
+      "split": "train"
+    },
+    {
+      "evidence": "uncertainty, ownership, and proof boundary.",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "The rubric says the contract must stay compatible with which three things of this skill?\nA) speed, cost, and size\nB) uncertainty, authority, and proof\nC) uncertainty, ownership, and proof boundary\nD) uncertainty, ownership, and persona",
+      "split": "validation"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "In the rubric frontmatter, which key holds the list that contains source-structure?\nA) verifierIds\nB) requiredVisibility\nC) requiredCaseFields\nD) schemaVersion",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "md-compress--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

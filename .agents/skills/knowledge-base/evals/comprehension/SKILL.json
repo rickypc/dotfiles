@@ -1,0 +1,285 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "`bun <agents-root>/scripts/knowledge-base.ts <command> <arguments>`. Never read `knowledge-base.ts`",
+      "expected": "B",
+      "id": "train-01",
+      "query": "An agent wants to understand how knowledge-base.ts behaves before using it. What does the skill say to do?\nA) Read the knowledge-base.ts source code line by line\nB) Run it; do not read its source, and use --help for the usage contract\nC) Ask the user to explain the script\nD) Search the web for documentation",
+      "split": "train"
+    },
+    {
+      "evidence": "store raw chat**, secrets, speculation, or logs.",
+      "expected": "C",
+      "id": "train-02",
+      "query": "At the end of a long chat, the user says: save this whole conversation to the knowledge base so we do not lose it. What must the agent do?\nA) Save the full transcript as one concept\nB) Save the transcript but remove the secrets\nC) Not store raw chat; keep only durable, validated knowledge\nD) Save it only under the shared scope",
+      "split": "train"
+    },
+    {
+      "evidence": "- Concept paths match `^(<kb-scope>|shared)/<subject>/<concept>\\.md$`. Every root and subject",
+      "expected": "A",
+      "id": "train-03",
+      "query": "Which concept path matches the required pattern?\nA) shared/team/oncall-runbook.md\nB) team/oncall-runbook.md\nC) shared/oncall-runbook.md\nD) shared/team/runbooks/oncall-runbook.md",
+      "split": "train"
+    },
+    {
+      "evidence": "directory has `index.md`; every concept has required frontmatter `type`, `title`, `description`,",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A new concept file is being written. Which set of frontmatter fields is required?\nA) name, summary, owner, date\nB) title and tags only\nC) type, title, and description only\nD) type, title, description, and tags",
+      "split": "train"
+    },
+    {
+      "evidence": "- Do not create a new concept when an existing matching concept can be safely updated. Do not move,",
+      "expected": "B",
+      "id": "train-05",
+      "query": "A lesson matches a concept that already exists and can be safely updated. What should the agent do?\nA) Create a new concept with a slightly different name\nB) Not create a new concept; update the existing one\nC) Delete the old concept and create a new one\nD) Merge both concepts into a third concept",
+      "split": "train"
+    },
+    {
+      "evidence": "delete, or merge concepts during reconciliation. Ambiguous ownership is a user decision.",
+      "expected": "A",
+      "id": "train-06",
+      "query": "During reconciliation, two existing concepts could both own a lesson and the agent cannot tell which one should. Who decides?\nA) The user, because ambiguous ownership is a user decision\nB) The agent picks the newer concept\nC) The runtime decides semantic equivalence\nD) The agent creates a third concept to own it",
+      "split": "train"
+    },
+    {
+      "evidence": "missing scope folder is valid for `new-primary`; `writeText` recursively creates missing concept,",
+      "expected": "C",
+      "id": "train-07",
+      "query": "A new-primary capture targets a scope folder that does not exist yet. What is the rule?\nA) Stop and ask the user to create the folder first\nB) Reject the capture as invalid\nC) It is valid; the writer recursively creates the missing directories\nD) Capture into the shared scope instead",
+      "split": "train"
+    },
+    {
+      "evidence": "validation) or `begin`/`finalize` (with edit), then validate OKF structure and protected content.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "An agent edits a Markdown concept body during an update. How must the changed source be guarded?\nA) Skip the guard because the edit is small\nB) Use only the no-edit guard command\nC) Run rm on the backup afterward\nD) Use /md-compress begin and finalize, then validate OKF structure and protected content",
+      "split": "train"
+    },
+    {
+      "evidence": "- Atomic `approve --context` is the normal lifecycle route. Use context resolution only for recovery",
+      "expected": "B",
+      "id": "train-09",
+      "query": "Which route is the normal lifecycle route, with context resolution reserved for recovery?\nA) Context resolution first, then approve\nB) Atomic approve with --context\nC) Manual editing of index.md files\nD) The import-plan command for every write",
+      "split": "train"
+    },
+    {
+      "evidence": "- **Unknowns:** Conflicting facts, invalid metadata, unavailable source evidence, unclear semantic",
+      "expected": "A",
+      "id": "train-10",
+      "query": "While capturing a lesson, the agent finds conflicting facts in the source evidence. What does the skill require?\nA) Stop\nB) Pick the fact that sounds more likely and continue\nC) Store both facts without comment\nD) Store the lesson as speculation",
+      "split": "train"
+    },
+    {
+      "evidence": "concept owns it, `update-existing` when one does, or `link-related` when another concept supplies",
+      "expected": "C",
+      "id": "train-11",
+      "query": "No concept owns a lesson, but another existing concept only supplies background context for it. Which dispositions fit?\nA) update-existing for the lesson, and nothing else\nB) link-related for the lesson, and no new concept\nC) new-primary for the lesson, and link-related for the concept that supplies context\nD) new-primary for both concepts",
+      "split": "train"
+    },
+    {
+      "evidence": "cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>",
+      "expected": "D",
+      "id": "train-12",
+      "query": "Which exact pipe materializes the JSON request file?\nA) echo <json> > <output-path>\nB) bun write-json.ts <absolute-json-output-path> < /dev/null\nC) cat <output-path> | bun <agents-root>/scripts/write-json.ts <source-path>\nD) cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>",
+      "split": "train"
+    },
+    {
+      "evidence": "Never use a shell variable, command substitution, heredoc, inline writer,",
+      "expected": "B",
+      "id": "train-13",
+      "query": "An agent wants to build a backtick-rich JSON request with a shell heredoc. Is that allowed?\nA) Yes, heredocs are the preferred method\nB) No; heredocs, shell variables, and inline writers are forbidden, so use a TypeScript builder script\nC) Yes, but only for requests under 200 bytes\nD) Yes, if the output goes under /tmp",
+      "split": "train"
+    },
+    {
+      "evidence": "- Adjacent subject: `from` = `idx/sub1/A.md`, `to` = `idx/sub2/B.md` → `](../sub2/B.md)`",
+      "expected": "A",
+      "id": "train-14",
+      "query": "A link goes from idx/sub1/A.md to idx/sub2/B.md. Which body link marker is correct?\nA) ](../sub2/B.md)\nB) ](B.md)\nC) ](../../sub2/B.md)\nD) ](idx/sub2/B.md)",
+      "split": "train"
+    },
+    {
+      "evidence": "never guess `/tmp` or `/private/tmp`.",
+      "expected": "C",
+      "id": "train-15",
+      "query": "Where should the temporary request files for a plan import be placed?\nA) Under /tmp, because it is the standard location\nB) Under /private/tmp\nC) Under the actual os.tmpdir(), never a guessed path\nD) Inside the private-KB root",
+      "split": "train"
+    },
+    {
+      "evidence": "The receipt carries `concepts`, `discovery`, and `kbInfo`. The `concepts` list is the answer; it is",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "The search command returns a receipt with concepts, discovery, and kbInfo. Which part is the answer?\nA) The discovery envelope\nB) The kbInfo block\nC) The concepts list\nD) The raw repo-search output",
+      "split": "validation"
+    },
+    {
+      "evidence": "For several independent terms use `search-batch` with the private-KB root and one to four distinct",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "An agent wants to run search-batch with five distinct queries. What does the skill allow?\nA) Any number of queries\nB) Exactly two queries\nC) Up to ten queries if they are unique\nD) One to four distinct queries only",
+      "split": "validation"
+    },
+    {
+      "evidence": "Failure preserves existing knowledge and names the filesystem or request error, evidence conflict,",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "A reconciliation write fails an evidence check partway through. What does the skill say about existing knowledge?\nA) The failure preserves existing knowledge and names the error\nB) The existing concept is overwritten with the draft\nC) The existing concept is moved to trash\nD) The existing indexes are rebuilt from scratch",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not use `rg` as a private-KB authority, and do not use `/knowledge-base` or `/repo-search` to",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "An agent wants to look up private-KB concepts quickly with rg and trust the hits. What does the skill say?\nA) That is the preferred fast path\nB) Do not use rg as a private-KB authority\nC) It is allowed only for the shared scope\nD) It is allowed if the root is given as an absolute path",
+      "split": "validation"
+    },
+    {
+      "evidence": "than one canonical owner, missing link endpoints, and missing body markers; it cannot decide",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "A reconciliation request names two operations as canonical owners. What does the runtime do?\nA) It accepts the first one and ignores the second\nB) It picks the one with the better description\nC) It merges the two operations\nD) It rejects the request, since more than one canonical owner is invalid",
+      "split": "validation"
+    },
+    {
+      "evidence": "draft, or successful materialization alone does not prove semantic correctness.",
+      "expected": "A",
+      "id": "validation-06",
+      "query": "A search returned a matching result and the draft was written successfully. Does that prove the knowledge is correct?\nA) No; a match, draft, or successful write alone does not prove semantic correctness\nB) Yes, a successful write proves correctness\nC) Yes, if the search ranks it first\nD) Yes, if the index was updated",
+      "split": "validation"
+    },
+    {
+      "evidence": "queries. A missing scope folder yields no local concepts; an approved `new-primary` capture creates",
+      "expected": "A",
+      "id": "train-16",
+      "query": "An agent runs search-batch on a scope folder that does not exist yet, and no capture has been run. What does the skill say the result is for that folder?\nA) No local concepts\nB) An error, and the agent must stop\nC) The folder and its indexes are created\nD) Concepts from the shared scope are returned instead",
+      "split": "train"
+    },
+    {
+      "evidence": "- Two levels up: `from` = `idx/sub1/sub2/A.md`, `to` = `idx/sub3/B.md` → `](../../sub3/B.md)`",
+      "expected": "B",
+      "id": "train-17",
+      "query": "A reconciliation link goes from `idx/a/b/X.md` to `idx/c/Y.md`. Which body link marker is correct?\nA) ](../c/Y.md)\nB) ](../../c/Y.md)\nC) ](../../idx/c/Y.md)\nD) ](c/Y.md)",
+      "split": "train"
+    },
+    {
+      "evidence": "`begin`/`edit`/`finalize` for changed Markdown, validate OKF and indexes, and return receipts. If",
+      "expected": "C",
+      "id": "train-18",
+      "query": "An agent will change the body of a concept's Markdown file. In what order are the /md-compress commands used?\nA) guard, edit, finalize\nB) edit, begin, finalize\nC) begin, edit, finalize\nD) begin, finalize, edit",
+      "split": "train"
+    },
+    {
+      "evidence": "evidence or authority fails, preserve the existing KB and stop.",
+      "expected": "D",
+      "id": "train-19",
+      "query": "During the guard-and-verify step, the source evidence or authority for a write fails. What must the agent do?\nA) Delete the failing concept and rewrite it\nB) Keep going and flag the failure in the receipt\nC) Overwrite the concept with the draft marked unverified\nD) Preserve the existing KB and stop",
+      "split": "train"
+    },
+    {
+      "evidence": "subject, scope, and root directories; it writes the concept and all three index.md files.",
+      "expected": "A",
+      "id": "train-20",
+      "query": "A new-primary capture targets a scope folder that does not exist. What does the capture write?\nA) The concept and all three index.md files\nB) The concept only\nC) The concept and the subject index.md only\nD) The concept and the root index.md only",
+      "split": "train"
+    },
+    {
+      "evidence": "private-KB root. Direct /repo-search calls keep their default behavior; the private-KB mode is",
+      "expected": "B",
+      "id": "train-21",
+      "query": "Who selects repo-search's private-KB local-only mode?\nA) Every direct /repo-search call\nB) Only the Knowledge Base caller\nC) Any runtime instruction that names a different root\nD) The user, by passing a flag to /repo-search",
+      "split": "train"
+    },
+    {
+      "evidence": "bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>",
+      "expected": "C",
+      "id": "train-22",
+      "query": "A completed AIDX plan must become durable knowledge. Which command form does the skill give?\nA) bun <agents-root>/scripts/knowledge-base.ts import-plan \"<private-kb-root>\" \"<plan-path>\"\nB) bun <agents-root>/scripts/knowledge-base.ts reconcile <relative-or-absolute-plan-path>\nC) bun <agents-root>/scripts/knowledge-base.ts import-plan <relative-or-absolute-plan-path>\nD) bun <agents-root>/scripts/knowledge-base.ts import-plan <absolute-reconciliation-request-path>",
+      "split": "train"
+    },
+    {
+      "evidence": "frontmatter value names the private-KB destination scope.",
+      "expected": "D",
+      "id": "train-23",
+      "query": "A completed plan has the legacy frontmatter value `repo_search_index`. What does the plan importer treat that value as?\nA) The subject folder of the concept\nB) The query used for related search\nC) The canonical owner path\nD) The private-KB destination scope",
+      "split": "train"
+    },
+    {
+      "evidence": "reconcile \"<private-kb-root>\" \"<absolute-reconciliation-request-path>\"`; then guard every changed concept.",
+      "expected": "A",
+      "id": "train-24",
+      "query": "Which reconcile command has the correct argument order?\nA) reconcile \"<private-kb-root>\" \"<absolute-reconciliation-request-path>\"\nB) reconcile \"<absolute-reconciliation-request-path>\" \"<private-kb-root>\"\nC) reconcile \"<absolute-reconciliation-request-path>\"\nD) reconcile \"<private-kb-root>\" \"<query>\"",
+      "split": "train"
+    },
+    {
+      "evidence": "Before a distillation decision",
+      "expected": "B",
+      "id": "train-25",
+      "query": "An agent is about to choose a disposition for a lesson. Which command does the skill say to run first, before this distillation decision?\nA) reconcile\nB) related\nC) import-plan\nD) search-batch",
+      "split": "train"
+    },
+    {
+      "evidence": "path), `links` (possibly empty; endpoints and body link markers must match), and non-empty",
+      "expected": "C",
+      "id": "train-26",
+      "query": "A reconciliation request has one new-primary operation and no links. What must the top level contain?\nA) No links field, because there are no links\nB) A links entry whose from and to are the same path\nC) A links field set to an empty list and a canonicalPath naming the one operation\nD) An empty operations list and a canonicalPath",
+      "split": "train"
+    },
+    {
+      "evidence": "dollar signs inside JSON as `\\\\u0060` and `\\\\u0024`.",
+      "expected": "D",
+      "id": "train-27",
+      "query": "Inside the JSON request, how are Markdown backticks and dollar signs encoded?\nA) Backtick as \\u0024 and dollar sign as \\u0060\nB) Both as \\u0060\nC) Backtick as \\u0060 and dollar sign left raw\nD) Backtick as \\u0060 and dollar sign as \\u0024",
+      "split": "train"
+    },
+    {
+      "evidence": "directory, parses and formats JSON before writing, and rejects malformed, relative, or",
+      "expected": "B",
+      "id": "validation-07",
+      "query": "The writer is given an absolute output path in the user's home folder, outside the OS temporary directory. What happens?\nA) It writes the file, because the path is absolute\nB) It rejects the path, since it must be under the actual OS temporary directory\nC) It writes the file and warns\nD) It rewrites the path to /tmp",
+      "split": "validation"
+    },
+    {
+      "evidence": "reconciliation packet. Duplicate normalized queries are invalid.",
+      "expected": "C",
+      "id": "validation-08",
+      "query": "A batch request has three queries, and two of them are identical after normalization. What does the skill say?\nA) Run all three and merge the results\nB) Run the first two and drop the third\nC) The batch is invalid because duplicate normalized queries are invalid\nD) Run the unique one only and ignore the duplicates",
+      "split": "validation"
+    },
+    {
+      "evidence": "Organization, team, and project records retain their",
+      "expected": "D",
+      "id": "validation-09",
+      "query": "Which records retain their ALWAYS/NEVER precedence?\nA) Only organization records\nB) Only shared-scope records\nC) Personal and session records\nD) Organization, team, and project records",
+      "split": "validation"
+    },
+    {
+      "evidence": "the importer preserves the source and returns a receipt.",
+      "expected": "A",
+      "id": "validation-10",
+      "query": "After import-plan succeeds, what happens to the source plan file?\nA) The importer preserves the source and returns a receipt\nB) The importer deletes the source and returns a receipt\nC) The importer moves the source into the KB tree\nD) The importer compresses the source in place",
+      "split": "validation"
+    },
+    {
+      "evidence": "`search` command returns `kbInfo` with `resolvedRoot` and `availableIndexes` so you know the KB root",
+      "expected": "C",
+      "id": "validation-11",
+      "query": "How can the agent learn the KB root and all scope folders without ls-ing directories?\nA) Read the knowledge-base.ts source\nB) Run it with --help and read the usage text\nC) Run search and read kbInfo, which has resolvedRoot and availableIndexes\nD) Read the discovery envelope of a search receipt",
+      "split": "validation"
+    },
+    {
+      "evidence": "A write is complete only after all preconditions, OKF",
+      "expected": "B",
+      "id": "validation-12",
+      "query": "A write was materialized, OKF checks passed, and link checks passed, but the index updates have not happened. Is the write complete?\nA) Yes, OKF and link checks are enough\nB) No; it is complete only after preconditions, OKF checks, link checks, index updates, and receipts all pass\nC) Yes, because index updates are optional\nD) No; it is complete only after a second search ranks the concept first",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "knowledge-base--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

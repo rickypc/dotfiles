@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "What did we decide about the retry policy last month? Check the knowledge base.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Capture this lesson in the private KB so we do not repeat the mistake.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Validate the OKF files in the knowledge base and report errors.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Reconcile the KB with these notes from today.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Import the completed plan into the knowledge base.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Distill the durable facts from this session into the KB, no raw chat.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Search the repo for where the retry policy is implemented.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Summarize this document for me.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Compress this Markdown file losslessly.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Write documentation for our public API.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "What is OAuth? Explain it simply.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Create a new agent skill for incident review.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Look up the precedent for how we handled the last database migration.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Record this verified decision in the KB with proper frontmatter.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Is there a prior lesson about flaky browser tests in our knowledge base?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Run an OKF validation pass on the private knowledge base.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Find the file that defines UserSession.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Write a README for this package.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Review my pull request.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Convert these notes into a slide outline.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "Do we have anything written down about why we picked Kafka over RabbitMQ?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Save what we learned about the flaky deploy so the next session knows.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Check whether the knowledge base entries still conform to the format and fix the index.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Where in the codebase do we use Kafka?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Write a post-mortem document about the deploy incident.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "What is the difference between Kafka and RabbitMQ?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "I remember a decision about API versioning; find it in our stored knowledge.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Turn the lessons from this completed plan into durable records.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Explain what a knowledge graph is.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Create a wiki page template for runbooks.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Last quarter we figured out why the nightly job times out. Where is that written down?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Persist the conclusion of this debugging session as a validated note.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Find where the nightly job is scheduled in the code.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Write an incident report for the nightly job timeout.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Look through our recorded decisions about caching before I propose something new.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Reconcile what we learned today with the existing records and re-validate everything.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Compress the long README so it uses fewer tokens.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Locate the file that configures the job scheduler.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "before i touch the auth migration, did we ever write down why we pinned that driver version? check our private notes store",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "we burned two hours on the flaky socket timeout and finally found the cause (stale DNS cache in the sidecar). make sure the next agent knows this, store it as a durable lesson in the KB under the payments scope, no transcript",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "kb search: webhook signature rotation",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "two of my saved concepts both claim to own the deploy-freeze rule. figure out which one is canonical, update it, and link the other one to it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "the plan at ~/plans/cache-rewrite.md is finished and verified. persist what we learned from it so it survives after the plan file gets removed",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "check that every concept file in the private store has type, title, description and tags and that each subject folder has an index",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "hey quick one, is there already a concept about our rollback checklist or would that be a new one? i dont want dupes in there",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "find where the search command is wired up in the repo and which files call it",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "write bun tests for the reconcile function in utils/kb-writer.ts, cover the duplicate path rejection",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "tighten the wording of the kb skill description and rerun its trigger evals so it routes better",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "execute the plan at /tmp/plans/kb-cleanup.md step by step",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "cut the token count of docs/onboarding.md without losing the code blocks or links, keep a backup",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "what's the difference between a wiki, a knowledge graph and a vector database? keep it short",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "draft a blog post explaining what the Open Knowledge Format is, with sourced quotations from public articles",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "did we ever decide who owns the on-call rotation doc? look in the KB before i ask around",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "i just learned the staging cluster resets every sunday 2am UTC. that's a keeper, file it as a reference concept in the shared scope. facts only, skip the chat log",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "look up 3 things in the private kb at once: retry backoff, idempotency keys, and feature flag cleanup",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "one of the concept files has broken frontmatter i think, and an index.md is out of date. verify the okf stuff and tell me what is wrong",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "merge what we found today into the existing concept on cache invalidation instead of making a new one, and cross-link the TTL concept",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "where in the codebase do we parse the frontmatter for concept files? trace the callers",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "review my working tree diff against the ticket requirements before i open the PR",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "turn this request into a proper six-section plan: migrate the notes folder to a new layout",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "add a new skill folder for release notes, with description, evals and references",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "thanks, that makes sense. can you remind me what a closure is in javascript?",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "knowledge-base",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

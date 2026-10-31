@@ -1,7 +1,7 @@
 ---
 
 name: aidp
-description: Turn a user request into one explicit six-section execution plan and hand it to /aidx.
+description: "Use when the user wants a written plan BEFORE any work is done: they ask to plan, scope, spec out, map out, break down, design the approach for, or lay out the steps or roadmap for a feature, migration, refactor, or other change that is not made yet (even when they say 'think it through first', 'before we start', or 'do not build anything yet, just figure out the safest order or approach'), or ask for a handoff document another agent can carry out. AIDP asks questions, gathers evidence, writes one six-section plan file, and hands it to /aidx. Do NOT use to execute a plan, write code, review a diff, or give a quick opinion."
 argument-hint: <goal-and-concerns>
 ---
 

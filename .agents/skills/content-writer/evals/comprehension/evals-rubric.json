@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "B",
+      "id": "train-01",
+      "query": "The rubric frontmatter says minimumPassRate: 1. How many of the evaluation cases must pass?\nA) Half of them\nB) Every one of them\nC) Only the challenge cases\nD) At least nine out of ten",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "C",
+      "id": "train-02",
+      "query": "Which verifier id does the rubric frontmatter list?\nA) claim-matrix\nB) quotation-diff\nC) source-structure\nD) output-gate",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "A",
+      "id": "train-03",
+      "query": "Which two visibility values must the evaluation cases cover, according to the rubric?\nA) candidate and challenge\nB) public and private\nC) canonical and boundary\nD) draft and final",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A case author is writing a new evaluation case. Which field is one of the required case fields?\nA) severity\nB) owner\nC) timeoutSeconds\nD) failureMode",
+      "split": "train"
+    },
+    {
+      "evidence": "Verify credible research, claim provenance, quotation fidelity, refresh inventory, and output gate.",
+      "expected": "B",
+      "id": "train-05",
+      "query": "What does the rubric's closing sentence say the evaluation should verify?\nA) Page speed, layout, and accessibility\nB) Credible research, claim provenance, quotation fidelity, refresh inventory, and output gate\nC) Code coverage, lint results, and build output\nD) Translation accuracy, tone, and keyword density",
+      "split": "train"
+    },
+    {
+      "evidence": "The canonical matrix checks each heading and challenges brittle",
+      "expected": "A",
+      "id": "validation-01",
+      "query": "What does the canonical matrix do with brittle exact-output or robotic-persona language, according to the rubric?\nA) It challenges that language\nB) It requires that language in every heading\nC) It ignores that language\nD) It rewrites that language automatically",
+      "split": "validation"
+    },
+    {
+      "evidence": "uncertainty, ownership, and proof boundary.",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "The shared contract must stay compatible with which boundaries of this skill?\nA) Speed, cost, and length\nB) Layout, color, and font\nC) Language, region, and date\nD) Uncertainty, ownership, and proof boundary",
+      "split": "validation"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "The rubric says the package conforms to a shared skill contract. How many parts does that contract have?\nA) Five\nB) Six\nC) Seven\nD) Eight",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "A",
+      "id": "train-06",
+      "query": "Which list is exactly the rubric's requiredCaseFields?\nA) id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier\nB) id, visibility, scenario, assertions, failureMode, repairBoundary, verifier\nC) id, visibility, scenario, assertions, failureMode, repairBoundary, owner\nD) id, severity, scenario, assertions, failureMode, repairBoundary, independentVerifier",
+      "split": "train"
+    },
+    {
+      "evidence": "role and scope, usage, immutable",
+      "expected": "C",
+      "id": "train-07",
+      "query": "In the shared seven-part skill contract, which part is third?\nA) Usage\nB) Role and scope\nC) Immutable operational rules\nD) Input and context schema",
+      "split": "train"
+    },
+    {
+      "evidence": "operational rules, input and context schema, ordered execution chain, output and completion",
+      "expected": "D",
+      "id": "train-08",
+      "query": "In the shared seven-part skill contract, which part is fifth?\nA) Input and context schema\nB) Output and completion contract\nC) Evaluation anchors\nD) Ordered execution chain",
+      "split": "train"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "B",
+      "id": "train-09",
+      "query": "Which frontmatter line does the rubric contain?\nA) schemaVersion: 2\nB) schemaVersion: 1\nC) schemaVersion: 7\nD) schemaVersion: 0",
+      "split": "train"
+    },
+    {
+      "evidence": "operational rules, input and context schema, ordered execution chain, output and completion",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "In the shared seven-part skill contract, which part is sixth?\nA) Evaluation anchors\nB) Output and completion contract\nC) Ordered execution chain\nD) Input and context schema",
+      "split": "validation"
+    },
+    {
+      "evidence": "role and scope, usage, immutable",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "In the shared seven-part skill contract, which part is second?\nA) Role and scope\nB) Immutable operational rules\nC) Input and context schema\nD) Usage",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "content-writer--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

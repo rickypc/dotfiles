@@ -1,0 +1,384 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "/aidx plans/checkout-refactor.md",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Execute the plan at ~/.agents/plans/Users-demo--agents/billing-migration.md.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Carry out the six-section plan we just approved and verify each phase.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Run through docs/rollout-plan.md deterministically and record completion when finished.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Resume executing the plan from the last checkpoint; the file is plans/search-speedup.md.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Start building from the approved plan file plans/audit-logging.md and report the output mapping.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Write me a plan for migrating our database to Postgres 16.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Explain what the verification checklist in this plan means.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Summarize plans/auth-migration.md in three bullets.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Fix the failing lint errors in src/api/handler.ts.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Plan and then immediately implement a new caching layer, no questions.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Review the changes on my feature branch.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Here is the plan path: plans/feature-flags.md. Execute it.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "/aidx ./plans/cdn-rollout.md",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Please run the materialized plan and update its checklist and terminal status at the end.",
+      "retired": "Ambiguous owner: the request names no plan file path, and this skill accepts only a plan path, so the label was wrong.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Pick up plans/orders-api.md where the last session stopped and finish executing it.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Help me decide what the requirements should be for a new reporting feature.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Edit this plan to add a rollback section.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Convert this Markdown plan into a shell script.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "List the plan files in the plans directory.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "plans/Users-demo--agents/search-rebuild.md is signed off, please take it from here.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Can you pick up the checklist in docs/plans/q4-migration.md and tick things off as you complete them?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Follow plans/payments-cutover.md to the letter, delegating to the right owners and verifying at the end.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Update the checklist in plans/q4-migration.md to mark phase 2 as skipped.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Make a plan for the payments cutover and execute it right away.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Why did the last plan execution fail at phase 3?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Execute whatever is in plans/onboarding.md; it follows the six-section format.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Run plans/rate-limit.md. If a phase fails, repair or re-plan per its instructions.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Validate that plans/onboarding.md has the six required sections.",
+      "retired": "Ambiguous owner: validating the structure of a plan file is not clearly outside plan execution, and a strong router assigned it to this skill.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Delete all completed plans older than a month.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "I approved plans/caching-change.md earlier. Please carry it out and leave the completion record.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "The plan file for the reporting work is docs/plans/reporting.md; work through every phase of it in order.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Rewrite the verification section of docs/plans/reporting.md to be stricter.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Create a plan for the reporting work and ask me questions first.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Take plans/search-rewrite.md and execute it, verifying freshly after each phase.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Resume plans/reporting.md from its last checkpoint and finish the remaining phases.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Which phase of plans/reporting.md is next? Just tell me, do not run anything.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Explain how plan execution handles failures.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "go run plans/Users-rhuang--agents/ledger-fix.md",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "ok the planning is done and I'm happy with it, the file's at plans/Users-rhuang--agents/session-cache.md. i'm going to grab lunch, just get it all built and tell me what happened when i'm back",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "my laptop died halfway through running plans/etl-rework.md. checkpoint should be written in there. continue pls",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "~/.agents/plans/Users-rhuang--agents/tax-export.md go",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "Everything in plans/webhook-retry.md has been reviewed by the team. Implement it step by step, tick each box as the proof passes, then close out the plan.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "implement plans/api-v2.md",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "Heads up, the lint config changed last week and CI is flaky, but that's unrelated. What I need now: take plans/Users-rhuang--agents/token-rotation.md and execute every workflow step in order, then give me the rigid output it asks for.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Draft a six-section plan for adding rate limiting to the gateway; ask me whatever you need first.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "plans/Users-rhuang--agents/ledger-fix.md is finished and marked completed. Import it into the private KB so we keep the lessons.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "Compress plans/etl-rework.md to save tokens without changing its meaning.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Find every place in the repo where the checkpoint writer for plan phases is called.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "We just implemented plans/api-v2.md. Can you review the diff against that plan as the requirements?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "our SKILL.md for the plan runner has a vague trigger description, can you tighten the wording and rerun its evals",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "what's the difference between a phase checkpoint and a completed-plan closeout, conceptually?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "plans/Users-rhuang--agents/notif-batching.md - do it",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "Fresh session here. There's an approved plan on disk, plans/Users-rhuang--agents/oauth-scopes.md, and the earlier session stopped after phase 2. Pick up from the recorded resume point and don't redo what the receipts already prove.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "could u just run the plan in ./plans/csv-import.md, it has all six sections already",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "Execute plans/Users-rhuang--agents/queue-drain.md exactly as written. If a proof fails stop and show me the target and what you observed, don't improvise a fix. Mark the plan completed when everything passes.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "time to build the thing we planned: ~/.agents/plans/Users-rhuang--agents/feature-gate.md",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Turn this idea into a proper plan file I can hand off later: add audit trails to the admin panel.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Write Bun tests for the checkpoint parser in utils/plan-checkpoint.ts, all methods.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "What did we decide last time about how long to keep completed plans? Check the knowledge base.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "Rewrite the workflow section of plans/csv-import.md so each step names a proof, but don't run anything.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Run Biome over src/plans/runner.ts and src/plans/checkpoint.ts.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "aidx",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "`source: \"fallback\"`, `results[].location` as `path:line`, caveat notes the missing index",
+      "expected": "A",
+      "id": "train-01",
+      "query": "A caller searches an unindexed root for a literal that exists. What does the envelope show?\nA) source \"fallback\" with path:line locations and a caveat about the missing index\nB) source \"graph\" with identity-field matches\nC) status \"error\" and no results\nD) source \"binary\" with a gate receipt",
+      "split": "train"
+    },
+    {
+      "evidence": "`status: \"error\"`, a `resolve-index` attempt, and no operation results",
+      "expected": "B",
+      "id": "train-02",
+      "query": "inspect is run on a root with no matching index. What should the caller expect?\nA) A new index and then results\nB) status error, a resolve-index attempt, and no operation results\nC) status found from the staged fallback\nD) status empty with all operations run",
+      "split": "train"
+    },
+    {
+      "evidence": "An empty result applies only to that root.",
+      "expected": "C",
+      "id": "train-03",
+      "query": "A sweep covers several repositories and one root returns an empty result. What does that mean?\nA) All roots are cleared\nB) The sweep stops and reports success\nC) The empty result applies only to that root; the other roots are still checked separately\nD) The parent root is searched instead",
+      "split": "train"
+    },
+    {
+      "evidence": "cannot hide live content from an explicitly approved search",
+      "expected": "D",
+      "id": "train-04",
+      "query": "Why does every staged rg pass use --hidden --no-ignore?\nA) To speed up the search\nB) To include .git and node_modules\nC) To search outside the approved root\nD) So dotfiles and a parent ignore file cannot hide live content, which would be reported as empty",
+      "split": "train"
+    },
+    {
+      "evidence": "`source: \"symbol\"`, snippet lines; indexes once when no index matches",
+      "expected": "A",
+      "id": "train-05",
+      "query": "A caller reads a dotted qualified name from an indexed root. Which source value does the envelope show?\nA) source \"symbol\", with snippet lines\nB) source \"file\"\nC) source \"graph\"\nD) source \"binary\"",
+      "split": "train"
+    },
+    {
+      "evidence": "`source: \"binary\"`, `binary-gate:classify` and `binary-route:*` receipts",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "A caller reads a binary file with a query. Which source and receipts show up?\nA) source \"file\" with a numbered fragment\nB) source \"binary\" with binary-gate:classify and binary-route:* receipts\nC) source \"symbol\" with snippet lines\nD) source \"fallback\" with a path:line location",
+      "split": "validation"
+    },
+    {
+      "evidence": "run once with `REPO_SEARCH_TRANSPORT_FORCE=none`",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "How is transport loss tested with a live run?\nA) Delete the backend binary\nB) Run inspect on an unindexed root\nC) Search with a hidden-file query\nD) Run once with REPO_SEARCH_TRANSPORT_FORCE=none",
+      "split": "validation"
+    },
+    {
+      "evidence": "include transitive and packaged sources such as lockfiles, Dockerfiles, base-image packages, and relevant bundled",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "For a dependency exposure sweep, which sources must be included beyond the application manifest?\nA) Only the top-level manifest\nB) Only the README files\nC) Transitive and packaged sources such as lockfiles, Dockerfiles, base-image packages, and bundled artifacts\nD) Only the parent repository root",
+      "split": "validation"
+    },
+    {
+      "evidence": "`search <root> \"<a> ... <b>\"`",
+      "expected": "D",
+      "id": "train-06",
+      "query": "The user wants to know how two named functions connect. Which command shape does the document give?\nA) `inspect <root> <jsonl>` with a trace operation\nB) `read <root> <a> <b>`\nC) Two separate `search <root> <name>` runs, then compare\nD) `search <root> \"<a> ... <b>\"`",
+      "split": "train"
+    },
+    {
+      "evidence": "one receipt per declared operation, in request order",
+      "expected": "A",
+      "id": "train-07",
+      "query": "An inspect request file declares architecture, search-graph, and search-code in that order. What does the envelope reading say?\nA) One receipt per declared operation, in request order\nB) One merged receipt for all operations\nC) Receipts sorted alphabetically by operation\nD) One receipt for the first operation only",
+      "split": "train"
+    },
+    {
+      "evidence": "Live: read a known file with and without a query (the fragment is unchanged), then read an explicit line range",
+      "expected": "B",
+      "id": "train-08",
+      "query": "A caller reads a known file once without a query and once with a query. What does the document say about the fragment?\nA) The query narrows it to matching lines\nB) The fragment is unchanged\nC) The envelope switches to `source: \"binary\"`\nD) The envelope switches to `source: \"symbol\"`",
+      "split": "train"
+    },
+    {
+      "evidence": "A missing index, a denial, or an empty result is a reported caveat - never a guess and never a reason to repeat a listed attempt.",
+      "expected": "C",
+      "id": "train-09",
+      "query": "An envelope shows a missing index and an empty result. What should the caller do?\nA) Repeat the listed attempt once more\nB) Guess the most likely path\nC) Report it as a caveat, never guessing and never repeating a listed attempt\nD) Switch to grep on the repository",
+      "split": "train"
+    },
+    {
+      "evidence": "Matrix `repo-search-transport-receipt`; live: run once with `REPO_SEARCH_TRANSPORT_FORCE=none`",
+      "expected": "A",
+      "id": "validation-04",
+      "query": "Which matrix id covers the transport loss scenario?\nA) `repo-search-transport-receipt`\nB) `repo-search-path-only`\nC) `repo-search-binary-gate`\nD) `repo-search-identity-fields`",
+      "split": "validation"
+    },
+    {
+      "evidence": "merged `symbol` results plus the `directories` cluster",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "A caller searches an indexed root for a code literal that is absent from symbol names and file paths. What does the envelope show?\nA) `source: \"graph\"` with identity-field matches\nB) One `connection` result\nC) Only `path:line` fallback locations\nD) Merged `symbol` results plus the `directories` cluster",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "repo-search--references-usage-patterns",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/usage-patterns.md"
+}

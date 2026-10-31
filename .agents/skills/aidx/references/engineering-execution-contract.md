@@ -8,9 +8,18 @@ retired lifecycle tree is removed.
 
 Before mutation, maintain a small ledger distinguishing user facts, project instructions, fresh
 repository evidence, decisions, assumptions, and unknowns. Execute the plan's work packets in order:
-research, requirements, design, units, delivery, review, and validation. Each packet must retain its
-source, owner, target, expected result, dependency, acceptance mapping, proof, and limitation. A
-missing required field is a stop unless the plan explicitly defines a safe fallback.
+research, requirements, design, units, delivery, review, and validation. The order, one step each:
+1. research;
+2. requirements (always before design);
+3. design;
+4. units;
+5. delivery;
+6. review (always before validation);
+7. validation (always last).
+
+Each packet must retain its source, owner, target, expected result, dependency, acceptance mapping,
+proof, and limitation. A missing required field is a stop unless the plan explicitly defines a safe
+fallback.
 
 ## Language routing
 

@@ -1,0 +1,131 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Make this aligned block the complete invocation catalog for the skill; do not add a separate invocation catalog elsewhere.",
+      "expected": "B",
+      "id": "train-01",
+      "query": "An author wants to list command syntax in Usage and also repeat a second command list in a later section. What does the template say?\nA) Allowed if the lists match\nB) The aligned Usage block is the complete invocation catalog; do not add a separate one elsewhere\nC) Allowed if the later list is in a table\nD) The later list is required for reviewers",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not append the old body after section 7, duplicate an invocation command catalog, or add filler to satisfy the heading count",
+      "expected": "D",
+      "id": "train-02",
+      "query": "An author is migrating an existing SKILL.md to the seven-heading contract. Which approach does the template forbid?\nA) Mapping old content to an owning heading\nB) Rewriting the entire source in place\nC) Removing superseded blocks\nD) Appending the old body after section 7",
+      "split": "train"
+    },
+    {
+      "evidence": "Start this section with a compact plain-text flow diagram showing the normal route and its major handoffs.",
+      "expected": "A",
+      "id": "train-03",
+      "query": "What should the Ordered Execution Chain section start with?\nA) A compact plain-text flow diagram showing the normal route and its major handoffs\nB) A list of numbered steps\nC) A table of four columns\nD) An example prompt",
+      "split": "train"
+    },
+    {
+      "evidence": "Use exactly four columns: `Command or information` | `Arguments` | `When to use` |",
+      "expected": "C",
+      "id": "train-04",
+      "query": "A skill documents a downstream route table outside Usage. What column layout does the template require?\nA) Any layout that fits the content\nB) Two columns: command and description\nC) Exactly four columns: Command or information, Arguments, When to use, Additional information\nD) Five columns, adding an Owner column",
+      "split": "train"
+    },
+    {
+      "evidence": "Pair each bright-line rule with its positive target and stop condition.",
+      "expected": "D",
+      "id": "train-05",
+      "query": "An author writes a bright-line rule in the Immutable Operational Rules section. What else must go with each such rule?\nA) A list of past incidents\nB) A required exact-output template\nC) A named reviewer\nD) Its positive target and stop condition",
+      "split": "train"
+    },
+    {
+      "evidence": "State what is missing, how it is detected, and where the skill stops instead of guessing.",
+      "expected": "A",
+      "id": "train-06",
+      "query": "A required input for a skill is missing and cannot be detected. What does the Input & Context Schema section say to do?\nA) State what is missing, how it is detected, and where the skill stops instead of guessing\nB) Fill in a plausible default and continue\nC) Skip the input and continue\nD) Ask the user for every input again",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not require literal or zero-variance output unless the skill's actual interface requires that exact shape.",
+      "expected": "C",
+      "id": "train-07",
+      "query": "A skill does research and judgment work. May its rules demand literal zero-variance output?\nA) Yes, always, for consistency\nB) Yes, if the output is short\nC) No, unless the skill's actual interface requires that exact shape\nD) No, never under any condition",
+      "split": "train"
+    },
+    {
+      "evidence": "do not copy domain-specific examples, external branding, or project-specific paths into reusable skill prose.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "An author copies an example from another skill that includes branding and a project folder path. What does the template say about reusable skill prose?\nA) Keep them as realistic examples\nB) Do not copy domain-specific examples, external branding, or project-specific paths into it\nC) Keep the branding but remove the paths\nD) Keep the paths but remove the branding",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not claim completion from a score, intention, or partial check alone.",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "A check passed with a high score but other checks are unfinished. Under Output & Completion Contract, may the agent claim completion?\nA) Yes, a high score is enough\nB) Yes, if the intention was clear\nC) No, do not claim completion from a score, intention, or partial check alone\nD) Yes, after one more partial check",
+      "split": "validation"
+    },
+    {
+      "evidence": "Cover the normal path, at least one boundary or failure path, and one challenge that catches a likely shortcut or rationalization.",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "What cases should the Evaluation Anchors section cover?\nA) The normal path, at least one boundary or failure path, and one challenge that catches a likely shortcut\nB) Only the normal path\nC) Only failure paths\nD) Every command in the Usage block",
+      "split": "validation"
+    },
+    {
+      "evidence": "The diagram is a map, not a second command router.",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "How does the template describe the flow diagram's relationship to command routing?\nA) It is the command router for the skill\nB) It replaces the Usage block\nC) It lists every argument for each command\nD) It is a map, not a second command router",
+      "split": "validation"
+    },
+    {
+      "evidence": "Each step must name its action, owner, dependency, and focused proof.",
+      "expected": "A",
+      "id": "train-08",
+      "query": "In the Ordered Execution Chain, which four things must each step name?\nA) Action, owner, dependency, and focused proof.\nB) Action, owner, deadline, and focused proof.\nC) Action, command, dependency, and receipt.\nD) Trigger, owner, dependency, and fallback.",
+      "split": "train"
+    },
+    {
+      "evidence": "The first line may be a smart default only when the skill supports one.",
+      "expected": "C",
+      "id": "train-09",
+      "query": "When may the first line of the Usage catalog be a smart default?\nA) Always; every skill needs one.\nB) Only when the skill has more than three commands.\nC) Only when the skill supports one.\nD) Never; the first line must be a named command.",
+      "split": "train"
+    },
+    {
+      "evidence": "State the completion proof and the final gate that decides pass or failure.",
+      "expected": "D",
+      "id": "train-10",
+      "query": "What must the Output & Completion Contract state about completion?\nA) The completion proof and the score threshold.\nB) The author's intention and the final gate.\nC) The completion proof and the reviewer who approves it.\nD) The completion proof and the final gate that decides pass or failure.",
+      "split": "train"
+    },
+    {
+      "evidence": "Preserve uncertainty and competing hypotheses when the work is exploratory; do not turn an example into an unsupported fact.",
+      "expected": "B",
+      "id": "train-11",
+      "query": "A skill does exploratory research and one hypothesis looks best. What does Evaluation Anchors say to do?\nA) Turn the best hypothesis into an established fact.\nB) Preserve uncertainty and competing hypotheses.\nC) Drop the other hypotheses once one example passes.\nD) Require an exact-output format.",
+      "split": "train"
+    },
+    {
+      "evidence": "**Boundary:** State what is out of scope and which neighboring owner handles it.",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "In section 1, Role & Scope, which bullet states what is out of scope and which neighboring owner handles it?\nA) Role\nB) Objective\nC) Trigger\nD) Boundary",
+      "split": "validation"
+    },
+    {
+      "evidence": "4. **Verification:** Check the expected result and retain the independent proof. 5. **Stop or hand off:** Name the failure",
+      "expected": "A",
+      "id": "validation-06",
+      "query": "In the five-step list of the Ordered Execution Chain, which step comes right after Verification?\nA) Stop or hand off\nB) Branching\nC) Normal path\nD) Intake",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--references-skill-template",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/skill-template.md"
+}

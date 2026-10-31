@@ -1,7 +1,7 @@
 ---
 
 name: aidx
-description: Read a user-supplied six-section plan path and execute its instructions deterministically.
+description: "Use when the user gives the path of an existing six-section plan file (.md) and asks to run, execute, carry out, resume, or work through it. AIDX executes that plan step by step, verifies each step, and records completion. Do NOT use to write, edit, explain, summarize, or report the status of a plan without running it (writing is /aidp), including only checking off, marking, or updating a plan's checklist text, or when no plan file path is given."
 argument-hint: <plan-path-relative-or-absolute>
 ---
 
@@ -13,7 +13,11 @@ AIDX executes one already-materialized six-section plan. It owns ordered executi
 routing, fresh verification, completion-state recording, and the final output mapping. It does not
 author or redesign plans, ask the planner's requirements questions, maintain a parallel state
 machine, or turn free-form Markdown into a shell script. It may update the executed plan's checklist
-and terminal status during mandatory closeout.
+and terminal status during mandatory closeout. Its work always runs in this order:
+
+1. ingest and verify,
+2. process and transform,
+3. synthesize.
 
 ### Trigger and accepted input
 
@@ -118,11 +122,18 @@ closeout and validation.
 
 ## 4. Input & Context Schema
 
-Use Section 1 as the objective and boundary. Resolve Section 2 inputs. Execute Section 3 in order:
-ingest and verify, then process and transform, then synthesize. Finish the named proof for one
-action before starting the next. Use Section 4 only when its stated primary path is empty or fails,
-and retain the fallback result. Run every Section 5 check after the work and map the result directly
-into Section 6.
+Use Section 1 as the objective and boundary. Resolve Section 2 inputs. Execute Section 3 in order.
+The sequence is fixed and never reordered:
+
+1. FIRST: ingest and verify the source;
+2. SECOND: process and transform the data;
+3. THIRD and last: synthesize the report.
+
+Ingest and verify is always first. Synthesize is always last, never first.
+
+Finish the named proof for one action before starting the next. Use Section 4 only when its stated
+primary path is empty or fails, and retain the fallback result. Run every Section 5 check after the
+work and map the result directly into Section 6.
 
 Do not skip, reorder, batch, or silently broaden steps. Route specialized work only through the
 owner explicitly named by the plan. A minor path omission may be resolved from unambiguous local

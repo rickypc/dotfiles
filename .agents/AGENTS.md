@@ -281,7 +281,8 @@ Wrap Markdown and MDX prose at 100 characters or fewer. TypeScript and JSON alre
 Biome `lineWidth` of 100, so no separate rule is needed there. Tables, fenced code blocks, YAML
 frontmatter, headings, `import`/`export` lines, recitation and verse blockquotes, single unbreakable
 tokens (a long URL or code span), and `<em>Source: ...</em>` citation lines are exempt because
-wrapping them would break their meaning or the rendered structure.
+wrapping them would break their meaning or the rendered structure. Any other line over 100
+characters, such as a sentence made of ordinary words, must be rewrapped to 100 or fewer.
 
 100 is a band, not a ceiling you approach from below: a compliant wrapped line runs past 80
 characters. Refill prose a file already wraps narrower, and never treat the width you find in a file
@@ -368,10 +369,11 @@ mv <absolute-source-path> <trash-destination>
 ```
 
 where `<trash-destination>` is `~/.Trash/<basename>` or, on collision,
-`~/.Trash/<basename>.<suffix>`. Use the `trash.ts` module's `defaultMoveSourceToTrash` for
-programmatic retirement; use `mv` directly for shell-level retirement. Never skip this rule for
-"trivial" temp files - the OS tmpdir janitor handles those, and any other file must be trashed, not
-deleted.
+`~/.Trash/<basename>.<suffix>`. The suffix goes AFTER the full basename: a colliding `notes.md` goes
+to `~/.Trash/notes.md.1`, never to `~/.Trash/1.notes.md`. Use the `trash.ts` module's
+`defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for shell-level
+retirement. Never skip this rule for "trivial" temp files - the OS tmpdir janitor handles those, and
+any other file must be trashed, not deleted.
 
 ### String-only JSON boundary
 

@@ -17,3 +17,6 @@ uncertainty, ownership, and proof boundary.
 
 Verify durable knowledge records stored in OKF (Open Knowledge Format), their indexes, and
 evidence-based lesson capture.
+
+Allowed `visibility` values are only `candidate` and `challenge`. Any other value, for example
+`public`, is invalid.

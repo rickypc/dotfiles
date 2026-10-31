@@ -1,0 +1,117 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "C",
+      "id": "train-01",
+      "query": "A reviewer checks the evaluation cases for the Bun test generator. What minimum pass rate does the rubric require?\nA) 50 percent of cases\nB) 80 percent of cases\nC) 100 percent of cases\nD) 90 percent of cases",
+      "split": "train"
+    },
+    {
+      "evidence": "The package also conforms to the shared seven-part skill contract",
+      "expected": "B",
+      "id": "train-02",
+      "query": "The rubric says the package also conforms to a shared skill contract. How many parts does that shared contract have?\nA) Five parts\nB) Seven parts\nC) Three parts\nD) Ten parts",
+      "split": "train"
+    },
+    {
+      "evidence": "a rejected invocation must be repaired rather than repeated.",
+      "expected": "D",
+      "id": "train-03",
+      "query": "An agent runs a delegated command and the owner parser rejects the invocation. What does the rubric expect next?\nA) Run the same command again until it passes\nB) Skip the command and finish the task\nC) Report success because the SUT is real\nD) Repair the invocation instead of repeating it",
+      "split": "train"
+    },
+    {
+      "evidence": "A focused coverage receipt, a passing lint lane, or an aggregate report cannot substitute for the",
+      "expected": "A",
+      "id": "train-04",
+      "query": "An agent has a focused coverage receipt showing 100 percent for the selected SUT. Can it replace the full suite and strict type check as completion proof?\nA) No, a focused coverage receipt cannot substitute for the full suite or the other gate lanes\nB) Yes, 100 percent coverage is enough to close\nC) Yes, but only if lint also passed\nD) Yes, if an aggregate report is attached",
+      "split": "train"
+    },
+    {
+      "evidence": "focused coverage must identify the selected SUT files and",
+      "expected": "B",
+      "id": "train-05",
+      "query": "For completion, which files must the focused coverage identify?\nA) Every file in the project\nB) The selected SUT files\nC) Only the test files\nD) Only files changed in the last commit",
+      "split": "train"
+    },
+    {
+      "evidence": "the selected SUT is the only real dependency.",
+      "expected": "A",
+      "id": "validation-01",
+      "query": "Which dependency does the rubric say may stay real when a test runs?\nA) Only the selected SUT\nB) Every imported module\nC) The filesystem boundary\nD) Global boundaries such as the clock",
+      "split": "validation"
+    },
+    {
+      "evidence": "Before any shared-suite mock or SUT change, verify the consumer impact map and same-process",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "An agent is about to change a shared-suite mock. What must it verify first according to the rubric?\nA) The coverage percentage of the aggregate report\nB) The lint lane result only\nC) That mock.restore() was called\nD) The consumer impact map and same-process isolation proof",
+      "split": "validation"
+    },
+    {
+      "evidence": "performs a mutation check before completion.",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "Each test must satisfy one more check before the work is complete. Which one does the rubric name?\nA) A snapshot of the exact output text\nB) A review by a second persona\nC) A mutation check\nD) A rerun of the focused test three times",
+      "split": "validation"
+    },
+    {
+      "evidence": "reach the configured 100% function/line target, then the configured `test:lint`, `test:unit`, and",
+      "expected": "A",
+      "id": "validation-04",
+      "query": "What coverage target must focused coverage reach for the selected SUT before the gate lanes run?\nA) The configured 100% function and line target\nB) 80% lines only\nC) The aggregate project average\nD) 100% branches only",
+      "split": "validation"
+    },
+    {
+      "evidence": "the evidence must cover same-process test-ordering contamination and preserve unrelated built-in module exports where mocking is unavoidable",
+      "expected": "B",
+      "id": "train-06",
+      "query": "A test file registers a top-level module/global mock. Which evidence does the rubric require for it?\nA) Only a focused-file pass plus a restored mock.restore() call\nB) Coverage of same-process test-ordering contamination, and preservation of unrelated built-in module exports where mocking is unavoidable\nC) Coverage of same-process test-ordering contamination only; built-in exports may be replaced entirely\nD) Preservation of unrelated built-in module exports only; test ordering does not matter",
+      "split": "train"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "D",
+      "id": "train-07",
+      "query": "Which two visibility values must every evaluation case use, according to the rubric front matter?\nA) public and private\nB) candidate and hidden\nC) challenge and validation\nD) candidate and challenge",
+      "split": "train"
+    },
+    {
+      "evidence": "verify a specific `mock()` or `mock.module()` plus an observable behavior assertion",
+      "expected": "A",
+      "id": "train-08",
+      "query": "The selected SUT imports a module and uses a global. What must the reviewer verify for each such boundary?\nA) A specific mock() or mock.module() plus an observable behavior assertion\nB) A specific mock.module() only, with no assertion needed on its behavior\nC) A real implementation plus an observable behavior assertion\nD) A specific mock() only for modules, and a live global for globals",
+      "split": "train"
+    },
+    {
+      "evidence": "then the configured `test:lint`, `test:unit`, and `test:type` lanes (or exact project equivalents) must each run in the relevant runner context and exit 0",
+      "expected": "C",
+      "id": "train-09",
+      "query": "Which gate lanes must each run in the relevant runner context and exit 0 for completion?\nA) test:lint and test:unit only, because the type check is covered by lint\nB) test:unit, test:type, and one aggregate report\nC) test:lint, test:unit, and test:type, or exact project equivalents\nD) test:lint, test:coverage, and test:type",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "Which verifier id does the rubric front matter list?\nA) full-gate\nB) mutation-check\nC) source-structure\nD) boundary-validation",
+      "split": "validation"
+    },
+    {
+      "evidence": "The canonical matrix checks each heading and challenges brittle exact-output or robotic-persona language",
+      "expected": "A",
+      "id": "validation-06",
+      "query": "What kind of language does the canonical matrix challenge, besides checking each heading?\nA) Brittle exact-output or robotic-persona language\nB) Missing exact-output examples or persona language\nC) Language longer than 100 characters per line\nD) Any mention of uncertainty or ownership boundaries",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "bun-test-generator--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

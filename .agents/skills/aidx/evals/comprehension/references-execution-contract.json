@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "AIDX consumes the approved plan as its requirement boundary.",
+      "expected": "B",
+      "id": "train-01",
+      "query": "What does AIDX treat as its requirement boundary?\nA) The user's latest chat message\nB) The approved plan\nC) Whatever requirements it rediscovers from the repository\nD) The reviewer's suggestions",
+      "split": "train"
+    },
+    {
+      "evidence": "It reads the user-supplied path unchanged before canonicalization",
+      "expected": "D",
+      "id": "train-02",
+      "query": "The user gives AIDX a relative plan path. What must happen to the path first?\nA) Canonicalize it, then read the canonical form\nB) Convert it to an absolute path and then guess the index\nC) Ask the user to retype it as absolute\nD) Read it unchanged, and only then canonicalize it",
+      "split": "train"
+    },
+    {
+      "evidence": "The executor completes one workflow action and its fresh proof before beginning the next.",
+      "expected": "A",
+      "id": "train-03",
+      "query": "AIDX has finished workflow action 2 and its proof is not yet gathered, but action 3 looks quick. What should the executor do?\nA) Finish the fresh proof for action 2 before beginning action 3\nB) Start action 3 and gather both proofs at the end\nC) Skip the proof for action 2 because the action seems fine\nD) Run actions 2 and 3 together in one batch",
+      "split": "train"
+    },
+    {
+      "evidence": "It does not rediscover requirements, rewrite the plan, or interpret Markdown as a command script.",
+      "expected": "C",
+      "id": "train-04",
+      "query": "The plan's Markdown contains a shell code block. How does the executor treat free-form Markdown like that?\nA) Runs it as a command script in order\nB) Rewrites it into a safer script first\nC) Does not interpret Markdown as a command script\nD) Hands it to the user to run",
+      "split": "train"
+    },
+    {
+      "evidence": "A material scope, ownership, safety, or acceptance change is a stop.",
+      "expected": "D",
+      "id": "train-05",
+      "query": "Midway through execution, new evidence shows the acceptance criteria must change. What is the correct response?\nA) Quietly adjust the plan and continue\nB) Pick a fallback of its own and continue\nC) Finish the remaining steps first and mention it in the report\nD) Stop, because a material acceptance change is a stop",
+      "split": "train"
+    },
+    {
+      "evidence": "focused checks do not replace the configured final gate, and a green final gate does not prove an unmapped claim.",
+      "expected": "A",
+      "id": "validation-01",
+      "query": "The focused tests are green and the project's final gate is also green, but one acceptance item has no mapped proof. What is true?\nA) The green final gate does not prove the unmapped claim\nB) The final gate covers it, so the item is done\nC) The focused tests replace the final gate\nD) Coverage numbers prove the item",
+      "split": "validation"
+    },
+    {
+      "evidence": "A previous receipt or partial green check cannot establish completion.",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "Completion is being claimed using a receipt from an earlier run plus one partial green check. What does the document say?\nA) That is enough if both are green\nB) That is enough if the user agrees\nC) A previous receipt or partial green check cannot establish completion\nD) That is enough when the diff is small",
+      "split": "validation"
+    },
+    {
+      "evidence": "For brownfield work it confirms current behavior, consumers, public or data boundaries, preservation obligations, and existing proof.",
+      "expected": "B",
+      "id": "validation-03",
+      "query": "For brownfield work, what must the executor confirm before mutation?\nA) Only the names of the files to be edited\nB) Current behavior, consumers, public or data boundaries, preservation obligations, and existing proof\nC) Only the final gate command\nD) The preferred coding style of the reviewer",
+      "split": "validation"
+    },
+    {
+      "evidence": "It reads the user-supplied path unchanged before canonicalization",
+      "expected": "D",
+      "id": "train-06",
+      "query": "When does AIDX read the user-supplied plan path as given, relative to canonicalization?\nA) After it canonicalizes and rewrites the path\nB) Only if canonicalization fails\nC) It never reads the path as given\nD) Before canonicalization, unchanged",
+      "split": "train"
+    },
+    {
+      "evidence": "builds a checklist from objective, requirements, exclusions, dependencies, acceptance-to-proof mapping, and re-plan triggers.",
+      "expected": "A",
+      "id": "train-07",
+      "query": "Before mutation, which inputs does the executor build its checklist from?\nA) Objective, requirements, exclusions, dependencies, acceptance-to-proof mapping, and re-plan triggers\nB) Objective, requirements, exclusions, dependencies, fallbacks, and re-plan triggers\nC) Objective, requirements, owners, dependencies, acceptance-to-proof mapping, and re-plan triggers\nD) Objective, requirements, exclusions, final gate, acceptance-to-proof mapping, and re-plan triggers",
+      "split": "train"
+    },
+    {
+      "evidence": "focused checks do not replace the configured final gate",
+      "expected": "C",
+      "id": "train-08",
+      "query": "Every acceptance item has its own passing focused check. May the executor skip the configured final gate?\nA) Yes, since each item is proven\nB) Yes, if the focused checks ran fresh\nC) No, focused checks do not replace the configured final gate\nD) Yes, if the gate is slower than the focused checks",
+      "split": "train"
+    },
+    {
+      "evidence": "A material scope, ownership, safety, or acceptance change is a stop.",
+      "expected": "B",
+      "id": "train-09",
+      "query": "The executor wants to hand one step to an owner the plan does not name. What does the document require?\nA) Do it, since the other owner is more suitable\nB) Stop, because an ownership change is a stop\nC) Do it and note the change in the limitations\nD) Do it only if the named owner is slow",
+      "split": "train"
+    },
+    {
+      "evidence": "Completion requires fresh output and exit-status evidence, objective and exclusion checks, changed-target review, and the exact Section 6 layout.",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "All checks ran fresh with exit status 0 and the diff was reviewed, but the report uses the executor's own layout instead of the plan's. Is completion established?\nA) Yes, the evidence is complete\nB) Yes, if a note explains the layout\nC) Yes, once the final gate also passes\nD) No, completion also requires the exact Section 6 layout",
+      "split": "validation"
+    },
+    {
+      "evidence": "It re-plans when evidence invalidates the approved requirement, boundary, owner, dependency, risk, architecture, or validation strategy.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "Mid-execution, evidence shows the plan's validation strategy cannot observe the required behavior. What does the executor do?\nA) Re-plan\nB) Swap in a better validation method quietly\nC) Continue and note the gap as a limitation\nD) Keep the strategy and mark the acceptance item skipped",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidx--references-execution-contract",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/execution-contract.md"
+}

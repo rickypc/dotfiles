@@ -72,6 +72,11 @@ challenge cases only after every candidate case passes, using the same candidate
 fingerprint. Do not weaken the matrix after seeing a failure, reuse a receipt from another source or
 matrix, or treat a score or measurement as closure evidence.
 
+Training extends this freeze. Record a `train measure --measure-only` baseline before editing a
+skill; keep an edit only when the gate returns `accepted`, otherwise restore the baseline snapshot.
+Matrices and trigger query sets only grow: run `ratchet` against the committed version before
+closeout. [train-protocol.md](train-protocol.md) owns the loop, metrics, and blind measurement.
+
 Choose the test form from the baseline failure: use positive structural contracts for wrong-shaped
 output or omissions; use bright-line counters and red flags for discipline failures; and use
 explicit predicate/action pairs for conditional behavior. For discipline skills, pressure-test with
@@ -92,10 +97,15 @@ Supply raw artifacts, not the intended answer. Check that the skill asks the rig
 the right owner, preserves scope, emits the expected artifacts, and reaches a verifiable result
 without leaked authoring context. For output evals, retain with-skill and without-skill (or
 prior-version) outputs, timing/token data, assertion-level evidence, aggregate pass-rate and
-variance, and human feedback. Read every flagged output; template echoes and quoted counterexamples
-are not behavioral failures. Remove weak assertions and inspect always-pass, always-fail, flaky, and
-time/token-outlier cases. Treat inconsistent outputs across replications as a wording defect
-requiring a tighter form, not as permission to add untested prose.
+variance, and human feedback. Read every flagged output.
+
+Neither of these is a behavioral failure; ignore both when counting failures:
+- an output that only echoes template text;
+- an output that only quotes a counterexample.
+
+Then remove weak assertions and inspect always-pass, always-fail, flaky, and time/token-outlier
+cases. Treat inconsistent outputs across replications as a wording defect requiring a tighter form,
+not as permission to add untested prose.
 
 ## 7. Close out
 

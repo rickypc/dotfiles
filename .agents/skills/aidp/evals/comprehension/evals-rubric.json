@@ -1,0 +1,89 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Measure whether AIDP creates a complete, fail-closed, prose-only plan with typed inputs, owned\ntargets, ordered proof, explicit fallback, and one absolute handoff.",
+      "expected": "C",
+      "id": "train-01",
+      "query": "A reviewer asks what the AIDP evaluation rubric measures. Which description matches the rubric?\nA) Whether AIDP implements the source changes and runs the tests itself\nB) Whether AIDP writes a plan that mixes prose and code with several handoff links\nC) Whether AIDP creates a complete, fail-closed, prose-only plan with typed inputs, owned targets, ordered proof, explicit fallback, and one absolute handoff\nD) Whether AIDP answers quickly using plausible defaults when the request is short",
+      "split": "train"
+    },
+    {
+      "evidence": "The pass remains advisory and does not become a\nsecond workflow or completion gate.",
+      "expected": "A",
+      "id": "train-02",
+      "query": "According to the rubric, what is the status of the decision-quality pass?\nA) It is advisory and does not become a second workflow or completion gate\nB) It is a second workflow that must finish before any plan is written\nC) It is a completion gate that blocks the final result\nD) It replaces the clarification step for material choices",
+      "split": "train"
+    },
+    {
+      "evidence": "while\nsimple, clearly bounded work stays on the fast path.",
+      "expected": "D",
+      "id": "train-03",
+      "query": "A request is simple and clearly bounded. What does the rubric say about the decision-quality pass for it?\nA) Run the full first-principles pass anyway to be safe\nB) Run the pass twice and compare the results\nC) Ask the user to approve skipping the pass\nD) Keep the work on the fast path without the pass",
+      "split": "train"
+    },
+    {
+      "evidence": "Challenge ambiguity,\nimplementation leakage, unsafe updates, and missing proof.",
+      "expected": "B",
+      "id": "train-04",
+      "query": "Which problems must the challenge cases in the rubric try to expose?\nA) Slow response time, long output, and formatting style\nB) Ambiguity, implementation leakage, unsafe updates, and missing proof\nC) Missing screenshots, missing logos, and missing colors\nD) Too many clarification questions and too many phases",
+      "split": "train"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "What minimum pass rate does the rubric frontmatter require?\nA) 0.5\nB) 1\nC) 0.9\nD) 0.75",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredVisibility: [candidate, challenge]",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "Which visibility values does the rubric require each case to use?\nA) candidate and challenge\nB) public and private\nC) train and validation\nD) visible and hidden",
+      "split": "validation"
+    },
+    {
+      "evidence": "requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]",
+      "expected": "C",
+      "id": "train-05",
+      "query": "Which list is the exact set of required case fields in the rubric frontmatter?\nA) id, visibility, scenario, assertions, failureMode, independentVerifier\nB) id, visibility, scenario, assertions, repairBoundary, independentVerifier\nC) id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier\nD) id, scenario, assertions, failureMode, repairBoundary, independentVerifier, minimumPassRate",
+      "split": "train"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "A",
+      "id": "train-06",
+      "query": "Which verifier id does the rubric frontmatter list?\nA) source-structure\nB) source-semantics\nC) plan-structure\nD) independent-verifier",
+      "split": "train"
+    },
+    {
+      "evidence": "material directional choices receive a conditional first-principles pass and\nowner/retirement integrity check",
+      "expected": "D",
+      "id": "train-07",
+      "query": "Which kind of choice receives the conditional first-principles pass and the owner/retirement integrity check?\nA) Every request, including simple clearly bounded work\nB) Only choices the user marks as urgent\nC) Only choices about formatting and wording\nD) Material directional choices",
+      "split": "train"
+    },
+    {
+      "evidence": "The package also keeps the Aegis-derived decision-quality method inside AIDP",
+      "expected": "B",
+      "id": "validation-03",
+      "query": "Where does the rubric say the Aegis-derived decision-quality method lives?\nA) In a separate Aegis skill that AIDP calls\nB) Inside AIDP\nC) In AIDX as its completion gate\nD) In the knowledge base only",
+      "split": "validation"
+    },
+    {
+      "evidence": "schemaVersion: 1",
+      "expected": "A",
+      "id": "validation-04",
+      "query": "What schemaVersion does the rubric frontmatter declare?\nA) 1\nB) 2\nC) 0\nD) 1.5",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidp--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

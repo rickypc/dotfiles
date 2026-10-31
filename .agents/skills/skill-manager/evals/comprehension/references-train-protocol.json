@@ -1,0 +1,217 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "a should-trigger query passes when its router hit rate is at least `pass_threshold`; a near-miss query passes when the rate stays below it.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "A should-trigger query has a router hit rate below `pass_threshold`. Does it pass?\nA) No; a should-trigger query passes only when its hit rate is at least the threshold\nB) Yes; any hit counts\nC) Yes; a near-miss rule applies\nD) No; it must reach a hit rate of 1.0",
+      "retired": "The pass_threshold rule was replaced by a rule that every run must agree, so this premise is obsolete.",
+      "split": "train"
+    },
+    {
+      "evidence": "a query that failed at baseline and now passes with unanimous runs (all hits, or no hits for a near-miss).",
+      "expected": "C",
+      "id": "train-02",
+      "query": "A query failed at baseline. Now two of three runs hit and one misses. Is it a gain?\nA) Yes, two of three is enough\nB) Yes, if the validation score also rises\nC) No; a gain needs unanimous runs\nD) No; a gain needs at least five runs",
+      "split": "train"
+    },
+    {
+      "evidence": "no hard failure, same query-set fingerprint, changed source, zero regressions, at least one gain. Everything else is `blocked` with the reason.",
+      "expected": "B",
+      "id": "train-03",
+      "query": "An attempt produces two gains and one regression. What is the decision?\nA) Accepted, because gains outnumber regressions\nB) Blocked, because accept needs zero regressions\nC) Accepted, if the regression is in validation only\nD) Blocked, because accept needs three gains",
+      "split": "train"
+    },
+    {
+      "evidence": "append harder near-miss queries (neighbor skills' scopes, shared verbs, ambiguous phrasing), `ratchet` them, and record a new baseline.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "The baseline passes every query. What does the protocol say to do?\nA) Report the skill as optimal\nB) Delete the easiest queries\nC) Skip the baseline record\nD) Append harder near-miss queries, ratchet them, and record a new baseline",
+      "split": "train"
+    },
+    {
+      "evidence": "The editing agent knows the labels and the intended answer, so it must not answer router prompts.",
+      "expected": "B",
+      "id": "train-05",
+      "query": "The editing agent knows which queries should trigger the skill. May it answer the router prompts itself to save time?\nA) Yes, if it ignores the labels\nB) No; it knows the labels and the intended answer, so it must not answer router prompts\nC) Yes, for validation prompts only\nD) Yes, if it answers once per run",
+      "split": "train"
+    },
+    {
+      "evidence": "spawn one fresh child agent with this prompt and nothing else:",
+      "expected": "A",
+      "id": "train-06",
+      "query": "A query set has three runs per query. How many fresh child agents answer the blind bundle for one measurement?\nA) One fresh child agent for each run index\nB) One child agent for all runs\nC) One child agent per query\nD) The editing agent plus one child",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not look up validation query text; it exists to catch overfitting, not to guide edits.",
+      "expected": "C",
+      "id": "train-07",
+      "query": "The agent is reflecting on failures and wonders whether to look up the validation query text. What does the protocol say?\nA) Look it up to find overfitting\nB) Look it up once after each attempt\nC) Do not look it up; validation exists to catch overfitting, not to guide edits\nD) Look it up only if the train score is low",
+      "split": "train"
+    },
+    {
+      "evidence": "Stop after three attempts or when no train failure remains.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "Three attempts have been made and train failures still remain. What does the loop say?\nA) Keep trying until no failure remains\nB) Make a fourth attempt with a bigger edit\nC) Edit the query set to remove the failures\nD) Stop after three attempts or when no train failure remains",
+      "split": "train"
+    },
+    {
+      "evidence": "highest validation score, then train score, then the earliest attempt.",
+      "expected": "B",
+      "id": "train-09",
+      "query": "Two accepted attempts exist. How is the winner picked?\nA) Lowest train score, then highest validation score\nB) Highest validation score, then train score, then the earliest attempt\nC) The latest attempt\nD) Highest train score, then validation score",
+      "split": "train"
+    },
+    {
+      "evidence": "no hard failure and zero regressions against the baseline; `applied` must also equal an accepted attempt's snapshot.",
+      "expected": "A",
+      "id": "validation-01",
+      "query": "The status `applied` is being recorded for a skill. What must be true?\nA) No hard failure, zero regressions against the baseline, and it equals an accepted attempt's snapshot\nB) Only that the validation score is above the baseline\nC) Only that it has no hard failure\nD) That it was measured with a changed query set",
+      "split": "validation"
+    },
+    {
+      "evidence": "One block is noise; two consecutive blocks are interference.",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "In a suite run, a skill whose own source did not change shows `blocked` post-change. What is the first step?\nA) Roll the skill back immediately\nB) Edit its description right away\nC) Remeasure once with fresh children, since one block is noise\nD) Restore every neighbor's edit",
+      "retired": "The remeasure-once noise rule was replaced by treating a block as a real regression, so this premise is obsolete.",
+      "split": "validation"
+    },
+    {
+      "evidence": "`unrecorded` means the live file matches no ledger entry: measure it as an attempt or restore the baseline snapshot.",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "`train select` reports `unrecorded`. What does that mean and what next?\nA) The ledger is empty; re-baseline now\nB) The attempt was accepted; apply it\nC) The baseline was lost; delete the ledger\nD) The live file matches no ledger entry; measure it as an attempt or restore the baseline snapshot",
+      "split": "validation"
+    },
+    {
+      "evidence": "a gain needs unanimity and a regression needs only a threshold flip. The asymmetry is deliberate: it errs toward \"no change\".",
+      "expected": "B",
+      "id": "validation-04",
+      "query": "Why does the design require unanimity for a gain but only a threshold flip for a regression?\nA) To favor making many changes\nB) Router answers are noisy, and the asymmetry deliberately errs toward no change\nC) Because regressions are rarer than gains\nD) Because unanimous runs are cheaper to measure",
+      "split": "validation"
+    },
+    {
+      "evidence": "With no winner, restore the baseline snapshot and record `--status rollback`.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "No attempt was accepted, so there is no winner. What does the protocol say to record?\nA) Restore the baseline snapshot and record `--status rollback`\nB) Record `--status applied` with the last attempt\nC) Keep the last attempt and record `post-change`\nD) Re-baseline to hide the loss",
+      "split": "validation"
+    },
+    {
+      "evidence": "A changed set blocks every attempt until it is extended and re-baselined, so a metric cannot be weakened to pass.",
+      "expected": "D",
+      "id": "train-10",
+      "query": "After the baseline was recorded, someone rewords one query in the query set. What happens to training attempts?\nA) Attempts continue and the fingerprint is silently updated.\nB) Only the reworded query is ignored.\nC) Attempts continue but are flagged.\nD) Every attempt is blocked until the set is extended and re-baselined.",
+      "split": "train"
+    },
+    {
+      "evidence": "After the final description edit anywhere, repeat step 3 for the suite once more.",
+      "expected": "B",
+      "id": "train-11",
+      "query": "In a suite run, the last description edit was a repair of a blocked skill, and every skill was already remeasured post-change before it. What comes next?\nA) Run the gate and finish.\nB) Repeat the post-change remeasure of every skill against the final catalog once more.\nC) Remeasure only the repaired skill.\nD) Re-baseline every skill.",
+      "split": "train"
+    },
+    {
+      "evidence": "give every prompt an opaque id (`q0001`), keep the id map where children cannot read it, shuffle prompts within a run so skill grouping is hidden, chunk to about ninety prompts per child",
+      "expected": "A",
+      "id": "train-12",
+      "query": "One run merges the bundles of several skills for the child agents. Which handling is correct?\nA) Opaque ids with the map hidden from children, prompts shuffled within a run, about ninety prompts per child.\nB) Ids that start with the skill name, prompts grouped by skill, about ninety prompts per child.\nC) Opaque ids, prompts grouped by skill, one child for all prompts.\nD) Opaque ids with the map included in the bundle, prompts shuffled, about ten prompts per child.",
+      "split": "train"
+    },
+    {
+      "evidence": "Answers for unchanged queries under an unchanged catalog may be reused when a query set is extended; any description change invalidates them.",
+      "expected": "C",
+      "id": "train-13",
+      "query": "A query set was extended with two new queries and the description did not change. Which blind answers can be reused?\nA) None; all queries need fresh answers.\nB) All answers, including the two new queries.\nC) Answers for the unchanged queries; the new queries need answers.\nD) Answers only if the description is edited first.",
+      "split": "train"
+    },
+    {
+      "evidence": "One block is noise; two consecutive blocks are interference.",
+      "expected": "B",
+      "id": "validation-06",
+      "query": "A skill's own source did not change. Its post-change measurement is blocked, fresh children remeasure it once, and it is blocked again. How is this read and handled?\nA) Noise; remeasure a third time.\nB) Interference; edit the blocked skill's description from its train failure or restore the neighbor edit that caused it.\nC) Interference; re-baseline the blocked skill.\nD) Noise; accept the skill as it is.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Read <bundle-path> only. You are the skill router described by its `instructions`.",
+      "expected": "A",
+      "id": "validation-07",
+      "query": "What does the child router prompt tell the child about files and commands?\nA) Read the bundle only, read no other file, and run no command.\nB) Read the bundle and the skill's SKILL.md for context, run no command.\nC) Read the bundle and run `train measure` to check answers.\nD) Read the bundle and the ledger, run no command.",
+      "split": "validation"
+    },
+    {
+      "evidence": "A mixed result is `unstable`: it is never a pass, and the reply lists it so the author can fix the description, the document, or the query.",
+      "expected": "B",
+      "id": "train-14",
+      "query": "A near-miss query is run 3 times. One run names the skill under test and two runs do not. What is the result?\nA) It passes, because most runs did not name the skill.\nB) It is `unstable`, never a pass, and the reply lists it for the author to fix.\nC) It is a hard failure that blocks every candidate.\nD) It is a gain if the query failed at baseline.",
+      "split": "train"
+    },
+    {
+      "evidence": "any query that passed at baseline and does not pass now, in either split.",
+      "expected": "C",
+      "id": "train-15",
+      "query": "An attempt gains 3 train queries. One validation query passed at baseline and now does not pass. The source changed and the fingerprint is the same. What is the decision?\nA) Accepted, because there are 3 gains.\nB) Accepted, because the regression is only in validation.\nC) Blocked, because a regression counts in either split.\nD) Blocked, because accept needs 5 gains.",
+      "split": "train"
+    },
+    {
+      "evidence": "After a baseline, never edit or delete a query: add `\"retired\": \"<reason>\"` to it.",
+      "expected": "D",
+      "id": "train-16",
+      "query": "After a baseline is recorded, a query label is found to be wrong. What does the protocol say?\nA) Correct the label in place.\nB) Delete the query and keep the old baseline.\nC) Edit the query text and keep the old fingerprint.\nD) Add a retired reason to the query and record a new baseline afterwards.",
+      "split": "train"
+    },
+    {
+      "evidence": "Retire a query when its label is wrong, when two skills could both own it, or when the document rule it tested was deliberately replaced.",
+      "expected": "A",
+      "id": "train-17",
+      "query": "Which situation is a listed reason to retire a query?\nA) Two skills could both own it.\nB) It keeps failing and the author wants a higher score.\nC) It passes on every run.\nD) Its text is short.",
+      "split": "train"
+    },
+    {
+      "evidence": "`<agents-root>/evals/<name>.json`",
+      "expected": "B",
+      "id": "train-18",
+      "query": "Where does the comprehension set of a CLAUDE.md file in the agents root live?\nA) `<agents-root>/CLAUDE/comprehension.json`\nB) `<agents-root>/evals/<name>.json`\nC) `<agents-root>/skills/evals/comprehension/CLAUDE.json`\nD) `<agents-root>/evals/comprehension/<path-with-dashes>.json`",
+      "split": "train"
+    },
+    {
+      "evidence": "fix it before the first baseline, or retire it afterwards.",
+      "expected": "C",
+      "id": "train-19",
+      "query": "No baseline is recorded yet. A strong reader answers one probe differently from its label. What must be done?\nA) Retire the probe right away.\nB) Keep the probe and let the weak reader decide.\nC) Fix the probe now, before the first baseline.\nD) Delete the probe.",
+      "split": "train"
+    },
+    {
+      "evidence": "the child answers each question with one option letter in an `answer` field.",
+      "expected": "A",
+      "id": "validation-08",
+      "query": "A child answers a probe from a document comprehension set. Which field holds its choice?\nA) An `answer` field holding one option letter.\nB) A `skill_name` field holding the option text.\nC) An `answer` field holding the full option text.\nD) A `letter` field holding the query id.",
+      "split": "validation"
+    },
+    {
+      "evidence": "A document is clear when the weak reader answers every probe correctly on every run.",
+      "expected": "B",
+      "id": "validation-09",
+      "query": "A weak reader answers every probe correctly on 2 of 3 runs, and on the third run it misses one probe. Is the document clear?\nA) Yes, because almost every answer is correct.\nB) No, because the weak reader must answer every probe correctly on every run.\nC) Yes, because a majority of runs are fully correct.\nD) No, because a stronger reader must be used first.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Write fixes for failing probes as short sentences, one rule per sentence, with numbered lists for order and an example for any rule that mixes two conditions.",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "A probe fails because one rule mixes two conditions. Which fix does the protocol prefer?\nA) One long sentence joining both conditions with and.\nB) A longer paragraph that explains both conditions.\nC) A footnote that lists both conditions.\nD) Short sentences with one rule each, plus an example that mixes the two conditions.",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--references-train-protocol",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/train-protocol.md"
+}

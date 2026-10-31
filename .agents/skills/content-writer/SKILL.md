@@ -1,7 +1,7 @@
 ---
 
 name: content-writer
-description: Research, draft, refresh, and validate credible content with preserved quotations.
+description: "Use when the user wants long-form or factual content that needs research, sources, citations, or quotations kept word for word (including a quotation in a non-English language, whose original wording must stay untouched): articles, blog posts, newsletter pieces, whitepapers, guides, explainers, reports, case studies, FAQs, refreshed or fact-checked drafts, and reconciling an old page against a live source (what is still right, obsolete, or unverifiable), and SEO or GEO copy backed by evidence. Do NOT use for quick chat messages (Slack, email), tone or wording tweaks, translation, summaries, commit messages, code comments, or UI text that needs no research or quoted material."
 argument-hint: <objective> <audience> <format> <constraints> <citation-style>
 ---
 
@@ -47,9 +47,11 @@ need research, citations, quotation preservation, or refresh verification.
 - **Write in a natural human voice**. Vary sentence openers across parallel items, never repeat one
   template sentence down a list, and drop the "not X but Y" and "X rather than Y" tic. Reader-facing
   prose does not discuss the writing, research, or verification process.
-- **Match the register of the source text**. Explanatory content earns full prose; instructional,
-  procedural, or liturgical text earns prose corrections only-grammar, punctuation, and
-  run-ons-while its procedure, order, and recited wording stay untouched.
+- **Match the register of the source text**. Explanatory content (essays, articles, guides) gets
+  full prose treatment: rewrite clumsy sentences and run-ons freely. Instructional, procedural, or
+  liturgical text gets prose corrections only (grammar, punctuation, and run-ons); its procedure,
+  order, and recited wording stay untouched. Example: an essay with clumsy run-ons is explanatory,
+  so it gets full prose treatment (answer: full rewrite is allowed), not prose corrections only.
 - **Keep MDX/Markdown output render-safe**. Wrap code-like, formula-like, or otherwise
   renderer-sensitive tokens in inline code so MDX renders them literally, and keep every quotation
   block byte-identical. Wrap prose to 100 characters as a band, not a ceiling: refill prose a file
@@ -81,6 +83,9 @@ need research, citations, quotation preservation, or refresh verification.
 brief -> source research -> evidence ledger -> draft -> claim verification
       -> approval or needs-input/blocked handoff
 ```
+
+The order never changes: source research comes before the evidence ledger, and the evidence ledger
+comes before the draft. The draft is never written before the ledger exists.
 
 1. **Intake:** Parse the brief, reader job, format, constraints, citation style, freshness,
    non-goals, and whether this is new or refresh work. In refresh mode, inventory the existing

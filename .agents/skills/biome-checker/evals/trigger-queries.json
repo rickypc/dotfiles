@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Run Biome on src/utils/date.ts and tell me what fails.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Check these TypeScript files for lint and type errors: src/api/client.ts and src/api/types.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Run the declaration-order check on scripts/lint.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Please bun check and Biome the files I just edited: lib/cache.ts, lib/queue.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Lint src/index.js with Biome only; it is plain JavaScript.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Can you verify that utils/format.ts passes Biome and type checking?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Write unit tests for utils/format.ts.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Set up ESLint and Prettier for a brand new project.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Fix the type error by changing the function signature in api/client.ts.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Review my diff before I merge.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Run the whole test suite and the final CI gate.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Format this Python file with black.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "Run biome check on these paths only: scripts/sanitize-hidden.ts, utils/cli.ts.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Static-check the TypeScript I changed in src/store/cart.ts.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Does tests/helpers/mock.ts pass declaration-order and Biome?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Just run bun check plus Biome on the two files, nothing else.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Convert this Jest test to Bun test.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Why does TypeScript say this generic is unconstrained? Explain.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Autofix and reformat the entire repository.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Search the repo for every usage of formatDate.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "The pre-push hook keeps failing on lint for src/lib/retry.ts. Check it for me.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Is src/models/user.ts clean? Biome, types, and the ordering rule.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "I only touched two TypeScript files; make sure they pass the static checks before I commit: src/a.ts src/b.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "What does the noExplicitAny rule in Biome do and should we enable it?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Add Biome as a dev dependency and write a biome.json for this repo.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Fix all lint errors in the whole project automatically.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Quick lint pass on lib/http.ts please, Biome and bun check.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Does hooks/useAuth.ts satisfy declaration ordering and type checks?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Explain why TypeScript reports TS2322 for this assignment: const n: number = \"5\".",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Run the whole repo through the formatter.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Before I push, run the usual static checks on src/cart/total.ts.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Does lib/cache.ts pass lint, declaration order, and type checking? Just that file.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Review the lint-related changes in my diff for correctness.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Why are so many lint rules enabled in this repo's biome.jsonc? Explain the reasoning.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Check src/utils/money.ts and src/utils/tax.ts with the project checkers.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Run Biome plus bun check on hooks/useCart.ts.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Write tests for lib/cache.ts.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Update the TypeScript target in tsconfig.json to ES2023.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "lint+typecheck src/lib/retry.ts pls, nothing else",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "are the type aliases and declarations in app/server.mts ordered the way the checker wants? just tell me pass or fail",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "bun check app.cjs and lib/x.mjs, they're plain js so skip the types part",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "Okay I just finished refactoring the pagination hook and moved a lot of things around. Before I hand it off, hooks/usePagination.tsx needs the biome result, the type result, and whether the top-level declarations are in the right order.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "does biome have any complaints about utils/dates.ts",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "The ordering checker flagged src/config.ts and handed back a fix packet. Apply it and rerun the same check.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "give me a one-line summary receipt for biome and type checks over src/a.ts, src/b.ts, src/c.ts, src/d.ts, src/e.ts",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "The tests for src/legacy/parse.ts are orphaned now that I removed that module, please clean them up.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "Review the diff on branch fix/retry against the requirements in TICKET-114 and flag anything wrong.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "Find every file that references noUnusedImports or extends the shared biome config.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Rewrite the SKILL.md for our static-check skill so its trigger description is tighter.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "Compress docs/biome-rules.md to save tokens without losing the code fences.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "Why does the linter flag noExplicitAny and what is the reasoning behind that rule?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "Run pylint and mypy on app/models.py.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "components/Modal.tsx - does it pass the static checks?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "ran biome on server.js already, now same for routes/a.js routes/b.js routes/c.js",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "declaration-order flagged lib/registry.ts and gave me an action packet. apply that and verify it passes now",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "type check, lint and ordering for src/cli.cts",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "can u make sure foo/bar.mts is lint clean n type safe b4 i push",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Build the settings screen component for our React Native app and wire up the toggle state.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Plan how we roll out stricter lint rules and type checking across all our packages, then hand it off for execution.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "Write a cited blog post comparing Biome with ESLint for TypeScript teams.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "What is the difference between bun check and tsc, conceptually?",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Delete the stale unit tests for src/old/cache.ts since I removed the file.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "biome-checker",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

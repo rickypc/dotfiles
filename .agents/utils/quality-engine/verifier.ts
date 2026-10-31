@@ -1,6 +1,10 @@
 import type { CheckResult } from '../contracts.js';
 import type { MatrixCase, MatrixEvidence, MatrixVerifierId } from './matrix.js';
 
+const MAX_DESCRIPTION_LENGTH = 1024;
+
+const MAX_SOURCE_LINES = 500;
+
 type MatrixVerifier = (matrixCase: MatrixCase, evidence: MatrixEvidence) => CheckResult;
 
 const matrixShapeVerifier: MatrixVerifier = (matrixCase) => {
@@ -26,13 +30,18 @@ const sourceStructureVerifier: MatrixVerifier = (matrixCase, evidence) => {
     /^name:\s*\S/mu.test(frontmatter)
     && /^description:\s*\S/mu.test(frontmatter)
     && content.trim().length > 0;
+  const descriptionLength = /^description:[ \t]*(.*)$/mu.exec(frontmatter)?.[1]?.length ?? 0;
+  const withinBudget =
+    evidence.text.split('\n').length <= MAX_SOURCE_LINES
+    && descriptionLength <= MAX_DESCRIPTION_LENGTH;
   const valid =
     evidence.text.trim().length > 0
-    && (!evidence.text.trimStart().startsWith('---') || hasValidFrontmatter);
+    && (!evidence.text.trimStart().startsWith('---') || hasValidFrontmatter)
+    && withinBudget;
   return {
     detail: valid
-      ? 'Source has valid frontmatter and nonblank instructions.'
-      : 'Source must have valid name/description frontmatter and instructions.',
+      ? 'Source has valid frontmatter, nonblank instructions, and stays within its size budget.'
+      : `Source must have valid name/description frontmatter, instructions, at most ${MAX_SOURCE_LINES} lines, and a description of at most ${MAX_DESCRIPTION_LENGTH} characters.`,
     name: `${matrixCase.id}:independent-verifier`,
     status: valid ? 'passed' : 'failed',
   };

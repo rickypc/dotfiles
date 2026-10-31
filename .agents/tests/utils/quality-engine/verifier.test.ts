@@ -87,7 +87,24 @@ test('fails a source whose frontmatter starts the text but lacks name and descri
       text: '---\nnotes: only\n---\nUse the skill.',
     }),
   ).toMatchObject({
-    detail: 'Source must have valid name/description frontmatter and instructions.',
+    detail: expect.stringContaining('valid name/description frontmatter'),
     status: 'failed',
   });
+});
+
+test('fails a source over the line budget or with an overlong description', () => {
+  const header = '---\nname: example\ndescription: test\n---\n';
+  const verify = (text: string) =>
+    runIndependentVerifier(matrixCase, { delegatedChecks: {}, ownedFiles: new Set(), text });
+  expect(verify(`${header}${'line\n'.repeat(494)}`).status).toBe('passed');
+  expect(verify(`${header}${'line\n'.repeat(500)}`)).toMatchObject({
+    detail: expect.stringContaining('at most 500 lines'),
+    status: 'failed',
+  });
+  expect(verify(`---\nname: example\ndescription: ${'x'.repeat(1025)}\n---\nbody`).status).toBe(
+    'failed',
+  );
+  expect(verify(`---\nname: example\ndescription: ${'x'.repeat(1024)}\n---\nbody`).status).toBe(
+    'passed',
+  );
 });

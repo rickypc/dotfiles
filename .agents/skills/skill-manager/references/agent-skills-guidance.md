@@ -37,13 +37,15 @@ applies; the linked sources are the authority for changes in the upstream guidan
   language, and typos. Prefer near-miss negatives over obviously unrelated prompts.
 - A trigger eval passes when a should-trigger prompt loads the skill and a should-not-trigger prompt
   does not. Test through the actual registered agent client and its observable skill-load signal,
-  not by keyword matching the description. Run each query three times where supported; compute
-  trigger rate and use 0.5 as a reasonable default threshold for both classes.
+  not by keyword matching the description. Run each query three times where supported; compute the
+  trigger rate. In this runtime a query passes only when every run agrees with its label: all runs
+  trigger for a should-trigger query and no run triggers for a near-miss query. A mixed result is an
+  unstable query to fix, never a pass.
 - Run each prompt repeatedly where supported and record trigger rates. Keep a fixed mixed
-  train/validation split (about 60/40); use only train failures to guide revisions, avoid copying
-  failed-query keywords, and select the best generalizing iteration by validation performance.
-  Recheck the 1,024-character limit after every revision. Keep both classes represented in each
-  split and use fresh queries after optimization as a final generalization check.
+  train/validation split (about 60/40); revise only from train failures (never from validation
+  failures), avoid copying failed-query keywords, and use validation only to choose between finished
+  iterations. Recheck the 1,024-character limit after every revision. Keep both classes represented
+  in each split and use fresh queries after optimization as a final generalization check.
 
 ## Output evaluation practice
 

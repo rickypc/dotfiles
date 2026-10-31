@@ -9,6 +9,8 @@ verifierIds: [source-structure]
 
 # Bun Test Generator Evaluation Rubric
 
+The required pass rate is 100 percent of cases: `minimumPassRate: 1` means every case must pass.
+
 The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable
 operational rules, input and context schema, ordered execution chain, output and completion
 contract, and evaluation anchors. The canonical matrix checks each heading and challenges brittle

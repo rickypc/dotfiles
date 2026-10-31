@@ -1,0 +1,292 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Use this skill when the implementation target is React or React Native. It is the single",
+      "expected": "C",
+      "id": "train-01",
+      "query": "The user wants a React Native screen implemented. Which skill owns the implementation?\nA) A separate React Native skill\nB) The frontend-design skill\nC) The react skill, which owns both React and React Native\nD) The content-writer skill",
+      "split": "train"
+    },
+    {
+      "evidence": "Use `/frontend-design` first for changed visual direction.",
+      "expected": "A",
+      "id": "train-02",
+      "query": "The task needs a new visual direction for a React page. What comes first?\nA) Use /frontend-design first\nB) Start coding with /react and invent the design\nC) Use /playwright-test-generator first\nD) Use /md-compress first",
+      "split": "train"
+    },
+    {
+      "evidence": "`/content-writer` when meaningful UI copy needs research or validation; this skill consumes those",
+      "expected": "D",
+      "id": "train-03",
+      "query": "The UI copy is meaningful and still needs research or validation. Which skill handles it before /react?\nA) /repo-search\nB) /knowledge-base\nC) /biome-checker\nD) /content-writer",
+      "split": "train"
+    },
+    {
+      "evidence": "- Keep render pure. Derive values during render, use effects to synchronize with external systems,",
+      "expected": "B",
+      "id": "train-04",
+      "query": "A list view needs a filtered list computed from props. What does the skill require?\nA) Copy it into state and update it in an effect\nB) Derive the value during render and keep render pure\nC) Compute it in a timer\nD) Store it in global state",
+      "split": "train"
+    },
+    {
+      "evidence": "- Treat asynchronous work as a state machine. Prevent stale responses from overwriting newer intent",
+      "expected": "C",
+      "id": "train-05",
+      "query": "A user types quickly and two requests are in flight. The older response arrives last. What must the code prevent?\nA) Any second request from being sent\nB) The loading state from showing\nC) The stale response overwriting newer intent\nD) The newer response from rendering",
+      "split": "train"
+    },
+    {
+      "evidence": "Validate or sanitize before rendering, navigating, persisting, or invoking privileged",
+      "expected": "A",
+      "id": "train-06",
+      "query": "An API returns an HTML string the component wants to render. What must be done?\nA) Validate or sanitize it before rendering\nB) Render it directly because the API is trusted\nC) Store it first and render later unchecked\nD) Render it only on native",
+      "split": "train"
+    },
+    {
+      "evidence": "Stop when approval, platform behavior, or test ownership is unresolved.",
+      "expected": "D",
+      "id": "train-07",
+      "query": "The design approval is missing and the state owner is unclear. What must the agent do?\nA) Pick a reasonable default and continue\nB) Implement the smallest version anyway\nC) Copy the design from another screen\nD) Stop because approval or ownership is unresolved",
+      "split": "train"
+    },
+    {
+      "evidence": "Measure before claiming performance improvement and test user-visible outcomes and important",
+      "expected": "B",
+      "id": "train-08",
+      "query": "A teammate says a change makes the screen faster but offers no numbers. What does the skill require?\nA) Accept the claim from code reading\nB) Measure before claiming a performance improvement\nC) Claim it if the code is shorter\nD) Skip performance and only test internals",
+      "split": "train"
+    },
+    {
+      "evidence": "proof boundary is an explicit stop. Ask or hand off; do not invent product meaning.",
+      "expected": "C",
+      "id": "train-09",
+      "query": "The target platform is not stated. How does the skill treat this?\nA) Assume web and continue\nB) Build for both and guess\nC) As an explicit stop: ask or hand off, do not invent product meaning\nD) Choose iOS by default",
+      "split": "train"
+    },
+    {
+      "evidence": "design/content, and acceptance criteria. Use `/repo-search` for repository facts and preserve",
+      "expected": "A",
+      "id": "train-10",
+      "query": "The agent needs facts about existing repository conventions during intake. What should it use?\nA) /repo-search\nB) Ad-hoc guessing\nC) /md-compress\nD) /content-writer",
+      "split": "train"
+    },
+    {
+      "evidence": "JavaScript/TypeScript test edits, invoke `/bun-test-generator` before editing and retain its",
+      "expected": "B",
+      "id": "train-11",
+      "query": "A React task requires editing a JavaScript or TypeScript test file. What comes before editing?\nA) Edit the test then run /biome-checker\nB) Invoke /bun-test-generator and retain its behavior matrix and boundary receipt\nC) Invoke /frontend-design\nD) Run the project final gate",
+      "split": "train"
+    },
+    {
+      "evidence": "A passing test or coverage number is not enough when accessibility,",
+      "expected": "D",
+      "id": "train-12",
+      "query": "A test passes and coverage is high, but cancellation and accessibility have no observable proof. Is that enough?\nA) Yes, a passing test is enough\nB) Yes, if coverage is above the budget\nC) Yes, if a snapshot exists\nD) No, observable proof for those behaviors is still missing",
+      "split": "train"
+    },
+    {
+      "evidence": "Apply transitions only when explicitly requested or accepted in the design.",
+      "expected": "C",
+      "id": "train-13",
+      "query": "Nobody asked for view transitions and the design does not mention them. What should the agent do?\nA) Add them for polish\nB) Add them on web only\nC) Not apply transitions\nD) Add them if the browser supports them",
+      "split": "train"
+    },
+    {
+      "evidence": "Use stable keys when collections can be inserted, removed, reordered, or filtered.",
+      "expected": "A",
+      "id": "train-14",
+      "query": "A list can have items inserted, removed, reordered, or filtered. What does the skill call for?\nA) Stable keys\nB) Array indexes as keys\nC) Random keys on every render\nD) No keys",
+      "split": "train"
+    },
+    {
+      "evidence": "Use local state and composition by default; introduce shared state only for a demonstrated shared",
+      "expected": "B",
+      "id": "train-15",
+      "query": "A component needs some state. What is the default approach?\nA) Global store for all state\nB) Local state and composition, with shared state only for a demonstrated shared consumer\nC) Shared context for every value\nD) Duplicate state in each child",
+      "split": "train"
+    },
+    {
+      "evidence": "Completion is decided by the configured project gate and acceptance",
+      "expected": "D",
+      "id": "train-16",
+      "query": "What decides that the work is complete?\nA) An internal component snapshot\nB) A static check alone\nC) The agent saying it looks fine\nD) The configured project gate and acceptance evidence",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not silently change approved design/content, claim cross-platform behavior",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "The component was tested only on iOS. May the agent claim it works on Android?\nA) Yes, React Native is the same everywhere\nB) No, cross-platform behavior must not be claimed from one platform\nC) Yes, if the code compiles\nD) Yes, if the snapshot passes",
+      "split": "validation"
+    },
+    {
+      "evidence": "Prefer semantic elements and platform accessibility APIs.",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "A clickable element could be a div or a button. Which does the skill prefer?\nA) A semantic element such as a button, using platform accessibility APIs\nB) A div with a click handler only\nC) A span styled like a button\nD) Any element with a color change",
+      "split": "validation"
+    },
+    {
+      "evidence": "keep subscriptions, timers, requests, and native resources paired with cleanup and",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "A component opens a subscription and a timer. What must be paired with them?\nA) A second subscription\nB) A global flag\nC) Cleanup and cancellation\nD) A comment describing them",
+      "split": "validation"
+    },
+    {
+      "evidence": "Audit navigation and element identity first; preserve semantics and focus, provide a non-transition fallback, respect",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "The design asks for view transitions. What must the implementation provide?\nA) A transition that cannot be disabled\nB) Removal of focus handling\nC) Transitions only on the first load\nD) A non-transition fallback",
+      "split": "validation"
+    },
+    {
+      "evidence": "approved inputs -> state and boundary model -> smallest implementation",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "In the ordered execution chain, what step follows the state and boundary model?\nA) Tests and user-visible proof\nB) Smallest implementation\nC) Accessibility review\nD) Approved inputs",
+      "split": "validation"
+    },
+    {
+      "evidence": "Required: implementation scope, approved design/content inputs when applicable, and acceptance",
+      "expected": "C",
+      "id": "validation-06",
+      "query": "Which inputs does the Usage section list as required?\nA) Only the component name\nB) A performance budget and a transition request\nC) Implementation scope, approved design/content inputs when applicable, and acceptance criteria\nD) Existing tests and finalized content only",
+      "split": "validation"
+    },
+    {
+      "evidence": "- Define the changed user-visible states before implementation: initial, loading, empty, success,",
+      "expected": "A",
+      "id": "train-17",
+      "query": "When must the changed user-visible states (loading, empty, error, retry and so on) be defined?\nA) Before implementation\nB) After implementation, during review\nC) Only when a test fails\nD) During final hand-off",
+      "split": "train"
+    },
+    {
+      "evidence": "- **Unknowns:** Missing design/content approval, target platform, state owner, security contract, or",
+      "expected": "B",
+      "id": "train-18",
+      "query": "Scope, platform, state owner, and design approval are all known. The security contract for a redirect URL is missing. What does the skill say?\nA) Sanitize the URL and continue with a default contract\nB) It is an explicit stop: ask or hand off\nC) Continue and note it in the hand-off\nD) Skip redirects and implement the rest",
+      "split": "train"
+    },
+    {
+      "evidence": "Apply transitions only when explicitly requested or accepted in the design. Audit navigation and",
+      "expected": "C",
+      "id": "train-19",
+      "query": "The accepted design asks for view transitions. What does the skill say to do first?\nA) Write the transition CSS\nB) Add the non-transition fallback\nC) Audit navigation and element identity\nD) Validate reduced-motion behavior",
+      "split": "train"
+    },
+    {
+      "evidence": "contract are owned by `/repo-search`, with the current repo-search CLI as the compatibility",
+      "expected": "D",
+      "id": "train-20",
+      "query": "Who owns the repository-memory contract that /react uses during intake?\nA) /knowledge-base\nB) /react itself\nC) The current repo-search CLI backend\nD) /repo-search, with the CLI only as the compatibility backend",
+      "split": "train"
+    },
+    {
+      "evidence": "behavior matrix and boundary receipt. For retained user- facing browser coverage, use",
+      "expected": "A",
+      "id": "train-21",
+      "query": "The change needs retained, user-facing browser coverage (not a unit test). Which skill does the document name for it?\nA) /playwright-test-generator\nB) /bun-test-generator\nC) /biome-checker\nD) /frontend-design",
+      "split": "train"
+    },
+    {
+      "evidence": "approved inputs and does not silently change them.",
+      "expected": "B",
+      "id": "train-22",
+      "query": "The approved UI copy looks awkward to the agent. What does the skill say about it?\nA) Rewrite it quietly to read better\nB) The skill consumes approved inputs and does not silently change them\nC) Rewrite it only on native\nD) Rewrite it if tests still pass",
+      "split": "train"
+    },
+    {
+      "evidence": "proof. Map results to acceptance criteria and return limitations instead of hiding them.",
+      "expected": "C",
+      "id": "train-23",
+      "query": "Browser tests passed but no Android device was available to run the native proof. What must the hand-off do?\nA) Leave it out to keep the report clean\nB) Claim Android works because iOS passed\nC) Return the limitation instead of hiding it\nD) Delay hand-off until a device exists, saying nothing",
+      "split": "train"
+    },
+    {
+      "evidence": "define navigation, permissions, lifecycle, network loss, persistence, device resources, secure",
+      "expected": "D",
+      "id": "train-24",
+      "query": "The task is a React Native screen. Which list must be defined for it?\nA) URL/history, focus restoration, form validation, external links\nB) URL/history, permissions, lifecycle, storage\nC) Focus restoration, network loss, deep links, form validation\nD) Navigation, permissions, lifecycle, network loss, persistence, device resources, secure storage",
+      "split": "train"
+    },
+    {
+      "evidence": "Failure names the exact approval, platform, state, security, accessibility, performance, race, test,",
+      "expected": "A",
+      "id": "train-25",
+      "query": "The work stops because the project final gate is red. What must the failure report do?\nA) Name the exact final-gate gap\nB) Say the work is mostly done\nC) Hand off the code as unverified\nD) Name only the first failing test",
+      "split": "train"
+    },
+    {
+      "evidence": "transition request, existing tests, and performance budget.",
+      "expected": "B",
+      "id": "train-26",
+      "query": "Which of these inputs is optional rather than required?\nA) Acceptance criteria\nB) A performance budget\nC) Project instructions and conventions\nD) The relevant component/data/routing boundary",
+      "split": "train"
+    },
+    {
+      "evidence": "- Treat external data, HTML, URLs, storage, permissions, and authentication as untrusted at the",
+      "expected": "C",
+      "id": "train-27",
+      "query": "A component reads a redirect target from local storage and navigates to it. How does the skill treat that value?\nA) Trusted, because storage is app-owned\nB) Trusted after the first successful use\nC) Untrusted at the boundary: validate before navigating\nD) Untrusted only if it came from a URL",
+      "split": "train"
+    },
+    {
+      "evidence": "loading/empty/error/retry/cancellation behavior, focus, keyboard, semantic, responsive, or native",
+      "expected": "D",
+      "id": "train-28",
+      "query": "In the ordered chain, where is loading/empty/error/retry/cancellation behavior defined?\nA) Intake\nB) Implement\nC) Review\nD) Model",
+      "split": "train"
+    },
+    {
+      "evidence": "- **Boundary:** Stale async work, unsafe data sinks, missing cancellation, duplicated state",
+      "expected": "B",
+      "id": "validation-07",
+      "query": "Tests pass, but two components both own the same loading flag. According to the evaluation anchors, what happens?\nA) It is a minor note and completion proceeds\nB) It stops completion\nC) Completion proceeds if performance is measured\nD) Completion proceeds if one owner is documented",
+      "split": "validation"
+    },
+    {
+      "evidence": "focus order, visible focus, keyboard/assistive alternatives, non-color feedback, and",
+      "expected": "A",
+      "id": "validation-08",
+      "query": "A form shows errors only by turning the field border red. What does the accessibility rule require?\nA) Non-color feedback as well\nB) Nothing, color is enough\nC) A bigger red border\nD) Removing the error state",
+      "split": "validation"
+    },
+    {
+      "evidence": "handle pending, failure, retry, cancellation, stale responses, and repeated submission where",
+      "expected": "C",
+      "id": "validation-09",
+      "query": "A user double-taps a Submit button. Where does the skill place repeated submission?\nA) Outside scope, the server handles it\nB) Only a visual concern\nC) One of the async cases to handle, with pending, failure, retry, cancellation, and stale responses\nD) Only a test concern",
+      "split": "validation"
+    },
+    {
+      "evidence": "- Preserve accepted design/content, public contracts, project conventions, and one state/side-effect",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "Simplifying a component would change its public props. What does the skill require?\nA) Change them if tests are updated\nB) Change them if the design is unchanged\nC) Change them and note it later\nD) Preserve public contracts",
+      "split": "validation"
+    },
+    {
+      "evidence": "3. **Implement:** Make the smallest coherent change. Keep render pure, state at the narrowest owner,",
+      "expected": "A",
+      "id": "validation-11",
+      "query": "A piece of state is used by only one child component. Where does the Implement step put it?\nA) At the narrowest owner\nB) At the root component\nC) In a global store\nD) In shared context",
+      "split": "validation"
+    },
+    {
+      "evidence": "implementation owner for both platforms and delivers the smallest coherent accessible UI change with",
+      "expected": "C",
+      "id": "validation-12",
+      "query": "What size of UI change does the skill say it delivers?\nA) The largest change that fits the design\nB) A full rewrite of the surface\nC) The smallest coherent accessible change with user-visible proof\nD) The smallest change without proof",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "react--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

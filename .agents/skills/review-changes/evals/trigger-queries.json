@@ -1,5 +1,4 @@
 {
-  "pass_threshold": 0.5,
   "queries": [
     {
       "id": "train-01",
@@ -126,9 +125,262 @@
       "query": "Draft a pull request description for this patch.",
       "should_trigger": false,
       "split": "validation"
+    },
+    {
+      "id": "train-14",
+      "query": "Can you look over what I changed in the last three commits and tell me if it is mergeable?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Give feedback on PR 482 against the ticket requirements.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Sanity check my working tree changes before I push; here is the spec.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Implement the changes requested in the review comments on PR 482.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Approve PR 482 and merge it.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-19",
+      "query": "Explain what this diff does in plain English.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Check this branch against the acceptance criteria and standards.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Review my Terraform changes and ask me for requirements if you need them.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Post inline comments on the pull request for the issues you found.",
+      "retired": "Ambiguous owner: posting review comments to a hosting service is forbidden by this skill, yet the request is still a review request, so routers disagree.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Run the linter and tests on my branch.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-20",
+      "query": "My PR touches auth and logging. Tell me what is wrong with it compared with the ticket.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Can you critique this branch before I ask a human to look?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Rebase my branch on main.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-23",
+      "query": "Write the PR description for my changes.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Look at the staged changes for correctness and style against the requirements doc.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Give me a code review of commit abc1234.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Open a PR for this branch.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Fix the review comments left on my PR.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-24",
+      "query": "PR 482 is up, spec is in JIRA-5521. can you go through it and tell me what's wrong before I hit merge",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "look over what I've got uncommitted in the working dir. it's supposed to make retries idempotent per the RFC I pasted above",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "does feature/billing-v2 actually do what the acceptance criteria say? comparing against main",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "someone sent me this Rust diff, no idea what it's for, tell me if it's okay",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "second pair of eyes on src/payments/ please, ticket text below. only report, don't touch anything. Long story short we changed rounding from half-up to bankers and the finance team wants cents to match the ledger export exactly.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "can u audit my staged + unstaged changes vs the design doc",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Findings only, no fixes: compare HEAD~3..HEAD with the user story in the attached page.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "write unit tests for the retry helper I just changed in this diff",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "run biome and the declaration-order check on the files in my working tree changes",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "where did we decide on the review checklist for pull requests last quarter? check our notes",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "find every caller of parseInvoice across the repo and show the call path",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "review the changes I made to AGENTS.md and the skill description, are the triggers routed right?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "what does git rebase --onto actually do? explain like I'm new",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-37",
+      "query": "critique the visual hierarchy and spacing of my new pricing page redesign mockup",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "quick one, merged PR #77 from yesterday looks off. check it against the requirements in the linked issue",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "pls review this go patch w/ the spec at wiki/auth-flow. just tell me issues, dont edit",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "I'd like a careful read of everything under services/ledger that's changed since release-2.3, requirements: totals must never go negative, refunds reverse the original entry. Be thorough, I don't want a top-5 list.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "is this change safe to ship? diff attached, no ticket though",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "sanity check my branch vs the PRD",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "turn this React component diff into proper hooks and fix the stale closure in the effect",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "compress the review guidelines markdown doc to save tokens, keep the code fences",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "draft a blog post about how code review improves team quality, cite studies",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "make a plan for migrating our diff tooling to the new runner, then hand it off to execute",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "add playwright coverage for the checkout flow that this PR changes",
+      "should_trigger": false,
+      "split": "validation"
     }
   ],
-  "runs_per_query": 3,
+  "runs_per_query": 5,
   "skill_name": "review-changes",
   "splits": {
     "train": "Use only failures from this split to revise the description.",

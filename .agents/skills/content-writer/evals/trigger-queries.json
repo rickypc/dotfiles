@@ -1,0 +1,383 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "Write a researched blog post on zero-trust networking with citations.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "Refresh this 2022 article on container security and verify every statistic is still current.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Draft a whitepaper section on data residency with sourced quotations.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Validate the factual claims in this draft and flag anything without a source.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Create SEO and GEO optimized copy for our product page, backed by research.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Research and write a customer-facing explainer on passkeys, with quotes attributed to their sources.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Write a git commit message for this diff.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Design a new landing page layout with a modern look.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Translate this paragraph into French.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Summarize this PDF in three bullets.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "Write a function that slugifies a title.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Proofread my email to the landlord.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "I need a long-form guide on API rate limiting with real citations I can check.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "Update this old press release and confirm the quotes are still accurate.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "Fact-check and tighten this marketing article, keeping quoted material verbatim.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Write a research-backed FAQ about SOC 2 for our website.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Create a color palette and typography for our site.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Write release notes from these commit messages.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Make this paragraph sound friendlier.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Compress this Markdown file losslessly.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "I need an article about the new EU AI Act for our blog; make sure everything is accurate and sourced.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Our 2021 State of API Security report is out of date. Bring it up to date and check the numbers.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Draft a thought-leadership post on platform engineering using real quotes from named experts, and tell me where they came from.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Write the in-app tooltip text for the export button.",
+      "retired": "Wrong label: short product copy belongs to content-writer under the ownership rules.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Summarize the key points of this research paper for me.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Write a Python docstring for this function.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Write a well-researched comparison guide of managed Kubernetes services and cite everything.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Refresh our pricing explainer and verify each claim against current sources.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Rewrite this error message to be clearer.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Draft a quick Slack announcement about the maintenance window.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Write the why-zero-trust section for our security whitepaper with attributable sources.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "This blog post cites a statistic from 2019. Verify it and update the post if it changed.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Write the release notes for version 3.2 from this changelog.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Draft a polite reminder email about overdue invoices.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Put together a sourced explainer on how OAuth device flow works for non-engineers.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Check the quotations in this article against their originals and fix attribution.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Write a haiku about deployments.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Write the README intro for this package.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "need an 800 word piece for CFOs on the new SEC climate disclosure rules, every number tied to a link, apa style",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "this help center page about two-factor is from 2021. bring it up to date and tell me which claims changed",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "pls fact check my draft and tell me which stats have no real source behind them",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "Write a talk-track for our sales team about GDPR fines. Quote the regulator's language word for word and give publisher and date for each quote, since legal will check them.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "Our founder page includes a Sanskrit verse and the tradition says it dates to 300 BC. Draft the page copy, leave the verse exactly as is, and don't present the date as established fact.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "seo + geo copy for the pricing page, but any benchmark claim needs a primary source behind it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "Can you write something on why sourdough starters fail? Readers are home bakers, cite food-science papers, chicago style, about 600 words.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Shrink docs/runbook.md to save tokens but keep the code fences, links and commands untouched, and make a backup first.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "Rewrite the description in my citation-checker skill so the router picks it more reliably, then validate the frontmatter.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "Look up what we decided last quarter in the team KB about our citation format for whitepapers.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "Add unit tests for the helper that extracts blockquote continuation lines from Markdown.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "Where in the repo is the quotation formatter defined and what calls it?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "Redesign our blog article page: better typography, pull-quote styling, and a cleaner mobile layout.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "Give me five catchy names for my weekly newsletter about houseplants.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "Here's the old FAQ on passport renewal and the live government page. Reconcile them: what's still right, what's obsolete, what can't be verified?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "writing a primer on lithium recycling for policy staffers. footnotes, only government or journal sources, no blog stuff",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "Draft a newsletter paragraph built around this Goethe line in German. Don't touch the original wording, and ask me before adding any English.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "Explainer for nurses on the new CDC RSV guidance, 500 words, AMA citations, quotes verbatim.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "Turn these 12 links into an article for engineering managers on on-call burnout. Don't state anything the links don't support, and list the gaps you find.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Compress my AGENTS.md notes file so it loads cheaper, keeping every link and command.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Review the PR that adds the quotation parser against ticket PLAT-212 and tell me what's missing.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "What's the difference between affect and effect?",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "Write a Playwright test that checks the article page's pull quotes render on a phone-sized viewport.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "Run biome over src/content/render.ts and tell me what fails.",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "content-writer",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

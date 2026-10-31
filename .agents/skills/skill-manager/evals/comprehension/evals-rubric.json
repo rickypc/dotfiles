@@ -1,0 +1,138 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "a trigger eval observes whether the registered agent loaded the skill, not whether query text contains a keyword.",
+      "expected": "C",
+      "id": "train-01",
+      "query": "A reviewer designs a trigger eval for a skill description. What should the trigger eval observe?\nA) Whether the query text contains a keyword from the description\nB) Whether the description is under 500 lines\nC) Whether the registered agent loaded the skill\nD) Whether the skill body has seven headings",
+      "split": "train"
+    },
+    {
+      "evidence": "do not overfit descriptions to exact failed-query keywords or let a description exceed the 1,024-character specification limit.",
+      "expected": "B",
+      "id": "train-02",
+      "query": "An author's skill description has grown to 1,300 characters after several revisions. What does the rubric say about this?\nA) It is fine because only the body has a limit\nB) It must not exceed the 1,024-character specification limit\nC) It is fine if the first 500 characters state the job\nD) It must be cut to 500 characters",
+      "split": "train"
+    },
+    {
+      "evidence": "`argument-hint` may remain as a caller/UI hint, but a separate `trigger` frontmatter field is not allowed.",
+      "expected": "A",
+      "id": "train-03",
+      "query": "A contributor wants to add a separate `trigger` field to the skill frontmatter so selection is clearer. What does the rubric say?\nA) Not allowed; the `description` field owns triggering and `argument-hint` is only a caller/UI hint\nB) Allowed if `argument-hint` is removed\nC) Allowed if the `trigger` text matches the description\nD) Allowed only for global skills",
+      "split": "train"
+    },
+    {
+      "evidence": "`ratchet` fails any removed case, dropped assertion, changed query, or lowered threshold.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "Someone deletes one hard case from the matrix because it keeps failing, then runs `ratchet`. What happens?\nA) Ratchet passes because the rest of the matrix still passes\nB) Ratchet passes if the pass rate stays at 1\nC) Ratchet only warns and records the change\nD) Ratchet fails because a removed case is not allowed",
+      "split": "train"
+    },
+    {
+      "evidence": "Its exact four columns are `Command or information`, `Arguments`, `When to use`, and `Additional information`",
+      "expected": "A",
+      "id": "train-05",
+      "query": "A skill needs a downstream command table outside Usage. Which columns must it have?\nA) Command or information, Arguments, When to use, Additional information\nB) Command, Description, Example, Owner\nC) Name, Arguments, Output\nD) Command or information, Arguments, Receipt, Fallback, Owner",
+      "split": "train"
+    },
+    {
+      "evidence": "Challenge cases are not issued in the candidate action packet.",
+      "expected": "D",
+      "id": "validation-01",
+      "query": "A skill update is being prepared. Which cases are left out of the candidate action packet?\nA) Candidate cases\nB) All matrix cases\nC) Cases with failing assertions\nD) Challenge cases",
+      "split": "validation"
+    },
+    {
+      "evidence": "No score, measurement, candidate receipt, or challenge receipt alone closes a skill update",
+      "expected": "B",
+      "id": "validation-02",
+      "query": "A skill update has a perfect matrix score and a passing candidate receipt. Can the update be closed?\nA) Yes, a perfect score closes the update\nB) No, deterministic gates and the owner's review receipt are still required\nC) Yes, if the challenge receipt also passes\nD) No, a human must rerun the matrix three times first",
+      "split": "validation"
+    },
+    {
+      "evidence": "begin `## 5. Ordered Execution Chain` with a plain-text flow diagram before the step-by-step explanation.",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "A migrated skill has a section titled Ordered Execution Chain. How must that section begin?\nA) With a command table of four columns\nB) With the numbered steps and no diagram\nC) With a plain-text flow diagram before the step-by-step explanation\nD) With the invocation catalog",
+      "split": "validation"
+    },
+    {
+      "evidence": "the ledger gate keeps an edit only with no regression, at least one unanimous gain, an unchanged query-set fingerprint, and passing deterministic checks.",
+      "expected": "B",
+      "id": "train-06",
+      "query": "A training edit has passing deterministic checks, an unchanged query-set fingerprint, and zero regressions. One query went from failing to passing in 2 of 3 blind runs. Under the ledger gate, what happens to the edit?\nA) It is kept, because there is no regression and a gain exists.\nB) It is not kept, because the gain was not unanimous.\nC) It is kept only if the validation split also gained.\nD) It is not kept, because two gains are always required.",
+      "split": "train"
+    },
+    {
+      "evidence": "A successful Markdown transaction verifies lossless preservation; it does not replace the prose, authority, or link review.",
+      "expected": "C",
+      "id": "train-07",
+      "query": "A Markdown transaction on a skill document finished and verified lossless preservation. What does the rubric say about the prose, authority, and link review?\nA) The transaction replaces the prose review but not the link review.\nB) The transaction replaces the authority review but not the link review.\nC) The transaction does not replace the prose, authority, or link review.\nD) The transaction replaces all three reviews when the receipt says done.",
+      "split": "train"
+    },
+    {
+      "evidence": "Verify that each extends `~/.agents/AGENTS.md` when available without becoming a second policy owner.",
+      "expected": "A",
+      "id": "train-08",
+      "query": "A global skill review declares <project>/AGENTS.md as an additional static root. What must the evaluator verify about it?\nA) It extends ~/.agents/AGENTS.md when available without becoming a second policy owner.\nB) It replaces ~/.agents/AGENTS.md so there is only one policy file.\nC) It repeats every rule from ~/.agents/AGENTS.md so it can stand alone.\nD) It contains the concrete project paths copied into the reusable skill guidance.",
+      "split": "train"
+    },
+    {
+      "evidence": "candidate evidence must have a changed source fingerprint, and challenge evidence must match the candidate source and matrix.",
+      "expected": "D",
+      "id": "train-09",
+      "query": "A reviewer checks challenge evidence for a skill update. Which two things must the challenge evidence match?\nA) The baseline source and the baseline matrix.\nB) A changed source fingerprint and the baseline matrix.\nC) The candidate source and a newly extended matrix.\nD) The candidate source and the candidate matrix.",
+      "split": "train"
+    },
+    {
+      "evidence": "Usage owns invocation syntax; the execution diagram owns the normal route.",
+      "expected": "A",
+      "id": "validation-04",
+      "query": "Which statement about invocation syntax and the normal route is correct for a migrated skill?\nA) Usage owns invocation syntax; the execution diagram owns the normal route.\nB) The execution diagram owns invocation syntax; Usage owns the normal route.\nC) Usage owns both the invocation syntax and the normal route.\nD) The downstream command table owns both the invocation syntax and the normal route.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Keep reusable guidance placeholder-based and materialize concrete project or assistant paths only in their corresponding local policy.",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "A skill needs a concrete project path or assistant path to be written down. Where does the rubric allow concrete paths to appear?\nA) In the reusable skill guidance, as an example.\nB) In this rubric file, next to the placeholder.\nC) Only in the corresponding project or assistant local policy.\nD) Only in the shared ~/.agents/AGENTS.md file.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Query sets and comprehension sets score a query as passed only when every run agrees with its label.",
+      "expected": "C",
+      "id": "train-10",
+      "query": "A weak reader answers one probe correctly in 2 of 3 runs and wrongly in the third. Does that probe pass?\nA) Yes, because most runs are correct.\nB) Yes, because the weak reader is a tiny model.\nC) No, because every run must agree with its label.\nD) No, because the probe must be retired.",
+      "split": "train"
+    },
+    {
+      "evidence": "A wrong or obsolete query is retired with a written reason, never edited after a baseline.",
+      "expected": "A",
+      "id": "train-11",
+      "query": "After a baseline, a query is found to be obsolete. What does the rubric say?\nA) Retire it with a written reason; never edit it after a baseline.\nB) Edit its text to match the new rule.\nC) Delete it from the set.\nD) Lower the pass rate.",
+      "split": "train"
+    },
+    {
+      "evidence": "Every Markdown file in a skill package and every `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file has a comprehension set",
+      "expected": "B",
+      "id": "validation-06",
+      "query": "The agents root holds GEMINI.md. A skill package holds assets/guide.md. Which need a comprehension set?\nA) GEMINI.md only.\nB) Both files.\nC) assets/guide.md only.\nD) Neither file.",
+      "split": "validation"
+    },
+    {
+      "evidence": "Query sets and comprehension sets score a query as passed only when every run agrees with its label.",
+      "expected": "D",
+      "id": "validation-07",
+      "query": "A near-miss query should not trigger the skill. It is run 3 times and one run loads the skill. Does it pass?\nA) Yes, because two of three runs agree.\nB) Yes, because near-miss queries only need a majority.\nC) No, but only if it is in the validation split.\nD) No, because every run must agree with its label.",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

@@ -1,7 +1,7 @@
 ---
 
 name: biome-checker
-description: Run Biome, bun check, and declaration-order checks for explicitly selected JavaScript or TypeScript paths.
+description: "Use when the user names specific JavaScript or TypeScript file paths and asks to lint, check, type-check, or verify declaration order of those files with Biome and bun check. Do NOT use for whole-project or repo-wide fixes, installing or configuring Biome, explaining lint rules, formatting other languages, or writing tests."
 argument-hint: <path> [path...]
 ---
 
@@ -34,8 +34,12 @@ for focused checks and declaration-order actions.
 - Resolve every selected path to its nearest `package.json` and use the shared
   `<agents-root>/biome.jsonc`; do not change target configuration or dependencies to obtain a green
   result.
-- Inspect only direct program children with Tree-sitter's concrete syntax tree. `.jsx`/`.tsx` use
-  TSX grammar; other supported extensions use TypeScript grammar.
+- Inspect only direct program children with Tree-sitter's concrete syntax tree. Grammar by
+  extension: `.jsx` and `.tsx` use TSX grammar; `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` use
+  TypeScript grammar. The type check follows the language, not the grammar: `.ts`, `.tsx`, `.mts`,
+  and `.cts` paths run `bun check`; `.js`, `.jsx`, `.mjs`, and `.cjs` paths report the type check as
+  `not-applicable`. Example: `app.jsx` uses TSX grammar, and its type check is `not-applicable`
+  because it is JavaScript.
 - Treat imports, unrecognized or side-effecting top-level statements, duplicate providers, shadowed
   names, syntax errors, and dependency cycles as barriers. Do not cross or repair them.
 - If declaration order is noncanonical, apply only a returned whole-declaration action packet. Never

@@ -1,7 +1,7 @@
 ---
 
 name: knowledge-base
-description: Retrieve, capture, validate, and distill durable knowledge stored in the Open Knowledge Format (OKF).
+description: "Use when the user asks to look up, save, validate, reconcile, or distill durable team knowledge in the private knowledge base (OKF records): past decisions, lessons, precedents, or prior incidents, or to import a completed plan. Do NOT use for finding code or files (that is repo-search), writing new documents or templates, compressing Markdown (that is md-compress), or general explanations."
 argument-hint: <operation> <private-kb-root> <scope-or-request>
 ---
 
@@ -88,7 +88,9 @@ root and scope -> retrieve evidence -> choose disposition -> guarded write
    current candidates. repo-search reads the configured KB root in private-KB local-only mode.
 3. **Decide:** For each atomic lesson, choose one explicit disposition: `new-primary` when no
    concept owns it, `update-existing` when one does, or `link-related` when another concept supplies
-   context. One canonical owner is required for reconciliation.
+   context. One canonical owner is required for reconciliation. Example: no concept owns lesson L,
+   and concept C only gives background for L. Then L is `new-primary` (L becomes its own concept)
+   and C gets a `link-related` link from L. Never make C own L, and never make both `new-primary`.
 4. **Write or import:** Materialize rich JSON through the fixed TypeScript writer, then run the
    owning reconcile/import command. Validate metadata, links, preconditions, and every returned
    receipt before applying writes.
@@ -134,6 +136,10 @@ each remaining directory level in the `from` path after the common prefix, then 
 - Same directory: `from` = `idx/sub/A.md`, `to` = `idx/sub/B.md` → `](B.md)`
 - Adjacent subject: `from` = `idx/sub1/A.md`, `to` = `idx/sub2/B.md` → `](../sub2/B.md)`
 - Two levels up: `from` = `idx/sub1/sub2/A.md`, `to` = `idx/sub3/B.md` → `](../../sub3/B.md)`
+- Two levels up, other names: `from` = `idx/a/b/X.md`, `to` = `idx/c/Y.md` → `](../../c/Y.md)`
+
+Rule of thumb: count how many folders the `from` file sits below the folder that both paths share,
+and write that many `../`. The shared folder name itself is never written.
 
 The `shared/` scope follows the same rule: `from` = `idx/sub/A.md`, `to` = `shared/team/B.md` →
 `](../../shared/team/B.md)`. The writer's string-only fields include `content` and `write`; the

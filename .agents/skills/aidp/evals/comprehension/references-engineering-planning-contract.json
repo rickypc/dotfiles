@@ -1,0 +1,131 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Use this authority order: current user request; applicable project instructions; verified repository\nand file evidence; validated private knowledge; labelled assumptions.",
+      "expected": "B",
+      "id": "train-01",
+      "query": "The current user request conflicts with a validated private knowledge note about how to do the work. Which source wins under the authority order?\nA) The private knowledge note, because it is validated\nB) The current user request, because it comes first in the authority order\nC) A labelled assumption, because it is the newest\nD) Whichever source the planner finds first",
+      "split": "train"
+    },
+    {
+      "evidence": "This\nis the shared state handed to `/aidx`; AIDP never marks a step complete.",
+      "expected": "C",
+      "id": "train-02",
+      "query": "AIDP has written every workflow step as `- [ ]`. Who may later mark a step complete?\nA) AIDP, once the plan is validated\nB) The human owner, by editing the plan before handoff\nC) Not AIDP; it never marks a step complete and the state is handed to /aidx\nD) The validator, after it reads the first line",
+      "split": "train"
+    },
+    {
+      "evidence": "Before asking a clarification question, retrieve repository context through `/repo-search` and\nprivate context through `/knowledge-base`",
+      "expected": "A",
+      "id": "train-03",
+      "query": "AIDP is about to ask the user a clarification question. What must it do first?\nA) Retrieve repository context through /repo-search and private context through /knowledge-base, and record both receipts\nB) Ask the question immediately so the user can supply the context\nC) Search the web for the usual convention\nD) Write a draft plan with a default and ask the user to correct it",
+      "split": "train"
+    },
+    {
+      "evidence": "A missing result is unknown,\nnot permission to invent a fact.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A private knowledge search returns nothing for a fact the plan depends on. What does the contract say this means?\nA) The fact is false and should be left out\nB) The fact can be filled in with the usual convention\nC) The fact is permitted by default\nD) The result is unknown and is not permission to invent a fact",
+      "split": "train"
+    },
+    {
+      "evidence": "This is part of the Design or Architect record; it is not a second workflow or approval\ngate.",
+      "expected": "A",
+      "id": "train-05",
+      "query": "A material decision has competing paths and duplicate ownership risk. How is the decision-quality pass treated?\nA) It is added before decomposition as part of the Design or Architect record, not as a second workflow or approval gate\nB) It becomes a separate second workflow with its own approval step\nC) It is skipped because the plan will be decomposed anyway\nD) It is run only after the units have been defined",
+      "split": "train"
+    },
+    {
+      "evidence": "`<repo-search-index>` remains a plan-folder/metadata value and is not a KB search argument.",
+      "expected": "C",
+      "id": "train-06",
+      "query": "What is `<repo-search-index>` in the protected command tokens?\nA) A required argument of the knowledge-base search command\nB) A required argument of every repo-search command\nC) A plan-folder/metadata value that is not a KB search argument\nD) The path of the private KB root",
+      "split": "train"
+    },
+    {
+      "evidence": "A performance claim names the path, observation or measurement, baseline or limit, and trade-off.",
+      "expected": "B",
+      "id": "train-07",
+      "query": "A plan makes a performance claim. What must the claim name?\nA) Only a coverage percentage\nB) The path, the observation or measurement, the baseline or limit, and the trade-off\nC) Only the language profile in use\nD) A numeric target chosen by the planner",
+      "split": "train"
+    },
+    {
+      "evidence": "The command options and arguments for building the evidence set are owned\nby `SKILL.md`; this reference supplies the planning obligations and interpretation rules only.",
+      "expected": "D",
+      "id": "validation-01",
+      "query": "Where are the command options and arguments for building the evidence set defined?\nA) In this contract's role table\nB) In the language routing table\nC) In each plan's own TARGET DIRECTIVES\nD) In SKILL.md, while this reference supplies only planning obligations and interpretation rules",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not invent numeric targets.",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "A plan covers a non-functional requirement such as reliability, but the user gave no numbers. What does the contract say?\nA) Do not invent numeric targets\nB) Pick the industry standard numeric target\nC) Copy the targets from a similar project\nD) Use a high default and lower it later",
+      "split": "validation"
+    },
+    {
+      "evidence": "Select only profiles supported by repository evidence; never route from\na guessed extension.",
+      "expected": "B",
+      "id": "validation-03",
+      "query": "How should the planner choose a language profile such as Go or Python?\nA) From the file extension it expects the project to use\nB) Only from profiles supported by repository evidence, never from a guessed extension\nC) From the language the user mentions in passing\nD) From the most popular language for that kind of project",
+      "split": "validation"
+    },
+    {
+      "evidence": "A coverage number never substitutes for\nmapped acceptance proof.",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "A project reports a high test coverage number. What does the contract say about it as proof?\nA) It is enough proof of the acceptance items\nB) It replaces the acceptance-to-proof matrix\nC) It never substitutes for mapped acceptance proof\nD) It is enough only for UI work",
+      "split": "validation"
+    },
+    {
+      "evidence": "the invariant, canonical owner /\ncontract, responsibility overlap, higher-level simplification, retirement trigger or falsifier, and\nverdict.",
+      "expected": "B",
+      "id": "train-08",
+      "query": "Ownership is at risk, so the conditional decision-quality pass is extended. Which list names what the extension must capture?\nA) Irreducible outcome, non-negotiables, assumptions to drop, smallest sufficient path, escalation signal\nB) Invariant, canonical owner / contract, responsibility overlap, higher-level simplification, retirement trigger or falsifier, and verdict\nC) Invariant, canonical owner / contract, consumer list, rollback plan, retirement trigger or falsifier, and verdict\nD) Invariant, responsibility overlap, test coverage, higher-level simplification, escalation signal, and verdict",
+      "split": "train"
+    },
+    {
+      "evidence": "Ask one decision-relevant question at a time.",
+      "expected": "D",
+      "id": "train-09",
+      "query": "According to this contract, how many clarification questions does the planner ask at a time?\nA) All remaining questions in one batched round\nB) None, until the plan is already written\nC) Up to three, grouped by section\nD) One decision-relevant question at a time",
+      "split": "train"
+    },
+    {
+      "evidence": "Concrete boundaries, controls, and proof; state inapplicability when evidence supports it.",
+      "expected": "A",
+      "id": "train-10",
+      "query": "The request touches no trust boundary, secret, permission, or external input, and repository evidence supports that. What does the Security role contribute?\nA) It states inapplicability, because the evidence supports it\nB) Nothing; the Security role is simply not mentioned\nC) A full threat model with invented controls\nD) A numeric security target",
+      "split": "train"
+    },
+    {
+      "evidence": "Each material category needs a constraint,\nowner, implementation implication, and proof.",
+      "expected": "C",
+      "id": "train-11",
+      "query": "A plan covers an evidenced NFR category such as reliability. What must each material category have?\nA) A numeric target, an owner, a dashboard, and a test\nB) A constraint, a reviewer, a schedule, and proof\nC) A constraint, an owner, an implementation implication, and proof\nD) An owner, a rollback plan, a numeric target, and proof",
+      "split": "train"
+    },
+    {
+      "evidence": "A security, reliability, or performance discovery that changes scope or proof is a re-plan\n  trigger.",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "During delivery the team finds a performance problem that changes the proof strategy. What does the contract treat this as?\nA) A limitation to record at the end only\nB) A reason to raise the numeric target\nC) A re-plan trigger\nD) A reason to replace the final gate",
+      "split": "validation"
+    },
+    {
+      "evidence": "Preserve small consumer-owned interfaces; propagate context and deadlines; check contextual errors;",
+      "expected": "B",
+      "id": "validation-06",
+      "query": "The repository evidence shows Go code. Which planning obligation does the Go profile name?\nA) Model ownership, borrowing, error variants, and unsafe scope explicitly\nB) Preserve small consumer-owned interfaces and propagate context and deadlines\nC) Treat navigation, permissions, and lifecycle as behavior\nD) Avoid blocking async paths and mutable defaults",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "aidp--references-engineering-planning-contract",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/engineering-planning-contract.md"
+}

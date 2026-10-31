@@ -1,5 +1,4 @@
 {
-  "pass_threshold": 0.5,
   "queries": [
     {
       "id": "train-01",
@@ -120,9 +119,261 @@
       "query": "Create a Jira ticket from these meeting notes and assign it to the right person.",
       "should_trigger": false,
       "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "My skill keeps loading for the wrong requests. Tighten what triggers it.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Can you check the AGENTS.md in this repo for conflicts with the parent instructions?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "Train my skill so it activates more reliably without breaking anything.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Use the PDF skill to merge these two files.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "List which skills are installed.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "Explain how skills differ from slash commands.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "Add evals and a rubric to this skill package, then validate it.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Audit our agent instructions for stale or duplicate rules.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Create a new GitHub Actions workflow.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Summarize the changes in this skill changelog.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "The description of my skill is too vague and it never fires. Improve it and prove it does not regress.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "Check whether the global AGENTS.md and the project AGENTS.md agree with each other.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Run the knowledge base validation.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "Which skill should I use to compress Markdown? Just name it.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Create a brand new skill for log triage with scaffolding and evals.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Make my skill's evals harder and rerun the evaluation.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Summarize what each installed skill does in one line each.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Explain progressive disclosure for documentation sites.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "the router keeps ignoring my pdf-extractor skill for obvious pdf asks and grabbing other stuff. tweak when it should fire",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "our repo AGENTS.md has drifted and now contradicts the one in the home runtime. reconcile them but keep every parent rule intact",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "add harder near-miss prompts to the activation set for my lint-helper, then prove the set only got bigger",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "validate-skills is red, something about frontmatter in three packages. can you fix those",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "This SKILL.md is 900 lines and nobody reads it. Split it into a short main file plus linked reference docs, keeping the behavior the same.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "run the training loop on my deploy skill so it gets picked more reliably, and don't let it get worse",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "merge deploy-helper and release-helper into a single skill and fix every place still pointing at the old names",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "Run biome and the declaration-order check on scripts/repo-search.ts and utils/trash.ts and tell me what fails",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "write bun unit tests for the matrix.ts module in the quality engine, all exported functions",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "losslessly compress docs/runbook.md and keep a temp backup so I can diff afterwards",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "execute the plan in plans/skill-rollout.md exactly as written and report what each step produced",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "find every file in the repo that calls the measure function and show me the call chain",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "what did we decide last quarter about naming conventions for our internal tools? check the private notes",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "in one paragraph, what is the difference between a prompt and a system message",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "scaffold a fresh skill folder for pdf redaction",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "my evals/cases.jsonl cases all pass no matter what I change. make them actually discriminate",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "add a rule about commit messages to docs/agents/AGENTS.override.md, it is the file our assistant loads for this repo",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "whats wrong w/ this SKILL.md? description runs 1400 chars and the when-to-use part is vague",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "the project copy and the global copy of our review skill diverged, get them back in sync",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "Fix the lint errors in .agents/utils/quality-engine/train.ts using the formatter checks",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "Review my branch diff against the requirements in TICKET-482.md and flag anything missing",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "draft a cited blog post explaining how Agent Skills differ from plugins for our engineering audience",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "I need a step-by-step plan for moving our billing service to Postgres 16, ask me what you need first",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "convert the existing jest test for the skill loader to bun test syntax",
+      "should_trigger": false,
+      "split": "validation"
     }
   ],
-  "runs_per_query": 3,
+  "runs_per_query": 5,
   "skill_name": "skill-manager",
   "splits": {
     "train": "Use only failures from this split to revise description.",

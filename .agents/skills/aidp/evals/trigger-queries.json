@@ -1,0 +1,382 @@
+{
+  "queries": [
+    {
+      "id": "train-01",
+      "query": "I want to add SSO login to our admin portal but I am not sure about all the requirements. Can you plan it out before anything gets built?",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-02",
+      "query": "/aidp migrate the billing service off the legacy message queue",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-03",
+      "query": "Turn this vague idea into a concrete step-by-step execution plan: let customers export their invoices as CSV.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-04",
+      "query": "Before we touch any code, put together a full plan for splitting the monolith database into two schemas.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-05",
+      "query": "Help me scope and plan the rollout of feature flags across our services, and ask me whatever you need to know.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-06",
+      "query": "Draft the execution plan for upgrading our React app to the new router, including verification steps and fallbacks.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-07",
+      "query": "Run the plan at plans/auth-migration.md exactly as written.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-08",
+      "query": "Fix the null pointer exception in OrderService.ts.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-09",
+      "query": "Review my pull request for the invoice export change.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-10",
+      "query": "Write a project proposal document for the board about our cloud costs.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-11",
+      "query": "What is the difference between a plan and a roadmap? Explain briefly.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-12",
+      "query": "Generate bun unit tests for src/billing/charge.ts.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-01",
+      "query": "We need to overhaul our CI pipeline. Can you interview me and produce a plan we can execute later?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-02",
+      "query": "/aidp add audit logging to every write endpoint in the orders API",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-03",
+      "query": "I only have a half-formed ask: make search faster. Please gather evidence and turn it into a plan.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-04",
+      "query": "Write the plan, not the code, for moving our images to a CDN with cache invalidation.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-05",
+      "query": "Execute the plan in docs/cdn-rollout.md step by step.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-06",
+      "query": "Rename the variable cfg to config across the repo.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-07",
+      "query": "Summarize this meeting transcript into action items.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-08",
+      "query": "Create a Gantt chart template in a spreadsheet for our launch.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-13",
+      "query": "Our onboarding is a mess and support tickets keep piling up. I do not even know where to start. Figure out what needs doing and map out the work.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-14",
+      "query": "Spec out what it would take to support multi-tenant data isolation, then we will go from there.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-15",
+      "query": "I have a rough idea: a nightly reconciliation job for payments. Ask me what you need and write up the steps.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-16",
+      "query": "Execute steps 3 and 4 from the migration plan we agreed on.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-17",
+      "query": "Brainstorm names for our new internal tool.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-18",
+      "query": "What are the risks of moving from REST to GraphQL? Give me a quick opinion.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-09",
+      "query": "I am not sure what is required for GDPR deletion requests. Gather what is needed and plan the implementation.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-10",
+      "query": "Think through the approach for retiring our cron jobs in favor of a workflow engine and give me a plan someone else can run.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-11",
+      "query": "Estimate how long a TypeScript migration would take, ballpark only.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-12",
+      "query": "Explain how our deployment pipeline works.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-19",
+      "query": "Nobody agrees what done means for the search rewrite. Pin it down from what we have today and give me the steps to get there.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-20",
+      "query": "I am handing this to a fresh agent next. Put everything it needs to carry out the caching change into one document.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-21",
+      "query": "Summarize the plan in plans/search-rewrite.md for tomorrow's standup.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-22",
+      "query": "If you were tackling the caching change, what would you do first? Just a quick thought, no document.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-13",
+      "query": "Draft a step-by-step approach for the SSO rollout that someone else could pick up cold.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-14",
+      "query": "Interview me about the billing export requirements, then write the execution plan.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-15",
+      "query": "Give me the TL;DR of last quarter's roadmap doc.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-16",
+      "query": "Which of these three architecture options is best? Just choose one.",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "train-23",
+      "query": "ugh the search page is crawling and i dont even know where to start. can u work out what we need to do and lay it out as steps before anybody codes anything",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-24",
+      "query": "need a plan to replace moment.js with date-fns across the web app",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-25",
+      "query": "Product wants multi-tenant support. I only have a rough idea and no spec. Ask me what you need to know, then write up how the work should be sequenced and verified so another agent can carry it out.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-26",
+      "query": "how should we retire the old nightly cron jobs? lay out the steps",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-27",
+      "query": "i'm thinking we add rate limiting to the public API, maybe. first check whether we even need it or the gateway already covers it, and if we do, plan the smallest version",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-28",
+      "query": "The SAML change touches auth, payments and the user table, roughly a dozen files. Nobody edits anything until there is a plan I can approve first, so write that up.",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-29",
+      "query": "scope out moving every service from node 18 to node 22: risks, who owns what, how we verify each piece. no code yet please",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "id": "train-30",
+      "query": "ok the plan in docs/plans/cache-rewrite.md is approved, go ahead and carry it out step by step and tell me when each part is verified",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-31",
+      "query": "where in the repo is the retry scheduling logic for failed jobs and which functions call schedulePlan?",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-32",
+      "query": "update the planning rules in AGENTS.md so every non-trivial change needs an approved plan before the first edit",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-33",
+      "query": "write a customer-facing blog post about our migration roadmap for next quarter, with sources and quotes from the analyst reports",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-34",
+      "query": "Make me a six week study plan for the AWS solutions architect exam, I can do about an hour each evening.",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-35",
+      "query": "compress docs/migration-plan.md to save tokens but keep the code fences and links intact",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "train-36",
+      "query": "write bun tests for the plan builder in src/plan/build.ts, all methods",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "id": "validation-17",
+      "query": "our onboarding flow is a mess and leadership wants it fixed by Q1. idk what 'fixed' even means yet. help me pin down the requirements and turn it into something executable",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-18",
+      "query": "Write the execution plan for splitting the reports module out into its own package, with what to verify at each stage and what to do if a stage fails.",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-19",
+      "query": "dont build anything yet, just figure out the safest order to move our postgres 13 databases to 16",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-20",
+      "query": "Hey, quick one. We got a compliance ask to encrypt PII at rest in three services. I haven't looked at the code and honestly don't know the scope. Can you gather what's needed and come back with a proper plan?",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-21",
+      "query": "plan: dark mode support for the dashboard, incl. what to check before we ship",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "id": "validation-22",
+      "query": "review the feature/queue-migration branch against the acceptance criteria in ticket PROJ-482 and tell me if the migration was done right",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-23",
+      "query": "redesign the checkout page so it feels more premium, with clear error states and a mobile layout that works",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-24",
+      "query": "what did we decide last time about the rollout plan for the queue migration? check our private notes for the policy and lessons",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-25",
+      "query": "rename the variable tmp to retryCount in utils/backoff.ts",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "id": "validation-26",
+      "query": "run the approved plan at plans/pg16-upgrade.md and report the verification evidence for each step",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 5,
+  "skill_name": "aidp",
+  "splits": {
+    "train": "Use only failures from this split to revise the description.",
+    "validation": "Keep fixed and hidden from revision decisions; use it to choose the generalizing iteration."
+  }
+}

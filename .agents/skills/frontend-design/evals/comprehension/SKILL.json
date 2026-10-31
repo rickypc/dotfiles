@@ -1,0 +1,292 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "selected for creation, redesign, or visual refresh, not ordinary behavior-only work. Its outcome is",
+      "expected": "C",
+      "id": "train-01",
+      "query": "The user asks to fix a button whose click handler throws an error. The screen's look stays the same. Should the agent use the frontend-design skill?\nA) Yes, every web UI task uses it\nB) Yes, but only to restyle the button\nC) No, it is for creation, redesign, or visual refresh, not ordinary behavior-only work\nD) Yes, to redesign the whole screen first",
+      "split": "train"
+    },
+    {
+      "evidence": "**Existing rendered target:** inspect the branch that actually renders on the target route and",
+      "expected": "A",
+      "id": "train-02",
+      "query": "The user wants a redesign of a page that already renders in the app. How must the agent learn what the page looks like now?\nA) Inspect the branch that actually renders on the target route and treat the observed UI as ground truth\nB) Guess the layout from the file names\nC) Guess the layout from import names\nD) Build a fresh mock page and use it as the reference",
+      "split": "train"
+    },
+    {
+      "evidence": "anchor the definition to a representative existing page,",
+      "expected": "D",
+      "id": "train-03",
+      "query": "The user wants a brand-new page inside an existing codebase. The page does not exist yet. What should the definition be anchored to?\nA) A fabricated reproduction of the page\nB) A blank canvas with no constraints\nC) Only the user's verbal description\nD) A representative existing page, the shared shell, and reusable components",
+      "split": "train"
+    },
+    {
+      "evidence": "Treat the approved design system as a constraint, not a suggestion.",
+      "expected": "B",
+      "id": "train-04",
+      "query": "An approved design system exists. The agent thinks a new color palette would look nicer, and the user has not approved a system change. What must the agent do?\nA) Switch to the new palette and explain it later\nB) Treat the design system as a constraint and explore hierarchy, layout, or density within its tokens\nC) Treat the design system as a suggestion and mix in new tokens\nD) Replace the typography but keep the colors",
+      "split": "train"
+    },
+    {
+      "evidence": "ambiguous assets as an explicit decision; do not silently substitute generic marks, invented",
+      "expected": "C",
+      "id": "train-05",
+      "query": "The design needs the company logo, but no logo file was supplied. What must the agent do?\nA) Draw a simple generic mark as a stand-in\nB) Invent an icon that looks like the brand\nC) Surface the missing asset as an explicit decision and not silently substitute a placeholder\nD) Leave the logo area out and say nothing",
+      "split": "train"
+    },
+    {
+      "evidence": "describes only what is currently rendered; never put proposed changes into the baseline.",
+      "expected": "A",
+      "id": "train-06",
+      "query": "The agent writes the baseline for an existing screen. A teammate suggests adding the planned new header to it. What is correct?\nA) The baseline describes only what is currently rendered; proposed changes never go into it\nB) Add the planned header, since baselines should show the goal\nC) Add the header but mark it as planned\nD) Skip the baseline and describe only the proposal",
+      "split": "train"
+    },
+    {
+      "evidence": "direction is selected, revise that direction in place and preserve the accepted rationale;",
+      "expected": "D",
+      "id": "train-07",
+      "query": "A direction has been selected. The user now asks for a small color tweak on it. What should the agent do?\nA) Create a new parallel variant for the tweak\nB) Restart direction selection with 2-3 new approaches\nC) Drop the accepted rationale and rewrite it\nD) Revise the selected direction in place and preserve the accepted rationale",
+      "split": "train"
+    },
+    {
+      "evidence": "Ask one question at a time when purpose, constraints, or success criteria are unresolved. Do",
+      "expected": "B",
+      "id": "train-08",
+      "query": "Purpose and success criteria are both unclear. How should the agent ask?\nA) Send one long message with all questions together\nB) Ask one question at a time\nC) Guess the product meaning and continue\nD) Ask nothing and write the design",
+      "split": "train"
+    },
+    {
+      "evidence": "Ask when purpose, constraints, and success criteria are unresolved. Offer 2-3 different approaches",
+      "expected": "C",
+      "id": "train-09",
+      "query": "Constraints are unresolved and the agent must propose design routes. What should it offer?\nA) A single approach with no alternatives\nB) Five or more approaches so the user can choose freely\nC) 2-3 different approaches with trade-offs and a recommendation\nD) Two approaches with no recommendation",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not hand off until the complete definition is critiqued and has **user approval**. If approval",
+      "expected": "A",
+      "id": "train-10",
+      "query": "The definition is complete and critiqued, but the user has not said yes. May the agent hand it to implementation?\nA) No, handoff waits for user approval\nB) Yes, the critique is enough\nC) Yes, if the definition looks polished\nD) Yes, if the implementation owner agrees",
+      "split": "train"
+    },
+    {
+      "evidence": "changes direction, update the definition and repeat the critique.",
+      "expected": "D",
+      "id": "train-11",
+      "query": "At the approval step, the user's feedback changes the design direction. What happens next?\nA) Hand off the original definition anyway\nB) Hand off the new direction without a critique\nC) Start over from a new brief\nD) Update the definition and repeat the critique",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not apply landing-page aesthetics to dashboards, tables, or forms by default. Do not use MCP,",
+      "expected": "B",
+      "id": "train-12",
+      "query": "The task is a data table dashboard. The agent likes bold landing-page hero styling. What does the skill say?\nA) Use landing-page aesthetics on dashboards by default\nB) Do not apply landing-page aesthetics to dashboards, tables, or forms by default\nC) Use landing-page styling only for tables\nD) Use landing-page styling only for forms",
+      "split": "train"
+    },
+    {
+      "evidence": "browser extensions, or a fresh remote-guideline fetch.",
+      "expected": "C",
+      "id": "train-13",
+      "query": "The agent wants the latest design guidelines and plans to fetch them fresh from a remote site. What does the skill say?\nA) Fetching fresh remote guidelines is required\nB) Fetching is allowed once per task\nC) Do not use MCP, browser extensions, or a fresh remote-guideline fetch\nD) Fetching is allowed only for accessibility rules",
+      "split": "train"
+    },
+    {
+      "evidence": "belongs to its framework owner; meaningful product copy belongs to `/content-writer`. Use only for",
+      "expected": "A",
+      "id": "train-14",
+      "query": "The design includes onboarding text that carries real product meaning. Who owns that copy?\nA) `/content-writer`\nB) `/react`\nC) `/playwright-test-generator`\nD) `/frontend-design` alone, with no handoff",
+      "split": "train"
+    },
+    {
+      "evidence": "then hand the accepted definition to `/react` for React/React Native implementation or the named",
+      "expected": "B",
+      "id": "train-15",
+      "query": "The design is approved and the project uses React. Where does the accepted definition go next?\nA) Back to the user for another round of approval\nB) To `/react`, or to the named implementation owner\nC) To `/content-writer` for implementation\nD) The agent implements the code itself from this skill",
+      "split": "train"
+    },
+    {
+      "evidence": "design is ready; attractive prose alone does not.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "What proves that the design is ready for handoff?\nA) Attractive prose describing the design\nB) The approval receipt plus the recorded critique\nC) A long list of design ideas\nD) The agent's own confidence",
+      "split": "validation"
+    },
+    {
+      "evidence": "unapproved definition, or modify code from this skill.",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "While defining the UI, the agent spots a bug in the component code. May this skill edit the code?\nA) Yes, small fixes are fine\nB) Yes, but only after approval\nC) Yes, but only styling code\nD) No, this skill must not modify code",
+      "split": "validation"
+    },
+    {
+      "evidence": "evidence needed for the selected target route is an explicit stop. Ask the smallest question that",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "The purpose of the screen is missing and cannot be found in the brief. What does the skill treat this as?\nA) An explicit stop: ask the smallest question that resolves it\nB) A small gap to fill with a plausible default\nC) A reason to copy another product's purpose\nD) Something to decide after handoff",
+      "split": "validation"
+    },
+    {
+      "evidence": "Keep baseline evidence descriptive of the current UI only. Split independent screens",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "During intake the brief covers several independent screens. What does the skill say to do?\nA) Merge them into one definition\nB) Define only the first screen and ignore the rest\nC) Split independent screens into approved design slices\nD) Ask the user to file separate requests",
+      "split": "validation"
+    },
+    {
+      "evidence": "Content contract is researched/validated before implementation handoff.",
+      "expected": "D",
+      "id": "validation-05",
+      "query": "In the ownership table, what is the handoff condition for product-meaningful UI copy owned by `/content-writer`?\nA) The copy is drafted after implementation\nB) The copy is written by the frontend designer\nC) The copy is approved by the browser tests\nD) The content contract is researched and validated before implementation handoff",
+      "split": "validation"
+    },
+    {
+      "evidence": "decision to an acceptance criterion and observable browser proof. Critique content,",
+      "expected": "A",
+      "id": "validation-06",
+      "query": "In the critique step, how should each design decision be mapped?\nA) To an acceptance criterion and observable browser proof\nB) To the agent's personal taste\nC) To a competitor's design\nD) To a line of implementation code",
+      "split": "validation"
+    },
+    {
+      "evidence": "Required: UI brief, affected screens or flows, design-system constraints, and acceptance criteria.",
+      "expected": "C",
+      "id": "validation-07",
+      "query": "Which inputs does the skill list as required?\nA) Only a UI brief\nB) A UI brief and a deadline\nC) UI brief, affected screens or flows, design-system constraints, and acceptance criteria\nD) Code files, test files, and a package list",
+      "split": "validation"
+    },
+    {
+      "evidence": "If no design system exists, define the smallest usable one first.",
+      "expected": "A",
+      "id": "train-16",
+      "query": "The user wants a new UI and the project has no design system at all. What must the agent do first?\nA) Define the smallest usable design system first\nB) Copy a popular public design system wholesale\nC) Skip tokens and define only the page layout\nD) Ask the user to build a full design system before continuing",
+      "split": "train"
+    },
+    {
+      "evidence": "gather product context, audience, platform, brand/taste",
+      "expected": "B",
+      "id": "train-17",
+      "query": "The user wants a brand-new product UI and there is no codebase yet. How does the agent get what it needs before defining page detail?\nA) Inspect the branch that renders on the target route\nB) Gather product context, audience, platform, brand/taste constraints, and references conversationally\nC) Inspect a representative sibling page and the shared shell\nD) Copy a competitor product and adjust it",
+      "split": "train"
+    },
+    {
+      "evidence": "Ask only high-signal questions about unresolved constraints and trade-offs; do not repeat",
+      "expected": "C",
+      "id": "train-18",
+      "query": "The brief already states that the audience is hospital nurses. The agent still has an unresolved question about density trade-offs. What should it ask?\nA) Who the audience is, to double check the brief\nB) Both the audience and the density question in one message\nC) Only the density question, because decisions already in the brief are not repeated\nD) Nothing, because trade-offs are decided by the agent alone",
+      "split": "train"
+    },
+    {
+      "evidence": "Reuse an existing context source when one exists",
+      "expected": "D",
+      "id": "train-19",
+      "query": "A reusable design context record already exists, but one part of it is stale for the affected screen. What is correct?\nA) Rebuild the whole context from scratch for safety\nB) Ignore the record and capture only a new baseline\nC) Reuse it and refresh everything in it\nD) Reuse the existing context source and refresh only the stale or affected context",
+      "split": "train"
+    },
+    {
+      "evidence": "Remove unnecessary features from each.",
+      "expected": "A",
+      "id": "train-20",
+      "query": "The agent is offering 2-3 different approaches with trade-offs and a recommendation. What does it do with features inside each approach?\nA) Remove unnecessary features from each approach\nB) Keep every feature so the user can pick later\nC) Add extra features to make the approaches look different\nD) Remove unnecessary features only from the recommended approach",
+      "split": "train"
+    },
+    {
+      "evidence": "Design is approved and user-facing criteria need project-local coverage.",
+      "expected": "B",
+      "id": "train-21",
+      "query": "The design is approved and the user also wants retained browser regression tests for the responsive layout. Who owns these tests and when?\nA) /frontend-design writes them as part of the definition\nB) /playwright-test-generator, once the design is approved and user-facing criteria need project-local coverage\nC) /react, together with the component code\nD) /playwright-test-generator, immediately, even before the design is approved",
+      "split": "train"
+    },
+    {
+      "evidence": "Accepted design and finalized content are supplied.",
+      "expected": "C",
+      "id": "train-22",
+      "query": "The design is approved, but the product-meaningful copy is still being researched by /content-writer. May the definition go to /react now?\nA) Yes, because approval of the design is the only condition\nB) Yes, with placeholder copy to be replaced later\nC) No, /react needs the accepted design and finalized content to be supplied\nD) No, but only until the first critique is repeated",
+      "split": "train"
+    },
+    {
+      "evidence": "Failure names the unresolved product decision, missing content/design-system constraint, failed",
+      "expected": "B",
+      "id": "train-23",
+      "query": "The work ends because the user never approved the definition. What must the failure report name?\nA) A generic aesthetic that can replace the missing approval\nB) The absent approval, along with any other unresolved decision or constraint\nC) Only the code that would have been changed\nD) Nothing; failure needs no report",
+      "split": "train"
+    },
+    {
+      "evidence": "do not invent an existing layout or claim fidelity without source evidence.",
+      "expected": "A",
+      "id": "train-24",
+      "query": "The agent cannot find the evidence needed for the chosen target route, such as the actual render of an existing page. What is this treated as?\nA) An explicit stop: ask the smallest question and do not invent a layout or claim fidelity\nB) A gap to fill by describing the layout from file names and calling it approximate\nC) A reason to switch to a sibling page and claim fidelity to the target\nD) A gap to note as an assumption while the work continues",
+      "split": "train"
+    },
+    {
+      "evidence": "brief and context -> design direction -> state/accessibility definition",
+      "expected": "B",
+      "id": "train-25",
+      "query": "Which order is the ordered execution chain after the design direction is chosen?\nA) critique, then state/accessibility definition, then user approval, then handoff\nB) State/accessibility definition, then critique, then user approval, then implementation handoff\nC) State/accessibility definition, then user approval, then critique, then handoff\nD) Critique, then user approval, then state/accessibility definition, then handoff",
+      "split": "train"
+    },
+    {
+      "evidence": "constraints, existing pattern inventory, reusable design context or design-system record, and",
+      "expected": "C",
+      "id": "train-26",
+      "query": "Which of these inputs is listed as optional rather than required?\nA) Real content\nB) Acceptance criteria\nC) An existing pattern inventory\nD) Audience and product job",
+      "split": "train"
+    },
+    {
+      "evidence": "use the closest confirmed sibling and shared patterns for a new page.",
+      "expected": "D",
+      "id": "train-27",
+      "query": "The agent is at the Direction step for a new page inside an existing codebase. What serves as its baseline?\nA) The observed structure of the new page\nB) Whatever structure the agent finds most elegant\nC) Only the written brief with no existing patterns\nD) The closest confirmed sibling page and shared patterns",
+      "split": "train"
+    },
+    {
+      "evidence": "Behavior-only work, missing real content, missing accessibility state, unresolved purpose, or unapproved definition cannot be handed off.",
+      "expected": "B",
+      "id": "validation-08",
+      "query": "The definition is approved and has all states, but real content is missing. May it be handed off?\nA) Yes, because approval is enough\nB) No, because missing real content cannot be handed off\nC) Yes, if placeholder content is added\nD) No, but only until a browser test is written",
+      "split": "validation"
+    },
+    {
+      "evidence": "present the design in reviewable sections scaled to its complexity",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "The agent presents a small, simple screen for critique. How should it present the design?\nA) In reviewable sections scaled to its complexity\nB) In exactly five sections no matter the size\nC) In one paragraph that skips accessibility\nD) Not at all, because simple screens skip critique",
+      "split": "validation"
+    },
+    {
+      "evidence": "Branch only genuinely different directions that need comparison",
+      "expected": "C",
+      "id": "validation-10",
+      "query": "The user wants to compare a sidebar layout and a top-navigation layout, which are genuinely different directions. What is allowed?\nA) Pick one silently and never mention the other\nB) Restart without a baseline\nC) Branch them as separate directions for comparison\nD) Branch a variant for every small correction as well",
+      "split": "validation"
+    },
+    {
+      "evidence": "Define keyboard behavior, responsive behavior, and accessibility before implementation from the",
+      "expected": "D",
+      "id": "validation-11",
+      "query": "The brief says nothing about keyboard behavior. What must the agent do?\nA) Skip it, because the brief is silent\nB) Leave it to the implementation owner\nC) Hand it to /playwright-test-generator\nD) Still define keyboard behavior, responsive behavior, and accessibility before implementation",
+      "split": "validation"
+    },
+    {
+      "evidence": "/frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria>",
+      "expected": "A",
+      "id": "validation-12",
+      "query": "Which invocation follows the skill's argument order?\nA) /frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria>\nB) /frontend-design <affected-screens> <ui-brief> <design-system> <acceptance-criteria>\nC) /frontend-design <ui-brief> <design-system> <affected-screens> <acceptance-criteria>\nD) /frontend-design <ui-brief> <affected-screens> <acceptance-criteria> <design-system>",
+      "split": "validation"
+    },
+    {
+      "evidence": "Capture the current baseline before direction selection.",
+      "expected": "C",
+      "id": "validation-13",
+      "query": "The agent has already chosen a direction for an existing screen and only now plans to capture the baseline. What is wrong?\nA) Nothing, the baseline is captured after approval\nB) The baseline should include the chosen direction\nC) The baseline must be captured before direction selection\nD) The baseline is optional for existing screens",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "frontend-design--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

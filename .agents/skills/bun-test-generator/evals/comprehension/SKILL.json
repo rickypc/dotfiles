@@ -1,0 +1,299 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "`<project-root>/tests/<sut-relative-path-without-extension>.test.ts`.",
+      "expected": "C",
+      "id": "train-01",
+      "query": "The SUT is <project-root>/scripts/run.ts and the nearest package.json is in <project-root>. Where must the canonical test go?\nA) <project-root>/scripts/run.test.ts\nB) <project-root>/tests/run.test.ts\nC) <project-root>/tests/scripts/run.test.ts\nD) <project-root>/__tests__/scripts/run.spec.ts",
+      "split": "train"
+    },
+    {
+      "evidence": "Never copy or symlink the SUT to satisfy a path convention.",
+      "expected": "A",
+      "id": "train-02",
+      "query": "The test path convention does not match where the SUT lives. An agent considers a shortcut. What is allowed?\nA) Neither copying nor symlinking the SUT; use the canonical test path\nB) Copy the SUT next to the test\nC) Symlink the SUT into the tests folder\nD) Move the SUT into the tests folder",
+      "split": "train"
+    },
+    {
+      "evidence": "use **`mock.module()` for every imported module** other than the selected SUT.",
+      "expected": "B",
+      "id": "train-03",
+      "query": "The selected SUT imports ./helper.ts and node:fs. How should the isolated test treat these imports?\nA) Keep both real for speed\nB) Register mock.module() for both, since only the SUT stays real\nC) Mock the SUT and keep the imports real\nD) Mock node:fs only and keep ./helper.ts real",
+      "split": "train"
+    },
+    {
+      "evidence": "A live boundary, bare console, or SUT mock is a hard failure.",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A generated test calls a live network boundary and also mocks the SUT itself. How does the skill classify this?\nA) A minor warning\nB) Acceptable in shared suites\nC) Acceptable if coverage is 100 percent\nD) A hard failure",
+      "split": "train"
+    },
+    {
+      "evidence": "Freeze a typed behavior matrix and shared-consumer impact map before test edits.",
+      "expected": "A",
+      "id": "train-05",
+      "query": "When must the typed behavior matrix and shared-consumer impact map be frozen?\nA) Before test edits\nB) After the first test passes\nC) At the end with the receipts\nD) Only when a test fails",
+      "split": "train"
+    },
+    {
+      "evidence": "Negative paths assert the returned error/normalized result and absence of unintended side effects.",
+      "expected": "C",
+      "id": "train-06",
+      "query": "A test covers a negative path where the SUT receives bad input. What must it assert?\nA) Only that no exception escaped\nB) Only that the mock was called once\nC) The returned error or normalized result and the absence of unintended side effects\nD) That the function exists",
+      "split": "train"
+    },
+    {
+      "evidence": "**If safe isolation is not proven, stop**",
+      "expected": "B",
+      "id": "train-07",
+      "query": "The agent cannot prove safe isolation before changing a shared mock registration. What must it do?\nA) Change the shared harness until coverage is green\nB) Stop and ask for the missing boundary plan\nC) Use mock.restore() and continue\nD) Proceed and rerun the full suite later",
+      "split": "train"
+    },
+    {
+      "evidence": "Focused coverage is diagnostic, never completion proof.",
+      "expected": "D",
+      "id": "train-08",
+      "query": "After the focused tests pass with full coverage, what does the skill say about that result?\nA) It is the final handoff\nB) It is completion proof when lint passes\nC) It replaces test:type\nD) It is diagnostic and never completion proof",
+      "split": "train"
+    },
+    {
+      "evidence": "The configured coverageThreshold does not reliably fail a function-coverage gap (a 90.70% function",
+      "expected": "C",
+      "id": "train-09",
+      "query": "The configured coverage run exits 0 but the per-file table shows 90.70% functions for a selected SUT file. What is the right conclusion?\nA) Done, because the exit code was 0\nB) Done, because the aggregate is above threshold\nC) Not done; reading the per-file percentage is the agent's own check and it must be 100.00%\nD) Done if lines are 100.00%",
+      "split": "train"
+    },
+    {
+      "evidence": "and typed stubs, never `any` or suppression comments.",
+      "expected": "A",
+      "id": "train-10",
+      "query": "A test double is hard to type under the strict type check. What is the rule?\nA) Use complete real shapes and typed stubs, never any or suppression comments\nB) Cast with any to pass the type lane\nC) Add a suppression comment on the line\nD) Skip the type lane for that file",
+      "split": "train"
+    },
+    {
+      "evidence": "If a dependency contract cannot be mocked without guessing, stop and ask for that contract.",
+      "expected": "D",
+      "id": "train-11",
+      "query": "A dependency's contract cannot be mocked without guessing its behavior. What does the skill require?\nA) Guess the most likely shape and continue\nB) Leave the dependency live\nC) Mock the SUT instead\nD) Stop and ask for that contract",
+      "split": "train"
+    },
+    {
+      "evidence": "The default scope is `isolated-unit`.",
+      "expected": "B",
+      "id": "train-12",
+      "query": "Which test scope does the skill use by default?\nA) shared-suite-integration\nB) isolated-unit\nC) browser-runtime\nD) full-integration",
+      "split": "train"
+    },
+    {
+      "evidence": "Register every dependency mock before dynamically importing the real SUT; do not alter",
+      "expected": "C",
+      "id": "train-13",
+      "query": "In what order must the generated test register mocks and load the SUT?\nA) Import the SUT first, then register mocks\nB) Register mocks only after the first failure\nC) Register every dependency mock before dynamically importing the real SUT\nD) Mock only the SUT before importing the helpers",
+      "split": "train"
+    },
+    {
+      "evidence": "Remove a legacy Jest test only after Bun validation and every relevant",
+      "expected": "A",
+      "id": "train-14",
+      "query": "When may a legacy Jest test be removed after conversion?\nA) Only after Bun validation and every relevant gate passes\nB) Immediately after the Bun test is written\nC) After focused coverage reaches 100 percent\nD) Never",
+      "split": "train"
+    },
+    {
+      "evidence": "The validator fails if the SUT specifier is passed to `mock.module()`; only other module specifiers",
+      "expected": "D",
+      "id": "train-15",
+      "query": "In validate-boundaries, a test passes the SUT module specifier to mock.module(). What does the validator do?\nA) Accepts it as a valid mock\nB) Warns but passes\nC) Ignores the specifier\nD) Fails, since only other module specifiers are mockable",
+      "split": "train"
+    },
+    {
+      "evidence": "Repair a rejected invocation before retrying; never",
+      "expected": "B",
+      "id": "train-16",
+      "query": "A delegated checker rejects the invocation because of malformed input. What must the agent do?\nA) Retry the same input once more\nB) Repair the invocation before retrying\nC) Skip the checker\nD) Treat the rejection as a pass",
+      "split": "train"
+    },
+    {
+      "evidence": "Required: one selected JavaScript or TypeScript SUT path and one test scope.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "What inputs does the skill require from the caller?\nA) Only a SUT path\nB) One SUT path and one test scope\nC) A Jest test and a coverage target\nD) A package.json and a project test command",
+      "split": "validation"
+    },
+    {
+      "evidence": "`test:lint`, `test:unit`, and `test:type` separately and retain one receipt for each; use the",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "The project exposes test:lint, test:unit, and test:type. How must the full gate be run?\nA) As one aggregate command with one receipt\nB) Only test:unit, since it has the tests\nC) Only test:lint and test:type\nD) Separately, retaining one receipt for each lane",
+      "split": "validation"
+    },
+    {
+      "evidence": "`/playwright-test-generator` owns accepted",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "The user wants retained browser flow acceptance tests. Which skill owns that work?\nA) /playwright-test-generator\nB) /bun-test-generator\nC) /biome-checker\nD) /repo-search",
+      "split": "validation"
+    },
+    {
+      "evidence": "Built-in module mocks are especially risky: prefer an injected boundary or the",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "A top-level mock of a built-in module such as node:os is being considered. What does the skill prefer?\nA) A top-level mock that replaces all exports\nB) A mock registered once and restored by mock.restore()\nC) An injected boundary or the real platform value\nD) A focused-file pass as the only proof",
+      "split": "validation"
+    },
+    {
+      "evidence": "`<owner-root>/tests/runtime/<sut-name>.test.ts`",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "For a globally owned browser-runtime SUT named widget, where may the canonical test live?\nA) <owner-root>/tests/runtime/widget.test.ts\nB) <project-root>/tests/widget.test.ts\nC) Next to the SUT as widget.test.ts\nD) <owner-root>/widget/tests/index.test.ts",
+      "split": "validation"
+    },
+    {
+      "evidence": "from `bun:test`; never use `spyOn` or a live `mock` boundary.",
+      "expected": "D",
+      "id": "validation-06",
+      "query": "In a globally owned browser-runtime test, which Bun API must the author never use?\nA) mock imported from bun:test\nB) typed test.each\nC) mock.module\nD) spyOn",
+      "split": "validation"
+    },
+    {
+      "evidence": "Name the production change that should make it fail",
+      "expected": "C",
+      "id": "validation-07",
+      "query": "Before writing the body of each test, what does the test-integrity contract require?\nA) Writing the expected output text\nB) Running the full project gate\nC) Naming the production change that should make the test fail\nD) Mocking the SUT",
+      "split": "validation"
+    },
+    {
+      "evidence": "local relative modules are not registered with `mock.module()`, and process/filesystem/network/package/global boundaries still require explicit mocks",
+      "expected": "B",
+      "id": "train-17",
+      "query": "The scope is shared-suite-integration. The SUT imports ./local-helper.ts (a local relative module) and node:child_process. How are they handled?\nA) Both get mock.module() registrations\nB) The local helper stays real with no mock.module() registration; child_process gets an explicit mock\nC) Both stay real because the scope is an integration test\nD) The local helper is mocked; child_process stays real",
+      "split": "train"
+    },
+    {
+      "evidence": "Record consumer, boundary touched, compatibility risk, and focused proof.",
+      "expected": "D",
+      "id": "train-18",
+      "query": "An agent inventories importers with /repo-search before changing a shared mock registration. What does the impact map record for each item?\nA) Consumer, owner, deadline, and coverage percent\nB) Importer, call site, test file, and mutation score\nC) Consumer, boundary touched, severity, and rollback plan\nD) Consumer, boundary touched, compatibility risk, and focused proof",
+      "split": "train"
+    },
+    {
+      "evidence": "Run `validate-boundaries` with source strings and the exact SUT module specifier, then `/biome-checker` for the test. Run the selected Bun coverage command",
+      "expected": "A",
+      "id": "train-19",
+      "query": "A test has just been generated. In which order do the validation steps run?\nA) validate-boundaries, then /biome-checker, then Bun coverage and focused tests, then the full project lanes\nB) /biome-checker, then validate-boundaries, then Bun coverage, then the full project lanes\nC) The full project lanes, then validate-boundaries, then /biome-checker\nD) Bun coverage, then validate-boundaries, then the full project lanes, then /biome-checker",
+      "split": "train"
+    },
+    {
+      "evidence": "`sutSource` and `testSource` are source strings and `sutModuleSpecifier` is the exact import specifier used by the test",
+      "expected": "C",
+      "id": "train-20",
+      "query": "In the validate-boundaries JSON, what do sutSource, testSource, and sutModuleSpecifier hold?\nA) File paths for the SUT and test; the specifier is the exact import specifier\nB) Source strings for both; the specifier is the SUT absolute path\nC) Source strings for both; the specifier is the exact import specifier used by the test\nD) File paths for the SUT and test; the specifier is the package name",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not change the SUT, test location, configuration, or dependencies to make a receipt green.",
+      "expected": "A",
+      "id": "train-21",
+      "query": "A receipt will not turn green. Which change is the agent allowed to make to get it green?\nA) None of these: it must not change the SUT, test location, configuration, or dependencies, and reports the failure instead\nB) Move the test to a more conventional location\nC) Lower the configured coverage threshold\nD) Add a small seam to the SUT so it can be mocked",
+      "split": "train"
+    },
+    {
+      "evidence": "Perform a mutation check for wrong branches, arguments, side effects, defaults, and malformed or boundary inputs.",
+      "expected": "D",
+      "id": "train-22",
+      "query": "Which set does the mutation check cover?\nA) Wrong branches, arguments, imports, file names, and coverage totals\nB) Wrong branches, side effects, and defaults, but not input values\nC) Wrong arguments, side effects, defaults, and lint rules\nD) Wrong branches, arguments, side effects, defaults, and malformed or boundary inputs",
+      "split": "train"
+    },
+    {
+      "evidence": "use its declared canonical source and test root and record that ownership exception in the matrix.",
+      "expected": "B",
+      "id": "train-23",
+      "query": "The SUT is a declared globally owned SUT. Where is the ownership exception recorded?\nA) In a suppression comment inside the test file\nB) In the behavior matrix\nC) In the full-gate receipt\nD) In the shared-consumer impact map",
+      "split": "train"
+    },
+    {
+      "evidence": "Missing module/global, unresolved canonical test owner, unsafe mock isolation, or unknown boundary behavior is a stop",
+      "expected": "C",
+      "id": "train-24",
+      "query": "The SUT calls a global that the agent cannot identify. What does the skill require?\nA) Leave it live this once and note it in the matrix\nB) Mock it with a best guess and flag the guess\nC) Stop; an unknown module or global is a stop, not a reason to leave it live\nD) Mock it with an empty object and continue",
+      "split": "train"
+    },
+    {
+      "evidence": "test-only cleanup belongs in **test utilities**, not production classes",
+      "expected": "A",
+      "id": "train-25",
+      "query": "Where does test-only cleanup code belong?\nA) In test utilities, not production classes\nB) In a dispose method on the production class\nC) In the SUT constructor\nD) In the project config",
+      "split": "train"
+    },
+    {
+      "evidence": "Re-run every affected lane after mock or fixture repairs.",
+      "expected": "B",
+      "id": "train-26",
+      "query": "A mock repair is made after the test:unit lane failed. What must be re-run?\nA) Only the lane that failed\nB) Every affected lane\nC) Only the focused coverage command\nD) Only the type lane",
+      "split": "train"
+    },
+    {
+      "evidence": "Use `shared-suite-integration` only when the existing shared Bun process must exercise a real in-repository helper and the matrix labels it as an integration-preservation test.",
+      "expected": "C",
+      "id": "train-27",
+      "query": "When may the shared-suite-integration scope be used?\nA) When the SUT is hard to mock\nB) When a network dependency is too slow to mock\nC) Only when the shared Bun process must exercise a real in-repository helper and the matrix labels it an integration-preservation test\nD) Whenever the shared process must exercise a real helper, with no matrix label required",
+      "split": "train"
+    },
+    {
+      "evidence": "It is a mandatory pre-edit gate for every test addition, conversion, repair, rename, or deletion, including work initiated by `/aidx`.",
+      "expected": "D",
+      "id": "train-28",
+      "query": "An /aidx plan removes a source file and deletes its orphaned test file. Must this skill run first?\nA) No, /aidx owns the test work it initiates\nB) Yes, but only for additions and conversions\nC) Yes, but only if the test is edited rather than deleted\nD) Yes, deletions are included, even when the work starts from /aidx",
+      "split": "train"
+    },
+    {
+      "evidence": "boundary-validation receipt, static-check receipt, focused test/coverage result",
+      "expected": "C",
+      "id": "validation-08",
+      "query": "Which two receipts both appear in a successful return?\nA) One aggregate lint-unit-type report, and a coverage percent\nB) A rewritten SUT, and a boundary-validation receipt\nC) A boundary-validation receipt and a static-check receipt\nD) A single full-gate receipt, and a static-check receipt",
+      "split": "validation"
+    },
+    {
+      "evidence": "Each row names behavior, condition/boundary, expected outcome, external mock, assertion, failure mode, repair boundary, and an independent verifier.",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "Which pair of fields does every behavior matrix row include?\nA) Failure mode and repair boundary\nB) Failure mode and rollback owner\nC) Mutation score and repair boundary\nD) Retry count and failure mode",
+      "split": "validation"
+    },
+    {
+      "evidence": "freeze meaningful input partitions and expected values independently of the SUT",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "Where must the expected values in the matrix come from?\nA) Copied from the SUT output when the test first runs\nB) Taken from constants in the SUT source\nC) Taken from an existing snapshot of the SUT\nD) Frozen independently of the SUT",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never assume test-file boundaries or `mock.restore()` remove a registered module mock.",
+      "expected": "B",
+      "id": "validation-11",
+      "query": "A module mock was registered in one test file and another file runs next in the same process. What may the agent assume?\nA) The mock is gone because test-file boundaries reset module mocks\nB) Nothing: it must not assume test-file boundaries or mock.restore() remove the mock\nC) The mock is gone if mock.restore() was called\nD) The mock is gone if the next file is in a different directory",
+      "split": "validation"
+    },
+    {
+      "evidence": "Verify argument count, positional meanings, source-versus-path transport, exact SUT module specifier, and JSON schema.",
+      "expected": "A",
+      "id": "validation-12",
+      "query": "Before invoking a delegated checker, which items must be verified?\nA) Argument count, positional meanings, source-versus-path transport, exact SUT module specifier, and JSON schema\nB) Argument count, flag aliases, environment variables, exact SUT module specifier, and exit codes\nC) Positional meanings, path-only transport, test file names, and JSON schema\nD) Argument count, help text, exit codes, and the coverage percent",
+      "split": "validation"
+    },
+    {
+      "evidence": "`/repo-search` owns the repository-memory contract for this impact map",
+      "expected": "D",
+      "id": "validation-13",
+      "query": "Which skill owns the repository-memory contract for the impact map?\nA) /aidx\nB) /knowledge-base\nC) /bun-test-generator itself\nD) /repo-search",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "bun-test-generator--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

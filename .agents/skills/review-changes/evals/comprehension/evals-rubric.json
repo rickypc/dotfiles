@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "Package neutrality is a hard gate: inspect every package asset, including cases, rubrics, and",
+      "expected": "B",
+      "id": "train-01",
+      "query": "A review package has a generic SKILL.md, but its trigger queries file names a specific company and a fixed list of its repositories. What does the rubric say to do?\nA) Accept it, because SKILL.md itself is generic\nB) Reject it, because every package asset must be neutral\nC) Accept it if the company name is spelled correctly\nD) Reject only the SKILL.md and keep the trigger queries",
+      "split": "train"
+    },
+    {
+      "evidence": "minimumPassRate: 1",
+      "expected": "D",
+      "id": "train-02",
+      "query": "According to the rubric front matter, what is the minimum pass rate for the matrix?\nA) 0.5\nB) 0.75\nC) 0.9\nD) 1",
+      "split": "train"
+    },
+    {
+      "evidence": "ends the review: there is no top-N cap, no early stop, and all supported findings across every",
+      "expected": "A",
+      "id": "train-03",
+      "query": "A reviewer finds one bug and wants to stop and send a short report with only the top three findings. What does the rubric require?\nA) Keep going and put all supported findings in one consolidated report\nB) Stop at the first bug and send it as a progress finding\nC) Send the top three now and the rest later as addenda\nD) Stop once the finding count reaches ten",
+      "split": "train"
+    },
+    {
+      "evidence": "fallback. Structural matrix receipts verify the written protocol; they do not prove a live review",
+      "expected": "C",
+      "id": "train-04",
+      "query": "The matrix receipts for a review skill all pass. What does the rubric say this proves?\nA) The live review found every issue\nB) The live review completed its coverage ledger\nC) Only that the written protocol is correct; live outputs need separate manual coverage grading\nD) Nothing needs further grading",
+      "split": "train"
+    },
+    {
+      "evidence": "against current repository evidence, never store raw chat, and keep project-specific knowledge with",
+      "expected": "B",
+      "id": "train-05",
+      "query": "A user gives a durable correction during a review. What may the skill store about it?\nA) The full raw chat transcript\nB) A verified durable lesson, never the raw chat\nC) Project-specific knowledge in the global knowledge base\nD) Any unverified guess about the implementation",
+      "split": "train"
+    },
+    {
+      "evidence": "requirements, `git diff` collection including the normal status 1 for a non-empty `--no-index` diff,",
+      "expected": "C",
+      "id": "validation-01",
+      "query": "A review runs `git diff --no-index` on a new file and the command exits with status 1 and prints a non-empty diff. What does the rubric treat this as?\nA) A command failure that needs a user question\nB) A sign that the file is ignored\nC) The normal status for a successful non-empty diff\nD) A reason to restart the review",
+      "split": "validation"
+    },
+    {
+      "evidence": "list/status excerpt with requirements. A user-supplied directory defines scope; do not ask the user",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "The user names a directory as the review scope. What must the agent do about the files inside it?\nA) Resolve the children with read-only inventory and not ask the user to list them\nB) Ask the user to list every file in the directory\nC) Review only the files the user names later\nD) Review only tracked files and skip the rest",
+      "split": "validation"
+    },
+    {
+      "evidence": "Completion requires every coverage entry checked and a full omission sweep that adds no new",
+      "expected": "D",
+      "id": "validation-03",
+      "query": "The first pass of the omission sweep adds one new supported finding. When is the review complete?\nA) Right away, since the sweep ran once\nB) After the child reports any finding\nC) After exactly two sweeps\nD) After a full omission sweep adds no new supported finding and every coverage entry is checked",
+      "split": "validation"
+    },
+    {
+      "evidence": "verifierIds: [source-structure]",
+      "expected": "B",
+      "id": "train-06",
+      "query": "Which value does the rubric front matter give for verifierIds?\nA) [coverage-ledger]\nB) [source-structure]\nC) [source-neutrality]\nD) [candidate, challenge]",
+      "split": "train"
+    },
+    {
+      "evidence": "Candidate and challenge cases share the same frozen matrix.",
+      "expected": "D",
+      "id": "train-07",
+      "query": "How do the candidate cases and the challenge cases relate in the matrix?\nA) Challenge cases use a separate, stricter matrix\nB) Candidate cases are rewritten after challenge cases fail\nC) They are graded by different verifiers\nD) They share the same frozen matrix",
+      "split": "train"
+    },
+    {
+      "evidence": "that exact need; it does not ask for a repository root already selected by runtime or confuse a file",
+      "expected": "A",
+      "id": "train-08",
+      "query": "A request has no requirements, and runtime already selected the project root. What must the question to the user do?\nA) Name the missing expected-behavior need and not ask for the root\nB) Ask for the repository root and the expected behavior\nC) Treat the file list as requirements and ask nothing\nD) Ask only for the repository root",
+      "split": "train"
+    },
+    {
+      "evidence": "Completeness is a hard gate. The child returns a coverage ledger with one row for every changed file",
+      "expected": "C",
+      "id": "train-09",
+      "query": "A child returns a ledger with one row for every changed file but no rows for individual hunks. What does the completeness gate say?\nA) It passes, because every file has a row\nB) It passes if the findings are linked to lines\nC) It fails, because the ledger needs one row for every changed file and hunk\nD) It passes once the omission sweep finds nothing",
+      "split": "train"
+    },
+    {
+      "evidence": "source-specific links. Reject such content even if `SKILL.md` itself remains generic; keep those",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "The package neutrality gate finds a named product in a trigger queries file, although SKILL.md is generic. Where do those constraints belong?\nA) In SKILL.md, so they are all in one place\nB) In the rubric, as a hard gate\nC) In the owning project skill\nD) In the cases file",
+      "split": "validation"
+    },
+    {
+      "evidence": "forbidden. Read-only `git status`, `git ls-files`, `git grep`, and `git diff` inspection is allowed.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "Which set of Git inspections does the rubric allow?\nA) git status, git ls-files, git grep, and git diff\nB) git status, git add, git grep, and git diff\nC) git ls-files, git reset, and git diff\nD) git diff and git commit",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "review-changes--evals-rubric",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../evals/rubric.md"
+}

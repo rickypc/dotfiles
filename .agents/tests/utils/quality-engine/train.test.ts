@@ -16,11 +16,16 @@ mock.module('./provider.js', () => realProvider);
 mock.module('./train-errors.js', () => realTrainErrors);
 
 const {
+  activeQueriesOf,
   appendLedgerEntry,
   baselineEntryFor,
+  blindBundleFor,
   buildSkillCatalog,
+  candidateDescriptionOf,
   decideNeverWorseGate,
+  decideRollbackGate,
   defaultLedgerRootFor,
+  editorMeasurementOf,
   LedgerError,
   ledgerPathFor,
   loadResponses,
@@ -33,16 +38,18 @@ const {
   parseTriggerQuerySet,
   plansIndexFor,
   promptsFor,
+  queryRatchetViolations,
+  querySetBalanceProblems,
   readLedger,
   selectWinningAttempt,
   TriggerQuerySetError,
+  withCandidateDescription,
 } = await import('../../../utils/quality-engine/train.js');
 
 const SOURCE_PATH = '/agents/skills/skill-manager/evals/trigger-queries.json';
 
 const querySetJson = JSON.stringify(
   {
-    pass_threshold: 0.5,
     queries: [
       { id: 'train-01', query: 'Create a new Agent Skill.', should_trigger: true, split: 'train' },
       {
@@ -110,7 +117,6 @@ const measurementFor = (
   validationScore: number,
 ): LedgerEntryInput['measurement'] => ({
   boundary: 'in-session',
-  passThreshold: 0.5,
   perQuery: [],
   runsPerQuery: 3,
   skillName: 'skill-manager',
@@ -136,7 +142,7 @@ const entryFor = (
 
 test('parses the authored query set without re-splitting it', () => {
   expect(querySet).toEqual({
-    passThreshold: 0.5,
+    kind: 'routing',
     queries: [
       { id: 'train-01', query: 'Create a new Agent Skill.', shouldTrigger: true, split: 'train' },
       {
@@ -176,11 +182,20 @@ test('rejects a query set with too few repeated runs', () => {
   expect(() => parseTriggerQuerySet(fractional, SOURCE_PATH)).toThrow('integer');
 });
 
-test('rejects a pass threshold outside the open interval', () => {
-  for (const passThreshold of [0, 1, '0.5', null]) {
-    const content = JSON.stringify({ ...JSON.parse(querySetJson), pass_threshold: passThreshold });
-    expect(() => parseTriggerQuerySet(content, SOURCE_PATH)).toThrow('between 0 and 1');
-  }
+test('rejects an unknown kind and a comprehension set without a target', () => {
+  const base = JSON.parse(querySetJson) as Record<string, unknown>;
+  expect(() =>
+    parseTriggerQuerySet(JSON.stringify({ ...base, kind: 'other' }), SOURCE_PATH),
+  ).toThrow('routing or comprehension');
+  expect(() =>
+    parseTriggerQuerySet(JSON.stringify({ ...base, kind: 'comprehension' }), SOURCE_PATH),
+  ).toThrow('requires a target');
+});
+
+test('rejects a blank retirement reason on a query', () => {
+  const parsed = JSON.parse(querySetJson) as { queries: Record<string, unknown>[] };
+  parsed.queries[0] = { ...parsed.queries[0], retired: ' ' };
+  expect(() => parseTriggerQuerySet(JSON.stringify(parsed), SOURCE_PATH)).toThrow('reason string');
 });
 
 test('rejects duplicate query ids', () => {
@@ -286,7 +301,7 @@ test('requires directory listing support for the catalog', async () => {
   );
 });
 
-test('scores per-query trigger rates with the threshold applied per class', () => {
+test('scores per-query rates and passes only unanimous runs', () => {
   const measurement = measurementFromRecords(querySet, alwaysSkillManager);
   expect(measurement.perQuery).toEqual([
     {
@@ -297,6 +312,7 @@ test('scores per-query trigger rates with the threshold applied per class', () =
       runs: 3,
       shouldTrigger: true,
       split: 'train',
+      unstable: false,
     },
     {
       hits: 0,
@@ -306,6 +322,7 @@ test('scores per-query trigger rates with the threshold applied per class', () =
       runs: 3,
       shouldTrigger: false,
       split: 'train',
+      unstable: false,
     },
     {
       hits: 3,
@@ -315,6 +332,7 @@ test('scores per-query trigger rates with the threshold applied per class', () =
       runs: 3,
       shouldTrigger: true,
       split: 'validation',
+      unstable: false,
     },
     {
       hits: 2,
@@ -324,6 +342,7 @@ test('scores per-query trigger rates with the threshold applied per class', () =
       runs: 3,
       shouldTrigger: false,
       split: 'validation',
+      unstable: true,
     },
   ]);
   expect(measurement.train).toEqual({ passedQueries: 2, score: 1, totalQueries: 2 });
@@ -592,58 +611,354 @@ test('selects the recorded baseline for the never-worse gate', () => {
   ).toEqual(entryFor(2, 'baseline', 0.5, 0.5));
 });
 
-test('accepts a candidate only when train is strictly greater and validation holds', () => {
-  const baseline = entryFor(0, 'baseline', 0.5, 0.5);
+const measuredFor = (answers: Readonly<Record<string, readonly string[]>>) =>
+  measurementFromRecords(querySet, recordsFor(answers));
+
+const ALL_OTHER = ['knowledge-base', 'knowledge-base', 'knowledge-base'];
+const ALL_TARGET = ['skill-manager', 'skill-manager', 'skill-manager'];
+
+const failingBaseline = measuredFor({
+  'train-01': ALL_OTHER,
+  'train-02': ALL_OTHER,
+  'validation-01': ALL_TARGET,
+  'validation-02': ALL_OTHER,
+});
+
+const gateEntry = (
+  attempt: number,
+  status: LedgerEntry['status'],
+  measurement: LedgerEntryInput['measurement'],
+  overrides: Partial<LedgerEntry> = {},
+): LedgerEntry => ({
+  attempt,
+  boundary: 'in-session',
+  id: `skill-manager-${status}-${attempt}`,
+  matrixFingerprint: 'matrix',
+  measurement,
+  sourceFingerprint: `source-${attempt}`,
+  status,
+  timestamp: '2026-10-30T00:00:00.000Z',
+  ...overrides,
+});
+
+const gateBaseline = gateEntry(0, 'baseline', failingBaseline);
+
+const improved = measuredFor({
+  'train-01': ALL_TARGET,
+  'train-02': ALL_OTHER,
+  'validation-01': ALL_TARGET,
+  'validation-02': ALL_OTHER,
+});
+
+test('selects the latest recorded baseline for the never-worse gate', () => {
+  expect(baselineEntryFor([entryFor(1, 'attempt', 0.6, 0.6)])).toBeUndefined();
+  expect(
+    baselineEntryFor([
+      entryFor(1, 'baseline', 0.4, 0.4),
+      entryFor(2, 'attempt', 0.6, 0.6),
+      entryFor(3, 'baseline', 0.5, 0.5),
+    ]),
+  ).toEqual(entryFor(3, 'baseline', 0.5, 0.5));
+});
+
+test('accepts a candidate with a unanimous gain and no regression', () => {
   const accepted = decideNeverWorseGate(
-    baseline,
-    baselineInput({
-      attempt: 1,
-      measurement: measurementFor(0.75, 0.5),
-    }),
+    gateBaseline,
+    baselineInput({ attempt: 1, measurement: improved, status: 'attempt' }),
   );
   expect(accepted.decision).toBe('accepted');
-  expect(accepted.reason).toContain('0.75 > baseline 0.5');
-  expect(accepted.baseline).toEqual(baseline);
+  expect(accepted.reason).toBe('Gained 1 queries (train 1, validation 0) with no regressions.');
+  expect(accepted.gained).toEqual({ train: 1, validation: 0 });
+  expect(accepted.regressed).toEqual({ train: 0, validation: 0 });
   expect(accepted.candidate).toEqual({ attempt: 1, sourceFingerprint: 'baseline-source' });
 });
 
-test('blocks an equal-or-worse train score at the strictly-greater boundary', () => {
-  const baseline = entryFor(0, 'baseline', 0.5, 0.5);
-  const equal = decideNeverWorseGate(
-    baseline,
-    baselineInput({ attempt: 1, measurement: measurementFor(0.5, 1) }),
-  );
-  expect(equal.decision).toBe('blocked');
-  expect(equal.reason).toContain('0.5 <= baseline 0.5');
-  const worse = decideNeverWorseGate(
-    baseline,
-    baselineInput({ attempt: 2, measurement: measurementFor(0.25, 1) }),
-  );
-  expect(worse.decision).toBe('blocked');
-});
-
-test('blocks a candidate that regresses the held-out validation split', () => {
+test('blocks a candidate that regresses any previously passing query even with a gain', () => {
+  const regressed = measuredFor({
+    'train-01': ALL_TARGET,
+    'train-02': ALL_OTHER,
+    'validation-01': ALL_OTHER,
+    'validation-02': ALL_OTHER,
+  });
   const decision = decideNeverWorseGate(
-    entryFor(0, 'baseline', 0.5, 0.5),
-    baselineInput({ attempt: 1, measurement: measurementFor(1, 0.25) }),
+    gateBaseline,
+    baselineInput({ attempt: 1, measurement: regressed, status: 'attempt' }),
   );
   expect(decision.decision).toBe('blocked');
-  expect(decision.reason).toContain('validation 0.25 < baseline 0.5');
+  expect(decision.reason).toBe('Regressed 1 previously passing queries (train 0, validation 1).');
+  expect(decision.regressed).toEqual({ train: 0, validation: 1 });
+  expect(decision.gained).toEqual({ train: 1, validation: 0 });
 });
 
-test('selects the winning attempt by validation score and earliest attempt', () => {
-  const baseline = entryFor(0, 'baseline', 0.5, 0.5);
-  const attempts = [
-    baseline,
-    entryFor(1, 'attempt', 0.75, 0.5),
-    entryFor(2, 'attempt', 0.75, 0.75),
-    entryFor(3, 'attempt', 0.75, 0.75),
-    entryFor(4, 'attempt', 1, 0.25),
-  ];
-  expect(selectWinningAttempt(attempts, baseline)).toEqual(entryFor(2, 'attempt', 0.75, 0.75));
+test('requires a unanimous newly passing query before accepting a gain', () => {
+  const unstable = measuredFor({
+    'train-01': ['skill-manager', 'skill-manager', 'knowledge-base'],
+    'train-02': ALL_OTHER,
+    'validation-01': ALL_TARGET,
+    'validation-02': ALL_OTHER,
+  });
+  const decision = decideNeverWorseGate(
+    gateBaseline,
+    baselineInput({ attempt: 1, measurement: unstable, status: 'attempt' }),
+  );
+  expect(decision.decision).toBe('blocked');
+  expect(decision.reason).toBe('No query newly passes on every run.');
+});
+
+test('reports saturation when the baseline already passes every query', () => {
+  const saturated = gateEntry(
+    0,
+    'baseline',
+    measuredFor({
+      'train-01': ALL_TARGET,
+      'train-02': ALL_OTHER,
+      'validation-01': ALL_TARGET,
+      'validation-02': ALL_OTHER,
+    }),
+  );
+  const decision = decideNeverWorseGate(
+    saturated,
+    baselineInput({ attempt: 1, measurement: improved, status: 'attempt' }),
+  );
+  expect(decision.decision).toBe('blocked');
+  expect(decision.reason).toContain('No headroom');
+});
+
+test('blocks a deterministic failure, a changed query set, and an unchanged source', () => {
+  const candidate = baselineInput({ attempt: 1, measurement: improved, status: 'attempt' });
+  const hard = decideNeverWorseGate(gateBaseline, candidate, {
+    hardFailure: 'description too long',
+    requireGain: true,
+  });
+  expect(hard.reason).toBe('Deterministic check failed: description too long');
+  const weakened = decideNeverWorseGate(gateBaseline, {
+    ...candidate,
+    matrixFingerprint: 'weakened-matrix',
+  });
+  expect(weakened.decision).toBe('blocked');
+  expect(weakened.reason).toContain('frozen query set changed');
+  const unchanged = decideNeverWorseGate(gateBaseline, {
+    ...candidate,
+    sourceFingerprint: gateBaseline.sourceFingerprint,
+  });
+  expect(unchanged.reason).toBe('The candidate source is identical to the baseline source.');
   expect(
-    selectWinningAttempt([baseline, entryFor(4, 'attempt', 1, 0.25)], baseline),
+    decideNeverWorseGate(
+      gateBaseline,
+      { ...candidate, sourceFingerprint: gateBaseline.sourceFingerprint },
+      { requireGain: false },
+    ).decision,
+  ).toBe('accepted');
+});
+
+test('verifies a rollback restored the baseline source', () => {
+  const restored = decideRollbackGate(
+    gateBaseline,
+    baselineInput({ sourceFingerprint: gateBaseline.sourceFingerprint, status: 'rollback' }),
+  );
+  expect(restored.decision).toBe('accepted');
+  const diverged = decideRollbackGate(
+    gateBaseline,
+    baselineInput({ sourceFingerprint: 'other', status: 'rollback' }),
+  );
+  expect(diverged.decision).toBe('blocked');
+  expect(diverged.reason).toContain('copy the baseline snapshot back');
+});
+
+test('selects the winning attempt by validation, train score, then earliest attempt', () => {
+  const winnerBaseline = gateEntry(
+    0,
+    'baseline',
+    measuredFor({
+      'train-01': ALL_OTHER,
+      'train-02': ALL_OTHER,
+      'validation-01': ALL_OTHER,
+      'validation-02': ALL_OTHER,
+    }),
+  );
+  const trainOnly = measuredFor({
+    'train-01': ALL_TARGET,
+    'train-02': ALL_OTHER,
+    'validation-01': ALL_OTHER,
+    'validation-02': ALL_OTHER,
+  });
+  const validationToo = measuredFor({
+    'train-01': ALL_TARGET,
+    'train-02': ALL_OTHER,
+    'validation-01': ALL_TARGET,
+    'validation-02': ALL_OTHER,
+  });
+  const validationOnly = measuredFor({
+    'train-01': ALL_OTHER,
+    'train-02': ALL_OTHER,
+    'validation-01': ALL_TARGET,
+    'validation-02': ALL_OTHER,
+  });
+  const entries = [
+    winnerBaseline,
+    gateEntry(1, 'attempt', trainOnly),
+    gateEntry(2, 'attempt', validationOnly),
+    gateEntry(3, 'attempt', validationToo),
+    gateEntry(4, 'attempt', validationToo),
+    gateEntry(5, 'attempt', validationToo, { hardFailure: 'broken' }),
+  ];
+  expect(selectWinningAttempt(entries, winnerBaseline)?.attempt).toBe(3);
+  expect(
+    selectWinningAttempt(
+      [winnerBaseline, gateEntry(1, 'attempt', trainOnly), gateEntry(2, 'attempt', validationOnly)],
+      winnerBaseline,
+    )?.attempt,
+  ).toBe(2);
+  expect(
+    selectWinningAttempt(
+      [winnerBaseline, gateEntry(1, 'attempt', validationToo, { hardFailure: 'broken' })],
+      winnerBaseline,
+    ),
   ).toBeUndefined();
+});
+
+test('shows the editor train detail while hiding held-out validation queries', () => {
+  const view = editorMeasurementOf(
+    measuredFor({
+      'train-01': ALL_OTHER,
+      'train-02': ALL_OTHER,
+      'validation-01': ALL_OTHER,
+      'validation-02': ALL_OTHER,
+    }),
+  );
+  expect(view.trainQueries.map(({ id }) => id)).toEqual(['train-01', 'train-02']);
+  expect(view.validationFailures).toBe(1);
+  expect(view.validation.totalQueries).toBe(2);
+  expect(JSON.stringify(view)).not.toContain('validation-01');
+});
+
+test('builds a blind bundle without labels, splits, or the skill under test', () => {
+  const bundle = blindBundleFor(querySet, [{ description: 'KB.', name: 'knowledge-base' }]);
+  expect(bundle.prompts).toHaveLength(12);
+  expect(bundle.prompts[0]).toEqual({
+    query: 'Create a new Agent Skill.',
+    query_id: 'train-01',
+    run: 1,
+  });
+  const serialized = JSON.stringify(bundle);
+  expect(serialized).not.toContain('should_trigger');
+  expect(serialized).not.toContain('shouldTrigger');
+  expect(serialized).not.toContain('"split"');
+  expect(serialized).not.toContain('skillName');
+  expect(bundle.boundary).toBe('in-session');
+});
+
+test('substitutes the candidate description into a sorted catalog', () => {
+  expect(
+    withCandidateDescription(
+      [
+        { description: 'old', name: 'skill-manager' },
+        { description: 'KB', name: 'knowledge-base' },
+      ],
+      'skill-manager',
+      'new',
+    ),
+  ).toEqual([
+    { description: 'KB', name: 'knowledge-base' },
+    { description: 'new', name: 'skill-manager' },
+  ]);
+  expect(withCandidateDescription([], 'solo', 'added')).toEqual([
+    { description: 'added', name: 'solo' },
+  ]);
+  expect(candidateDescriptionOf('---\nname: x\ndescription:  spaced out \n---\nbody')).toBe(
+    'spaced out',
+  );
+  expect(candidateDescriptionOf('no frontmatter')).toBe('');
+});
+
+const balancedSet = (overrides: Record<string, unknown> = {}, queries?: unknown[]) =>
+  parseTriggerQuerySet(
+    JSON.stringify({
+      pass_threshold: 0.5,
+      queries: queries ?? [
+        ...['a', 'b'].flatMap((suffix) =>
+          ['train', 'validation'].flatMap((split) => [
+            {
+              id: `${split}-yes-${suffix}`,
+              query: `yes ${split} ${suffix}`,
+              should_trigger: true,
+              split,
+            },
+            {
+              id: `${split}-no-${suffix}`,
+              query: `no ${split} ${suffix}`,
+              should_trigger: false,
+              split,
+            },
+          ]),
+        ),
+      ],
+      runs_per_query: 3,
+      skill_name: 'skill-manager',
+      ...overrides,
+    }),
+    SOURCE_PATH,
+  );
+
+test('accepts a balanced query set and reports imbalance and duplicate text', () => {
+  expect(querySetBalanceProblems(balancedSet())).toEqual([]);
+  const skewed = balancedSet({}, [
+    { id: 't1', query: 'Same text', should_trigger: true, split: 'train' },
+    { id: 't2', query: ' same   TEXT ', should_trigger: true, split: 'train' },
+    { id: 't3', query: 'other', should_trigger: false, split: 'train' },
+    { id: 'v1', query: 'v one', should_trigger: true, split: 'validation' },
+    { id: 'v2', query: 'v two', should_trigger: true, split: 'validation' },
+    { id: 'v3', query: 'v three', should_trigger: false, split: 'validation' },
+    { id: 'v4', query: 'v four', should_trigger: false, split: 'validation' },
+  ]);
+  const problems = querySetBalanceProblems(skewed);
+  expect(problems[0]).toBe('Query t2 duplicates the text of an earlier query.');
+  expect(problems[1]).toContain('Split train needs at least two');
+  expect(problems).toHaveLength(2);
+  const lopsided = balancedSet({}, [
+    ...Array.from({ length: 8 }, (_, index) => ({
+      id: `p${index}`,
+      query: `positive ${index}`,
+      should_trigger: true,
+      split: 'train',
+    })),
+    { id: 'n1', query: 'neg 1', should_trigger: false, split: 'train' },
+    { id: 'n2', query: 'neg 2', should_trigger: false, split: 'train' },
+    { id: 'v1', query: 'v1', should_trigger: true, split: 'validation' },
+    { id: 'v2', query: 'v2', should_trigger: true, split: 'validation' },
+    { id: 'v3', query: 'v3', should_trigger: false, split: 'validation' },
+    { id: 'v4', query: 'v4', should_trigger: false, split: 'validation' },
+  ]);
+  expect(querySetBalanceProblems(lopsided)).toHaveLength(1);
+});
+
+test('rejects a query-set edit that removes, changes, or weakens the frozen set', () => {
+  const previous = balancedSet();
+  expect(queryRatchetViolations(previous, previous)).toEqual([]);
+  const extended = balancedSet({}, [
+    ...(JSON.parse(querySetJson) as { queries: unknown[] }).queries,
+  ]);
+  const violations = queryRatchetViolations(previous, extended);
+  expect(violations).toContain('Query train-yes-a was removed.');
+  const editedQueries = previous.queries.map((query, index) =>
+    index === 0
+      ? { ...query, query: 'edited', should_trigger: query.shouldTrigger }
+      : { ...query, should_trigger: query.shouldTrigger },
+  );
+  const edited = balancedSet({}, editedQueries);
+  expect(queryRatchetViolations(previous, edited)).toEqual([
+    `Query ${previous.queries[0]?.id} was changed.`,
+  ]);
+  const appended = balancedSet({}, [
+    ...previous.queries.map((query) => ({ ...query, should_trigger: query.shouldTrigger })),
+    { id: 'extra', query: 'extra query', should_trigger: false, split: 'train' },
+  ]);
+  expect(queryRatchetViolations(previous, appended)).toEqual([]);
+  const settingsChanged = balancedSet({ runs_per_query: 4, skill_name: 'other' });
+  expect(queryRatchetViolations(settingsChanged, previous)).toEqual([
+    'The skill name changed.',
+    'The runs per query decreased.',
+  ]);
 });
 
 test('fingerprints the frozen query matrix independently of authoring order', () => {
@@ -663,4 +978,18 @@ test('fingerprints the frozen query matrix independently of authoring order', ()
       ),
     ),
   );
+});
+
+test('excludes retired queries from prompts and balance, but not from the fingerprint', () => {
+  const live = balancedSet();
+  const retiredQueries = live.queries.map((query, index) => ({
+    ...query,
+    should_trigger: query.shouldTrigger,
+    ...(index === 0 ? { retired: 'Ambiguous label.' } : {}),
+  }));
+  const retired = balancedSet({}, retiredQueries);
+  expect(promptsFor(retired, []).length).toBe(promptsFor(live, []).length - 3);
+  expect(matrixFingerprintForQuerySet(retired)).not.toBe(matrixFingerprintForQuerySet(live));
+  expect(activeQueriesOf(retired)).toHaveLength(live.queries.length - 1);
+  expect(queryRatchetViolations(live, retired)).toEqual([]);
 });

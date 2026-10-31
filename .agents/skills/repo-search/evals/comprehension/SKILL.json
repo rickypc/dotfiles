@@ -1,0 +1,292 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "including locating a single named file; callers must not decide to skip it",
+      "expected": "C",
+      "id": "train-01",
+      "query": "The user asks to locate one single named file in the repository. What must the agent do?\nA) Use find directly because it is a single file\nB) Skip the skill when the file name is obvious\nC) Route it through repo-search, because the route is mandatory even for one file\nD) Ask the user whether to use the skill",
+      "split": "train"
+    },
+    {
+      "evidence": "this skill never edits source files",
+      "expected": "A",
+      "id": "train-02",
+      "query": "During a repo-search task the agent spots a bug in a source file. What may it do?\nA) Report it and route the fix to the owning skill; this skill never edits source files\nB) Fix the file directly\nC) Fix only one-line bugs\nD) Edit the file and then re-run the search",
+      "split": "train"
+    },
+    {
+      "evidence": "`/knowledge-base` owns durable private-KB records",
+      "expected": "D",
+      "id": "train-03",
+      "query": "The user wants a durable private-KB record saved. Which skill owns that?\nA) /repo-search\nB) /skill-manager\nC) The wrapper script\nD) /knowledge-base",
+      "split": "train"
+    },
+    {
+      "evidence": "`inspect` request files must live under the operating-system temporary directory",
+      "expected": "B",
+      "id": "train-04",
+      "query": "Where must an inspect request file live?\nA) Inside the approved root\nB) Under the operating-system temporary directory\nC) In the agents-root scripts folder\nD) Anywhere the caller likes",
+      "split": "train"
+    },
+    {
+      "evidence": "never claims the backend is unavailable without the script's transport receipt",
+      "expected": "D",
+      "id": "train-05",
+      "query": "The agent wants to know if the backend is down. May it say so on its own?\nA) Yes, if its own command fails\nB) Yes, if the first search is empty\nC) Yes, after running the backend CLI by hand\nD) No. It needs the script transport receipt before claiming the backend is unavailable",
+      "split": "train"
+    },
+    {
+      "evidence": "A cache-private or sandbox denial is a transport failure",
+      "expected": "A",
+      "id": "train-06",
+      "query": "A sandbox cache-private denial shows up during a search. How is it treated?\nA) As a transport failure inside the transport receipt, never as an empty result\nB) As an empty result\nC) As proof there is no matching file\nD) As backend unavailability",
+      "split": "train"
+    },
+    {
+      "evidence": "Do not use `find`, `rg`, `grep`, shell globs, or ad-hoc reads as a caller-side substitute for the wrapper.",
+      "expected": "C",
+      "id": "train-07",
+      "query": "The agent wants a quick answer and thinks of running grep on the repository itself. What does the skill say?\nA) Grep is fine for short queries\nB) Grep is fine when the wrapper is slow\nC) Do not use find, rg, grep, shell globs, or ad-hoc reads as a substitute for the wrapper\nD) Use rg but never find",
+      "split": "train"
+    },
+    {
+      "evidence": "The approved root is explicit and never inferred",
+      "expected": "B",
+      "id": "train-08",
+      "query": "The user gives a file path but no root. May the agent pick a root from the path?\nA) Yes, the parent directory of the file\nB) No. The approved root is explicit and never inferred\nC) Yes, the repository root it guesses\nD) Yes, the home directory",
+      "split": "train"
+    },
+    {
+      "evidence": "A parent-root search, one matching repository, or the first empty result does not establish coverage for the set.",
+      "expected": "D",
+      "id": "train-09",
+      "query": "The user names five repositories and the first search returns a match. What must the agent do?\nA) Stop at the first match\nB) Search only the parent root\nC) Report the first match as the status for all roots\nD) Run one wrapper search per repository root and give one status for each; one match does not cover the set",
+      "split": "train"
+    },
+    {
+      "evidence": "Absence from an application manifest alone does not clear a packaged image.",
+      "expected": "C",
+      "id": "train-10",
+      "query": "A dependency package is absent from the application manifest of a root. What follows?\nA) The root is cleared\nB) Only the manifest of the next root is checked\nC) It does not clear a packaged image; lockfiles, Dockerfiles, and base-image sources must be checked too\nD) The root is marked affected",
+      "split": "train"
+    },
+    {
+      "evidence": "search never creates an index; a missing or not-ready index is a caveat and the local fallback answers.",
+      "expected": "A",
+      "id": "train-11",
+      "query": "The agent runs a search and no index exists for the root. What does search do?\nA) It never creates an index; the missing index is a caveat and the local fallback answers\nB) It creates an index, then searches\nC) It stops with an error\nD) It asks the user to build an index",
+      "split": "train"
+    },
+    {
+      "evidence": "After a symbol read indexes, `re-check status` and `retry the requested read once`.",
+      "expected": "B",
+      "id": "train-12",
+      "query": "A symbol read just created an index because none matched. What comes next?\nA) Retry the read three times\nB) Re-check status and retry the requested read once\nC) Report an empty result\nD) Run a second search without checking status",
+      "split": "train"
+    },
+    {
+      "evidence": "accepts graph matches only through identity fields: `name`, `qualified_name`, `file_path`, and `path`",
+      "expected": "D",
+      "id": "train-13",
+      "query": "Which graph matches does the script accept?\nA) Any match in any graph field\nB) Only matches in the label field\nC) Only matches in the detail text\nD) Only matches in the identity fields: name, qualified_name, file_path, and path",
+      "split": "train"
+    },
+    {
+      "evidence": "never extension-only. classify always, decode as needed.",
+      "expected": "A",
+      "id": "train-14",
+      "query": "How does the content gate decide that a file is binary?\nA) By bytes (a NUL byte or invalid UTF-8 plus magic bytes) with file mime corroboration, never by extension alone\nB) By the file extension\nC) By file size\nD) By the folder name",
+      "split": "train"
+    },
+    {
+      "evidence": "The website and running-app rows fire only on an explicitly provided target, never an inferred one.",
+      "expected": "B",
+      "id": "train-15",
+      "query": "The user mentions a website name and a running app but gives no URL or PID. What happens to those router rows?\nA) The script infers the URL and PID\nB) They do not fire, because those rows fire only on an explicitly provided target\nC) They fire after the staged fallback\nD) They fire if the search is empty",
+      "split": "train"
+    },
+    {
+      "evidence": "Search status: [FOUND / EMPTY / ERROR, with the transport and source tokens]",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "What four fields does a successful answer contain?\nA) Summary, Files, Commands, Next steps\nB) Finding, Evidence, Search status, and Uncertainty\nC) Finding, Cause, Fix, Status\nD) Query, Root, Transport, Result",
+      "split": "validation"
+    },
+    {
+      "evidence": "never claim a root cause from a partial envelope",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "A search fails partway and the envelope is partial. What does the failure report say about root cause?\nA) It states the most likely root cause\nB) It retries and then guesses the cause\nC) It names the failing stage, status, and receipt, and never claims a root cause from a partial envelope\nD) It hides the failure and reports found",
+      "split": "validation"
+    },
+    {
+      "evidence": "the `inspect` path requires a ready matching index and returns an error receipt without indexing when none exists.",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "inspect is requested on a root that has no ready matching index. What happens?\nA) It returns an error receipt without indexing\nB) It indexes the root, then answers\nC) It falls back to the staged search\nD) It indexes once and retries",
+      "split": "validation"
+    },
+    {
+      "evidence": "The staged fallback stops at the first exact literal match",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "The staged fallback finds an exact literal match. What does it do next?\nA) It keeps searching all files\nB) It repeats the pass with a new case\nC) It starts a new index\nD) It stops at the first exact literal match, and the caller never repeats a listed attempt",
+      "split": "validation"
+    },
+    {
+      "evidence": "when an envelope is empty, follow `next` or stop - never guess.",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "An envelope comes back empty. What should the agent do?\nA) Guess the likely path\nB) Run the same search again\nC) Follow the next field or stop; never guess\nD) Search the parent root",
+      "split": "validation"
+    },
+    {
+      "evidence": "Binary evidence flows through the same unified contract with `source: \"binary\"`.",
+      "expected": "B",
+      "id": "validation-06",
+      "query": "Binary evidence is returned. Which source value does the envelope carry?\nA) source \"file\"\nB) source \"binary\" in the same unified contract\nC) source \"graph\"\nD) A separate non-JSON format",
+      "split": "validation"
+    },
+    {
+      "evidence": "it runs code search and merges its results, including the directory cluster",
+      "expected": "A",
+      "id": "validation-07",
+      "query": "The script finds nothing for a keyword that appears in a code file. Which pipeline step runs first?\nA) Graph search first, then code search when no graph identity-field match remains\nB) The staged rg literal search\nC) Code search before graph search\nD) The binary router",
+      "split": "validation"
+    },
+    {
+      "evidence": "the bare two-argument form is an alias for `search`",
+      "expected": "A",
+      "id": "train-16",
+      "query": "The caller runs the wrapper with only two arguments, an approved root and a query, and no verb. What does the wrapper do?\nA) Treats it as `search`\nB) Treats it as `read`\nC) Treats it as `inspect`\nD) Rejects it as missing a verb",
+      "split": "train"
+    },
+    {
+      "evidence": "Duplicate normalized queries are rejected.",
+      "expected": "B",
+      "id": "train-17",
+      "query": "An inspect request file lists two reads whose normalized queries are identical. What happens?\nA) Both run and return two receipts\nB) The duplicates are rejected\nC) The second is silently dropped\nD) Both run concurrently and are merged",
+      "split": "train"
+    },
+    {
+      "evidence": "Treat missing roots as unverified; mark failed or uninspected roots and artifacts unverified.",
+      "expected": "C",
+      "id": "train-18",
+      "query": "The user names five repositories. The wrapper searches succeeded for four and the fifth root errored. What is the correct report?\nA) Report the four and omit the fifth\nB) Report all five as found\nC) Report a status for each of the four and mark the failed root unverified\nD) Search the parent directory to cover the fifth",
+      "split": "train"
+    },
+    {
+      "evidence": "When no graph identity-field match remains, it runs code search and merges its results, including the directory cluster.",
+      "expected": "D",
+      "id": "train-19",
+      "query": "A ready index exists and graph search returns rows, but none matches in name, qualified_name, file_path, or path. What runs next?\nA) The staged literal fallback immediately\nB) The caller reports an empty result at once\nC) A new index is created for the root\nD) Code search, merging its results including the directory cluster",
+      "split": "train"
+    },
+    {
+      "evidence": "receipt strategies named `binary-gate:classify`, `binary-tool-check`, `binary-tool-install`, and `binary-route:*`",
+      "expected": "A",
+      "id": "train-20",
+      "query": "Which receipt strategy name records an attempt to install a missing routed tool?\nA) `binary-tool-install`\nB) `binary-tool-check`\nC) `binary-gate:classify`\nD) `binary-route:*`",
+      "split": "train"
+    },
+    {
+      "evidence": "Search status: [FOUND / EMPTY / ERROR, with the transport and source tokens]",
+      "expected": "B",
+      "id": "train-21",
+      "query": "What must the Search status line of a successful answer contain?\nA) Only FOUND or ERROR\nB) FOUND, EMPTY, or ERROR, with the transport and source tokens\nC) The index path and the backend store path\nD) The list of every attempt command",
+      "split": "train"
+    },
+    {
+      "evidence": "an unredacted storage path, a denial read as emptiness, or an answer without the envelope is a stop, not a result.",
+      "expected": "C",
+      "id": "train-22",
+      "query": "Which of these is a stop rather than a result?\nA) An empty envelope that reports a missing-index caveat\nB) An answer from the staged fallback with no index\nC) An answer given without the envelope\nD) A no-transport envelope that says so in its caveats",
+      "split": "train"
+    },
+    {
+      "evidence": "with no transport at all the envelope says so in `reliability.caveats` instead of failing silently.",
+      "expected": "D",
+      "id": "train-23",
+      "query": "Neither transport answers at all. What must the envelope show?\nA) Empty results with no explanation\nB) Status error and no staged search\nC) A guessed backend-unavailable message from the caller\nD) The missing transport stated in `reliability.caveats`, not a silent failure",
+      "split": "train"
+    },
+    {
+      "evidence": "The `read` path indexes only when no matching index exists",
+      "expected": "A",
+      "id": "train-24",
+      "query": "A ready matching index already exists and the user reads a dotted qualified name. Does the read path create an index?\nA) No, it indexes only when no matching index exists\nB) Yes, it always re-indexes to refresh\nC) Yes, but only the first time per day\nD) No, because read can never use an index",
+      "split": "train"
+    },
+    {
+      "evidence": "mark unavailable artifact evidence unverified.",
+      "expected": "B",
+      "id": "train-25",
+      "query": "A bundled artifact that a dependency question needs cannot be accessed. How is its evidence marked?\nA) As clear, since it is absent\nB) As unverified\nC) As found in the manifest\nD) As not applicable",
+      "split": "train"
+    },
+    {
+      "evidence": "classify always, decode as needed.",
+      "expected": "C",
+      "id": "train-26",
+      "query": "The user asks only what a located blob is. What does the binary rule require?\nA) Skip the gate and decode with every router tool\nB) Classify by file extension and stop\nC) Classify the candidate by bytes always, and decode only as needed\nD) Decode first, classify afterward",
+      "split": "train"
+    },
+    {
+      "evidence": "Name the failing stage, the envelope status, and the exact receipt",
+      "expected": "D",
+      "id": "train-27",
+      "query": "On failure, which three items must the report name?\nA) The root cause, the fix, and the owner\nB) The index path, the backend store path, and the transport\nC) The failing command, a retry, and the user\nD) The failing stage, the envelope status, and the exact receipt",
+      "split": "train"
+    },
+    {
+      "evidence": "an absolute file path, optionally with a `:start` or `:start-end` range",
+      "expected": "C",
+      "id": "validation-08",
+      "query": "Which target is a valid form for `read`?\nA) A relative directory name\nB) A glob such as `src/**/*.ts`\nC) An absolute file path, optionally with a `:start-end` range\nD) A regular expression for grep",
+      "split": "validation"
+    },
+    {
+      "evidence": "(`rg-literal`, case-insensitive literal, file names,",
+      "expected": "B",
+      "id": "validation-09",
+      "query": "In which order does the staged literal search run its passes?\nA) File names, literal, case-insensitive literal\nB) `rg-literal`, case-insensitive literal, then file names\nC) Case-insensitive literal, file names, `rg-literal`\nD) `rg-literal`, file names, case-insensitive literal",
+      "split": "validation"
+    },
+    {
+      "evidence": "Evidence: [Locations from results[], with file and line references]",
+      "expected": "D",
+      "id": "validation-10",
+      "query": "Where does the Evidence field of a successful answer come from?\nA) `attempts` commands\nB) `next` suggestions\nC) `reliability.caveats`\nD) Locations from `results[]`, with file and line references",
+      "split": "validation"
+    },
+    {
+      "evidence": "the MCP stdio transport is primary and the CLI transport is the fallback",
+      "expected": "A",
+      "id": "validation-11",
+      "query": "The MCP stdio transport does not work but the CLI transport does. Which answers?\nA) The CLI transport, as the fallback\nB) The staged local search\nC) A hand-spawned MCP server run by the caller\nD) No one; the run is an error",
+      "split": "validation"
+    },
+    {
+      "evidence": "Search every root for the exact package and advisory identifiers and relevant distribution names.",
+      "expected": "B",
+      "id": "validation-12",
+      "query": "A vulnerability sweep covers advisory CVE-X for package P. What must each root be searched for?\nA) Only the package name P\nB) The exact package and advisory identifiers and relevant distribution names\nC) Only the advisory identifier\nD) Only what the application manifest lists",
+      "split": "validation"
+    },
+    {
+      "evidence": "One approved absolute root and one of: a query string for `search`",
+      "expected": "C",
+      "id": "validation-13",
+      "query": "Which inputs does a `search` require?\nA) An approved root only\nB) A query string only\nC) One approved absolute root and a query string\nD) A root plus known subsystem boundaries",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "repo-search--SKILL",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../SKILL.md"
+}

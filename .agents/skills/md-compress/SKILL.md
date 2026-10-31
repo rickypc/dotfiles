@@ -1,7 +1,7 @@
 ---
 
 name: md-compress
-description: Losslessly distill durable Markdown while preserving protected Markdown tokens and a verified backup.
+description: "Use to shrink or protect durable Markdown (docs, policies, instruction files) without losing meaning: compress it losslessly, begin or finalize a guarded edit with a verified backup, or guard a file (check that protected tokens such as code fences, links, and commands survived) with no editing, for example right after a knowledge-base reconcile. Also use to finalize an edit with a removal manifest when a link, code fence, or command was dropped on purpose. Do NOT use to rewrite, summarize, translate, or lint Markdown."
 argument-hint: begin|finalize <absolute-markdown-path>
 ---
 

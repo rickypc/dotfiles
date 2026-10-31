@@ -1,7 +1,7 @@
 ---
 
 name: bun-test-generator
-description: Generate or convert quality-focused TypeScript Bun tests for one selected JavaScript or TypeScript SUT.
+description: Generate, convert, repair, rename, or delete quality-focused TypeScript Bun unit tests for a selected JavaScript or TypeScript SUT. Use before any unit-test change, including cleaning up tests orphaned when source code is removed or renamed.
 argument-hint: <sut-path> <all|method-list|method-range>
 ---
 
@@ -18,7 +18,9 @@ browser flows.
 For a project-owned SUT, resolve the nearest `package.json` project root and use exactly
 `<project-root>/tests/<sut-relative-path-without-extension>.test.ts`. For a declared globally owned
 SUT, use its declared canonical source and test root and record that ownership exception in the
-matrix. Never copy or symlink the SUT to satisfy a path convention.
+matrix. Never copy or symlink the SUT to satisfy a path convention. Example: the SUT
+`<project-root>/scripts/run.ts` gets the test `<project-root>/tests/scripts/run.test.ts`. Keep the
+`scripts/` folder, put `tests/` in front, and use `.test.ts`.
 
 ## 2. Usage
 
@@ -39,6 +41,8 @@ editing the selected test surface.
 
 - Keep the selected SUT real. Mock every external boundary before exercising it; **Mock every one
   with `mock()`** and use **`mock.module()` for every imported module** other than the selected SUT.
+  Example: the SUT imports `./helper.ts` and `node:fs`. Register `mock.module()` for both of them
+  and keep only the SUT real.
 - An external boundary includes imported modules, filesystem, network, clock, random, environment,
   process, timers, console, globals, constructors, injected instances, browser capabilities, and
   other side effects. A live boundary, bare console, or SUT mock is a hard failure.

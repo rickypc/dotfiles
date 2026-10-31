@@ -1,0 +1,138 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "**Solution**: Always inject `readInput` / stdin reader as a dependency and mock it in tests.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "A SUT reads input with new Response(Bun.stdin).text() and its tests hang. What does the document say to do?\nA) Inject readInput as a dependency and mock it in tests\nB) Pipe a real file into stdin during the test\nC) Raise the test timeout to 30 seconds\nD) Skip the stdin tests in CI",
+      "split": "train"
+    },
+    {
+      "evidence": "Treat focused coverage as diagnostic evidence only.",
+      "expected": "B",
+      "id": "train-02",
+      "query": "A focused test and coverage run pass with 100 percent for the SUT. How should that result be treated?\nA) As final proof of completion\nB) As diagnostic evidence only, followed by the full project lanes\nC) As proof once lint also passes\nD) As proof if aggregate coverage is high",
+      "split": "train"
+    },
+    {
+      "evidence": "Prefer dependency injection or the real platform value when it already provides a",
+      "expected": "C",
+      "id": "train-03",
+      "query": "A test needs a deterministic OS temporary root and a top-level node:os mock is tempting. What does the document prefer?\nA) A narrow top-level node:os mock with mock.restore() afterward\nB) A mock that replaces every node:os export\nC) Dependency injection or the real platform value when it already gives a deterministic boundary\nD) Validating only the changed test file",
+      "split": "train"
+    },
+    {
+      "evidence": "Build complete dependency shapes, define stubs from the SUT's exported function types,",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A coverage repair needs a filesystem double and the author wants to use as any to finish quickly. What does the document say to do instead?\nA) Add a suppression comment\nB) Mutate the readonly shared adapter\nC) Accept a partial double since the runner passes\nD) Build complete dependency shapes and define stubs from the SUT's exported function types",
+      "split": "train"
+    },
+    {
+      "evidence": "**Solution**: Use fake timers that can be advanced programmatically.",
+      "expected": "B",
+      "id": "train-05",
+      "query": "A test uses real setTimeout with a 1000ms delay and the suite is slow. What is the documented solution?\nA) Increase the delay to be safe\nB) Use fake timers that can be advanced programmatically\nC) Let the process exit clean up the timers\nD) Wrap real setTimeout in a mock that calls it",
+      "split": "train"
+    },
+    {
+      "evidence": "clears the implementation to `undefined`",
+      "expected": "D",
+      "id": "train-06",
+      "query": "In Bun, what happens to a mock after mockReset() is called?\nA) The original factory implementation is restored\nB) The prior base implementation is restored\nC) Only the call history is cleared\nD) The implementation is cleared to undefined",
+      "split": "train"
+    },
+    {
+      "evidence": "**Solution**: Always clean up in `afterEach`:",
+      "expected": "A",
+      "id": "train-07",
+      "query": "Tests create timers, streams, and temp files and later tests hang. Where should cleanup be done?\nA) In afterEach\nB) At process exit\nC) Only in the last test of the file\nD) Nowhere, the runner cleans up",
+      "split": "train"
+    },
+    {
+      "evidence": "2. **Use `test.each` for parameterized tests** - avoids duplicate setup",
+      "expected": "C",
+      "id": "train-08",
+      "query": "Several tests share the same setup but use different inputs. What does the document suggest to avoid duplicate setup?\nA) Copy the setup into each test\nB) Move them into a slower integration file\nC) Use test.each for parameterized tests\nD) Use real timers",
+      "split": "train"
+    },
+    {
+      "evidence": "**Rule**: `mock.module()` for EVERY imported module other than the SUT.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "Which imported modules should be registered with mock.module() according to the rule?\nA) Only the modules that touch the network\nB) Every imported module other than the SUT\nC) Every imported module including the SUT\nD) Only built-in modules",
+      "split": "validation"
+    },
+    {
+      "evidence": "Prefer `mockClear()` when you",
+      "expected": "A",
+      "id": "validation-02",
+      "query": "A test only needs to reset call history on a mock. Which method does the document prefer?\nA) mockClear()\nB) mockReset()\nC) mock.restore()\nD) mockRestore()",
+      "split": "validation"
+    },
+    {
+      "evidence": "**Keep timeouts short** - use 1ms for timeout tests, advance fake timers",
+      "expected": "C",
+      "id": "validation-03",
+      "query": "A timeout test needs to be fast. What delay does the document suggest for it?\nA) 1000ms\nB) 100ms\nC) 1ms, then advance the fake timers\nD) No delay and a real clock",
+      "split": "validation"
+    },
+    {
+      "evidence": "**Anti-pattern**: Registering a narrow top-level built-in",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "Which of these is listed as an anti-pattern for built-in module mocks?\nA) Preserving unrelated exports\nB) Running the full suite in more than one order\nC) Using the real platform value\nD) Registering a narrow top-level built-in mock",
+      "split": "validation"
+    },
+    {
+      "evidence": "timers.set(id, { callback, delay: delayMs });",
+      "expected": "A",
+      "id": "train-09",
+      "query": "The lessons document builds a fake setTimeout mock. What does that fake do with the callback and delay it receives?\nA) Stores them in a map under a new numeric id and returns the id\nB) Calls the callback right away and returns zero\nC) Passes them to the real setTimeout and returns its id\nD) Discards the delay and schedules the callback with 1ms",
+      "split": "train"
+    },
+    {
+      "evidence": "Real Date/clock | Mock `Date.now` or use fixed time",
+      "expected": "D",
+      "id": "train-10",
+      "query": "A test uses the real clock. According to the slow-pattern table, what is the fast alternative?\nA) Mock `crypto.randomUUID`\nB) Fake timer + `advanceTimers(1000)`\nC) Inject mocked `readInput`\nD) Mock `Date.now` or use fixed time",
+      "split": "train"
+    },
+    {
+      "evidence": "External references claiming sinon-style \"restore base implementation\" behavior do not apply to `bun:test`.",
+      "expected": "C",
+      "id": "train-11",
+      "query": "A web page about sinon says a mock reset restores the base implementation. What does the document say about that claim for bun:test?\nA) It applies to bun:test whenever mockReset() is called twice\nB) It applies only to mock.module() registrations\nC) It does not apply to bun:test\nD) It applies once beforeEach re-applies the factory",
+      "split": "train"
+    },
+    {
+      "evidence": "preserve unrelated exports, keep the mocked value consistent with the test's actual inputs, restore mutable globals, and prove same-process full-suite behavior",
+      "expected": "B",
+      "id": "train-12",
+      "query": "A built-in module mock is unavoidable. Which set of steps does the document require?\nA) Preserve unrelated exports, rely on mock.restore() for isolation, and validate only the changed file\nB) Preserve unrelated exports, keep the mocked value consistent with the test inputs, restore mutable globals, and prove same-process full-suite behavior\nC) Replace the whole module, keep the mocked value fixed, and run only the focused file\nD) Keep the mock at top level, restore mutable globals, and skip the full suite if coverage is 100%",
+      "split": "train"
+    },
+    {
+      "evidence": "define stubs from the SUT's exported function types",
+      "expected": "C",
+      "id": "validation-05",
+      "query": "Which source does the document say stub types should be defined from?\nA) The test runner inferred types\nB) An as any cast with a comment\nC) The SUT's exported function types\nD) The return value of the first mock call",
+      "split": "validation"
+    },
+    {
+      "evidence": "Separate fast unit tests from slow integration tests",
+      "expected": "A",
+      "id": "validation-06",
+      "query": "Where does the document say slow integration tests should be kept?\nA) Separate from fast unit tests, in different test files or directories\nB) In the same file, run last with longer timeouts\nC) In the same file, guarded by test.each\nD) Mocked at module boundary with real timers",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "bun-test-generator--references-lessons-learned",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../references/lessons-learned.md"
+}
