@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path';
 
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import { runWhenMainWithHelp } from '../utils/cli.js';
 import { type FileSystem, nodeFileSystem, readText } from '../utils/filesystem.js';
 import { fingerprint, renderActionPacket } from '../utils/quality-engine/packet.js';
 import { ROUTER_INSTRUCTIONS } from '../utils/quality-engine/provider.js';
@@ -449,6 +449,6 @@ export const run = async (
   runPacket(args, write);
 };
 
-export const runWhenMain = runCliWhenMain;
+export { runWhenMain } from '../utils/cli.js';
 
 void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);

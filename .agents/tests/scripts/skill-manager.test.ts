@@ -1,5 +1,7 @@
 import { expect, mock, test } from 'bun:test';
 
+import { dirname, join } from 'node:path';
+
 import { run, runWhenMain, usage } from '../../scripts/skill-manager.js';
 
 test('renders a deterministic action packet without executing it', async () => {
@@ -288,6 +290,41 @@ test('bundles one measurement request without writing a ledger entry', async () 
   ).rejects.toThrow(usage());
 });
 
+test('rejects malformed train flags and a missing responses path without a ledger write', async () => {
+  const { fileSystem } = trainFileSystem({});
+  const write = mock();
+  const responsesPath = '/tmp/.agents/responses.jsonl';
+  await expect(
+    run(
+      ['train', 'measure', trainSkillPath, responsesPath, '--status', 'bogus'],
+      undefined,
+      write,
+      fileSystem,
+    ),
+  ).rejects.toThrow(usage());
+  await expect(
+    run(
+      ['train', 'measure', trainSkillPath, responsesPath, '--attempt'],
+      undefined,
+      write,
+      fileSystem,
+    ),
+  ).rejects.toThrow(usage());
+  await expect(
+    run(
+      ['train', 'measure', trainSkillPath, responsesPath, '--runs', '--measure-only'],
+      undefined,
+      write,
+      fileSystem,
+    ),
+  ).rejects.toThrow(usage());
+  await expect(
+    run(['train', 'measure', trainSkillPath], undefined, write, fileSystem),
+  ).rejects.toThrow(usage());
+  expect(write).not.toHaveBeenCalled();
+  expect(fileSystem.writeFile).not.toHaveBeenCalled();
+});
+
 test('records the measured baseline before the first attempt is gated', async () => {
   const { fileSystem, written } = trainFileSystem({
     '/tmp/.agents/responses.jsonl': baselineAnswers,
@@ -322,6 +359,41 @@ test('records the measured baseline before the first attempt is gated', async ()
     .split('\n')
     .filter((line) => line.length > 0);
   expect(ledgerLines).toHaveLength(1);
+});
+
+test('records the default ledger root derived from the agents root', async () => {
+  const agentsRootFromTests = dirname(dirname(import.meta.dir));
+  const plansIndex = agentsRootFromTests.replace(/^\/+/u, '').replaceAll('/', '-');
+  const defaultLedgerPath = join(
+    agentsRootFromTests,
+    'plans',
+    plansIndex,
+    'quality',
+    'skill-manager.json',
+  );
+  const { fileSystem, written } = trainFileSystem({
+    '/tmp/.agents/responses.jsonl': baselineAnswers,
+  });
+  const write = mock();
+  await run(
+    ['train', 'measure', trainSkillPath, '/tmp/.agents/responses.jsonl', '--measure-only'],
+    undefined,
+    write,
+    fileSystem,
+  );
+  const receipt = receiptFor(write);
+  expect(receipt.status).toBe('baseline');
+  expect(receipt.decision).toBeUndefined();
+  expect(receipt.ledger).toMatchObject({
+    entries: 1,
+    entryId: 'skill-manager-baseline-1',
+    path: defaultLedgerPath,
+  });
+  const ledgerLines = String(written.get(defaultLedgerPath) ?? '')
+    .split('\n')
+    .filter((line) => line.length > 0);
+  expect(ledgerLines).toHaveLength(1);
+  expect(ledgerLines[0]).toContain('"status":"baseline"');
 });
 
 test('requires a recorded baseline before an attempt is gated', async () => {

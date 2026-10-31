@@ -22,19 +22,14 @@ interface StreamStats {
   ttftMs: string | number;
 }
 
-const GLM_THINKING_MODELS = ['z-ai/glm-5.3', 'z-ai/glm-5.3-flash'];
+const GLM_THINKING_MODELS = ['z-ai/glm-5.3-flash'];
 const MODELS: string[] = [
   'deepseek-ai/deepseek-v4.1-flash',
   'google/gemma-4-31b-it',
-  // 'meta/llama-3.2-90b-vision-instruct',
   'nvidia/nemotron-3.5-lightning-30b-a3b',
-  // Not sure if this is free or not.
-  // 'nvidia/nemotron-3.5-super-vl-120b-a12b',
-  // 'poolside/laguna-xs-2.1',
   'stepfun-ai/step-5-preview',
   'z-ai/glm-5.3-flash',
 ];
-// Fixed your target API base route to direct queries correctly away from the website index
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 const TEST_PROMPT = 'Respond with exactly the single word: Pong.';
 const USAGE =

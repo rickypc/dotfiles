@@ -17,6 +17,7 @@ aidlc
 .bash_sessions
 .Brewfile.lock*
 .cache
+.cargo
 .CFUserTextEncoding
 .cisco
 .claude*
@@ -86,6 +87,7 @@ aidlc
 .sonarlint
 .sqlworkbench
 .standard-*-cache
+.strata
 .subversion
 .swiftpm
 .swt
