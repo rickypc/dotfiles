@@ -1,4 +1,7 @@
 {
+  "dependencies": {
+    "webgpu": "latest"
+  },
   "devDependencies": {
     "@biomejs/biome": "latest",
     "@modelcontextprotocol/sdk": "latest",

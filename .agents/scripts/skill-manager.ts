@@ -2,7 +2,8 @@ import { basename, dirname, join, resolve } from 'node:path';
 
 import { runWhenMainWithHelp } from '../utils/cli.js';
 import { type FileSystem, nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
-import { matrixRatchetViolations } from '../utils/quality-engine/matrix.js';
+import type { MatrixCase } from '../utils/quality-engine/matrix.js';
+import { matrixFingerprintFor, matrixRatchetViolations } from '../utils/quality-engine/matrix.js';
 import { fingerprint, renderActionPacket } from '../utils/quality-engine/packet.js';
 import type { WorkflowState } from '../utils/quality-engine/state.js';
 import {
@@ -24,15 +25,25 @@ import {
   loadResponses,
   loadTriggerQuerySet,
   matrixFingerprintForQuerySet,
+  measurementFromMatrix,
   measurementFromRecords,
   parseTriggerQuerySet,
   queryRatchetViolations,
+  readBaselineSnapshot,
   readLedger,
+  rejectedEditFor,
   selectWinningAttempt,
   snapshotPathFor,
+  type TriggerMeasurement,
   type TriggerQuerySet,
   withCandidateDescription,
 } from '../utils/quality-engine/train.js';
+import {
+  changeSummaryOf,
+  DEFAULT_EDIT_CAPS,
+  editCapViolation,
+  editSizeOf,
+} from '../utils/quality-engine/train-edit.js';
 import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
@@ -44,13 +55,32 @@ import {
   validateSkillEvaluations,
 } from '../utils/skill-manager.js';
 
+interface ContractSubject {
+  readonly cases: readonly MatrixCase[];
+  readonly hardFailure: () => Promise<string | undefined>;
+  readonly skillName: string;
+  readonly sourcePath: string;
+}
+
+interface ScoredSubject {
+  readonly hardFailure: () => Promise<string | undefined>;
+  readonly matrixFingerprint: string;
+  readonly measurement: TriggerMeasurement;
+  readonly queryIds: readonly string[];
+  readonly skillName: string;
+  readonly sourcePath: string;
+}
+
 interface TrainFlags {
   attempt: number;
   ledgerRoot?: string;
+  maxBodyLines?: number;
+  maxDescriptionChange?: number;
   measureOnly: boolean;
   runs?: number;
   skillsRoot?: string;
   status?: LedgerStatus;
+  track?: 'contract';
 }
 
 interface TrainSubject {
@@ -70,8 +100,9 @@ export const usage = (): string =>
     '  bun <agents-root>/scripts/skill-manager.ts packet <review-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path> [failed-assertion-ids]',
     '  bun <agents-root>/scripts/skill-manager.ts ratchet <absolute-previous-matrix-or-query-set-path> <absolute-next-path>',
     '  bun <agents-root>/scripts/skill-manager.ts train bundle <absolute-skill-path-or-comprehension-set-json> [--skills-root <absolute-path>]',
-    '  bun <agents-root>/scripts/skill-manager.ts train measure <absolute-skill-path-or-comprehension-set-json> <absolute-responses-jsonl-path> [--attempt <n>] [--runs <n>] [--measure-only] [--status <applied|attempt|baseline|post-change|rollback>] [--ledger-root <absolute-path>] [--skills-root <absolute-path>]',
-    '  bun <agents-root>/scripts/skill-manager.ts train select <absolute-skill-path-or-comprehension-set-json> [--ledger-root <absolute-path>]',
+    '  bun <agents-root>/scripts/skill-manager.ts train measure <absolute-skill-path-or-comprehension-set-json> <absolute-responses-jsonl-path> [--attempt <n>] [--runs <n>] [--measure-only] [--status <applied|attempt|baseline|post-change|rollback>] [--max-description-change <percent>] [--max-body-lines <n>] [--ledger-root <absolute-path>] [--skills-root <absolute-path>]',
+    '  bun <agents-root>/scripts/skill-manager.ts train measure <absolute-skill-path> --track contract [--attempt <n>] [--measure-only] [--status <applied|attempt|baseline|post-change|rollback>] [--max-description-change <percent>] [--max-body-lines <n>] [--ledger-root <absolute-path>]',
+    '  bun <agents-root>/scripts/skill-manager.ts train select <absolute-skill-path-or-comprehension-set-json> [--track contract] [--ledger-root <absolute-path>]',
   ].join('\n');
 
 const defaultRead = readText.bind(undefined, nodeFileSystem);
@@ -199,7 +230,10 @@ const trainValueFlags = new Set([
   '--runs',
   '--status',
   '--ledger-root',
+  '--max-body-lines',
+  '--max-description-change',
   '--skills-root',
+  '--track',
 ]);
 
 const assertRebaselineAllowed = (
@@ -335,6 +369,23 @@ const positiveIntegerFlag = (value: string, minimum: number): number => {
   return parsed;
 };
 
+const scopeFlagSetters: Readonly<
+  Record<string, ((flags: TrainFlags, value: string) => void) | undefined>
+> = {
+  '--max-body-lines': (flags, value) => {
+    flags.maxBodyLines = positiveIntegerFlag(value, 1);
+  },
+  '--max-description-change': (flags, value) => {
+    flags.maxDescriptionChange = positiveIntegerFlag(value, 1);
+  },
+  '--track': (flags, value) => {
+    if (value !== 'contract') {
+      throw new Error(usage());
+    }
+    flags.track = value;
+  },
+};
+
 const applyTrainFlag = (flags: TrainFlags, name: string, value: string): void => {
   if (name === '--attempt') {
     flags.attempt = positiveIntegerFlag(value, 1);
@@ -355,8 +406,65 @@ const applyTrainFlag = (flags: TrainFlags, name: string, value: string): void =>
     flags.ledgerRoot = value;
     return;
   }
+  const applyScopeFlag = scopeFlagSetters[name];
+  if (applyScopeFlag) {
+    applyScopeFlag(flags, value);
+    return;
+  }
   flags.skillsRoot = value;
 };
+
+const assertMeasureArguments = (
+  skillPath: string,
+  responsesPath: string | undefined,
+  flags: TrainFlags,
+): void => {
+  const valid =
+    flags.track === 'contract'
+      ? responsesPath === undefined && flags.runs === undefined
+      : responsesPath?.startsWith('/') && responsesPath.endsWith('.jsonl');
+  if (!skillPath.startsWith('/') || !valid) {
+    throw new Error(usage());
+  }
+};
+
+const assertWithinEditCap = async (
+  fileSystem: FileSystem,
+  ledgerRoot: string,
+  baseline: LedgerEntry,
+  sourceText: string,
+  flags: TrainFlags,
+): Promise<string> => {
+  const size = editSizeOf(await readBaselineSnapshot(fileSystem, ledgerRoot, baseline), sourceText);
+  const violation = editCapViolation(size, {
+    maxBodyLines: flags.maxBodyLines ?? DEFAULT_EDIT_CAPS.maxBodyLines,
+    maxDescriptionPercent: flags.maxDescriptionChange ?? DEFAULT_EDIT_CAPS.maxDescriptionPercent,
+  });
+  if (violation) {
+    throw new Error(`Edit cap exceeded; nothing was recorded: ${violation}`);
+  }
+  return changeSummaryOf(size);
+};
+
+const changeSummaryFor = async (
+  status: LedgerStatus,
+  request: {
+    readonly baseline: LedgerEntry;
+    readonly fileSystem: FileSystem;
+    readonly flags: TrainFlags;
+    readonly ledgerRoot: string;
+    readonly sourceText: string;
+  },
+): Promise<string | undefined> =>
+  status === 'attempt'
+    ? assertWithinEditCap(
+        request.fileSystem,
+        request.ledgerRoot,
+        request.baseline,
+        request.sourceText,
+        request.flags,
+      )
+    : undefined;
 
 const consumeTrainFlag = (
   args: readonly string[],
@@ -466,6 +574,30 @@ const runRatchet = async (
 const statusFor = (flags: TrainFlags): LedgerStatus =>
   flags.status ?? (flags.measureOnly ? 'baseline' : 'attempt');
 
+const structuralFailureFor = async (
+  fileSystem: FileSystem,
+  skillPath: string,
+): Promise<string | undefined> => {
+  try {
+    await validateSkill(fileSystem, skillPath);
+    return undefined;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+};
+
+const contractSubjectFor = async (
+  fileSystem: FileSystem,
+  skillPath: string,
+): Promise<ContractSubject> => ({
+  cases: parseMatrixJsonl(
+    await fileSystem.readFile(join(skillPath, 'evals', 'cases.jsonl'), 'utf8'),
+  ),
+  hardFailure: () => structuralFailureFor(fileSystem, skillPath),
+  skillName: `${basename(skillPath)}-contract`,
+  sourcePath: join(skillPath, 'SKILL.md'),
+});
+
 const subjectFor = async (fileSystem: FileSystem, path: string): Promise<TrainSubject> => {
   if (!path.endsWith('.json')) {
     return {
@@ -482,13 +614,31 @@ const subjectFor = async (fileSystem: FileSystem, path: string): Promise<TrainSu
   return { hardFailure: () => documentHardFailure(fileSystem, sourcePath), querySet, sourcePath };
 };
 
+const ledgerSubjectFor = async (
+  fileSystem: FileSystem,
+  skillPath: string,
+  flags: TrainFlags,
+): Promise<{ readonly skillName: string; readonly sourcePath: string }> => {
+  if (flags.track === 'contract') {
+    return contractSubjectFor(fileSystem, skillPath);
+  }
+  const { querySet, sourcePath } = await subjectFor(fileSystem, skillPath);
+  return { skillName: querySet.skillName, sourcePath };
+};
+
 const runTrainBundle = async (
   skillPath: string,
   flags: TrainFlags,
   write: (message: string) => void,
   fileSystem: FileSystem,
 ): Promise<void> => {
-  if (flags.runs || flags.status) {
+  if (
+    flags.runs
+    || flags.status
+    || flags.track
+    || flags.maxBodyLines
+    || flags.maxDescriptionChange
+  ) {
     throw new Error(usage());
   }
   const { querySet, sourcePath } = await subjectFor(fileSystem, skillPath);
@@ -506,90 +656,25 @@ const runTrainBundle = async (
   write(JSON.stringify(blindBundleFor(querySet, catalog), null, 2));
 };
 
-const runTrainMeasure = async (
-  skillPath: string,
-  responsesPath: string,
-  flags: TrainFlags,
-  write: (message: string) => void,
-  fileSystem: FileSystem,
-): Promise<void> => {
-  if (
-    !skillPath.startsWith('/')
-    || !responsesPath.startsWith('/')
-    || !responsesPath.endsWith('.jsonl')
-  ) {
-    throw new Error(usage());
-  }
-  const subject = await subjectFor(fileSystem, skillPath);
-  const scoredSet = {
-    ...subject.querySet,
-    runsPerQuery: flags.runs ?? subject.querySet.runsPerQuery,
-  };
-  const records = await loadResponses(fileSystem, responsesPath);
-  const measurement = measurementFromRecords(scoredSet, records);
-  const sourceText = await fileSystem.readFile(subject.sourcePath, 'utf8');
-  const status = statusFor(flags);
-  const ledgerRoot = flags.ledgerRoot ?? defaultLedgerRootFor(agentsRoot());
-  const ledgerPath = ledgerPathFor(ledgerRoot, scoredSet.skillName);
-  const priorEntries = await readLedger(fileSystem, ledgerPath);
-  const baseline = baselineEntryFor(priorEntries);
-  const hardFailure = await subject.hardFailure();
-  const matrixFingerprint = matrixFingerprintForQuerySet(scoredSet);
-  assertRecordable({
-    baseline,
-    hardFailure,
-    ledgerPath,
-    matrixFingerprint,
-    queryIds: scoredSet.queries.map(({ id }) => id),
-    status,
-  });
-  const input: LedgerEntryInput = {
-    attempt: flags.attempt,
-    boundary: measurement.boundary,
-    ...(hardFailure ? { hardFailure } : {}),
-    matrixFingerprint,
-    measurement,
-    sourceFingerprint: fingerprint(sourceText),
-    status,
-    timestamp: new Date().toISOString(),
-  };
-  const gate =
-    baseline && status !== 'baseline'
-      ? gateFor(priorEntries, baseline, input, hardFailure)
-      : undefined;
-  const entry = await appendLedgerEntry(fileSystem, ledgerPath, input);
-  const snapshot = snapshotPathFor(ledgerRoot, entry.id);
-  await writeText(fileSystem, snapshot, sourceText);
-  write(
-    JSON.stringify(
-      {
-        boundary: measurement.boundary,
-        decision: gate,
-        ledger: { entries: priorEntries.length + 1, entryId: entry.id, path: ledgerPath, snapshot },
-        matrixFingerprint,
-        measurement: editorMeasurementOf(measurement),
-        sourceFingerprint: input.sourceFingerprint,
-        status,
-        subject: skillPath,
-      },
-      null,
-      2,
-    ),
-  );
-};
-
 const runTrainSelect = async (
   skillPath: string,
   flags: TrainFlags,
   write: (message: string) => void,
   fileSystem: FileSystem,
 ): Promise<void> => {
-  if (flags.runs || flags.status || flags.skillsRoot || flags.measureOnly) {
+  if (
+    flags.runs
+    || flags.status
+    || flags.skillsRoot
+    || flags.measureOnly
+    || flags.maxBodyLines
+    || flags.maxDescriptionChange
+  ) {
     throw new Error(usage());
   }
-  const { querySet, sourcePath } = await subjectFor(fileSystem, skillPath);
+  const { skillName, sourcePath } = await ledgerSubjectFor(fileSystem, skillPath, flags);
   const ledgerRoot = flags.ledgerRoot ?? defaultLedgerRootFor(agentsRoot());
-  const ledgerPath = ledgerPathFor(ledgerRoot, querySet.skillName);
+  const ledgerPath = ledgerPathFor(ledgerRoot, skillName);
   const entries = await readLedger(fileSystem, ledgerPath);
   const baseline = baselineEntryFor(entries);
   if (!baseline) {
@@ -621,11 +706,123 @@ const runTrainSelect = async (
           }),
         baseline: summary(baseline),
         decision: winner ? 'apply' : 'keep-baseline',
+        doNotRetry: generation
+          .filter(({ rejected, status }) => status === 'attempt' && rejected !== undefined)
+          .map(({ attempt, id, rejected }) => ({ attempt, entryId: id, ...rejected })),
         liveEntry: liveEntry ? { entryId: liveEntry.id, status: liveEntry.status } : undefined,
         liveFingerprint,
         liveState,
         nextAction: nextActionFor(liveState, winner !== undefined),
         winner: winner ? summary(winner) : undefined,
+      },
+      null,
+      2,
+    ),
+  );
+};
+
+const scoredSubjectFor = async (
+  skillPath: string,
+  responsesPath: string | undefined,
+  flags: TrainFlags,
+  fileSystem: FileSystem,
+): Promise<ScoredSubject> => {
+  if (flags.track === 'contract') {
+    const subject = await contractSubjectFor(fileSystem, skillPath);
+    const measurement = measurementFromMatrix(
+      subject.skillName,
+      subject.cases,
+      await fileSystem.readFile(subject.sourcePath, 'utf8'),
+    );
+    return {
+      hardFailure: subject.hardFailure,
+      matrixFingerprint: matrixFingerprintFor(subject.cases),
+      measurement,
+      queryIds: measurement.perQuery.map(({ id }) => id),
+      skillName: subject.skillName,
+      sourcePath: subject.sourcePath,
+    };
+  }
+  const subject = await subjectFor(fileSystem, skillPath);
+  const scoredSet = {
+    ...subject.querySet,
+    runsPerQuery: flags.runs ?? subject.querySet.runsPerQuery,
+  };
+  const records = await loadResponses(fileSystem, responsesPath ?? '');
+  return {
+    hardFailure: subject.hardFailure,
+    matrixFingerprint: matrixFingerprintForQuerySet(scoredSet),
+    measurement: measurementFromRecords(scoredSet, records),
+    queryIds: scoredSet.queries.map(({ id }) => id),
+    skillName: scoredSet.skillName,
+    sourcePath: subject.sourcePath,
+  };
+};
+
+const runTrainMeasure = async (
+  skillPath: string,
+  responsesPath: string | undefined,
+  flags: TrainFlags,
+  write: (message: string) => void,
+  fileSystem: FileSystem,
+): Promise<void> => {
+  assertMeasureArguments(skillPath, responsesPath, flags);
+  const subject = await scoredSubjectFor(skillPath, responsesPath, flags, fileSystem);
+  const { matrixFingerprint, measurement } = subject;
+  const sourceText = await fileSystem.readFile(subject.sourcePath, 'utf8');
+  const status = statusFor(flags);
+  const ledgerRoot = flags.ledgerRoot ?? defaultLedgerRootFor(agentsRoot());
+  const ledgerPath = ledgerPathFor(ledgerRoot, subject.skillName);
+  const priorEntries = await readLedger(fileSystem, ledgerPath);
+  const baseline = baselineEntryFor(priorEntries);
+  const hardFailure = await subject.hardFailure();
+  assertRecordable({
+    baseline,
+    hardFailure,
+    ledgerPath,
+    matrixFingerprint,
+    queryIds: subject.queryIds,
+    status,
+  });
+  const changeSummary = baseline
+    ? await changeSummaryFor(status, { baseline, fileSystem, flags, ledgerRoot, sourceText })
+    : undefined;
+  const input: LedgerEntryInput = {
+    attempt: flags.attempt,
+    boundary: measurement.boundary,
+    ...(hardFailure ? { hardFailure } : {}),
+    matrixFingerprint,
+    measurement,
+    sourceFingerprint: fingerprint(sourceText),
+    status,
+    timestamp: new Date().toISOString(),
+  };
+  const gate =
+    baseline && status !== 'baseline'
+      ? gateFor(priorEntries, baseline, input, hardFailure)
+      : undefined;
+  const rejected =
+    baseline && gate && changeSummary !== undefined
+      ? rejectedEditFor(baseline, input, gate, changeSummary)
+      : undefined;
+  const entry = await appendLedgerEntry(
+    fileSystem,
+    ledgerPath,
+    rejected ? { ...input, rejected } : input,
+  );
+  const snapshot = snapshotPathFor(ledgerRoot, entry.id);
+  await writeText(fileSystem, snapshot, sourceText);
+  write(
+    JSON.stringify(
+      {
+        boundary: measurement.boundary,
+        decision: gate,
+        ledger: { entries: priorEntries.length + 1, entryId: entry.id, path: ledgerPath, snapshot },
+        matrixFingerprint,
+        measurement: editorMeasurementOf(measurement),
+        sourceFingerprint: input.sourceFingerprint,
+        status,
+        subject: skillPath,
       },
       null,
       2,
@@ -659,7 +856,7 @@ const runTrain = async (
   }
   if (mode === 'measure') {
     const responsesPath = positionals[3];
-    if (!responsesPath) {
+    if (!responsesPath && flags.track !== 'contract') {
       throw new Error(usage());
     }
     await runTrainMeasure(skillPath, responsesPath, flags, write, fileSystem);

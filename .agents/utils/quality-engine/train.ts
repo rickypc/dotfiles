@@ -3,6 +3,8 @@ import matter from 'gray-matter';
 
 import type { FileSystem } from '../filesystem.js';
 import { readText, writeText } from '../filesystem.js';
+import type { MatrixCase } from './matrix.js';
+import { casesFor, evaluateMatrix } from './matrix.js';
 import { fingerprint } from './packet.js';
 import type {
   ResponderProblem,
@@ -76,6 +78,7 @@ export interface LedgerEntryInput {
   readonly hardFailure?: string;
   readonly matrixFingerprint: string;
   readonly measurement: TriggerMeasurement;
+  readonly rejected?: RejectedEdit;
   readonly sourceFingerprint: string;
   readonly status: LedgerStatus;
   readonly timestamp: string;
@@ -88,6 +91,7 @@ export type MeasurementOutcome =
   | ({ readonly status: 'blocked' } & ResponderProblem);
 
 export interface PerQueryRate {
+  readonly detail?: string;
   readonly hits: number;
   readonly id: string;
   readonly passed: boolean;
@@ -110,6 +114,13 @@ interface QuerySetEnvelope {
 export type QuerySetKind = 'comprehension' | 'routing';
 
 export type QuerySplit = 'train' | 'validation';
+
+export interface RejectedEdit {
+  readonly changeSummary: string;
+  readonly gainedIds: readonly string[];
+  readonly reason: string;
+  readonly regressedIds: readonly string[];
+}
 
 export interface RouterAnswerRecord {
   readonly queryId: string;
@@ -304,67 +315,6 @@ export const decideRollbackGate = (
 const describeCounts = ({ train, validation }: SplitCounts): string =>
   `train ${train}, validation ${validation}`;
 
-export const decideNeverWorseGate = (
-  baseline: LedgerEntry,
-  candidate: LedgerEntryInput,
-  options: GateOptions = { requireGain: true },
-): GateDecision => {
-  const compared = { attempt: candidate.attempt, sourceFingerprint: candidate.sourceFingerprint };
-  const blocked = (
-    reason: string,
-    regressed: SplitCounts = NO_COUNTS,
-    gained: SplitCounts = NO_COUNTS,
-  ): GateDecision => ({
-    candidate: compared,
-    decision: 'blocked',
-    gained,
-    reason,
-    regressed,
-  });
-  if (options.hardFailure) {
-    return blocked(`Deterministic check failed: ${options.hardFailure}`);
-  }
-  if (candidate.matrixFingerprint !== baseline.matrixFingerprint) {
-    return blocked(
-      'The frozen query set changed since the baseline; record a new baseline only after a query-set ratchet check passes.',
-    );
-  }
-  if (candidate.sourceFingerprint === baseline.sourceFingerprint && options.requireGain) {
-    return blocked('The candidate source is identical to the baseline source.');
-  }
-  const baselineById = new Map(baseline.measurement.perQuery.map((query) => [query.id, query]));
-  const candidateById = new Map(candidate.measurement.perQuery.map((query) => [query.id, query]));
-  const regressions = baseline.measurement.perQuery.filter(
-    (query) => query.passed && !candidateById.get(query.id)?.passed,
-  );
-  const gains = candidate.measurement.perQuery.filter(
-    (query) => query.passed && !baselineById.get(query.id)?.passed,
-  );
-  const regressed = countBySplit(regressions);
-  const gained = countBySplit(gains);
-  if (regressions.length > 0) {
-    return blocked(
-      `Regressed ${regressions.length} previously passing queries (${describeCounts(regressed)}).`,
-      regressed,
-      gained,
-    );
-  }
-  if (options.requireGain && gains.length === 0) {
-    return blocked(
-      baseline.measurement.perQuery.every(({ passed }) => passed)
-        ? 'No headroom: the baseline passes every query on every run; append harder queries and record a new baseline.'
-        : 'No query newly passes on every run.',
-    );
-  }
-  return {
-    candidate: compared,
-    decision: 'accepted',
-    gained,
-    reason: `Gained ${gains.length} queries (${describeCounts(gained)}) with no regressions.`,
-    regressed,
-  };
-};
-
 export const editorMeasurementOf = (measurement: TriggerMeasurement): EditorMeasurement => ({
   boundary: measurement.boundary,
   clear: measurement.perQuery.every(({ passed }) => passed),
@@ -557,6 +507,76 @@ export const promptsFor = (querySet: TriggerQuerySet, catalog: readonly SkillCat
     })),
   );
 
+const queryDifferencesOf = (
+  baseline: LedgerEntry,
+  candidate: LedgerEntryInput,
+): { readonly gains: readonly PerQueryRate[]; readonly regressions: readonly PerQueryRate[] } => {
+  const baselineById = new Map(baseline.measurement.perQuery.map((query) => [query.id, query]));
+  const candidateById = new Map(candidate.measurement.perQuery.map((query) => [query.id, query]));
+  return {
+    gains: candidate.measurement.perQuery.filter(
+      (query) => query.passed && !baselineById.get(query.id)?.passed,
+    ),
+    regressions: baseline.measurement.perQuery.filter(
+      (query) => query.passed && !candidateById.get(query.id)?.passed,
+    ),
+  };
+};
+
+export const decideNeverWorseGate = (
+  baseline: LedgerEntry,
+  candidate: LedgerEntryInput,
+  options: GateOptions = { requireGain: true },
+): GateDecision => {
+  const compared = { attempt: candidate.attempt, sourceFingerprint: candidate.sourceFingerprint };
+  const blocked = (
+    reason: string,
+    regressed: SplitCounts = NO_COUNTS,
+    gained: SplitCounts = NO_COUNTS,
+  ): GateDecision => ({
+    candidate: compared,
+    decision: 'blocked',
+    gained,
+    reason,
+    regressed,
+  });
+  if (options.hardFailure) {
+    return blocked(`Deterministic check failed: ${options.hardFailure}`);
+  }
+  if (candidate.matrixFingerprint !== baseline.matrixFingerprint) {
+    return blocked(
+      'The frozen query set changed since the baseline; record a new baseline only after a query-set ratchet check passes.',
+    );
+  }
+  if (candidate.sourceFingerprint === baseline.sourceFingerprint && options.requireGain) {
+    return blocked('The candidate source is identical to the baseline source.');
+  }
+  const { gains, regressions } = queryDifferencesOf(baseline, candidate);
+  const regressed = countBySplit(regressions);
+  const gained = countBySplit(gains);
+  if (regressions.length > 0) {
+    return blocked(
+      `Regressed ${regressions.length} previously passing queries (${describeCounts(regressed)}).`,
+      regressed,
+      gained,
+    );
+  }
+  if (options.requireGain && gains.length === 0) {
+    return blocked(
+      baseline.measurement.perQuery.every(({ passed }) => passed)
+        ? 'No headroom: the baseline passes every query on every run; append harder queries and record a new baseline.'
+        : 'No query newly passes on every run.',
+    );
+  }
+  return {
+    candidate: compared,
+    decision: 'accepted',
+    gained,
+    reason: `Gained ${gains.length} queries (${describeCounts(gained)}) with no regressions.`,
+    regressed,
+  };
+};
+
 const queryPassed = (hits: number, runs: number, shouldTrigger: boolean): boolean =>
   runs > 0 && (shouldTrigger ? hits === runs : hits === 0);
 
@@ -616,6 +636,45 @@ export const querySetBalanceProblems = (querySet: TriggerQuerySet): readonly str
 
 const rateFor = (hits: number, runs: number): number => (runs === 0 ? 0 : hits / runs);
 
+export const readBaselineSnapshot = async (
+  fileSystem: Pick<FileSystem, 'readFile'>,
+  ledgerRoot: string,
+  baseline: LedgerEntry,
+): Promise<string> => {
+  const path = snapshotPathFor(ledgerRoot, baseline.id);
+  try {
+    return await fileSystem.readFile(path, 'utf8');
+  } catch {
+    throw new MeasurementError(
+      `The baseline snapshot is missing, so the edit size cannot be measured: ${path}`,
+    );
+  }
+};
+
+export const rejectedEditFor = (
+  baseline: LedgerEntry,
+  candidate: LedgerEntryInput,
+  decision: GateDecision,
+  changeSummary: string,
+): RejectedEdit | undefined => {
+  if (decision.decision !== 'blocked') {
+    return undefined;
+  }
+  const { gains, regressions } = queryDifferencesOf(baseline, candidate);
+  return {
+    changeSummary,
+    gainedIds: gains.map(({ id }) => id),
+    reason: decision.reason,
+    regressedIds: regressions.map(({ id }) => id),
+  };
+};
+
+const scoreOf = (values: readonly PerQueryRate[]): SplitScore => ({
+  passedQueries: values.filter(({ passed }) => passed).length,
+  score: values.filter(({ passed }) => passed).length / values.length,
+  totalQueries: values.length,
+});
+
 export const measurementFromRecords = (
   querySet: TriggerQuerySet,
   records: readonly RouterAnswerRecord[],
@@ -662,21 +721,65 @@ export const measurementFromRecords = (
   if (splitQueries.length === 0 || validationQueries.length === 0) {
     throw new MeasurementError('A trigger query set requires train and validation queries.');
   }
-  const scoreFor = (values: readonly PerQueryRate[]): SplitScore => ({
-    passedQueries: values.filter(({ passed }) => passed).length,
-    score: values.filter(({ passed }) => passed).length / values.length,
-    totalQueries: values.length,
-  });
   return {
     boundary,
     perQuery,
     runsPerQuery: querySet.runsPerQuery,
     skillName: querySet.skillName,
-    train: scoreFor(splitQueries),
-    validation: scoreFor(validationQueries),
+    train: scoreOf(splitQueries),
+    validation: scoreOf(validationQueries),
   };
 };
 
+const CONTRACT_BOUNDARY = 'deterministic-matrix';
+
+const contractRecordsFor = (
+  cases: readonly MatrixCase[],
+  visibility: 'candidate' | 'challenge',
+  sourceText: string,
+): PerQueryRate[] => {
+  const split: QuerySplit = visibility === 'candidate' ? 'train' : 'validation';
+  return evaluateMatrix(casesFor(cases, visibility), {
+    delegatedChecks: {},
+    ownedFiles: new Set(),
+    text: sourceText,
+  }).map(({ detail, name, status }) => {
+    const passed = status === 'passed';
+    return {
+      ...(!passed && split === 'train' ? { detail } : {}),
+      hits: passed ? 1 : 0,
+      id: name,
+      passed,
+      rate: passed ? 1 : 0,
+      runs: 1,
+      shouldTrigger: true,
+      split,
+      unstable: false,
+    };
+  });
+};
+
+export const measurementFromMatrix = (
+  skillName: string,
+  cases: readonly MatrixCase[],
+  sourceText: string,
+): TriggerMeasurement => {
+  const train = contractRecordsFor(cases, 'candidate', sourceText);
+  const validation = contractRecordsFor(cases, 'challenge', sourceText);
+  if (train.length === 0 || validation.length === 0) {
+    throw new MeasurementError(
+      'A contract matrix requires candidate and challenge assertions to measure.',
+    );
+  }
+  return {
+    boundary: CONTRACT_BOUNDARY,
+    perQuery: [...train, ...validation],
+    runsPerQuery: 1,
+    skillName,
+    train: scoreOf(train),
+    validation: scoreOf(validation),
+  };
+};
 export const measureTriggerBehavior = async (
   querySet: TriggerQuerySet,
   catalog: readonly SkillCatalogEntry[],

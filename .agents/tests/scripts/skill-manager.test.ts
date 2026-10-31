@@ -213,6 +213,7 @@ const skillFile = `${trainSkillPath}/SKILL.md`;
 const RESPONSES = '/tmp/.agents/responses.jsonl';
 const LEDGER_ROOT = '/tmp/.agents/quality';
 const LEDGER = `${LEDGER_ROOT}/skill-manager.json`;
+const WIDE_CAP = '100000';
 
 const comprehensionSource = (subject: string, target: string): string =>
   JSON.stringify({
@@ -321,6 +322,8 @@ const measure = (world: World, correct: readonly string[], ...flags: string[]) =
     RESPONSES,
     '--ledger-root',
     LEDGER_ROOT,
+    '--max-description-change',
+    WIDE_CAP,
     ...flags,
   ]);
 };
@@ -791,6 +794,8 @@ const measureDocument = (
     RESPONSES,
     '--ledger-root',
     LEDGER_ROOT,
+    '--max-description-change',
+    WIDE_CAP,
     ...flags,
   ]);
 };
@@ -846,4 +851,210 @@ test('treats a non-skill document as a plain source and blocks a blank one', asy
   expect(String(world.files.get(`${LEDGER_ROOT}/skill-manager--evals-rubric.json`))).toContain(
     'hardFailure',
   );
+});
+
+const attemptWith = (world: World, correct: readonly string[], ...flags: string[]) => {
+  world.files.set(RESPONSES, answersFor(correct));
+  return exec<MeasureReceipt>(world, [
+    'train',
+    'measure',
+    trainSkillPath,
+    RESPONSES,
+    '--attempt',
+    '1',
+    '--ledger-root',
+    LEDGER_ROOT,
+    ...flags,
+  ]);
+};
+
+const snapshotOf = (world: World): string =>
+  JSON.stringify([...world.files].filter(([path]) => path !== RESPONSES));
+
+test('fails an over-cap attempt before a ledger or snapshot write', async () => {
+  const world = await withBaseline();
+  world.files.set(skillFile, skillSource('A completely different and much longer description.'));
+  const before = snapshotOf(world);
+  await expect(attemptWith(world, IMPROVED_CORRECT)).rejects.toThrow(
+    'Edit cap exceeded; nothing was recorded: The description edit changes',
+  );
+  expect(snapshotOf(world)).toBe(before);
+  await expect(
+    attemptWith(world, IMPROVED_CORRECT, '--max-description-change', '25'),
+  ).rejects.toThrow('the cap is 3 (25 percent of 14)');
+  expect(snapshotOf(world)).toBe(before);
+  const wide = await attemptWith(world, IMPROVED_CORRECT, '--max-description-change', WIDE_CAP);
+  expect(wide.status).toBe('attempt');
+  expect(snapshotOf(world)).not.toBe(before);
+});
+
+test('caps changed body lines and rejects a description-and-body edit', async () => {
+  const world = await withBaseline();
+  const longBody = Array.from({ length: 41 }, (_, index) => `rule ${index}`).join('\n');
+  world.files.set(skillFile, `${skillSource()}${longBody}\n`);
+  const before = snapshotOf(world);
+  await expect(attemptWith(world, IMPROVED_CORRECT)).rejects.toThrow('the cap is 40');
+  expect(snapshotOf(world)).toBe(before);
+  expect((await attemptWith(world, IMPROVED_CORRECT, '--max-body-lines', '41')).status).toBe(
+    'attempt',
+  );
+  world.files.set(skillFile, `${skillSource('Manage skills!')}extra line\n`);
+  await expect(
+    attemptWith(world, IMPROVED_CORRECT, '--max-description-change', WIDE_CAP),
+  ).rejects.toThrow('one edit');
+});
+
+test('rejects invalid cap flags and cap flags on bundle and select', async () => {
+  const world = newWorld();
+  for (const args of [
+    ['train', 'bundle', trainSkillPath, '--max-body-lines', '5'],
+    ['train', 'bundle', trainSkillPath, '--max-description-change', '5'],
+    ['train', 'bundle', trainSkillPath, '--track', 'contract'],
+    ['train', 'select', trainSkillPath, '--max-body-lines', '5'],
+    ['train', 'select', trainSkillPath, '--max-description-change', '5'],
+    ['train', 'measure', trainSkillPath, RESPONSES, '--max-body-lines', '0'],
+    ['train', 'measure', trainSkillPath, RESPONSES, '--max-description-change', 'x'],
+    ['train', 'measure', trainSkillPath, RESPONSES, '--track', 'other'],
+    ['train', 'measure', trainSkillPath, RESPONSES, '--track', 'contract'],
+    ['train', 'measure', trainSkillPath, '--track', 'contract', '--runs', '3'],
+  ]) {
+    await expect(run(args, undefined, mock(), world.fileSystem)).rejects.toThrow(usage());
+  }
+});
+
+test('stores the rejected edit on a blocked attempt and lists it in doNotRetry', async () => {
+  const world = await withBaseline();
+  world.files.set(skillFile, skillSource('Manage skill packs.'));
+  const regressed = await attemptWith(
+    world,
+    IMPROVED_CORRECT.filter((id) => id !== 'validation-n1'),
+    '--max-description-change',
+    WIDE_CAP,
+  );
+  expect(regressed.decision?.decision).toBe('blocked');
+  const lines = String(world.files.get(LEDGER)).trim().split('\n');
+  expect(JSON.parse(lines[0] ?? '')).not.toHaveProperty('rejected');
+  expect(JSON.parse(lines[1] ?? '')).toMatchObject({
+    rejected: {
+      changeSummary: expect.stringContaining('description'),
+      gainedIds: ['train-p1'],
+      reason: 'Regressed 1 previously passing queries (train 0, validation 1).',
+      regressedIds: ['validation-n1'],
+    },
+  });
+  world.files.set(skillFile, skillSource('Manage skills, packages, and docs.'));
+  const accepted = await attemptWith(world, IMPROVED_CORRECT, '--max-description-change', WIDE_CAP);
+  expect(accepted.decision?.decision).toBe('accepted');
+  expect(String(world.files.get(LEDGER)).trim().split('\n')[2]).not.toContain('rejected');
+  const select = await exec<{ doNotRetry: Record<string, unknown>[] }>(world, [
+    'train',
+    'select',
+    trainSkillPath,
+    '--ledger-root',
+    LEDGER_ROOT,
+  ]);
+  expect(select.doNotRetry).toHaveLength(1);
+  expect(select.doNotRetry[0]).toMatchObject({
+    attempt: 1,
+    entryId: 'skill-manager-attempt-2',
+    gainedIds: ['train-p1'],
+    regressedIds: ['validation-n1'],
+  });
+  expect(JSON.stringify(select)).not.toContain('validation positive');
+});
+
+const CONTRACT_LEDGER = `${LEDGER_ROOT}/skill-manager-contract.json`;
+
+const contractMeasure = (world: World, ...flags: string[]) =>
+  exec<MeasureReceipt>(world, [
+    'train',
+    'measure',
+    trainSkillPath,
+    '--track',
+    'contract',
+    '--ledger-root',
+    LEDGER_ROOT,
+    ...flags,
+  ]);
+
+const contractWorld = async (): Promise<World> => {
+  const world = newWorld();
+  world.files.set(skillFile, skillSource().replace('contract', 'agreement'));
+  await contractMeasure(world, '--measure-only');
+  return world;
+};
+
+test('records a contract baseline from the matrix with no responses file', async () => {
+  const world = await contractWorld();
+  const ledger = JSON.parse(String(world.files.get(CONTRACT_LEDGER)).trim()) as {
+    boundary: string;
+    measurement: { perQuery: { id: string; split: string }[] };
+  };
+  expect(ledger.boundary).toBe('deterministic-matrix');
+  expect(ledger.measurement.perQuery.map(({ id, split }) => [id, split])).toEqual([
+    ['candidate:required-text:1', 'train'],
+    ['challenge:forbidden-text:1', 'validation'],
+  ]);
+  expect(world.files.has(`${LEDGER_ROOT}/skill-manager-contract-baseline-1.snapshot.md`)).toBe(
+    true,
+  );
+  expect(world.files.has(LEDGER)).toBe(false);
+});
+
+test('gates a contract attempt with the never-worse gate and selects the winner', async () => {
+  const world = await contractWorld();
+  world.files.set(skillFile, skillSource());
+  const gained = await contractMeasure(world, '--attempt', '1');
+  expect(gained.decision).toMatchObject({ decision: 'accepted', gained: { train: 1 } });
+  expect(gained.measurement.clear).toBe(true);
+  const select = await exec<{ decision: string; liveState: string }>(world, [
+    'train',
+    'select',
+    trainSkillPath,
+    '--track',
+    'contract',
+    '--ledger-root',
+    LEDGER_ROOT,
+  ]);
+  expect(select).toMatchObject({ decision: 'apply', liveState: 'winner' });
+});
+
+test('blocks a contract regression, stores it, and hides challenge assertion text', async () => {
+  const world = await contractWorld();
+  world.files.set(skillFile, `${skillSource()}secret\n`);
+  const blocked = await contractMeasure(world, '--attempt', '1');
+  expect(blocked.decision).toMatchObject({
+    decision: 'blocked',
+    gained: { train: 1, validation: 0 },
+    regressed: { train: 0, validation: 1 },
+  });
+  expect(String(world.files.get(CONTRACT_LEDGER))).toContain(
+    '"regressedIds":["challenge:forbidden-text:1"]',
+  );
+  expect(JSON.stringify(blocked)).not.toContain('Found forbidden');
+  expect(JSON.stringify(blocked.measurement)).not.toContain('secret');
+  world.files.set(skillFile, skillSource().replace('contract', 'agreement'));
+  const stuck = await contractMeasure(world, '--attempt', '2');
+  expect(stuck.decision?.reason).toBe('The candidate source is identical to the baseline source.');
+});
+
+test('lists contract candidate failures in detail and applies the edit cap', async () => {
+  const world = await contractWorld();
+  const unchanged = await contractMeasure(world, '--attempt', '1');
+  expect(JSON.stringify(unchanged.measurement.trainQueries)).toContain('Missing contract');
+  expect(unchanged.measurement.validationFailures).toBe(0);
+  world.files.set(skillFile, skillSource('y'.repeat(1025)).replace('contract', 'agreement'));
+  const invalid = await contractMeasure(
+    world,
+    '--attempt',
+    '3',
+    '--max-description-change',
+    WIDE_CAP,
+  );
+  expect(invalid.decision?.reason).toContain('Deterministic check failed');
+  const longBody = Array.from({ length: 41 }, (_, index) => `rule ${index}`).join('\n');
+  world.files.set(skillFile, `${skillSource()}${longBody}\n`);
+  const before = snapshotOf(world);
+  await expect(contractMeasure(world, '--attempt', '2')).rejects.toThrow('the cap is 40');
+  expect(snapshotOf(world)).toBe(before);
 });

@@ -7,10 +7,10 @@ configured, read, or embedded.
 
 ## 1. What is trained and what is measured
 
-| Track      | Edited surface              | Metric owner                 | Never-worse rule                                |
-| ---------- | --------------------------- | ---------------------------- | ----------------------------------------------- |
-| Activation | `description`, routing text | `evals/trigger-queries.json` | `train measure` gate returns `accepted`         |
-| Contract   | `SKILL.md` body, references | `evals/cases.jsonl` matrix   | RED, GREEN, REFACTOR, challenge, then `ratchet` |
+| Track      | Edited surface              | Metric owner                 | Never-worse rule                               |
+| ---------- | --------------------------- | ---------------------------- | ---------------------------------------------- |
+| Activation | `description`, routing text | `evals/trigger-queries.json` | `train measure` gate returns `accepted`        |
+| Contract   | `SKILL.md` body, references | `evals/cases.jsonl` matrix   | `train measure --track contract` is `accepted` |
 
 Both tracks share the hard checks, which block any candidate: `validate` frontmatter, candidate and
 challenge matrix receipts, a balanced query set named for the skill, at most 500 lines in
@@ -142,7 +142,38 @@ answers each question with one option letter in an `answer` field.
   order and an example for any rule that mixes two conditions.
 - A document is clear when the weak reader answers every probe correctly on every run.
 
-## 9. Retiring queries
+## 9. Edit cap and rejected-edit buffer
+
+Each attempt is one bounded edit. The script measures it against the baseline snapshot, not git.
+- An attempt changes the description or the body, never both.
+- The description edit changes at most 25 percent of the baseline description characters. Override
+  it with `--max-description-change <percent>`.
+- The body edit changes at most 40 lines. Override it with `--max-body-lines <n>`.
+- An attempt over a cap fails before any ledger or snapshot write. Shrink the edit and measure
+  again.
+- A `blocked` attempt stores a `rejected` record on its ledger entry: the reason, the regressed ids,
+  the gained ids, and a change summary.
+- `train select` lists those records as `doNotRetry` for the current generation. Read it before the
+  next edit and do not repeat a listed change.
+- A ledger entry without a `rejected` field still loads.
+
+## 10. Contract track
+
+- `train measure <skill-path> --track contract` takes no responses file. It checks `SKILL.md`
+  against `evals/cases.jsonl` deterministically, so no child agent runs.
+- Each assertion is one record with the id `<case-id>:<kind>:<index>`. Candidate cases score the
+  train split. Challenge cases score the validation split. One run is one pass or one failure.
+- The ledger is `<skill>-contract.json` under the ledger root, separate from the activation ledger.
+- The gate, snapshot, edit cap, and rejected-edit buffer are those of the activation track.
+- The only hard check is the structural `validate` check, so a failing assertion is a measured
+  failure and not a hard failure.
+- The report lists candidate failures in detail and challenge results as counts only. Do not look up
+  challenge assertion text.
+- `train select <skill-path> --track contract` reports the winner, the live state, and `doNotRetry`.
+- Record one baseline per frozen matrix with `--measure-only`. Append cases only, then run
+  `ratchet`.
+
+## 11. Retiring queries
 
 Before the first baseline a wrong label may be corrected in place. After a baseline, never edit or
 delete a query: add `"retired": "<reason>"` to it. A retired query stays in the file for audit, is
