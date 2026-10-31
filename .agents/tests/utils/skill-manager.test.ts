@@ -258,6 +258,27 @@ test('scaffolds a new skill without overwriting an existing skill', async () => 
     'description: "Handle example work."',
   );
   expect(files.get('/tmp/skills/example-skill/SKILL.md')).toContain('## 1. Role & Scope');
+  const scaffoldHeadings = (files.get('/tmp/skills/example-skill/SKILL.md') ?? '')
+    .split('\n')
+    .filter((line) => line.startsWith('## '));
+  expect(scaffoldHeadings).toEqual([
+    '## 1. Role & Scope',
+    '## 2. Usage',
+    '## 3. Immutable Operational Rules',
+    '## 4. Input & Context Schema',
+    '## 5. Ordered Execution Chain',
+    '## 6. Output & Completion Contract',
+    '## 7. Evaluation Anchors',
+  ]);
+  const scaffold = files.get('/tmp/skills/example-skill/SKILL.md') ?? '';
+  const usageHeading = scaffold.indexOf('## 2. Usage');
+  const chainHeading = scaffold.indexOf('## 5. Ordered Execution Chain');
+  const chainDiagram = scaffold.indexOf('request -> artifact and active owner');
+  const firstChainStep = scaffold.indexOf('1. **Intake:**');
+  expect(usageHeading).toBeLessThan(chainHeading);
+  expect(chainDiagram).toBeGreaterThan(chainHeading);
+  expect(chainDiagram).toBeLessThan(firstChainStep);
+  expect(scaffold).toContain('/example-skill <required-input>');
   await expect(initializeSkill(fileSystem, 'relative-skill', 'A description.')).rejects.toThrow(
     'must be absolute',
   );

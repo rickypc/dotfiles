@@ -81,16 +81,17 @@ deterministically instead of trusting raw output:
    names inbound and outbound at depth one and merge a `connection` result.
 4. Only when indexed discovery found nothing, run the staged local search (`rg-literal`,
    case-insensitive literal, then file names), parse `path:line` locations, and gate the located
-   candidates through the binary content gate. Every staged pass runs `rg` with `--hidden
-   --no-ignore`, so dotfiles and a parent repository's ignore rules cannot blind the fallback to
-   the approved root; the `!**/.git/**` and `!**/node_modules/**` exclusions still apply.
+   candidates through the binary content gate. Every staged pass runs `rg` with
+   `--hidden --no-ignore`, so dotfiles and a parent repository's ignore rules cannot blind the
+   fallback to the approved root; the `!**/.git/**` and `!**/node_modules/**` exclusions still
+   apply.
 
 ## Read classification
 
-`read` classifies the target deterministically before any fetch: URL (`http(s)://`), PID
-(digits only), absolute file path, dotted qualified name (symbol), then exact process name. Text
-files return a bounded numbered fragment (200 lines by default, `path:start` or `path:start-end` for
-a range); binary or bundle-shaped files, URLs, PIDs, and process names route through the binary
+`read` classifies the target deterministically before any fetch: URL (`http(s)://`), PID (digits
+only), absolute file path, dotted qualified name (symbol), then exact process name. Text files
+return a bounded numbered fragment (200 lines by default, `path:start` or `path:start-end` for a
+range); binary or bundle-shaped files, URLs, PIDs, and process names route through the binary
 router. Symbol reads resolve the index, then index only when no matching index exists, re-check
 status, and retry the requested read once before reading the snippet.
 

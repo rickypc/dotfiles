@@ -45,12 +45,12 @@ complete specification. The command options and arguments for building the evide
 
 The protected command-contract tokens remain `<approved-root>`, `<query>`,
 `<absolute-jsonl-request-path-under-os-tempdir>`, `<private-kb-root>`, and `<repo-search-index>`;
-`<repo-search-index>` remains a plan-folder/metadata value and is not a KB search argument.
-The canonical command strings remain
+`<repo-search-index>` remains a plan-folder/metadata value and is not a KB search argument. The
+canonical command strings remain
 `bun <agents-root>/scripts/repo-search.ts "<approved-root>" "<query>"`,
 `bun <agents-root>/scripts/repo-search.ts inspect "<approved-root>" "<absolute-jsonl-request-path-under-os-tempdir>"`,
-and `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`;
-their caller-facing options table is maintained only in `SKILL.md`.
+and `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; their
+caller-facing options table is maintained only in `SKILL.md`.
 
 Ask one focused question only when its answer changes scope, behavior, safety, ownership,
 architecture, or verification. State what decision it unlocks and the smallest consequence of each

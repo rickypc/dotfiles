@@ -48,20 +48,20 @@ in [usage-patterns.md](references/usage-patterns.md).
   is primary and the CLI transport is the fallback, and the staged local search answers when neither
   transport works. The caller never chooses, bans, or hand-runs a transport, and never claims the
   backend is unavailable without the script's transport receipt.
-- **Backend-store isolation:**
-  Callers never access the backend storage; the backend binary owns it and every path inside it is
-  redacted to `<backend-store>` in all wrapper output. A cache-private or sandbox denial is a
-  transport failure - never an empty result and never backend unavailability - and stays inside the
-  envelope's transport receipt.
+- **Backend-store isolation:** Callers never access the backend storage; the backend binary owns it
+  and every path inside it is redacted to `<backend-store>` in all wrapper output. A cache-private
+  or sandbox denial is a transport failure - never an empty result and never backend
+  unavailability - and stays inside the envelope's transport receipt.
 - **Wrapper-only:** Never invoke the underlying engine directly, including the backend CLI or a
   hand-spawned MCP server. Do not use `find`, `rg`, `grep`, shell globs, or ad-hoc reads as a
   caller-side substitute for the wrapper.
 - **Approved root:** The approved root is explicit and never inferred, and every file target must
   stay under it.
 - **Multi-repository coverage:** When a request names or links to a bounded set of repositories,
-  enumerate the full repository inventory from that source before searching. For each root, run one wrapper search per repository root
-  and return one status for every root, retaining one receipt for each. A parent-root search, one
-  matching repository, or the first empty result does not establish coverage for the set.
+  enumerate the full repository inventory from that source before searching. For each root, run one
+  wrapper search per repository root and return one status for every root, retaining one receipt for
+  each. A parent-root search, one matching repository, or the first empty result does not establish
+  coverage for the set.
 - **Dependency and vulnerability scope:** Search every root for the exact package and advisory
   identifiers and relevant distribution names. Inspect direct and transitive dependencies through
   manifests, lockfiles, Dockerfiles, and base-image package sources; include build definitions and
@@ -119,9 +119,9 @@ request -> enumerate approved root(s) when a bounded set is named
    (`reliability.indexedAt`, `reliability.caveats`), every executed or skipped attempt (`attempts`),
    and the suggested next step (`next`). For dependency questions, also inspect relevant manifests,
    lockfiles, build files, Dockerfiles, base-image package sources, and located bundled artifacts.
-3. **Answer:** Report one evidence-backed status for every expected root. Treat missing roots as unverified; mark failed or
-   uninspected roots and artifacts unverified. An empty result in one root does not clear another;
-   when an envelope is empty, follow `next` or stop - never guess.
+3. **Answer:** Report one evidence-backed status for every expected root. Treat missing roots as
+   unverified; mark failed or uninspected roots and artifacts unverified. An empty result in one
+   root does not clear another; when an envelope is empty, follow `next` or stop - never guess.
 
 ## 6. Output & Completion Contract
 

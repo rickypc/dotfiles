@@ -32,6 +32,7 @@ aidlc
 .drush
 .DS_Store
 .eclipse
+.env
 .flutter
 .gcc-version
 .gemini

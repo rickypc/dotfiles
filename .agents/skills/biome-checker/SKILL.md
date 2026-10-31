@@ -10,10 +10,9 @@ argument-hint: <path> [path...]
 ## 1. Role & Scope
 
 This skill owns focused static checking for explicitly selected JavaScript and TypeScript paths. It
-reports Biome, bun check, and top-level declaration-order results without implementing
-behavior, generating tests, or broadening the selected paths. A JavaScript path receives Biome and
-an explicit TypeScript `not-applicable` result; a TypeScript path receives Biome and `bun check`
-type checking.
+reports Biome, bun check, and top-level declaration-order results without implementing behavior,
+generating tests, or broadening the selected paths. A JavaScript path receives Biome and an explicit
+TypeScript `not-applicable` result; a TypeScript path receives Biome and `bun check` type checking.
 
 ## 2. Usage
 

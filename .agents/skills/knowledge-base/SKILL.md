@@ -44,9 +44,9 @@ and all scope folders without `ls`-ing directories.
 
 - Use the configured KB root and its scope names as authoritative. Keep retrieval read-only; **Never
   store raw chat**, secrets, speculation, or logs.
-- Concept paths match `^(<kb-scope>|shared)/<subject>/<concept>\.md$`. Every root and
-  subject directory has `index.md`; every concept has required frontmatter `type`, `title`,
-  `description`, and `tags` plus source and verification evidence.
+- Concept paths match `^(<kb-scope>|shared)/<subject>/<concept>\.md$`. Every root and subject
+  directory has `index.md`; every concept has required frontmatter `type`, `title`, `description`,
+  and `tags` plus source and verification evidence.
 - Private-KB discovery uses repo-search's explicit private-KB local-only mode against the configured
   private-KB root. Direct /repo-search calls keep their default behavior; the private-KB mode is
   selected only by the Knowledge Base caller.

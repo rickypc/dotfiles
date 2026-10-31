@@ -211,7 +211,7 @@ configuration, or dependencies to make a receipt green.
 - **Independent verifier:** Boundary validation, static checks, focused Bun tests, coverage/mutation
   checks, and the project gate independently verify the test.
 
-## References
+### References
 
 - [lessons-learned.md](references/lessons-learned.md) - Anti-patterns for hanging/slow tests and
   their fixes

@@ -7,7 +7,7 @@ argument-hint: <goal-and-concerns>
 
 # AIDP - Architect of Execution
 
-## 1. Role and scope
+## 1. Role & Scope
 
 AIDP owns clarification, evidence intake, and materialization of one execution plan. The user
 request is the starting hypothesis, not a complete specification: it may be comprehensive or only an
@@ -139,7 +139,7 @@ and no longer than 160 characters. If a requirement could change scope, ownershi
 architecture, or acceptance, stop for a focused clarification; do not guess and do not write a
 partial plan.
 
-## No-Assumption Covenant
+### No-Assumption Covenant
 
 This covenant is absolute and overrides every other instruction in this skill. AIDP never fills a
 material unknown with a plausible default, an inferred preference, a project convention not in
@@ -282,14 +282,14 @@ words (`assume`, `likely`, `presumably`, `standard`, `typical`, `usually`, `defa
 requirements and design decisions are explicit; identify the smallest units, their dependency order,
 and the fact that would require re-planning.
 
-Group the steps into explicit phase blocks. Write each phase as an H3 `### Phase N - <name>`
-heading (numbered ascending from 1), followed by one prose paragraph declaring the three enforced
-fields - **Phase inputs:** what the phase consumes; **Completion criteria:** the observable end
-state and its proof; **Resume point:** what the execution checkpoint records at the boundary
-(completed work, validation receipts, next action) - then that phase's `- [ ]` steps. Decompose
-long work into audit, implementation, validation, and delivery phases as applicable; a small plan
-may carry one phase. Every task item sits inside a phase block, each phase block carries at least
-one step, and the validator rejects a workflow without phase blocks.
+Group the steps into explicit phase blocks. Write each phase as an H3 `### Phase N - <name>` heading
+(numbered ascending from 1), followed by one prose paragraph declaring the three enforced fields -
+**Phase inputs:** what the phase consumes; **Completion criteria:** the observable end state and its
+proof; **Resume point:** what the execution checkpoint records at the boundary (completed work,
+validation receipts, next action) - then that phase's `- [ ]` steps. Decompose long work into audit,
+implementation, validation, and delivery phases as applicable; a small plan may carry one phase.
+Every task item sits inside a phase block, each phase block carries at least one step, and the
+validator rejects a workflow without phase blocks.
 
 The per-step responsibility field names the executor role that will carry out the step (typically
 the AIDX execution skill or a delegated router). It is NOT a re-statement of the singular owner
@@ -435,8 +435,8 @@ unknown with a plausible default, convention, inferred preference, silent branch
 `should probably` - a guess phrased as a tentative sentence is still a guess and is forbidden by the
 covenant. If an answer changes targets, ownership, scope, safety, or proof, retrieve the affected
 context again before the next round; when no material ambiguity remains, write the plan; otherwise
-stop and do not write or hand off. A conditional branch is either completed with evidence or
-skipped with a factual inapplicability reason; it is never a hidden prerequisite.
+stop and do not write or hand off. A conditional branch is either completed with evidence or skipped
+with a factual inapplicability reason; it is never a hidden prerequisite.
 
 ## 6. Output & Completion Contract
 

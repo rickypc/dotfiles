@@ -253,19 +253,34 @@ closes the work. Keep detailed branch guidance in linked references.
 - **Trigger:** <observable request or condition>
 - **Boundary:** <out-of-scope work and neighboring owner>
 
-## 2. Immutable Operational Rules
+## 2. Usage
+
+\`\`\`text
+/${name} <required-input> [optional-input]
+\`\`\`
+
+The compact grammar line above is the caller-facing shape; read the owner-specific
+tables below for arguments, when to use, and additional information.
+
+## 3. Immutable Operational Rules
 
 - <non-negotiable safety, ownership, ordering, and evidence rule>
 - <positive target, bright-line guardrail, and stop condition>
 
-## 3. Input & Context Schema
+## 4. Input & Context Schema
 
 - **Required:** <typed inputs and source>
 - **Optional:** <optional input and selection condition>
 - **Context:** <instructions, evidence, and delegated receipts>
 - **Unknowns:** <missing-input detection and stop behavior>
 
-## 4. Ordered Execution Chain
+## 5. Ordered Execution Chain
+
+\`\`\`text
+request -> artifact and active owner -> review state and frozen matrix
+        -> Markdown guards -> RED -> cohesive candidate -> GREEN/REFACTOR/challenge
+        -> deterministic validation -> owner review and gate -> closeout
+\`\`\`
 
 1. **Intake:** <parse and validate inputs>
 2. **Normal path:** <ordered skill-owned actions>
@@ -273,13 +288,13 @@ closes the work. Keep detailed branch guidance in linked references.
 4. **Verification:** <independent focused proof>
 5. **Stop or hand off:** <failure, approval, or delegated boundary>
 
-## 5. Output & Completion Contract
+## 6. Output & Completion Contract
 
 - **Success:** <artifacts, receipts, and user-facing result>
 - **Proof:** <completion evidence and final gate>
 - **Failure:** <failure shape, recovery, and handoff>
 
-## 6. Evaluation Anchors
+## 7. Evaluation Anchors
 
 - **Canonical example:** <representative invocation or input/output>
 - **Boundary example:** <failure, uncertainty, or challenge case>

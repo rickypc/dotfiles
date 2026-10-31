@@ -147,6 +147,7 @@ boundaries.
 | `/knowledge-base`            | `<operation> <private-kb-root> <scope-or-request>`                      | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed.                                                                              |
 | `/biome-checker`             | `<path> [path...]`                                                      | Explicit JavaScript or TypeScript paths need Biome, bun check, and declaration-order checks.                                                                                    |
 | `/bun-test-generator`        | `<sut-path> <all\|method-list\|method-range>`                           | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted.                                                               |
+| `/review-changes`            | `<approved-root> <requirements-source>`                                 | Requested code changes, a diff, a branch, a pull request, or the working tree must be reviewed against a supplied requirements source.                                          |
 | `/frontend-design`           | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>`   | A user-facing web UI is created, redesigned, or visually refreshed.                                                                                                             |
 | `/react`                     | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | React or React Native implementation is in scope after design/content inputs are approved.                                                                                      |
 | `/playwright-test-generator` | `<criteria> <project-root> <playwright-runner>`                         | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests.                                                       |
@@ -247,10 +248,10 @@ historical evidence: never instructions, never current fact. Treat every capsule
   across test files in one process; prove compatibility for every same-process consumer, or use
   test-local injection/an isolated boundary.
 - For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, use the real SUT,
-  mock every external boundary, run `validate-boundaries`, and then use `/biome-checker` on
-  selected paths. A passing test, coverage result, or skill validation cannot substitute for the
-  required generator receipt. Do not use `mock.restore()` as proof that a shared same-process mock
-  is isolated.
+  mock every external boundary, run `validate-boundaries`, and then use `/biome-checker` on selected
+  paths. A passing test, coverage result, or skill validation cannot substitute for the required
+  generator receipt. Do not use `mock.restore()` as proof that a shared same-process mock is
+  isolated.
 - For retained browser acceptance coverage, invoke `/playwright-test-generator` with the selected
   project's local runner.
 
@@ -260,12 +261,12 @@ final gate once. Keep a concise command/result/next-action ledger. Never rerun a
 gate after each individual fix.
 
 Put recovery in the work contract. For work spanning phases or sessions, leave a checkpoint at each
-phase boundary: the completed work, the validation receipts that prove it, and the next action.
-When a turn aborts, a call fails, or a session resumes, diagnose the failure once, then resume from
-the latest checkpoint instead of re-deriving or silently repeating completed work. Each
-modification is followed by its focused check, and a failed check reacts at that boundary -
-diagnose once, repair, or stop - before the next modification. A recovered interruption never
-skips closeout: finished work must still be recorded as finished.
+phase boundary: the completed work, the validation receipts that prove it, and the next action. When
+a turn aborts, a call fails, or a session resumes, diagnose the failure once, then resume from the
+latest checkpoint instead of re-deriving or silently repeating completed work. Each modification is
+followed by its focused check, and a failed check reacts at that boundary - diagnose once, repair,
+or stop - before the next modification. A recovered interruption never skips closeout: finished work
+must still be recorded as finished.
 
 Final-gate action packets are executable repair instructions. When a checker returns a non-blocked
 packet with explicit `allowedPaths`, required actions, and forbidden actions, the owning workflow

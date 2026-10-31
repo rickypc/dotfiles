@@ -7,7 +7,7 @@ argument-hint: <plan-path-relative-or-absolute>
 
 # AIDX - Deterministic Execution Engine
 
-## 1. Role and scope
+## 1. Role & Scope
 
 AIDX executes one already-materialized six-section plan. It owns ordered execution, delegated owner
 routing, fresh verification, completion-state recording, and the final output mapping. It does not
@@ -107,14 +107,14 @@ proof.
 ### Phase checkpoints and resume
 
 Execute phase by phase. When a phase's completion criteria pass, write its checkpoint before
-starting the next phase: the phase name, the completed steps, the validation receipts, and the
-next action. The most recent checkpoint is the resume point - when execution resumes after an
-aborted turn, a failed call, or a fresh session, continue from the last checkpoint's next action
-and never re-derive or silently repeat a step whose checkpoint receipt already proves it. Every
-modification is followed by its focused check before the next modification begins: act, check,
-then react to the result at that boundary - diagnose once, repair, or stop; never proceed on an
-unverified change. A recovered interruption never skips closeout: resumed execution still ends
-with the completed-plan closeout and validation.
+starting the next phase: the phase name, the completed steps, the validation receipts, and the next
+action. The most recent checkpoint is the resume point - when execution resumes after an aborted
+turn, a failed call, or a fresh session, continue from the last checkpoint's next action and never
+re-derive or silently repeat a step whose checkpoint receipt already proves it. Every modification
+is followed by its focused check before the next modification begins: act, check, then react to the
+result at that boundary - diagnose once, repair, or stop; never proceed on an unverified change. A
+recovered interruption never skips closeout: resumed execution still ends with the completed-plan
+closeout and validation.
 
 ## 4. Input & Context Schema
 
@@ -211,9 +211,9 @@ it, apply its required actions through the named owner's explicit apply route, v
 `allowedPaths` changed, and rerun the identical gate. The packet is executable repair evidence, not
 display-only output or a user handoff. Stop for a missing, blocked, ambiguous, unsafe, or
 unappliable packet; never invent a repair. When the plan changes JavaScript or TypeScript tests,
-follow its explicit `/bun-test-generator`, boundary-validation, and `/biome-checker` route
-before editing; when it changes retained browser coverage, follow its explicit
-`/playwright-test-generator` route.
+follow its explicit `/bun-test-generator`, boundary-validation, and `/biome-checker` route before
+editing; when it changes retained browser coverage, follow its explicit `/playwright-test-generator`
+route.
 
 ## 7. Evaluation Anchors
 
