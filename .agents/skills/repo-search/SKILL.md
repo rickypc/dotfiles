@@ -3,7 +3,7 @@
 name: repo-search
 description: "Use for ANY question about where things are in a codebase or what a file contains: find, locate, or list a file, symbol, config, definition, or usage; who calls what or where something is used or defined; how a repo or monorepo is structured or wired together (architecture, big picture); whether a dependency or string appears anywhere, including Docker images or several repos; or what an unknown, packed, or garbled binary, executable, or blob file is and what it contains. Mandatory first step for repository discovery. Do NOT use to edit code, review changes, or look up private knowledge-base notes."
 argument-hint: <approved-root> <query...> | read <approved-root> <target> [query...] | inspect <approved-root> <jsonl-path>
-capabilities: ["Script-owned transport probe (MCP stdio primary, CLI fallback)", One unified JSON response contract on every route, Deterministic three-verb caller grammar, Backend-store redaction (<backend-store>), Content-based binary gate plus eighteen-row binary router, Ordered staged fallback with named receipt strategies]
+capabilities: ["Script-owned transport probe (CLI default, MCP stdio opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp)", One unified JSON response contract on every route, Deterministic three-verb caller grammar, Backend-store redaction (<backend-store>), Content-based binary gate plus eighteen-row binary router, Ordered staged fallback with named receipt strategies]
 ---
 
 # Repo Search
@@ -44,10 +44,11 @@ in [usage-patterns.md](references/usage-patterns.md).
 
 ## 3. Immutable Operational Rules
 
-- **Script-owned transport:** The script probes the transports once per run; the MCP stdio transport
-  is primary and the CLI transport is the fallback, and the staged local search answers when neither
-  transport works. The caller never chooses, bans, or hand-runs a transport, and never claims the
-  backend is unavailable without the script's transport receipt.
+- **Script-owned transport:** The script probes the transports once per run; the CLI transport is
+  the default route - the wrapper never spawns an MCP server on its own - and the MCP stdio
+  transport runs only when `REPO_SEARCH_TRANSPORT_FORCE=mcp`; the staged local search answers when
+  no transport works. The caller never chooses, bans, or hand-runs a transport, and never claims
+  the backend is unavailable without the script's transport receipt.
 - **Backend-store isolation:** Callers never access the backend storage; the backend binary owns it
   and every path inside it is redacted to `<backend-store>` in all wrapper output. A cache-private
   or sandbox denial is a transport failure - never an empty result and never backend

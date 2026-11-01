@@ -8,18 +8,28 @@ Branch-only detail for the wrapper engine in `utils/repo-search.ts`,
 
 `probeRepoSearchTransport` runs once per wrapper invocation and is the only authority on backend
 availability. It tries, in order:
-1. **MCP stdio transport (primary):** spawn the backend binary with no arguments as a stdio MCP
-   server, complete the `initialize` handshake, and issue one `tools/call list_projects` probe. The
-   official `@modelcontextprotocol/sdk` client is used when installed; a zero-dependency built-in
-   JSON-RPC client is the automatic fallback, and both speak the same protocol.
-2. **CLI transport (fallback):** run `codebase-memory-mcp cli --quiet --json <tool>` subcommands and
-   parse the raw MCP result envelope the CLI prints, so both transports share one parser.
+1. **CLI transport (default):** run `codebase-memory-mcp cli --quiet --json <tool>` subcommands and
+   parse the raw MCP result envelope the CLI prints. The wrapper never spawns an MCP server on its
+   own; each CLI child joins the shared per-account coordination daemon when one is running.
+2. **MCP stdio transport (forced):** only with `REPO_SEARCH_TRANSPORT_FORCE=mcp`, spawn the backend
+   binary with no arguments as a stdio MCP server, complete the `initialize` handshake, and issue
+   one `tools/call list_projects` probe. The official `@modelcontextprotocol/sdk` client is used
+   when installed; a zero-dependency built-in JSON-RPC client is the automatic fallback, and both
+   speak the same protocol.
 3. **None:** with no answering transport the engine runs the staged local search only and records
    the failure as the transport receipt.
 
 `REPO_SEARCH_TRANSPORT_FORCE` (`mcp`, `cli`, or `none`) and `REPO_SEARCH_BACKEND_BINARY` override
 the probe for testing. A spawn failure, handshake timeout, or backend denial never throws to the
-caller: it degrades to the next transport and lands in `attempts[0]` as the transport receipt.
+caller: it lands in `attempts[0]` as the transport receipt.
+
+Every spawned backend child receives a pinned child environment: `HOME` from the platform resolver
+and `XDG_CACHE_HOME` from the caller environment or `<home>/.cache` when unset. The pin keeps the
+backend's canonical cache root resolvable in stripped caller environments (the `cache-resolve`
+failure) without touching `CBM_CACHE_DIR` or `CBM_RUNTIME_DIR`, which must stay shared with every
+other CBM client on the account or the admission barrier rejects the child. A `cache-private` chmod
+denial is the other known signature: the spawning context may not write the cache root, so run the
+wrapper where the root is writable or keep a standing `codebase-memory-mcp daemon start` running.
 
 ## Response envelope
 

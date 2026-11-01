@@ -2,10 +2,10 @@
   "kind": "comprehension",
   "queries": [
     {
-      "evidence": "the script-owned transport probe with the MCP stdio transport primary and the CLI transport as the fallback",
-      "expected": "A",
+      "evidence": "the script-owned transport probe with the CLI transport as the default route and the MCP stdio transport opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp",
+      "expected": "B",
       "id": "train-01",
-      "query": "According to the rubric, which transport is primary and which is the fallback in the script-owned transport probe?\nA) MCP stdio is primary; the CLI transport is the fallback\nB) The CLI transport is primary; MCP stdio is the fallback\nC) The caller picks whichever transport it prefers\nD) Only the staged local search is used, with no transports",
+      "query": "According to the rubric, which transport is the default route in the script-owned transport probe?\nA) MCP stdio, with the CLI as the fallback\nB) The CLI transport, with MCP stdio opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp\nC) Whichever transport the caller prefers\nD) Only the staged local search, with no transports",
       "split": "train"
     },
     {
@@ -33,7 +33,7 @@
       "evidence": "naming the temporary source skill",
       "expected": "A",
       "id": "train-05",
-      "query": "Which of these is one of the historical failure modes the challenge checks target?\nA) Naming the temporary source skill\nB) Redacting the backend storage path\nC) Reporting a transport denial as a transport failure\nD) Using the MCP stdio transport first",
+      "query": "Which of these is one of the historical failure modes the challenge checks target?\nA) Naming the temporary source skill\nB) Redacting the backend storage path\nC) Reporting a transport denial as a transport failure\nD) Using the CLI transport as the default route",
       "split": "train"
     },
     {

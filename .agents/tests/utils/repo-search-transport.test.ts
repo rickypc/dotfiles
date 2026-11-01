@@ -7,10 +7,7 @@ import * as realSdkStdio from '@modelcontextprotocol/sdk/client/stdio.js';
 import * as realBunModule from 'bun';
 import * as realContracts from '../../utils/contracts.js';
 import * as realProcessModule from '../../utils/process.js';
-import type {
-  RepoSearchBackendResult,
-  RepoSearchTransport,
-} from '../../utils/repo-search-transport.js';
+import type { RepoSearchBackendResult } from '../../utils/repo-search-transport.js';
 import * as realSearchFallback from '../../utils/search-fallback.js';
 
 // Tool-call timeouts run on real timers; the hang fixture proves the timeout path end to end, and
@@ -24,6 +21,7 @@ mock.module('@modelcontextprotocol/sdk/client/stdio.js', () => realSdkStdio);
 mock.module('bun', () => realBunModule);
 
 const {
+  backendChildEnvironment,
   createBuiltinMcpClient,
   createSdkMcpClient,
   parseBackendEnvelope,
@@ -41,22 +39,58 @@ const envelopeLine = (text: string, isError = false) =>
 const result = (stdout: string, code = 0) => ({ code, stderr: '', stdout });
 
 test('renders one backend operation as the CLI transport command', () => {
-  const command = repoSearchCliCommand({
-    args: { project: 'repo', query: 'needle' },
-    tool: 'search_graph',
-  });
-  expect(command.command).toBe('codebase-memory-mcp');
-  expect(command.args).toEqual([
-    'cli',
-    '--quiet',
-    '--json',
-    'search_graph',
-    '--project',
-    'repo',
-    '--query',
-    'needle',
-  ]);
-  expect(command.environment).toEqual({ REPO_SEARCH_LOG_LEVEL: 'error' });
+  const previousXdgCacheHome = Bun.env.XDG_CACHE_HOME;
+  try {
+    Bun.env.XDG_CACHE_HOME = '/tmp/repo-search-xdg';
+    const command = repoSearchCliCommand({
+      args: { project: 'repo', query: 'needle' },
+      tool: 'search_graph',
+    });
+    expect(command.command).toBe('codebase-memory-mcp');
+    expect(command.args).toEqual([
+      'cli',
+      '--quiet',
+      '--json',
+      'search_graph',
+      '--project',
+      'repo',
+      '--query',
+      'needle',
+    ]);
+    expect(command.environment).toEqual({
+      HOME: realOs.homedir(),
+      REPO_SEARCH_LOG_LEVEL: 'error',
+      XDG_CACHE_HOME: '/tmp/repo-search-xdg',
+    });
+  } finally {
+    if (previousXdgCacheHome === undefined) {
+      delete Bun.env.XDG_CACHE_HOME;
+    } else {
+      Bun.env.XDG_CACHE_HOME = previousXdgCacheHome;
+    }
+  }
+});
+
+test('pins the backend child environment for the canonical cache root', () => {
+  const previousXdgCacheHome = Bun.env.XDG_CACHE_HOME;
+  try {
+    Bun.env.XDG_CACHE_HOME = '/tmp/repo-search-xdg';
+    expect(backendChildEnvironment()).toEqual({
+      HOME: realOs.homedir(),
+      XDG_CACHE_HOME: '/tmp/repo-search-xdg',
+    });
+    delete Bun.env.XDG_CACHE_HOME;
+    expect(backendChildEnvironment()).toEqual({
+      HOME: realOs.homedir(),
+      XDG_CACHE_HOME: `${realOs.homedir()}/.cache`,
+    });
+  } finally {
+    if (previousXdgCacheHome === undefined) {
+      delete Bun.env.XDG_CACHE_HOME;
+    } else {
+      Bun.env.XDG_CACHE_HOME = previousXdgCacheHome;
+    }
+  }
 });
 
 test('parses MCP result envelopes and falls back to raw text', () => {
@@ -82,15 +116,17 @@ test('parses MCP result envelopes and falls back to raw text', () => {
   });
 });
 
-test('probes the MCP stdio transport first against a controlled server', async () => {
+test('probes the MCP stdio transport when forced against a controlled server', async () => {
   const executor = mock(async () => result(''));
   const probe = await probeRepoSearchTransport({
     binary: 'bun',
     executor,
+    force: 'mcp',
     serverArgs: [fixtureServer],
   });
   expect(probe.attempt.status).toBe('found');
   expect(probe.attempt.strategy).toBe('transport-probe');
+  expect(probe.attempt.detail).toContain('MCP stdio transport forced and available');
   expect(probe.transport?.kind).toBe('mcp');
   expect(executor).not.toHaveBeenCalled();
   const transport = probe.transport;
@@ -137,6 +173,7 @@ test('both MCP clients return undefined for unavailable servers', async () => {
 test('the mcp transport settles its close even when the client close fails', async () => {
   const probe = await probeRepoSearchTransport({
     executor: mock(async () => result(envelopeLine('projects: 0'))),
+    force: 'mcp',
     mcpClientFactory: () => [
       async () => ({
         callTool: async () => ({ error: null, isError: false, text: 'probe ok' }),
@@ -150,15 +187,11 @@ test('the mcp transport settles its close even when the client close fails', asy
   await expect(probe.transport?.close()).resolves.toBeUndefined();
 });
 
-test('the probe moves past failing and throwing MCP clients', async () => {
-  const failing: RepoSearchTransport = {
-    call: mock(async () => ({ error: 'denied', isError: true, text: '' })),
-    close: mock(async () => undefined),
-    kind: 'mcp',
-  };
+test('a forced MCP probe moves past failing and throwing clients, then reports unavailable', async () => {
   const executor = mock(async () => result(envelopeLine('projects: 0')));
   const probe = await probeRepoSearchTransport({
     executor,
+    force: 'mcp',
     mcpClientFactory: () => [
       async () => {
         throw new Error('client creation failed');
@@ -167,7 +200,7 @@ test('the probe moves past failing and throwing MCP clients', async () => {
         callTool: async () => {
           throw new Error('probe call failed');
         },
-        close: failing.close,
+        close: async () => undefined,
       }),
       async () => ({
         callTool: async () => ({ error: 'denied', isError: true, text: '' }),
@@ -175,24 +208,29 @@ test('the probe moves past failing and throwing MCP clients', async () => {
       }),
     ],
   });
-  expect(probe.transport?.kind).toBe('cli');
-  expect(probe.attempt.detail).toContain('CLI transport is the fallback');
+  expect(probe.transport).toBeNull();
+  expect(probe.attempt.status).toBe('error');
+  expect(probe.attempt.detail).toBe('MCP transport forced but unavailable.');
+  expect(executor).not.toHaveBeenCalled();
 });
 
-test('falls back to the CLI transport when no MCP client can answer', async () => {
+test('the default probe answers through the CLI transport without spawning MCP', async () => {
   const executor = mock(async () => result(envelopeLine('projects: 0')));
+  const factory = mock(() => []);
   const probe = await probeRepoSearchTransport({
     binary: 'definitely-missing-repo-search-binary',
     executor,
+    mcpClientFactory: factory,
   });
+  expect(factory).not.toHaveBeenCalled();
   expect(probe.transport?.kind).toBe('cli');
   expect(probe.attempt.status).toBe('found');
-  expect(probe.attempt.detail).toContain('CLI transport is the fallback');
+  expect(probe.attempt.detail).toContain('CLI transport is the default route');
   const answered = await probe.transport?.call({ args: {}, tool: 'list_projects' });
   expect(answered?.text).toBe('projects: 0');
 });
 
-test('reports a missing transport when both MCP and CLI fail', async () => {
+test('reports a missing transport when the CLI probe fails', async () => {
   const executor = mock(async () => result('denied', 1));
   const probe = await probeRepoSearchTransport({
     binary: 'definitely-missing-repo-search-binary',
@@ -343,10 +381,11 @@ test('parseBackendEnvelope keeps scanning past a JSON object without a content k
   });
 });
 
-test('the probe survives a failed probe call whose close also throws', async () => {
+test('a forced MCP probe survives a failed probe call whose close also throws', async () => {
   const executor = mock(async () => result(envelopeLine('projects: 0')));
   const probe = await probeRepoSearchTransport({
     executor,
+    force: 'mcp',
     mcpClientFactory: () => [
       async () => ({
         callTool: async () => {
@@ -358,8 +397,9 @@ test('the probe survives a failed probe call whose close also throws', async () 
       }),
     ],
   });
-  expect(probe.transport?.kind).toBe('cli');
-  expect(probe.attempt.detail).toContain('CLI transport is the fallback');
+  expect(probe.transport).toBeNull();
+  expect(probe.attempt.status).toBe('error');
+  expect(probe.attempt.detail).toBe('MCP transport forced but unavailable.');
 });
 
 test('the built-in client rejects pending waiters when the stdout read stream fails', async () => {

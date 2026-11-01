@@ -11,8 +11,9 @@ verifierIds: [source-structure]
 
 The matrix freezes the observable contract of the wrapper-owned discovery engine. Candidate checks
 cover the three-verb caller grammar (search, read, inspect), the script executing every backend
-operation itself, the script-owned transport probe with the MCP stdio transport primary and the CLI
-transport as the fallback, one unified JSON response contract with status, transport, source,
+operation itself, the script-owned transport probe with the CLI transport as the default route and
+the MCP stdio transport opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp, one unified JSON response
+contract with status, transport, source,
 located results, and reliability on every route, backend-storage redaction, transport denials
 reported as transport failures, index discipline (search never creates an index; symbol reads index
 once and retry; inspect requires a ready matching index), identity-field graph matching, path-only
@@ -22,14 +23,15 @@ check-then-install, explicit-target-only non-file routes, container extraction u
 operating-system temporary directory, and the compact four-field report. Challenge checks target
 these historical failure modes, and each one is a failure to avoid:
 
-1. banning a transport, or repeating the retired CLI-primary wording;
+1. banning a transport, or repeating the retired MCP-primary wording;
 2. teaching or leaking the backend storage path;
 3. guessing paths, symbols, causes, or completion;
 4. naming the temporary source skill;
 5. forcing a robotic exact-output persona.
 
-These are NOT failure modes: redacting the backend storage path, using the MCP stdio transport
-first, and reporting a cache or sandbox denial as a transport failure. Those are correct behavior.
+These are NOT failure modes: redacting the backend storage path, using the CLI transport as the
+default route, and reporting a cache or sandbox denial as a transport failure. Those are correct
+behavior.
 
 The matrix is evaluated before and after the candidate guidance with the same source and matrix
 fingerprints. RED, GREEN, and REFACTOR receipts are required; a score or a single successful output

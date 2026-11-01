@@ -2,10 +2,10 @@
   "kind": "comprehension",
   "queries": [
     {
-      "evidence": "1. **MCP stdio transport (primary):**",
-      "expected": "A",
+      "evidence": "1. **CLI transport (default):**",
+      "expected": "B",
       "id": "train-01",
-      "query": "In what order does the transport probe try transports?\nA) MCP stdio first, then the CLI, then none (staged local search only)\nB) CLI first, then MCP stdio, then none\nC) Staged local search first, then MCP stdio, then the CLI\nD) Only the transport the caller names",
+      "query": "In what order does the transport probe try transports?\nA) MCP stdio first, then the CLI, then none (staged local search only)\nB) CLI first, then MCP stdio only when REPO_SEARCH_TRANSPORT_FORCE=mcp, then none\nC) Staged local search first, then MCP stdio, then the CLI\nD) Only the transport the caller names",
       "split": "train"
     },
     {

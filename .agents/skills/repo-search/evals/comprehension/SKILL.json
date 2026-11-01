@@ -261,10 +261,10 @@
       "split": "validation"
     },
     {
-      "evidence": "the MCP stdio transport is primary and the CLI transport is the fallback",
+      "evidence": "the CLI transport is the default route and the MCP stdio transport runs only when `REPO_SEARCH_TRANSPORT_FORCE=mcp`",
       "expected": "A",
       "id": "validation-11",
-      "query": "The MCP stdio transport does not work but the CLI transport does. Which answers?\nA) The CLI transport, as the fallback\nB) The staged local search\nC) A hand-spawned MCP server run by the caller\nD) No one; the run is an error",
+      "query": "The default run's CLI transport answers list_projects. Which source answers?\nA) The CLI transport, as the default route\nB) The staged local search\nC) A hand-spawned MCP server run by the caller\nD) No one; the run is an error",
       "split": "validation"
     },
     {
