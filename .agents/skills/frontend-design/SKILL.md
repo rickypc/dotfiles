@@ -46,8 +46,9 @@ Use for a new, redesigned, or visually refreshed UI.
   composition, density, or layout within its tokens, typography, components, and iconography unless
   the user explicitly approves a system change. If no design system exists, define the smallest
   usable one first.
-- Ask only high-signal questions about unresolved constraints and trade-offs; do not repeat
-  decisions already established by the brief or supplied context.
+- Ask only high-signal questions about unresolved constraints and trade-offs. Never ask about a
+  decision the brief or supplied context already states. Example: the brief names the audience, so
+  do not ask who the audience is; ask only the open question.
 - Use real brand assets and iconography when they are available and required. Surface missing or
   ambiguous assets as an explicit decision; do not silently substitute generic marks, invented
   icons, or placeholder identity elements.

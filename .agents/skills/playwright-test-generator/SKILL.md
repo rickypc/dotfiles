@@ -1,7 +1,7 @@
 ---
 
 name: playwright-test-generator
-description: Generate and retain project-local Playwright browser regression tests from accepted user-facing web criteria. Use when a web UI, browser workflow, responsive layout, or explicitly budgeted browser-performance behavior needs durable automated coverage. Use it to write or extend retained browser tests, not to review, run, or debug existing tests and not for unit tests.
+description: "Use when the user wants new automated browser tests with Playwright for a web UI: lock down a layout bug at a viewport, check a user flow in real browsers, or add a page-speed budget test. It writes tests that stay in the project. Do NOT use to run or debug existing tests, write Cypress or unit tests, or design the UI."
 argument-hint: <criteria> <project-root> <playwright-runner>
 ---
 
@@ -49,8 +49,10 @@ runner. Use only for durable browser regression coverage.
 
 - **Required:** Accepted user-facing criteria, selected project root, and the project-declared
   Playwright runner.
-- **Optional:** Browser project, required viewport, responsive/performance budget, existing related
-  tests, trace/screenshot option, and project test data helpers.
+- **Optional:** All of these inputs are optional; work proceeds without them: browser project,
+  viewport (only when the flow needs one), responsive/performance budget (only when a criterion is
+  about performance), existing related tests, trace/screenshot option, and project test data
+  helpers.
 - **Context:** Manifest/configuration, local `@playwright/test`, test directory, start command,
   configured browser projects, artifact policy, acceptance checklist, and existing retained
   coverage.

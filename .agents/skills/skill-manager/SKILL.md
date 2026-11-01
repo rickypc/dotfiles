@@ -1,7 +1,7 @@
 ---
 
 name: skill-manager
-description: Use this skill when creating, updating, reviewing, renaming, synchronizing, optimizing, training, validating, or repairing an Agent Skill. It governs scope, trigger descriptions, progressive disclosure, scripts, evals, references, deterministic validation, in-session training with a never-worse gate, and evidence-gated closeout. Use it for agent instruction documents too, including AGENTS*.md; it governs their lifecycle, scope, authority, routing, validation, and closeout. Do not use it to install, run, or invoke a skill from a catalog.
+description: "Use when the user wants to create, improve, validate, repair, merge, split, or rename an Agent Skill or an AGENTS.md instruction file: make a skill description fire more reliably, add eval cases, check a skill for stale guidance or broken links, reconcile AGENTS.md files, or fix failing skill validation. Do NOT use to install or run a skill."
 argument-hint: <operation> [arguments]
 ---
 
@@ -49,6 +49,10 @@ document.
 /skill-manager ratchet <previous> <next>                      # prove a matrix or query set only grew
 /skill-manager train bundle <skill-path>                      # emit the blind router bundle
 /skill-manager train measure <skill-path> <responses> [flags] # score, gate, append ledger
+/skill-manager train read <bundle> <answers>                  # answer a document bundle with the local weak reader
+/skill-manager train suggest <bundle> <failures> <suggestions>  # ask the weak reader how to fix its train misses
+/skill-manager gate record [flags] [<doc-path>...]               # record a never-worse comprehension receipt
+/skill-manager gate verify                                    # require a current receipt for every instruction
 /skill-manager train measure <skill-path> --track contract    # score the SKILL.md body from its matrix
 /skill-manager train select <skill-path> [--track contract]   # report winner, live state, next action
 # Usage governance: keep required <name> and optional [name] arguments explicit.
@@ -60,17 +64,29 @@ path; `<skill-path>` is the absolute package directory. `[additional-root]` is a
 static root used when a runtime adapter or neighboring static consumer must be reviewed. The
 `/skill-manager` routes are agent workflows, not terminal commands. Use the owning scripts only for
 their documented mechanical checks. For evaluation, `<phase>` is `baseline`, `candidate`, or
-`challenge`; batch evaluation accepts `baseline` or `candidate`. `<matrix>` and `<skill-file>` are
-absolute JSONL matrix and skill-file paths. `<pairs>` contains one or more absolute matrix and
-skill-file path pairs. `<review-id>` is the persisted review identifier. `<state>` is
-`candidate-checked`, `candidate-requested`, or `draft`, as returned by the workflow. `[description]`
-is optional scaffold metadata limited to 1,024 characters. `<previous>` and `<next>` are absolute
-matrix `.jsonl` or trigger query set `.json` paths; take `<previous>` from `git show HEAD:<path>`
-written under the OS temp directory. `<responses>` is an absolute router-answer `.jsonl` path. A
-train target is an absolute skill directory (activation track) or an absolute comprehension set
-`.json` path (document track). `[flags]` are `--measure-only`, `--attempt <n>`,
-`--status <ledger-status>`, `--runs <n>`, `--ledger-root <path>`, and `--skills-root <path>`; ledger
-statuses are `baseline`, `attempt`, `applied`, `post-change`, and `rollback`.
+`challenge` for `evaluate`. For `batch`, the phase is only `baseline` or `candidate`. `challenge` is
+not allowed for `batch`. `<matrix>` and `<skill-file>` are absolute JSONL matrix and skill-file
+paths. `<pairs>` contains one or more absolute matrix and skill-file path pairs. `<review-id>` is
+the persisted review identifier. `<state>` is `candidate-checked`, `candidate-requested`, or
+`draft`, as returned by the workflow. `[description]` is optional scaffold metadata limited to 1,024
+characters. `<previous>` and `<next>` are absolute matrix `.jsonl` or trigger query set `.json`
+paths; take `<previous>` from `git show HEAD:<path>` written under the OS temp directory.
+`<responses>` is an absolute router-answer `.jsonl` path. A train target is an absolute skill
+directory (activation track) or an absolute comprehension set `.json` path (document track).
+`<bundle>` is the absolute document bundle `.json` that `train bundle` printed, saved by the caller,
+and `<answers>` is the absolute `.jsonl` path the reader writes for `train measure`. The
+`train read` route runs `bun <agents-root>/scripts/weak-reader.ts <bundle> <answers>`; the exit
+codes are 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package, 5
+document too long. A sandboxed process exits 2: run this one command outside the sandbox, or use
+in-session child agents instead. `<failures>` is an absolute JSON array of train misses, and
+`<suggestions>` is the absolute `.jsonl` path the reader writes for them. The `gate record` route
+needs the GPU, so run it outside the sandbox; its flags are `--allow-equal <reason>` and
+`--rebaseline <reason>`, and each needs a written reason. `<doc-path>` is an instruction document
+path relative to the agents root, or `descriptions` for the routing of every skill description; run
+`gate record descriptions` for that. See the weak reader section of the train protocol. `[flags]`
+are `--measure-only`, `--attempt <n>`, `--status <ledger-status>`, `--runs <n>`,
+`--ledger-root <path>`, and `--skills-root <path>`; ledger statuses are `baseline`, `attempt`,
+`applied`, `post-change`, and `rollback`.
 
 Usage governance: the aligned block is the only invocation catalog. Use `<name>` for required
 arguments, `[name]` for optional arguments, and `-` when a command takes none. Keep comments
@@ -113,15 +129,17 @@ invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
   matrix or reuse stale evidence.
 - Resume or prepare the matching quality-engine review before editing. If that state or a required
   verifier is unavailable, state the exact blocker and stop before the governed edit.
-- For no-edit Markdown passes, use `/md-compress guard <absolute-markdown-path>`. The guard returns
-  `guarded`; require that receipt before continuing. For edits, process one Markdown source at a
-  time. Only use begin, edit, and finalize when changing the source: call `/md-compress begin
-  <absolute-markdown-path>` immediately before editing, edit only the returned source in the same
-  session, then call the exact returned `/md-compress finalize <absolute-markdown-path>` action
-  immediately and require the `done` receipt before opening another transaction or running unrelated
-  work. The `edit` step is the caller's file edit, not a `/md-compress` command; the standalone
-  tokens `begin` and `finalize` name the two `/md-compress` actions. Preserve protected tokens,
-  runtime configuration, ignored state, backups, and locks.
+- A no-edit Markdown pass is any pass that reads a Markdown file without editing it. It always needs
+  the command `/md-compress guard <absolute-markdown-path>` and the `guarded` receipt. Require that
+  receipt before continuing; never skip the guard because the pass is read-only. For edits, process
+  one Markdown source at a time. Only use begin, edit, and finalize when changing the source: call
+  `/md-compress begin <absolute-markdown-path>` immediately before editing, edit only the returned
+  source in the same session, then call the exact returned
+  `/md-compress finalize <absolute-markdown-path>` action immediately and require the `done` receipt
+  before opening another transaction or running unrelated work. The `edit` step is the caller's file
+  edit, not a `/md-compress` command; the standalone tokens `begin` and `finalize` name the two
+  `/md-compress` actions. Preserve protected tokens, runtime configuration, ignored state, backups,
+  and locks.
 - If a Markdown guard or finalization fails, preserve the backup and lock. Before declaring a
   blocker, search the private knowledge base and persistent user memory for recovery matching the
   exact error. Verify any recovery against the owning skill and current state; apply only a
@@ -135,10 +153,9 @@ invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
   relative, one-level links. Reusable guidance uses placeholders, not machine-specific paths.
 - Write skill descriptions as concise, imperative trigger guidance: state the user intent and job,
   relevant indirect contexts, useful keywords, and neighboring boundaries; limit them to 1,024
-  characters. The `description` field owns activation;
-  `argument-hint` does not control activation. Do not add a competing `trigger` field. Test trigger
-  changes with balanced, realistic positive and near-miss negative prompts and repeated runs through
-  the actual registered agent where available.
+  characters. The `description` field owns activation; `argument-hint` does not control activation.
+  Do not add a competing `trigger` field. Test trigger changes with balanced, realistic positive and
+  near-miss negative prompts and repeated runs through the actual registered agent where available.
   Keep `argument-hint` only as a compact caller/UI hint. When `Usage` exposes caller-supplied
   arguments, provide a matching hint; omit it only when the skill accepts no caller input.
 - For output evaluations, compare clean with-skill and without-skill or prior-version runs. Vary
@@ -146,21 +163,24 @@ invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
   claims, review actual outputs, and record timing, token use, variance, and pass-rate changes.
 - Prefer one-off commands for existing tools. Bundle repeated or fragile logic in `scripts/`, use
   skill-root-relative paths, document dependencies, and pin versions when reproducibility matters.
-  Scripts must accept inputs through arguments, environment, or stdin, expose concise `--help`,
-  emit structured output, and give errors that state the problem, expected
-  input, and next action.
+  Scripts must accept inputs through arguments, environment, or stdin, expose concise `--help`, emit
+  structured output, and give errors that state the problem, expected input, and next action.
 - Capture materially repeated workflows as reusable guidance: stable inputs, ordered steps,
   boundaries, validation, and recovery. Make the act-check-react loop explicit: perform the action,
   verify with the named check, and react to its result at that boundary. Preserve human judgment as
   escalation or decision points, not hardcoded verdicts. Keep extracted guidance generic; omit
   session-specific tools, paths, and one-off payloads.
+- Wrap every Markdown file you edit with the reflow transform, never by hand: preview with
+  `bun <agents-root>/scripts/reflow.ts <changed-files>`, then apply with `--write`. It fills prose
+  lines into the 81-100 column band and keeps links, code spans, and parentheticals whole.
 - Keep the seven section headings as a skill document's architecture. For an existing skill, map
   content ownership first, rewrite the entire source in place, move retained content under one owner
   or nested subsection, and remove superseded blocks. A heading count alone does not prove cohesion;
-  never leave a detached second half or add filler. Sections need not have equal length.
-  Map every retained paragraph, table, code block, and branch rule to one owning section or linked
-  reference. Never prepend a seven-section shell, append the old body after section 7, or duplicate
-  the invocation catalog.
+  never leave a detached second half or add filler. Sections need not have equal length. Map every
+  retained paragraph, table, code block, and branch rule to one owning section or linked reference.
+  A retained block that fits none of the seven sections goes to a linked reference, never to an
+  eighth section or a detached second half. Never prepend a seven-section shell, append the old body
+  after section 7, or duplicate the invocation catalog.
 - Never claim closure from a score or measurement. Deterministic checks, matrix receipts, policy and
   link review, applicable project gates, and owner review decide pass or failure.
 - Training never makes a skill worse. Record a baseline before editing; keep an edit only when the
@@ -174,10 +194,23 @@ invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
   never edited or deleted. Prove growth with `ratchet` against the committed version before
   closeout. When the baseline already passes every query, append harder near-miss queries, ratchet,
   and record a new baseline; do not declare the skill optimal.
-- Train every document, not only `SKILL.md`. Each Markdown file inside a skill package, and each
-  `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file in the agents root, has a comprehension set.
-  The target reader is a tiny model (about 4B parameters): rewrite until a weak reader answers every
-  probe correctly on every run, using short sentences, one rule per sentence, and numbered lists for
+- Every change to an instruction document or a skill description ends with `gate record` for it. A
+  skill description decides when the skill is loaded, so it is gated like any instruction: the weak
+  reader routes every trigger query through the catalog of all descriptions. It measures the
+  document with the weak reader and writes a never-worse receipt only when no probe that passed
+  before now fails, held-out validation keeps every pass, and a document with failing probes gains a
+  pass. The final gate runs `gate verify` and fails on a missing, stale, or hand-edited receipt.
+  When `gate record` rejects an edit or leaves failing probes, follow the retry loop in the train
+  protocol: up to 5 rewrites guided by its diagnosis, then `--allow-equal` with a reason; never edit
+  a receipt by hand.
+- Train every document, not only `SKILL.md`. These files need a comprehension set:
+  - every Markdown file inside a skill package;
+  - every `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file in the agents root or at the project
+    root, including dotted names such as `AGENTS.override.md`.
+
+  No other file needs one: not `README.md` in the agents root, and not `package.json`. The target
+  reader is a tiny model (about 4B parameters): rewrite until a weak reader answers every probe
+  correctly on every run, using short sentences, one rule per sentence, and numbered lists for
   order. A weak reader that fails a probe means the document is unclear, not that the reader is bad.
 
 ## 4. Input & Context Schema
@@ -232,9 +265,9 @@ request -> artifact and active owner -> review state and frozen matrix
    where needed and remove superseded blocks.
 4. **Check:** Run GREEN against the same matrix and require a changed source fingerprint. Use
    REFACTOR to close new loopholes, then run challenge cases against the same candidate source and
-   matrix. For description or body changes that affect activation, run the in-session training
-   loop below against `evals/trigger-queries.json`. For output changes, compare clean with-skill
-   and without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
+   matrix. For description or body changes that affect activation, run the in-session training loop
+   below against `evals/trigger-queries.json`. For output changes, compare clean with-skill and
+   without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
    deltas, and manually review outputs. For instructions, review precedence, active-path selection,
    links, cross-file conflicts, and the exact requested rule.
 5. **Finalize:** Validate frontmatter, structure, and resources or the instruction format; review
@@ -289,14 +322,22 @@ independent samples where supported, manual review of flagged outputs, captured 
 and variance as a signal. Remove always-pass or always-fail assertions, inspect outliers, and retain
 the evidence; scores or measurements do not close a review.
 
-Description evaluations use the fixed train/validation split in `evals/trigger-queries.json` with
-balanced `should-trigger` and `should-not-trigger` queries (at least two of each per split and no
-polarity below a third; `validate` enforces this) and repeated runs (five by default, three at
-minimum). Observe trigger rates from the actual registered agent where available, otherwise from the
-blind child agents below. A query passes only when every run agrees with its label: all runs load
-the skill for a should-trigger query and none loads it for a near-miss query. A mixed result is an
-unstable query to fix, never a pass. Use train failures to guide edits, choose the iteration from
-held-out validation, and do not overfit exact failed-query keywords.
+Description evaluations use the fixed train/validation split in `evals/trigger-queries.json`. Each
+split needs balanced `should-trigger` and `should-not-trigger` queries: at least two of each, and no
+polarity below a third. `validate` enforces this. Example splits: 3 should-trigger and 6
+should-not-trigger passes; 1 and 5 fails, because it has only one should-trigger query; 6 and 1
+fails; 2 and 8 fails, because 2 of 10 is below a third.
+
+Run every query repeatedly: five runs by default, three at minimum. Observe trigger rates from the
+actual registered agent where available, otherwise from the blind child agents below. A query passes
+only when every run agrees with its label:
+
+- A should-trigger query passes when the skill loads in all runs (5 of 5). It fails at 4 of 5.
+- A near-miss query passes when the skill loads in no run (0 of 5). It fails at 1 of 5.
+- A mixed result is an unstable query to fix, never a pass.
+
+Use train failures to guide edits, choose the iteration from held-out validation, and do not overfit
+exact failed-query keywords.
 
 Scripts used by the workflow must be non-interactive, expose `--help`, and emit structured output.
 Errors should say what failed, what was expected, and what the agent should try next.
@@ -327,8 +368,8 @@ run; that is the goal state for every skill and every document.
 3. **Attempt:** repeat the blind measurement and run `train measure --attempt <n>`. On `blocked`,
    restore the best known snapshot reported by `train select` before the next attempt.
 4. **Finish:** within the attempt budget (default three), run `train select`; apply the winner or
-   keep the baseline, record `applied` or `rollback`, then run the suite `post-change` check and
-   the gate.
+   keep the baseline, record `applied` or `rollback`, then run the suite `post-change` check and the
+   gate.
 
 ## 6. Output & Completion Contract
 
@@ -348,9 +389,9 @@ check.
 
 Failure names the exact finding, failed assertion, owner boundary, missing resource or link, stale
 receipt, matrix/source mismatch, or gate output, with its repair packet. Do not claim completion
-from a score, measurement, intent, candidate receipt, partial green check, a training run without
-an `accepted` or restored ledger entry, or unavailable external owner. For skill packages, the
-final gate is the project-approved `finalGate` in `aidx.json`, otherwise `.agents`'s `bun run test`,
+from a score, measurement, intent, candidate receipt, partial green check, a training run without an
+`accepted` or restored ledger entry, or unavailable external owner. For skill packages, the final
+gate is the project-approved `finalGate` in `aidx.json`, otherwise `.agents`'s `bun run test`,
 otherwise `bun run test`. Run the selected gate completely, retain its exact command and result, and
 require every check to pass.
 
@@ -371,3 +412,11 @@ require every check to pass.
 - **Independent verifier:** Quality-engine receipts, deterministic validation, matrix and source
   fingerprints, Markdown token checks, active-policy review, links, and project gates independently
   verify closure.
+- **Quick rules:**
+  - Which phases may the `batch` evaluation use? `baseline` or `candidate` only. It never uses
+    `challenge`; only `evaluate` does.
+  - Pass rule with 5 runs: every run must agree with the label. A should-trigger query that loads
+    the skill in 4 of 5 runs fails. A near-miss query that loads the skill in 0 of 5 runs passes.
+  - A read-only pass over a Markdown file still needs a command:
+    `/md-compress guard <absolute-markdown-path>`, and its `guarded` receipt. No-edit does not mean
+    no command.

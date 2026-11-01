@@ -1,0 +1,48 @@
+{
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10"
+    ],
+    "validationPassed": 5
+  },
+  "decision": "perfect",
+  "document": "skills/repo-search/references/engine.md",
+  "documentSha256": "09cfd564b3ea4073b7cac70dfd96c6fff5fe1aad512fb22b03a20d1bb0b5e9b4",
+  "fingerprint": {
+    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+    "maxNewTokens": 8,
+    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+    "readerVersion": "reader-v1"
+  },
+  "measurement": {
+    "trainFailed": [],
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10"
+    ],
+    "validationPassed": 5,
+    "validationTotal": 5
+  },
+  "reason": "",
+  "schema": 1,
+  "selfSha256": "d94dea343dccc4c2126c3fa04f568deb6b36f93fcbef9176d0611822fece7c6f",
+  "setPath": "skills/repo-search/evals/comprehension/references-engine.json",
+  "setSha256": "1c2b394c885d3af8d83c1613d562e025c8a4ba29746f1365e659f6e60a4f4400"
+}

@@ -76,8 +76,9 @@ selected paths -> package/config resolution -> Biome and bun check
    `declaration-order.ts --apply <one-allowed-path>`; move only whole declarations in the packet's
    `allowedPaths`. The packet is an executable repair instruction, not report-only output. For
    `blocked`, report the duplicate, shadowing, or cycle and make no edit.
-4. **Candidate verification:** Rerun the same complete command after one permitted reorder batch. A
-   path passes only when status is `passed` and `actionPacket` is `null`.
+4. **Candidate verification:** After one permitted `--apply` reorder batch, rerun the same complete
+   inspection command without `--apply`. A path passes only when status is `passed` and
+   `actionPacket` is `null`.
 5. **Handoff:** Return per-path receipts and any exact diagnostics to the owning skill. Do not
    autofix unrelated files.
 

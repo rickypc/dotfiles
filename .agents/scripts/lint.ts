@@ -5,7 +5,7 @@ import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 
 export interface LintReceipt {
-  readonly name: 'biome' | 'declaration-order' | 'skills';
+  readonly name: 'biome' | 'declaration-order' | 'instruction-gate' | 'skills';
   readonly result: CommandResult;
 }
 
@@ -34,6 +34,10 @@ export const lintCommandsFor = (
       "rg --files -0 -g '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}' | xargs -0 bun scripts/declaration-order.ts --summary",
       agentsRoot,
     ),
+  },
+  {
+    name: 'instruction-gate',
+    spec: shellCommand('bun scripts/instruction-gate.ts verify', agentsRoot),
   },
   {
     name: 'skills',

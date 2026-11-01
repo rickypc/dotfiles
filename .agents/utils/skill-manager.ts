@@ -1,3 +1,4 @@
+import { homedir } from 'node:os';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import matter from 'gray-matter';
 import type { FileSystem } from './filesystem.js';
@@ -491,6 +492,17 @@ const validateTriggerQueries = async (
 
 const instructionDocumentPattern = /^(?:AGENTS|CLAUDE|GEMINI)(?:\.[^./]+)*\.md$/iu;
 
+const instructionDocumentsIn = async (
+  fileSystem: Pick<FileSystem, 'readdir'>,
+  directory: string,
+): Promise<readonly string[]> => {
+  const entries = (await fileSystem.readdir?.(directory, { withFileTypes: true })) ?? [];
+  return entries
+    .filter((entry) => !entry.isDirectory() && instructionDocumentPattern.test(entry.name))
+    .map((entry) => entry.name)
+    .sort();
+};
+
 const markdownFilesUnder = async (
   fileSystem: Pick<FileSystem, 'readdir'>,
   directory: string,
@@ -506,6 +518,13 @@ const markdownFilesUnder = async (
     }),
   );
   return nested.flat().sort();
+};
+
+// A project-local runtime lives in `<project-root>/.agents`; its project-root instruction files
+// need sets too. The machine-wide runtime in the home directory has no project root.
+const projectRootFor = (agentsRoot: string): string | undefined => {
+  const projectRoot = dirname(resolve(agentsRoot));
+  return basename(agentsRoot) === '.agents' && projectRoot !== homedir() ? projectRoot : undefined;
 };
 
 const validateComprehensionSet = async (
@@ -529,19 +548,25 @@ export const validateInstructionSets = async (
   fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
   agentsRoot: string,
 ): Promise<number> => {
-  const entries = (await fileSystem.readdir?.(agentsRoot, { withFileTypes: true })) ?? [];
-  const documents = entries
-    .filter((entry) => !entry.isDirectory() && instructionDocumentPattern.test(entry.name))
-    .map((entry) => entry.name)
-    .sort();
-  for (const document of documents) {
+  const rootDocuments = await instructionDocumentsIn(fileSystem, agentsRoot);
+  const projectRoot = projectRootFor(agentsRoot);
+  const projectDocuments = projectRoot
+    ? (await instructionDocumentsIn(fileSystem, projectRoot)).filter(
+        (document) => !rootDocuments.includes(document),
+      )
+    : [];
+  const targets = [
+    ...rootDocuments.map((document) => ({ document, prefix: '../' })),
+    ...projectDocuments.map((document) => ({ document, prefix: '../../' })),
+  ];
+  for (const { document, prefix } of targets) {
     const key = document.replace(/\.md$/iu, '');
     await validateComprehensionSet(fileSystem, join(agentsRoot, 'evals', `${key}.json`), {
       subject: `instructions--${key.toLowerCase()}`,
-      target: `../${document}`,
+      target: `${prefix}${document}`,
     });
   }
-  return documents.length;
+  return targets.length;
 };
 
 const validateSkillComprehension = async (

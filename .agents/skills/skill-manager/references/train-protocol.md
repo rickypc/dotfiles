@@ -129,13 +129,87 @@ re-baseline to hide a loss.
 
 ## 8. Documents and the weak reader
 
-Every Markdown file inside a skill package, and every `AGENTS*`, `CLAUDE*`, or `GEMINI*` file in the
-agents root, has a comprehension set: `<skill>/evals/comprehension/<path-with-dashes>.json`, or
-`<agents-root>/evals/<name>.json`. The set holds lettered multiple-choice probes about the rules of
-one document. `train bundle <set.json>` prints the live document and the blind questions; the child
-answers each question with one option letter in an `answer` field.
+Each document has a comprehension set. Where the set lives depends on the document:
+
+- A Markdown file inside a skill package: `<skill>/evals/comprehension/<path-with-dashes>.json`.
+- An `AGENTS*`, `CLAUDE*`, or `GEMINI*` file in the agents root: `<agents-root>/evals/<name>.json`,
+  for example `<agents-root>/evals/CLAUDE.json` for `CLAUDE.md`. This path has no `comprehension`
+  folder and no dashed path.
+- An instruction file at a project root, including dotted names such as `AGENTS.override.md`:
+  `<project-agents-root>/evals/<name>.json`, where `<name>` is the file name without `.md`. The
+  `target` is the relative path from the set file to the document, for example
+  `../../AGENTS.override.md`, and `skill_name` is `instructions--<name lowercased>`.
+
+The set holds lettered multiple-choice probes about the rules of one document.
+`train bundle <set.json>` prints the live document and the blind questions; the child answers each
+question with one option letter in an `answer` field.
 
 - Use a weak reader as the child (the smallest model available) so the result reflects a tiny model.
+- Run the built-in local reader to answer a document bundle with no human step:
+  `bun <agents-root>/scripts/weak-reader.ts <bundle> <answers>`. Both arguments are absolute paths:
+  the bundle is the saved output of `train bundle`, the answers file feeds `train measure`.
+- The reader needs the `webgpu` package (`bun add webgpu` in the agents root) and a GPU adapter. Its
+  first run downloads only Google's Gemma 4 E2B weights, once, into the standard Hugging Face cache
+  (`HF_HOME`, else `~/.cache/huggingface`), verifies every file, and records the revision so later
+  runs need no network; nothing is stored in the agents root. When the network re-signs connections
+  the reader retries with the system trust store; set `NODE_EXTRA_CA_CERTS` only if that retry also
+  fails.
+- Exit codes: 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package,
+  5 document too long.
+- When the process is sandboxed it finds no adapter and exits 2: run this one command outside the
+  sandbox through the executing agent's mechanism for that. When exit 2 persists, answer the bundle
+  with in-session child agents instead.
+- An unparseable reply is written as `NONE` (a document) or `UNPARSEABLE` (a router) and scores as a
+  miss.
+- The reader runs on macOS (Metal through Dawn); it is not meant for any other platform.
+- To learn what the weak reader finds hard, run
+  `bun <agents-root>/scripts/weak-reader.ts suggest <bundle> <failures> <suggestions>`. `<failures>`
+  is a JSON array of train misses, each with `id`, `query`, `expected`, and `given`. For every miss
+  the reader quotes the sentence it relied on, says what was hard to read, and proposes a clearer
+  replacement. Treat the output as a lead: check each proposal against the document before editing.
+- The runtime bundle is vendored in `vendor/gemma-4-e2b/` with its origin, license status, and two
+  edits recorded there. The edits let the reader keep the cached document prefix between questions
+  and size the context from the document (up to the model limit of 131072 tokens). The document is
+  read once, then each question takes under a second. The reader logs load, warmup, first-token,
+  per-query, and total times.
+- The gate makes this deterministic. `bun <agents-root>/scripts/instruction-gate.ts record` measures
+  each changed instruction document, compares it with its stored receipt, and writes
+  `evals/receipts/<document>.json` only for a never-worse result. `... instruction-gate.ts verify`
+  runs in the final gate with no GPU: it fails when a document or its comprehension set changed
+  after its receipt, when a receipt was edited, or when a recorded result is worse than its
+  baseline.
+- A receipt records the document hash, the set hash, and the reader (model revision, runtime hash,
+  prompt version). Greedy decoding makes the same inputs give the same answers, so a receipt is
+  reproducible. When the reader changes, every receipt needs `record --rebaseline <reason>`.
+- Skill descriptions are gated as one unit, because the router reads every description.
+  `record descriptions` has the reader route every query of every `evals/trigger-queries.json`
+  through the catalog of all descriptions and stores one receipt, `evals/receipts/activation.json`.
+  One edit moves other skills' probes, so routing compares score totals instead of single probes:
+  the train total and the held-out validation total must not fall, and a catalog that still has
+  failing queries must gain. The reader accepts a skill name in any case and with `-`, `_`, or a
+  space between words, so `review_changes` counts as review-changes. The retry loop below applies:
+  read the DIAGNOSIS, rewrite the descriptions it names, record again.
+
+- Run `record` where a GPU adapter exists. When it exits 2, run the same command through the
+  executing agent's mechanism for commands outside its sandbox, or on a GPU host. A person only
+  approves the run.
+- Retry loop for a rejected record or a document that still has failing probes. No person waits or
+  retries; the agent loops by itself:
+  1. Read the DIAGNOSIS block: each failing probe, its source rule, and the weak reader's own view.
+  2. Treat the reader's suggested wording as the first candidate. A small model is the audience, so
+     what confuses it is the signal; but it can misquote the source or invent text, so check each
+     suggestion against the source rule and keep only what is faithful. Then infer the cause. Common
+     causes: the rule sits in a long paragraph; a nearby sentence copies the wording of a wrong
+     option; an unrelated edit moved a probe that passed, so restore the nearby text; the reader
+     finds the rule but picks the wrong letter, so restate the rule in the shape of the question
+     near the end of the document.
+  3. Rewrite the source passage as short, direct sentences and run `record` again. Record every
+     changed document in one batch.
+  4. After 5 attempts without a new pass, run
+     `record --allow-equal "<reason naming the remaining probes>"`. The never-worse rule still
+     holds. Report the remaining probes in the closeout.
+- `--allow-equal <reason>` also accepts an edit that cannot improve a document with failing probes,
+  for example a typo fix, and keeps the reason in the receipt.
 - Audit every probe label first with a strong reader. A probe the strong reader answers differently
   is wrong or ambiguous: fix it before the first baseline, or retire it afterwards.
 - Write fixes for failing probes as short sentences, one rule per sentence, with numbered lists for

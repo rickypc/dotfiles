@@ -1,7 +1,7 @@
 ---
 
 name: bun-test-generator
-description: Generate, convert, repair, rename, or delete quality-focused TypeScript Bun unit tests for a selected JavaScript or TypeScript SUT. Use before any unit-test change, including cleaning up tests orphaned when source code is removed or renamed.
+description: "Use when the user wants unit tests for TypeScript or JavaScript code that runs on Bun: write, extend, repair, rename, convert, or delete tests, add coverage or specs for a function, fix mocks leaking between test files, or clean up tests left behind by removed code. Do NOT use for Python, Go, or other languages, or for browser tests."
 argument-hint: <sut-path> <all|method-list|method-range>
 ---
 

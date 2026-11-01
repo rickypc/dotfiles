@@ -1,0 +1,46 @@
+{
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09"
+    ],
+    "validationPassed": 5
+  },
+  "decision": "perfect",
+  "document": "skills/repo-search/evals/rubric.md",
+  "documentSha256": "41d8d5aaad5db35c6d709bc841a4f28e028694f0f2263e8fb745c11d4ab19623",
+  "fingerprint": {
+    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+    "maxNewTokens": 8,
+    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+    "readerVersion": "reader-v1"
+  },
+  "measurement": {
+    "trainFailed": [],
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09"
+    ],
+    "validationPassed": 5,
+    "validationTotal": 5
+  },
+  "reason": "",
+  "schema": 1,
+  "selfSha256": "e3b8df287cb7277e4b700cc3e326924f37aefc892442ab7dc0f26678d695cad7",
+  "setPath": "skills/repo-search/evals/comprehension/evals-rubric.json",
+  "setSha256": "08c5b5d21e696f5f908809c2b30d7ccb42b272d708879646784c64e332076fce"
+}

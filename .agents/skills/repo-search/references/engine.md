@@ -61,8 +61,9 @@ The backend emits human-oriented tables inside the MCP envelope; the engine pars
 deterministically instead of trusting raw output:
 - `list_projects`: rows of `name root_path branch` after the `projects:` header; double-quoted paths
   with spaces are honored.
-- `index_status`: top-level `key: value` lines; readiness is exactly `status: ready`, freshness is
-  `indexed_at`.
+- `index_status`: top-level `key: value` lines. The index is ready only when the line is exactly
+  `status: ready`. Any other status, such as `status: indexing`, means not ready, even when
+  `indexed_at` is present. `indexed_at` reports freshness only.
 - `search_graph` and `search_code`: rows after the `results:` header with
   `qn label file lines [rank|matches...]`; `search_code` also yields the `directories:` cluster used
   for keyword-surrounding results. Graph rows count only when the query appears in the identity

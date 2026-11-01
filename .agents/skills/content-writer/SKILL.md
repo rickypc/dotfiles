@@ -1,7 +1,7 @@
 ---
 
 name: content-writer
-description: "Use when the user wants long-form or factual content that needs research, sources, citations, or quotations kept word for word (including a quotation in a non-English language, whose original wording must stay untouched): articles, blog posts, newsletter pieces, whitepapers, guides, explainers, reports, case studies, FAQs, refreshed or fact-checked drafts, and reconciling an old page against a live source (what is still right, obsolete, or unverifiable), and SEO or GEO copy backed by evidence. Do NOT use for quick chat messages (Slack, email), tone or wording tweaks, translation, summaries, commit messages, code comments, or UI text that needs no research or quoted material."
+description: "Use when the user wants a researched article, blog post, whitepaper, guide, report, or case study with sources, citations, or word-for-word quotations, or wants an old page fact-checked against a live source. Do NOT use for chat messages, emails, translation, summaries, release notes, headline or name ideas, or any writing that needs no research."
 argument-hint: <objective> <audience> <format> <constraints> <citation-style>
 ---
 
@@ -44,9 +44,11 @@ need research, citations, quotation preservation, or refresh verification.
   frames it, attribute the framing, or escalate it to the owner; never promote an unsupported
   tradition claim to an inferred fact. Thin or missing provenance is a ledger fact: present the item
   as the tradition presents it and keep the caveat out of reader-facing prose.
-- **Write in a natural human voice**. Vary sentence openers across parallel items, never repeat one
-  template sentence down a list, and drop the "not X but Y" and "X rather than Y" tic. Reader-facing
-  prose does not discuss the writing, research, or verification process.
+- **Write in a natural human voice**. Vary sentence openers across parallel items, and never repeat
+  one template sentence down a list. Never use the contrast tic: drop "not X but Y", "X, not Y", and
+  "X rather than Y". Example: "The lab is a hub, not a classroom." breaks the rule;
+  "The lab trains analysts." does not. Reader-facing prose does not discuss the writing, research,
+  or verification process.
 - **Match the register of the source text**. Explanatory content (essays, articles, guides) gets
   full prose treatment: rewrite clumsy sentences and run-ons freely. Instructional, procedural, or
   liturgical text gets prose corrections only (grammar, punctuation, and run-ons); its procedure,
@@ -55,11 +57,12 @@ need research, citations, quotation preservation, or refresh verification.
 - **Keep MDX/Markdown output render-safe**. Wrap code-like, formula-like, or otherwise
   renderer-sensitive tokens in inline code so MDX renders them literally, and keep every quotation
   block byte-identical. Wrap prose to 100 characters as a band, not a ceiling: refill prose a file
-  already wraps at 80 or narrower. Never split an inline code span, a link's text or target, an MDX
-  `{...}` expression, or a JSX tag with its attributes; never begin a wrapped continuation line with
-  an ordered-list marker, `>`, `#`, `[`, `{`, or a tag; keep footnote and citation continuation
-  lines indent-aligned under their label; and when an inline JSX element starts a continuation line,
-  keep the preceding space with `&nbsp;`.
+  already wraps at 80 or narrower. Never split a link: keep the whole link on one line, even if that
+  line runs past 100 characters, and never break inside the link text or between the link text and
+  its target. Never split an inline code span, an MDX `{...}` expression, or a JSX tag with its
+  attributes; never begin a wrapped continuation line with an ordered-list marker, `>`, `#`, `[`,
+  `{`, or a tag; keep footnote and citation continuation lines indent-aligned under their label; and
+  when an inline JSX element starts a continuation line, keep the preceding space with `&nbsp;`.
 - Keep the research ledger separate from reader-facing prose. Surface uncertainty, do not fill gaps
   from memory, and ask one focused question when audience, language, refresh state, or evidence
   standard changes the result.

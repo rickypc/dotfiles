@@ -88,15 +88,17 @@ root and scope -> retrieve evidence -> choose disposition -> guarded write
    current candidates. repo-search reads the configured KB root in private-KB local-only mode.
 3. **Decide:** For each atomic lesson, choose one explicit disposition: `new-primary` when no
    concept owns it, `update-existing` when one does, or `link-related` when another concept supplies
-   context. One canonical owner is required for reconciliation. Example: no concept owns lesson L,
-   and concept C only gives background for L. Then L is `new-primary` (L becomes its own concept)
-   and C gets a `link-related` link from L. Never make C own L, and never make both `new-primary`.
+   context. One canonical owner is required for reconciliation. A concept that only gives background
+   never owns the lesson. Example: no concept owns lesson L, and concept C only gives background for
+   L. Then L is `new-primary` (L becomes its own concept) and C gets a `link-related` link from L.
+   So the answer is `new-primary` for L plus `link-related` for C. Never make C own L, never use
+   `link-related` for L itself, and never make both `new-primary`.
 4. **Write or import:** Materialize rich JSON through the fixed TypeScript writer, then run the
    owning reconcile/import command. Validate metadata, links, preconditions, and every returned
    receipt before applying writes.
-5. **Guard and verify:** Run `/md-compress` `guard` for no-edit validation, or
-   `begin`/`edit`/`finalize` for changed Markdown, validate OKF and indexes, and return receipts. If
-   evidence or authority fails, preserve the existing KB and stop.
+5. **Guard and verify:** For no-edit validation run `/md-compress` `guard`. For changed Markdown run
+   these steps in this order: first `begin`, then edit, then `finalize`. Then validate OKF and
+   indexes, and return receipts. If evidence or authority fails, preserve the existing KB and stop.
 
 ### Fixed JSON request boundary
 
@@ -112,8 +114,9 @@ cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <ab
 The writer receives exactly one absolute output-path argument under the actual OS temporary
 directory, parses and formats JSON before writing, and rejects malformed, relative, or
 out-of-directory paths. Never use a shell variable, command substitution, heredoc, inline writer,
-Python, object-valued string payload, or `JSON.stringify(request)`. Encode Markdown backticks and
-dollar signs inside JSON as `\\u0060` and `\\u0024`.
+Python, object-valued string payload, or `JSON.stringify(request)`. Encode a Markdown backtick as
+`\\u0060`. Encode a dollar sign as `\\u0024`. Never swap the two codes, and never leave either
+character raw.
 
 ### Reconciliation schema and dispositions
 

@@ -1,0 +1,46 @@
+{
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09"
+    ],
+    "validationPassed": 5
+  },
+  "decision": "perfect",
+  "document": "skills/aidx/references/execution-contract.md",
+  "documentSha256": "f59c37e9fe815c16dc3d2437d503d70681a42e784e78c2417391e1b3ce37bba3",
+  "fingerprint": {
+    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+    "maxNewTokens": 8,
+    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+    "readerVersion": "reader-v1"
+  },
+  "measurement": {
+    "trainFailed": [],
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09"
+    ],
+    "validationPassed": 5,
+    "validationTotal": 5
+  },
+  "reason": "",
+  "schema": 1,
+  "selfSha256": "19f5c6989a1d60f25810865a91f691c020b58c256ad7211d6de0daf00dc051d8",
+  "setPath": "skills/aidx/evals/comprehension/references-execution-contract.json",
+  "setSha256": "b3bbc16b132da657cfd46412e171c495032ec9dcc19354e259638f1fbd2cf8ae"
+}

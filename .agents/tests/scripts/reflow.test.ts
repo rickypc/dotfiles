@@ -100,6 +100,19 @@ describe('wrap engine edges', () => {
     expect(wrapAtoms(stream.atoms, stream.seps, '', '', options).feasible).toBe(false);
   });
 
+  test('a parenthetical that fits stays on the line and one that does not moves whole', () => {
+    const fitting = `${'word '.repeat(17).trim()} (blah) tail`;
+    const fitStream = tokenize(fitting);
+    expect(wrapAtoms(fitStream.atoms, fitStream.seps, '', '', options).lines).toEqual([fitting]);
+
+    const overflowing = `${'word '.repeat(19).trim()} (blah) tail`;
+    const overflowStream = tokenize(overflowing);
+    const lines = wrapAtoms(overflowStream.atoms, overflowStream.seps, '', '', options).lines;
+    expect(lines.every((line) => [...line].length <= 100)).toBe(true);
+    expect(lines.join(' ')).toBe(overflowing);
+    expect(lines.some((line) => line.includes('(blah)'))).toBe(true);
+  });
+
   test('a complete inline link may lead the only legal break', () => {
     const linkLead =
       '[human birth](https://en.wikipedia.org/wiki/Human_beings_in_Buddhism'
@@ -159,6 +172,15 @@ describe('wrap engine edges', () => {
 });
 
 describe('scenario matrix', () => {
+  test('a code span wrapped across lines hides its <tag> from the JSX scan, so later blocks refill', () => {
+    const wrapped = 'Call `/tool begin\n<absolute-path>` before editing.';
+    const long = `${'word '.repeat(30).trim()} end`;
+    const r = reflowText(`${wrapped}\n\n${long}`);
+    expect(r.changed).toBe(true);
+    expect(r.output.startsWith(wrapped)).toBe(true);
+    expect(r.output.split('\n').every((line) => [...line].length <= 100)).toBe(true);
+  });
+
   test('s1: prose over the limit splits; continuations land in the band', () => {
     const r = reflowText(
       'This paragraph is deliberately made long enough to exceed one hundred characters so that the wrap must split it into the band now.',

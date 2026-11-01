@@ -23,10 +23,10 @@ issued in the candidate action packet.
 
 For behavior-changing guidance, the quality record must show RED before the edit, GREEN after the
 smallest repair, and REFACTOR after new loopholes are closed. The matrix fingerprint remains fixed;
-candidate evidence must have a changed source fingerprint, and challenge evidence must match the
-candidate source and matrix. Pressure evidence uses a no-guidance control, combined pressures,
-repeated samples when supported, manual review of flagged outputs, variance awareness, and captured
-rationalizations.
+candidate evidence must have a changed source fingerprint. Challenge evidence must match two things:
+the candidate source and the candidate matrix, never the baseline. Pressure evidence uses a
+no-guidance control, combined pressures, repeated samples when supported, manual review of flagged
+outputs, variance awareness, and captured rationalizations.
 
 The matrix does not decide lint, TypeScript, tests, coverage, resource integrity, or other
 deterministic gates. Those remain separate evidence. No score, measurement, candidate receipt, or
@@ -47,12 +47,12 @@ observes whether the registered agent loaded the skill, not whether query text c
 `argument-hint` may remain as a caller/UI hint, but a separate `trigger` frontmatter field is not
 allowed.
 
-Training evidence is separate from matrix evidence. The activation metric is the pass state of
-each `evals/trigger-queries.json` query across repeated blind runs; the ledger gate keeps an edit
-only with no regression, at least one unanimous gain, an unchanged query-set fingerprint, and
-passing deterministic checks. A matrix or query set may only be extended: `ratchet` fails any
-removed case, dropped assertion, changed query, or lowered threshold. The `source-structure`
-verifier also enforces the 500-line and 1,024-character description budgets.
+Training evidence is separate from matrix evidence. The activation metric is the pass state of each
+`evals/trigger-queries.json` query across repeated blind runs; the ledger gate keeps an edit only
+with no regression, at least one unanimous gain, an unchanged query-set fingerprint, and passing
+deterministic checks. A matrix or query set may only be extended: `ratchet` fails any removed case,
+dropped assertion, changed query, or lowered threshold. The `source-structure` verifier also
+enforces the 500-line and 1,024-character description budgets.
 
 Every migrated skill must expose a top-level `## 2. Usage` section and begin
 `## 5. Ordered Execution Chain` with a plain-text flow diagram before the step-by-step explanation.
@@ -72,6 +72,8 @@ without becoming a second policy owner. Keep reusable guidance placeholder-based
 concrete project or assistant paths only in their corresponding local policy.
 
 Query sets and comprehension sets score a query as passed only when every run agrees with its label.
-A wrong or obsolete query is retired with a written reason, never edited after a baseline. Every
-Markdown file in a skill package and every `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file has a
-comprehension set, and a weak reader must answer every probe correctly on every run.
+A wrong or obsolete query is retired with a written reason, never edited after a baseline. These
+files have a comprehension set: every Markdown file in a skill package, and every `AGENTS*`,
+`CLAUDE*`, or `GEMINI*` instruction file. A skill-package Markdown file needs one wherever it sits,
+and a root instruction file needs one too. A weak reader must answer every probe correctly on every
+run.

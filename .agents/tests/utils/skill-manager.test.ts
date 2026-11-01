@@ -8,6 +8,7 @@ interface AllSkillsFixtureOptions {
   readonly comprehension?: readonly (readonly [string, string])[];
   readonly evalFiles?: readonly string[];
   readonly matrix?: string;
+  readonly projectNames?: readonly string[];
   readonly rubric?: string | null;
   readonly skills?: readonly string[];
   readonly source?: string;
@@ -551,6 +552,7 @@ const allSkillsFileSystemFor = (options: AllSkillsFixtureOptions = {}) => {
     ...optionalSkillFilesFor(options),
   ]);
   const directories: Record<string, readonly string[]> = {
+    '/tmp': ['.agents', ...(options.projectNames ?? [])],
     '/tmp/.agents': ['skills', ...(options.agentsNames ?? [])],
     '/tmp/.agents/skills': skills,
     '/tmp/.agents/skills/demo': ['SKILL.md', 'evals'],
@@ -709,6 +711,55 @@ test('requires a comprehension set for AGENTS and CLAUDE instruction documents',
   ).resolves.toMatchObject({ status: 'valid' });
   const direct = await validateInstructionSets(allSkillsFileSystemFor(), '/tmp/.agents');
   expect(direct).toBe(0);
+});
+
+test('requires a comprehension set for project-root instruction documents', async () => {
+  const set = (name: string, target: string, subject = `instructions--${name.toLowerCase()}`) =>
+    [[`/tmp/.agents/evals/${name}.json`, comprehensionSetFor(subject, target)]] as const;
+  const run = (
+    projectNames: readonly string[],
+    agentsFiles: readonly (readonly [string, string])[] = [],
+    agentsNames: readonly string[] = [],
+  ) =>
+    validateAllSkills(
+      allSkillsFileSystemFor({ agentsFiles, agentsNames, projectNames }),
+      '/tmp/.agents/skills',
+    );
+  await expect(run(['AGENTS.override.md'])).rejects.toThrow('AGENTS.override.json');
+  await expect(
+    run(['AGENTS.override.md', 'README.md'], set('AGENTS.override', '../../AGENTS.override.md')),
+  ).resolves.toMatchObject({ status: 'valid' });
+  await expect(
+    run(['AGENTS.override.md'], set('AGENTS.override', '../AGENTS.override.md')),
+  ).rejects.toThrow('target must be ../../AGENTS.override.md');
+  await expect(
+    run(['AGENTS.override.md'], set('AGENTS.override', '../../AGENTS.override.md', 'other')),
+  ).rejects.toThrow('skill_name must be instructions--agents.override');
+  // An agents-root document of the same name owns the set; the project-root copy is skipped.
+  await expect(
+    run(
+      ['AGENTS.md'],
+      [['/tmp/.agents/AGENTS.md', '# Policy'], ...set('AGENTS', '../AGENTS.md')],
+      ['AGENTS.md'],
+    ),
+  ).resolves.toMatchObject({ status: 'valid' });
+  const fileSystem = allSkillsFileSystemFor({ projectNames: ['notes.md'] });
+  expect(await validateInstructionSets(fileSystem, '/tmp/.agents')).toBe(0);
+});
+
+test('does not treat the home directory or a non-dot runtime as a project root', async () => {
+  const home = (await import('node:os')).homedir();
+  const listing = (names: readonly string[]) =>
+    names.map((name) => ({ isDirectory: () => false, name }));
+  const fileSystem = {
+    readdir: async (directory: string) =>
+      directory === home || directory === '/tmp' ? listing(['CLAUDE.md']) : [],
+    readFile: async (file: string): Promise<string> => {
+      throw new Error(`Missing ${file}`);
+    },
+  };
+  expect(await validateInstructionSets(fileSystem, `${home}/.agents`)).toBe(0);
+  expect(await validateInstructionSets(fileSystem, '/tmp/other-runtime')).toBe(0);
 });
 
 test('parses prose-only local links and honors the runtime ignore boundary', async () => {

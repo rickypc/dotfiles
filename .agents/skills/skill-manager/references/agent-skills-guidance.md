@@ -41,11 +41,14 @@ applies; the linked sources are the authority for changes in the upstream guidan
   trigger rate. In this runtime a query passes only when every run agrees with its label: all runs
   trigger for a should-trigger query and no run triggers for a near-miss query. A mixed result is an
   unstable query to fix, never a pass.
+- Which failures may guide a revision? Train failures only. Validation failures never guide a
+  revision.
 - Run each prompt repeatedly where supported and record trigger rates. Keep a fixed mixed
-  train/validation split (about 60/40); revise only from train failures (never from validation
-  failures), avoid copying failed-query keywords, and use validation only to choose between finished
-  iterations. Recheck the 1,024-character limit after every revision. Keep both classes represented
-  in each split and use fresh queries after optimization as a final generalization check.
+  train/validation split (about 60/40); revise only from train failures. Never use validation
+  failures to guide a revision. Avoid copying failed-query keywords, and use validation only to
+  choose between finished iterations. Recheck the 1,024-character limit after every revision. Keep
+  both classes represented in each split and use fresh queries after optimization as a final
+  generalization check.
 
 ## Output evaluation practice
 

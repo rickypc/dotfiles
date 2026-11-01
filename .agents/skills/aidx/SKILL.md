@@ -136,8 +136,16 @@ primary path is empty or fails, and retain the fallback result. Run every Sectio
 work and map the result directly into Section 6.
 
 Do not skip, reorder, batch, or silently broaden steps. Route specialized work only through the
-owner explicitly named by the plan. A minor path omission may be resolved from unambiguous local
-context; a material omission, scope change, unsafe action, or missing owner stops execution.
+owner explicitly named by the plan. Treat a gap in the plan by its size:
+
+- A minor path omission is resolved from unambiguous local context, and execution continues. If a
+  step names a file without a directory and only one such file exists locally, use that file.
+  Example: a step names `config.ts` with no directory and only one `config.ts` exists locally.
+- A material omission stops execution. Example: a step does not say which database to migrate. A
+  scope change, an unsafe action, or a missing owner is also material.
+- Never pick the most likely value for a material omission.
+
+With one minor gap and one material gap, resolve the minor one and stop for the material one.
 
 Implement the smallest compatible change and reuse verified extension points, types, conventions,
 configuration, and test helpers. Keep persistence, serialization, authorization, public types,
@@ -173,7 +181,9 @@ owns the completed-plan contract; never reuse `aidp-plan-validator.ts`, which re
 pending plan and rejects a completed closeout. A stale `pending` field is not evidence that
 execution is incomplete, but it is also not permission to infer completion: the current checklist,
 receipts, acceptance mapping, and final gate must all prove the terminal state. If AIDX cannot write
-or validate this closeout, it must stop and must not distill or remove the plan.
+this closeout, or the completed-plan validator fails, it must stop. Do not import the plan into the
+KB and do not move it to `~/.Trash/`, even when it holds verified reusable lessons. Fix the closeout
+first. A plan that failed validation stays where it is; moving it to `~/.Trash/` is also forbidden.
 
 Only after that closeout succeeds, classify the plan before retiring the source file. Retirement is
 mandatory, not optional, once the closeout and the chosen disposition are verified:

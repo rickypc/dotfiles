@@ -278,24 +278,6 @@ const constructOpen = (raw: string): ConstructState => {
   return state;
 };
 
-const consumeConstruct = (recs: readonly LineRec[], i: number, state: ConstructState): number => {
-  const opener = recs[i];
-  if (opener) {
-    opener.kind = 'jsx-multi';
-  }
-  let j = i + 1;
-  while (j < recs.length) {
-    const c = recs[j];
-    c.kind = 'jsx-multi';
-    constructDelta(c.raw, state);
-    j++;
-    if (constructClosed(state)) {
-      break;
-    }
-  }
-  return j;
-};
-
 const enumeratedMatch = (s: string): boolean => /^\s*\d{1,9}[.)](\s|$)/.test(s);
 
 const extractLinkTargets = (text: string): string[] => {
@@ -423,6 +405,17 @@ const listContRow = (
   return { cont: own, take: lazy || c.indent === own };
 };
 
+const maskSpans = (text: string): string[] => {
+  const masked = [...text];
+  let k = 0;
+  while (k < text.length) {
+    const end = text[k] === '`' ? tryConstruct(text, k, false) : k;
+    masked.fill(' ', k, Math.max(end, k));
+    k = Math.max(end, k + 1);
+  }
+  return masked;
+};
+
 const mkBlock = (
   recs: readonly LineRec[],
   start: number,
@@ -504,19 +497,64 @@ const listItemBlock = (
   return j;
 };
 
+const nonWhitespace = (text: string): string => text.replace(/\s+/g, '');
+
+const normalizeText = (text: string): string => text.replaceAll('&nbsp;', ' ').replace(/\s+/g, ' ');
+
+const paragraphBounds = (recs: readonly LineRec[], i: number): { first: number; last: number } => {
+  const blank = (index: number): boolean => (recs[index]?.raw.trim() ?? '') === '';
+  let first = i;
+  while (first > 0 && !blank(first - 1)) {
+    first--;
+  }
+  let last = i;
+  while (last + 1 < recs.length && !blank(last + 1)) {
+    last++;
+  }
+  return { first, last };
+};
+
+// An inline code span may wrap across lines of one paragraph; a tag-like `<name>` inside it is
+// code, never JSX. Blank the span characters so a per-line scan cannot open a phantom construct.
+const maskedCodeSpans = (recs: readonly LineRec[], i: number): string => {
+  const { first, last } = paragraphBounds(recs, i);
+  const paragraph = recs
+    .slice(first, last + 1)
+    .map((rec) => rec.raw)
+    .join('\n');
+  const start = recs.slice(first, i).reduce((sum, rec) => sum + rec.raw.length + 1, 0);
+  return maskSpans(paragraph)
+    .slice(start, start + (recs[i]?.raw.length ?? 0))
+    .join('');
+};
+
+const consumeConstruct = (recs: readonly LineRec[], i: number, state: ConstructState): number => {
+  const opener = recs[i];
+  if (opener) {
+    opener.kind = 'jsx-multi';
+  }
+  let j = i + 1;
+  while (j < recs.length) {
+    const c = recs[j];
+    c.kind = 'jsx-multi';
+    constructDelta(maskedCodeSpans(recs, j), state);
+    j++;
+    if (constructClosed(state)) {
+      break;
+    }
+  }
+  return j;
+};
+
 const multiLineConstruct = (recs: readonly LineRec[], i: number): number => {
   const opener = recs[i];
-  const state = constructOpen(opener.raw);
+  const state = constructOpen(maskedCodeSpans(recs, i));
   if (constructClosed(state)) {
     opener.kind = 'prose';
     return i + 1;
   }
   return consumeConstruct(recs, i, state);
 };
-
-const nonWhitespace = (text: string): string => text.replace(/\s+/g, '');
-
-const normalizeText = (text: string): string => text.replaceAll('&nbsp;', ' ').replace(/\s+/g, ' ');
 
 const proseBlock = (
   recs: readonly LineRec[],

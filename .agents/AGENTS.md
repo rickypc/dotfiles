@@ -190,11 +190,13 @@ user-memory source available under the active runtime's memory policy for a reco
 observed error. Verify any recovery against the current owner contract and environment, then use it
 when it applies; one rejected command form does not prove the operation is unavailable.
 
-Batch independent reads and distinct checks when safe, but never run the same checker, command,
-query, or final gate concurrently. Reject duplicate normalized queries in every batch API. For AIDX,
-use one `advance-batch` request for consecutive prepared non-gated transitions; use an individual
-transition when the state contract requires a user gate, test receipt, repair receipt, or other
-non-batchable event.
+Batch tool calls. Issue every independent tool call together in one parallel batch, read all of
+their results at once, decide, then issue the next batch. Never run independent reads, searches,
+checks, or jobs one at a time. Never run the same checker, command, query, or final gate
+concurrently, and reject duplicate normalized queries in every batch API. For AIDX, use one
+`advance-batch` request for consecutive prepared non-gated transitions; use an individual transition
+when the state contract requires a user gate, test receipt, repair receipt, or other non-batchable
+event.
 
 ### AIDP and AIDX boundary
 
@@ -300,14 +302,19 @@ Keep these units atomic when wrapping; splitting any of them changes meaning or 
 - an `<em>...</em>` element: breaking inside it fails the build with `Expected a closing tag for
   <em>`.
 
-Never let a wrapped continuation line begin with structure: an ordered-list marker (`N.` or `N)`),
-`>`, `#`, `[`, `{`, or a JSX tag. A continuation line starting with `N.` silently becomes a new
-ordered-list item, and one starting with a tag turns an inline element into a flow element. A bare
-`[` is a reference-definition hazard, but a complete inline link with a bracketed label and
-parenthesized target is exempt: its label is followed by a target, never `:`, so it cannot parse as
-a reference or footnote definition and may lead a continuation line. When an inline JSX element must
-begin a continuation line, keep the preceding space with `&nbsp;` so the rendered text does not lose
-it.
+Never let a wrapped continuation line begin with structure. These starts are forbidden: an
+ordered-list marker (`N.` or `N)`), `>`, `#`, `{`, a bare `[`, or a JSX tag. A continuation line
+starting with `N.` silently becomes a new ordered-list item, and one starting with a tag turns an
+inline element into a flow element. A bare `[` is a reference-definition hazard.
+
+One start is allowed: a complete inline link, a bracketed label followed by a parenthesized target.
+Its label is followed by a target, never `:`, so it cannot parse as a reference or footnote
+definition. It may lead a continuation line.
+
+Example: a continuation line that starts with `[the docs](./docs.md) cover the rest` is allowed.
+Continuation lines that start with `2. next item`, `> quoted`, or `# heading` are forbidden. When an
+inline JSX element must begin a continuation line, keep the preceding space with `&nbsp;` so the
+rendered text does not lose it.
 
 Citation, footnote, and source blocks carry their own alignment. A footnote definition's
 continuation lines are indented to align under the label text, so a wider `[^N]:` marker shifts
@@ -433,6 +440,8 @@ and report the exact blocker.
    bun <agents-root>/scripts/knowledge-base.ts reconcile <private-kb-root> <absolute-json-output-path>
    ```
 
+   The private-KB root comes first and the JSON path second.
+
 Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON boundary: heredoc, shell
 variables, command substitution, inline writers, Python, object-valued tool calls, direct
 `JSON.stringify` or `echo` source writing, guessed temp paths such as `/tmp` or `/private/tmp`, and
@@ -513,10 +522,14 @@ After the complete implementation batch:
 4. If it fails, collect all compatible repairs, apply them as one repair batch, and run the same
    final gate exactly once again.
 
-The final gate is the project-approved `finalGate` in `aidx.json`, otherwise `.agents`'s
-`bun run test`, otherwise `bun run test`. All required checks in the selected gate must pass; a
-matrix score, unit subset, coverage result, intention, or partial green receipt never closes the
-work.
+Pick the final gate in this order:
+1. The `finalGate` string in the project's `aidx.json`, when that file sets one.
+2. Otherwise the `bun run test` of `.agents`.
+3. Otherwise the `bun run test` of the project root.
+
+A project root `bun run test` is not the gate while `.agents` defines one. All required checks in
+the selected gate must pass; a matrix score, unit subset, coverage result, intention, or partial
+green receipt never closes the work.
 
 Closeout reports exact changed files, commands and results, validation/resource/ link findings,
 owner receipts, limitations, and remaining follow-up. Preserve a resumable record when work spans

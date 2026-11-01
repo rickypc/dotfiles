@@ -1,0 +1,40 @@
+{
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06"
+    ],
+    "validationPassed": 4
+  },
+  "decision": "perfect",
+  "document": "skills/skill-manager/references/index.md",
+  "documentSha256": "4345a0cb1ad527bc83c1d71bf0d79a12b724cab4b1ed5eba4dc7253e062a9c20",
+  "fingerprint": {
+    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+    "maxNewTokens": 8,
+    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+    "readerVersion": "reader-v1"
+  },
+  "measurement": {
+    "trainFailed": [],
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06"
+    ],
+    "validationPassed": 4,
+    "validationTotal": 4
+  },
+  "reason": "",
+  "schema": 1,
+  "selfSha256": "82849cce3779c73b15b9c1615b1169dc077f90aa9d4fb4a103748df0ca325a7c",
+  "setPath": "skills/skill-manager/evals/comprehension/references-index.json",
+  "setSha256": "d60833dedf12937a608a0c246d54b0a503be5ce13d9def9d4428244641d46dd7"
+}

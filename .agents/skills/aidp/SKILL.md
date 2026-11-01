@@ -1,7 +1,7 @@
 ---
 
 name: aidp
-description: "Use when the user wants a written plan BEFORE any work is done: they ask to plan, scope, spec out, map out, break down, design the approach for, or lay out the steps or roadmap for a feature, migration, refactor, or other change that is not made yet (even when they say 'think it through first', 'before we start', or 'do not build anything yet, just figure out the safest order or approach'), or ask for a handoff document another agent can carry out. AIDP asks questions, gathers evidence, writes one six-section plan file, and hands it to /aidx. Do NOT use to execute a plan, write code, review a diff, or give a quick opinion."
+description: "Use when the user wants a written plan before any work starts: plan, scope, spec out, or design the approach for a software change such as a feature, migration, or refactor, or a handoff document another agent can carry out. It asks questions, gathers evidence, writes one six-section plan file, and hands it to /aidx. Do NOT use to execute a plan, write code, review a diff, summarize a plan, write a study plan or business proposal, or answer a quick question."
 argument-hint: <goal-and-concerns>
 ---
 
@@ -19,7 +19,8 @@ clickable plan link and one `/aidx` command.
 ### Trigger and accepted input
 
 **Trigger:** The user invokes `/aidp` with a request, partial request, or supporting context. AIDP
-accepts only that request/context; it does not accept a plan path or implementation arguments.
+accepts only that request/context; it does not accept a plan path or implementation arguments. AIDP
+never executes a plan and never hands a plan path back to run; running a plan path is `/aidx`.
 
 ## 2. Usage
 
