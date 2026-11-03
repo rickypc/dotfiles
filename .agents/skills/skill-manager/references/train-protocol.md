@@ -181,6 +181,10 @@ question with one option letter in an `answer` field.
 - A receipt records the document hash, the set hash, and the reader (model revision, runtime hash,
   prompt version). Greedy decoding makes the same inputs give the same answers, so a receipt is
   reproducible. When the reader changes, every receipt needs `record --rebaseline <reason>`.
+- A project-local skill is gated with `--agents-root <project>/.agents`, as in
+  `instruction-gate.ts record --agents-root <project>/.agents skills/<name>/SKILL.md`. Its sets and
+  receipts live under that root. The global scripts still run from the package. Use the same flag
+  with `verify`. Skill descriptions are not gated for a project root.
 - Skill descriptions are gated as one unit, because the router reads every description.
   `record descriptions` has the reader route every query of every `evals/trigger-queries.json`
   through the catalog of all descriptions and stores one receipt, `evals/receipts/activation.json`.

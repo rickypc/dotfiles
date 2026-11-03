@@ -118,6 +118,7 @@ const makeDeps = (
     makeTempDir: mock(async () => '/work'),
     readText: mock(async (file: string) => files.get(file)),
     sha256: hash,
+    toolsRoot: ROOT,
     write: (message: string) => {
       output.push(message);
     },

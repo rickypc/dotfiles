@@ -38,23 +38,23 @@ training, validation, and repair, and for user-authorized lifecycle work on an a
 document.
 
 ```text
-/skill-manager instructions <file-path> <operation>           # maintain one instruction document
-/skill-manager init <skill-path> [description]                # create an Agent Skill scaffold
-/skill-manager validate <skill-path>                          # validate one Agent Skill package
-/skill-manager review <root> [additional-root]                # review prose, policy chain, and links
-/skill-manager evaluate <phase> <matrix> <skill-file>         # evaluate one frozen matrix phase
-/skill-manager batch <review-id> <phase> <pairs>              # evaluate multiple skill targets
-/skill-manager packet <review-id> <state> <path>              # create the next repair action packet
-/skill-manager validate-skills                                # validate global Agent Skill packages
-/skill-manager ratchet <previous> <next>                      # prove a matrix or query set only grew
-/skill-manager train bundle <skill-path>                      # emit the blind router bundle
-/skill-manager train measure <skill-path> <responses> [flags] # score, gate, append ledger
-/skill-manager train read <bundle> <answers>                  # answer a document bundle with the local weak reader
+/skill-manager instructions <file-path> <operation>             # maintain one instruction document
+/skill-manager init <skill-path> [description]                  # create an Agent Skill scaffold
+/skill-manager validate <skill-path>                            # validate one Agent Skill package
+/skill-manager review <root> [additional-root]                  # review prose, policy chain, and links
+/skill-manager evaluate <phase> <matrix> <skill-file>           # evaluate one frozen matrix phase
+/skill-manager batch <review-id> <phase> <pairs>                # evaluate multiple skill targets
+/skill-manager packet <review-id> <state> <path>                # create the next repair action packet
+/skill-manager validate-skills                                  # validate global Agent Skill packages
+/skill-manager ratchet <previous> <next>                        # prove a matrix or query set only grew
+/skill-manager train bundle <skill-path>                        # emit the blind router bundle
+/skill-manager train measure <skill-path> <responses> [flags]   # score, gate, append ledger
+/skill-manager train read <bundle> <answers>                    # answer a document bundle with the local weak reader
 /skill-manager train suggest <bundle> <failures> <suggestions>  # ask the weak reader how to fix its train misses
-/skill-manager gate record [flags] [<doc-path>...]               # record a never-worse comprehension receipt
-/skill-manager gate verify                                    # require a current receipt for every instruction
-/skill-manager train measure <skill-path> --track contract    # score the SKILL.md body from its matrix
-/skill-manager train select <skill-path> [--track contract]   # report winner, live state, next action
+/skill-manager gate record [flags] [<doc-path>...]              # record a never-worse receipt; flags may add --agents-root <absolute-path>
+/skill-manager gate verify [--agents-root <absolute-path>]      # require a current receipt for every instruction
+/skill-manager train measure <skill-path> --track contract      # score the SKILL.md body from its matrix
+/skill-manager train select <skill-path> [--track contract]     # report winner, live state, next action
 # Usage governance: keep required <name> and optional [name] arguments explicit.
 ```
 
@@ -81,10 +81,14 @@ document too long. A sandboxed process exits 2: run this one command outside the
 in-session child agents instead. `<failures>` is an absolute JSON array of train misses, and
 `<suggestions>` is the absolute `.jsonl` path the reader writes for them. The `gate record` route
 needs the GPU, so run it outside the sandbox; its flags are `--allow-equal <reason>` and
-`--rebaseline <reason>`, and each needs a written reason. `<doc-path>` is an instruction document
-path relative to the agents root, or `descriptions` for the routing of every skill description; run
-`gate record descriptions` for that. See the weak reader section of the train protocol. `[flags]`
-are `--measure-only`, `--attempt <n>`, `--status <ledger-status>`, `--runs <n>`,
+`--rebaseline <reason>`, and each needs a written reason. The `gate` routes also take
+`--agents-root <absolute-path>`, placed before the document paths. `<doc-path>` is an instruction
+document path relative to the agents root, or `descriptions` for the routing of every skill
+description; run `gate record descriptions` for that. For a project-local document, pass
+`--agents-root <absolute-path>` with the absolute path of the project `.agents` directory. That root
+holds the document, its comprehension set, and its receipt. The scripts still run from the global
+package. `descriptions` is gated only for the global root. See the weak reader section of the train
+protocol. `[flags]` are `--measure-only`, `--attempt <n>`, `--status <ledger-status>`, `--runs <n>`,
 `--ledger-root <path>`, and `--skills-root <path>`; ledger statuses are `baseline`, `attempt`,
 `applied`, `post-change`, and `rollback`.
 

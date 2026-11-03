@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { AGENTS_ROOT_FLAG, splitAgentsRoot } from '../utils/agents-root.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import {
@@ -39,12 +40,15 @@ export interface Fingerprint {
 }
 
 export interface GateDependencies {
+  // The content root: documents, skills, comprehension sets, and receipts live under it.
   readonly agentsRoot: string;
   readonly executor: CommandExecutor;
   readonly listDirectory: (directory: string) => Promise<readonly DirectoryItem[]>;
   readonly makeTempDir: () => Promise<string>;
   readonly readText: (file: string) => Promise<string | undefined>;
   readonly sha256: (text: string) => string;
+  // The package root: executable helpers (`scripts/<name>`) always resolve from it.
+  readonly toolsRoot: string;
   readonly write: (message: string) => void;
   readonly writeText: (file: string, content: string) => Promise<void>;
 }
@@ -134,6 +138,8 @@ export const ROUTING_RECEIPT = path.join(RECEIPT_DIRECTORY, 'activation.json');
 export const ROUTING_BATCH = 4;
 export const ROOT_DOCUMENT_PATTERN = /^(AGENTS|CLAUDE|GEMINI)[^/]*\.md$/u;
 
+const PACKAGE_ROOT = path.join(import.meta.dir, '..');
+
 const activeTrainIds = (set: ProbeSet): readonly string[] =>
   (set.queries ?? [])
     .filter((query) => query.split === 'train' && query.retired === undefined)
@@ -154,9 +160,7 @@ export const currentFingerprint = (routing = false): Fingerprint => ({
   readerVersion: routing ? `${READER_VERSION}+${ROUTER_VERSION}` : READER_VERSION,
 });
 
-export const defaultDependencies = (
-  agentsRoot = path.join(import.meta.dir, '..'),
-): GateDependencies => ({
+export const defaultDependencies = (agentsRoot = PACKAGE_ROOT): GateDependencies => ({
   agentsRoot,
   executor: bunExecutor,
   listDirectory: async (directory) =>
@@ -173,6 +177,7 @@ export const defaultDependencies = (
     }
   },
   sha256: (text) => createHash('sha256').update(text).digest('hex'),
+  toolsRoot: PACKAGE_ROOT,
   write: (message) => process.stdout.write(message),
   writeText: async (file, content) => {
     await mkdir(path.dirname(file), { recursive: true });
@@ -236,7 +241,7 @@ const measureDocument = async (target: GateTarget, deps: GateDependencies): Prom
   const set = target.skill
     ? path.join(deps.agentsRoot, 'skills', target.skill)
     : path.join(deps.agentsRoot, target.setPath);
-  const script = (name: string): string => path.join(deps.agentsRoot, 'scripts', name);
+  const script = (name: string): string => path.join(deps.toolsRoot, 'scripts', name);
   const bundle = path.join(work, 'bundle.json');
   const answers = path.join(work, 'answers.jsonl');
   const built = await deps.executor({
@@ -407,7 +412,7 @@ export const catalogSha = async (
   }
   const built = await deps.executor({
     args: [
-      path.join(deps.agentsRoot, 'scripts', 'skill-manager.ts'),
+      path.join(deps.toolsRoot, 'scripts', 'skill-manager.ts'),
       'train',
       'bundle',
       path.join(deps.agentsRoot, 'skills', first),
@@ -463,6 +468,8 @@ function formatJsonValue(value: unknown, indent: number, lead: number): string {
 
 // Matches the repository's Biome JSON format: short arrays stay on one line.
 export const formatReceipt = (receipt: Receipt): string => `${formatJsonValue(receipt, 0, 0)}\n`;
+
+const isCustomRoot = (deps: GateDependencies): boolean => deps.agentsRoot !== deps.toolsRoot;
 
 const mergeRouting = (skills: readonly string[], parts: readonly Measured[]): Measurement => ({
   trainFailed: parts.flatMap((part, index) =>
@@ -532,7 +539,7 @@ const diagnose = async (
   await deps.writeText(failuresPath, JSON.stringify(failures));
   const suggested = await deps.executor({
     args: [
-      path.join(deps.agentsRoot, 'scripts', 'weak-reader.ts'),
+      path.join(deps.toolsRoot, 'scripts', 'weak-reader.ts'),
       'suggest',
       measured.bundle,
       failuresPath,
@@ -812,9 +819,13 @@ const recordSafely = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/instruction-gate.ts verify; '
-  + 'bun <agents-root>/scripts/instruction-gate.ts record [--allow-equal <reason>] '
-  + '[--rebaseline <reason>] [<instruction-path> | descriptions]...';
+  'Usage: bun <agents-root>/scripts/instruction-gate.ts verify [--agents-root <absolute-path>]; '
+  + 'bun <agents-root>/scripts/instruction-gate.ts record [--agents-root <absolute-path>] '
+  + '[--allow-equal <reason>] [--rebaseline <reason>] [<instruction-path> | descriptions]... '
+  + '--agents-root selects the content root (documents, skills, sets, receipts) for a '
+  + 'project-local agents root; scripts still run from the gate package. '
+  + 'The routing of skill descriptions is gated only for the default global root: '
+  + 'with --agents-root, verify skips it and record rejects `descriptions`.';
 
 export const parseRecordArguments = (
   args: readonly string[],
@@ -970,7 +981,9 @@ const recordPlan = async (
       stale.push(document);
     }
   }
-  return (await verifyRouting(deps)).length > 0 ? [...stale, ROUTING_TOKEN] : stale;
+  return isCustomRoot(deps) || (await verifyRouting(deps)).length === 0
+    ? stale
+    : [...stale, ROUTING_TOKEN];
 };
 
 export const record = async (
@@ -1002,7 +1015,9 @@ export const verify = async (deps: GateDependencies): Promise<number> => {
   for (const document of documents) {
     checks.push([document, await verifyTarget(targetOf(document), deps)]);
   }
-  checks.push([ROUTING_TOKEN, await verifyRouting(deps)]);
+  if (!isCustomRoot(deps)) {
+    checks.push([ROUTING_TOKEN, await verifyRouting(deps)]);
+  }
   const failing = checks.filter(([, problems]) => problems.length > 0);
   for (const [name, problems] of failing) {
     deps.write(`instruction-gate: ${name}\n${problems.map((p) => `  - ${p}`).join('\n')}\n`);
@@ -1015,18 +1030,25 @@ export const verify = async (deps: GateDependencies): Promise<number> => {
     return 1;
   }
   deps.write(
-    `instruction-gate: passed - ${documents.length} instruction documents and the skill description routing have current, never-worse receipts.\n`,
+    `instruction-gate: passed - ${documents.length} instruction documents${isCustomRoot(deps) ? '' : ' and the skill description routing'} have current, never-worse receipts.\n`,
   );
   return 0;
 };
 
-export const run = async (args: readonly string[], deps: GateDependencies): Promise<number> => {
-  const [command, ...rest] = args;
+export const run = async (args: readonly string[], base: GateDependencies): Promise<number> => {
+  const [command, ...given] = args;
+  const { rest, root } = await splitAgentsRoot(given, base.listDirectory);
+  const deps = root === undefined ? base : { ...base, agentsRoot: root };
   if (command === 'verify' && rest.length === 0) {
     return verify(deps);
   }
   if (command === 'record') {
     const parsed = parseRecordArguments(rest);
+    if (isCustomRoot(deps) && parsed.documents.includes(ROUTING_TOKEN)) {
+      throw new Error(
+        `${ROUTING_TOKEN} is gated only for the default root, not with ${AGENTS_ROOT_FLAG}.`,
+      );
+    }
     return record(parsed.documents, parsed.options, deps);
   }
   throw new Error(usage());

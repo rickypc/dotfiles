@@ -262,7 +262,11 @@ export const createSdkMcpClient = async (
       new StdioClientTransport({
         args: serverArgs,
         command: binary,
-        env: { ...Bun.env, ...backendChildEnvironment() },
+        env: Object.fromEntries(
+          Object.entries({ ...Bun.env, ...backendChildEnvironment() }).filter(
+            (entry): entry is [string, string] => entry[1] !== undefined,
+          ),
+        ),
       }),
     );
     return {

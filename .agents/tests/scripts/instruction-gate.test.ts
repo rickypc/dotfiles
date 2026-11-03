@@ -166,6 +166,7 @@ const makeHarness = (
     makeTempDir: mock(async () => '/work'),
     readText: mock(async (file: string) => files.get(file)),
     sha256: hash,
+    toolsRoot: ROOT,
     write: (message: string) => {
       output.push(message);
     },
@@ -948,6 +949,101 @@ describe('arguments, run, and the command line', () => {
     processExit.setExitCode(3, exitTarget);
 
     expect(exitTarget.exitCode).toBe(3);
+  });
+});
+
+describe('--agents-root', () => {
+  const PROJECT = '/project/.agents';
+  const projectTree = {
+    [PROJECT]: [{ isDirectory: true, name: 'skills' }],
+    [path.join(PROJECT, 'skills')]: [{ isDirectory: true, name: 'aidp' }],
+    [path.join(PROJECT, 'skills', 'aidp')]: [{ isDirectory: false, name: 'SKILL.md' }],
+  };
+  const commandsOf = (harness: Harness): string[] =>
+    harness.executor.mock.calls.map(([spec]) => (spec as CommandSpec).args.join(' '));
+  const projectHarness = (): Harness => {
+    const harness = makeHarness({ tree: projectTree });
+    for (const relative of [DOCUMENT, SET]) {
+      harness.files.set(
+        path.join(PROJECT, relative),
+        harness.files.get(path.join(ROOT, relative)) ?? '',
+      );
+      harness.files.delete(path.join(ROOT, relative));
+    }
+    return harness;
+  };
+
+  test('without the flag the content root stays the package root', async () => {
+    const harness = makeHarness();
+
+    expect(await run(['record', DOCUMENT], harness.deps)).toBe(0);
+    expect(harness.files.has(path.join(ROOT, RECEIPT))).toBe(true);
+    expect(commandsOf(harness)[0]).toContain(`train bundle ${path.join(ROOT, SET)}`);
+  });
+
+  test('record resolves the document, set, and receipt under the flag root', async () => {
+    const harness = projectHarness();
+
+    expect(await run(['record', '--agents-root', PROJECT, DOCUMENT], harness.deps)).toBe(0);
+
+    expect(harness.files.has(path.join(ROOT, RECEIPT))).toBe(false);
+    expect(JSON.parse(harness.files.get(path.join(PROJECT, RECEIPT)) ?? '{}')).toMatchObject({
+      document: DOCUMENT,
+      setPath: SET,
+    });
+    expect(commandsOf(harness)[0]).toContain(`train bundle ${path.join(PROJECT, SET)}`);
+  });
+
+  test('tools still resolve from the package root', async () => {
+    const harness = projectHarness();
+
+    await run(['record', '--agents-root', PROJECT, DOCUMENT], harness.deps);
+
+    const commands = commandsOf(harness);
+    expect(commands[0]).toContain(path.join(ROOT, 'scripts', 'skill-manager.ts'));
+    expect(commands[1]).toContain(path.join(ROOT, 'scripts', 'weak-reader.ts'));
+    expect(commands.some((command) => command.includes(path.join(PROJECT, 'scripts')))).toBe(false);
+  });
+
+  test('verify checks the documents under the flag root and skips the routing receipt', async () => {
+    const harness = projectHarness();
+    await run(['record', '--agents-root', PROJECT, DOCUMENT], harness.deps);
+    harness.output.length = 0;
+
+    expect(await run(['verify', '--agents-root', PROJECT], harness.deps)).toBe(0);
+    expect(harness.output.join('')).toContain('passed - 1 instruction documents have');
+  });
+
+  test.each<[string[], string]>([
+    [['relative/path'], 'an absolute path'],
+    [['/project/../etc'], 'without ".." segments'],
+    [['/missing'], 'an existing directory'],
+    [['/empty'], 'contains a skills or evals directory'],
+    [[], 'an absolute path'],
+  ])('the root %p is rejected before any measurement', async (value, message) => {
+    const harness = makeHarness();
+    const deps: GateDependencies = {
+      ...harness.deps,
+      listDirectory: mock(async (directory: string) => {
+        if (directory === '/missing') {
+          throw new Error('ENOENT');
+        }
+        return directory === '/empty' ? [{ isDirectory: false, name: 'notes.md' }] : [];
+      }),
+    };
+
+    await expect(run(['record', '--agents-root', ...value], deps)).rejects.toThrow(message);
+    expect(harness.executor).not.toHaveBeenCalled();
+  });
+
+  test('descriptions are rejected for a non-default root and documented in the usage', async () => {
+    const harness = projectHarness();
+
+    await expect(
+      run(['record', '--agents-root', PROJECT, 'descriptions'], harness.deps),
+    ).rejects.toThrow('gated only for the default root');
+    expect(harness.executor).not.toHaveBeenCalled();
+    expect(usage()).toContain('--agents-root <absolute-path>');
   });
 });
 

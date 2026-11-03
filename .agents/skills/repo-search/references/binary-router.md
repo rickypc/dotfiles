@@ -1,11 +1,7 @@
 ---
 
 name: binary-router
-description: >-
-  The complete eighteen-row binary route reference owned by repo-search: content-gate detection
-  signatures, wrapper-executed decode stages, precise check-then-install package names, extraction
-  rules, and per-row traps for every binary, archive, bundle, capture, firmware, website, and
-  running-process target.
+description: "The complete eighteen-row binary route reference owned by repo-search: content-gate detection signatures, wrapper-executed decode stages, precise check-then-install package names, extraction rules, and per-row traps for every binary, archive, bundle, capture, firmware, website, and running-process target."
 ---
 
 # Binary Router Reference
