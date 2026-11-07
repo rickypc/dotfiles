@@ -492,6 +492,20 @@
       "split": "train"
     },
     {
+      "evidence": "Before closing a code edit, trace the complete affected path.",
+      "expected": "B",
+      "id": "train-55",
+      "query": "Before reporting a code edit complete, what review is required?\nA) Check only the edited line and report success.\nB) Preserve scope, trace interactions with commands and settings, inspect affected occurrences and stages, review the final diff, run the requested validator or state why it cannot, and follow the full closeout contract.\nC) Run a convenient check and omit its result.\nD) Leave the diff and validation review to the user.",
+      "split": "train"
+    },
+    {
+      "evidence": "An explicit request for a read-only review of code changes, a diff, a branch, a pull request, or a working tree against requirements.",
+      "expected": "A",
+      "id": "train-56",
+      "query": "A user requests a read-only review of a pull request against requirements. Which route is correct?\nA) Use `/review-changes` and keep the target unchanged.\nB) Edit the pull request as part of the review.\nC) Run implementation checks in place of the review.\nD) Review without a requirements source.",
+      "split": "train"
+    },
+    {
       "evidence": "missing, blocked, ambiguous, or unsafe packet is a hard stop; do not invent a repair or cross its",
       "expected": "B",
       "id": "validation-17",

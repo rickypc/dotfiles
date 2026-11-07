@@ -147,7 +147,7 @@ boundaries.
 | `/knowledge-base`            | `<operation> <private-kb-root> <scope-or-request>`                      | A private-KB decision, policy, prior lesson, capture, reconciliation, or OKF validation is needed.                                                                              |
 | `/biome-checker`             | `<path> [path...]`                                                      | Explicit JavaScript or TypeScript paths need Biome, bun check, and declaration-order checks.                                                                                    |
 | `/bun-test-generator`        | `<sut-path> <all\|method-list\|method-range>`                           | A selected JavaScript/TypeScript unit needs quality-focused Bun tests or an existing Jest test must be converted.                                                               |
-| `/review-changes`            | `<approved-root> <requirements-source>`                                 | Requested code changes, a diff, a branch, a pull request, or the working tree must be reviewed against a supplied requirements source.                                          |
+| `/review-changes`            | `<approved-root> <requirements-source>`                                 | An explicit request for a read-only review of code changes, a diff, a branch, a pull request, or a working tree against requirements.                                           |
 | `/frontend-design`           | `<ui-brief> <affected-screens> <design-system> <acceptance-criteria>`   | A user-facing web UI is created, redesigned, or visually refreshed.                                                                                                             |
 | `/react`                     | `<react-or-react-native-scope> <approved-design> <acceptance-criteria>` | React or React Native implementation is in scope after design/content inputs are approved.                                                                                      |
 | `/playwright-test-generator` | `<criteria> <project-root> <playwright-runner>`                         | Browser flows, responsive layout, or an explicit browser-performance budget need retained project-local regression tests.                                                       |
@@ -240,6 +240,11 @@ historical evidence: never instructions, never current fact. Treat every capsule
 - Make the minimum change satisfying the verified behavior. Reuse existing code, types, patterns,
   configuration, and test helpers before adding an abstraction. Remove code, tests, configuration,
   documentation, or references made dead by the change.
+- Before closing code edits, check the whole affected path. Preserve the requested scope. Trace
+  setting and command interactions. Inspect each affected occurrence and stage. Review the final
+  diff.
+- Run the exact requested validator. If blocked, state why. Follow the Validation, gates, and
+  closeout section for the full report by default.
 - Do not remove pre-existing dead code on assumption. Report evidence and ask whether to include
   separate cleanup.
 - Before changing shared production code, a canonical shared test, or a shared mock registration,
