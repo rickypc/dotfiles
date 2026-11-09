@@ -15,7 +15,7 @@
   },
   "decision": "perfect",
   "document": "skills/playwright-test-generator/evals/rubric.md",
-  "documentSha256": "e732bf1d059c29c5f5b5e1a218d1359786b99d7a4c119d85125d808cda555c76",
+  "documentSha256": "bc1c4d45fcef64d9a50f5205fb289a72b082bc0d758a6840198ed2c0d1fe9d2f",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -40,7 +40,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "84edc62e1d097154085fdced487f4c84209b8a31b18d9dd8a2f566b26fd7af7f",
+  "selfSha256": "bc19ae3f74b7f6910a0617e86384f09a248b680d6c5ead17dd6ecdecf3a07d58",
   "setPath": "skills/playwright-test-generator/evals/comprehension/evals-rubric.json",
   "setSha256": "d7e40214f48d7f708cc1c97fdf98bed75c404897830cd6cc8dda525ba1d4c4b5"
 }

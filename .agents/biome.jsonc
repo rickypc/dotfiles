@@ -75,6 +75,10 @@
       }
     }
   },
-  "markdown": { "parser": { "frontmatter": true } },
-  "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true }
+  "markdown": {
+    "formatter": { "lineWidth": 100 },
+    "parser": { "frontmatter": true }
+  },
+  "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true },
+  "yaml": { "formatter": { "lineWidth": 100 } }
 }

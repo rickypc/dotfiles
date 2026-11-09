@@ -17,7 +17,7 @@
   },
   "decision": "perfect",
   "document": "skills/skill-manager/evals/rubric.md",
-  "documentSha256": "60b5ce7f8ba895fd0bf65512511c59f40b1f3c8aa4a33f66f0ee75c6711be3ad",
+  "documentSha256": "3678f71a3db9e46e215c2db12c7ba4fb89e585c8ace0fbb9af324a333fa42244",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -44,7 +44,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "810924f3afe219c12616670113350b48d6dd963bb2a0a13c274d8c41ab520e2f",
+  "selfSha256": "a90e4d73842ba38c662879bf0d0004436f7e906f7e30a0c1045e86d955a413ca",
   "setPath": "skills/skill-manager/evals/comprehension/evals-rubric.json",
   "setSha256": "f39d1ba89750ebc55ef0b56d2336b86e505a2cb7a65303a554f22ea7429c7a00"
 }

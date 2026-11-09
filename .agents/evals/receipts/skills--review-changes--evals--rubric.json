@@ -15,7 +15,7 @@
   },
   "decision": "perfect",
   "document": "skills/review-changes/evals/rubric.md",
-  "documentSha256": "92452c8a4f5639b83586de650296681f7a93fe62cc800f4086067b12089e865c",
+  "documentSha256": "e5393175000d02da70c3b734540681222b865762f3bc1ac2a144842cd21fadf6",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -40,7 +40,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "4097443a91a2d6735c93c96af2b96dac7c0406dd34a1c81f21776d45a7d0c4f3",
+  "selfSha256": "c6d78fa60d1b01aee471ee63193650f64b53ade2549c85dad4a70341bc9bb501",
   "setPath": "skills/review-changes/evals/comprehension/evals-rubric.json",
   "setSha256": "a5cd3e281c5b1032de224de3681f4ef3758132e22c95cc34ff794f6498feebb3"
 }
