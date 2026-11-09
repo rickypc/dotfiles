@@ -75,6 +75,6 @@
       }
     }
   },
-  "markdown": { "formatter": { "enabled": false } },
+  "markdown": { "parser": { "frontmatter": true } },
   "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true }
 }

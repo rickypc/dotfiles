@@ -1,7 +1,10 @@
 ---
-
 name: content-writer
-description: "Use when the user wants a researched article, blog post, whitepaper, guide, report, or case study with sources, citations, or word-for-word quotations, or wants an old page fact-checked against a live source. Do NOT use for chat messages, emails, translation, summaries, release notes, headline or name ideas, or any writing that needs no research."
+description: >-
+  Use when the user wants a researched article, blog post, whitepaper, guide, report, or case study
+  with sources, citations, or word-for-word quotations, or wants an old page fact-checked against a
+  live source. Do NOT use for chat messages, emails, translation, summaries, release notes, headline
+  or name ideas, or any writing that needs no research.
 argument-hint: <objective> <audience> <format> <constraints> <citation-style>
 ---
 

@@ -1,7 +1,11 @@
 ---
-
 name: review-changes
-description: Review requested code changes against a supplied requirements source and repository/language standards; if the source is missing, ask for it before reviewing. Use for diff, branch, pull-request, and working-tree reviews, including requests with missing context; start an isolated child session, keep the review target unchanged, and retain durable user corrections through the owning knowledge workflow.
+description: >-
+  Review requested code changes against a supplied requirements source and repository/language
+  standards; if the source is missing, ask for it before reviewing. Use for diff, branch,
+  pull-request, and working-tree reviews, including requests with missing context; start an isolated
+  child session, keep the review target unchanged, and retain durable user corrections through the
+  owning knowledge workflow.
 argument-hint: "[diff-scope] [requirements-source] [context]"
 ---
 

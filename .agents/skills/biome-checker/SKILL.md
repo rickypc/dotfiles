@@ -1,7 +1,10 @@
 ---
-
 name: biome-checker
-description: "Use when the user names specific JavaScript or TypeScript file paths and asks to lint, check, type-check, or verify declaration order of those files with Biome and bun check. Do NOT use for whole-project or repo-wide fixes, installing or configuring Biome, explaining lint rules, formatting other languages, or writing tests."
+description: >-
+  Use when the user names specific JavaScript or TypeScript file paths and asks to lint, check,
+  type-check, or verify declaration order of those files with Biome and bun check. Do NOT use for
+  whole-project or repo-wide fixes, installing or configuring Biome, explaining lint rules,
+  formatting other languages, or writing tests.
 argument-hint: <path> [path...]
 ---
 

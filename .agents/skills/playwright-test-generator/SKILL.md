@@ -1,7 +1,10 @@
 ---
-
 name: playwright-test-generator
-description: "Use when the user wants new automated browser tests with Playwright for a web UI: lock down a layout bug at a viewport, check a user flow in real browsers, or add a page-speed budget test. It writes tests that stay in the project. Do NOT use to run or debug existing tests, write Cypress or unit tests, or design the UI."
+description: >-
+  Use when the user wants new automated browser tests with Playwright for a web UI: lock down a
+  layout bug at a viewport, check a user flow in real browsers, or add a page-speed budget test. It
+  writes tests that stay in the project. Do NOT use to run or debug existing tests, write Cypress or
+  unit tests, or design the UI.
 argument-hint: <criteria> <project-root> <playwright-runner>
 ---
 

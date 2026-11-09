@@ -1,7 +1,10 @@
 ---
-
 name: skill-manager
-description: "Use when the user wants to create, improve, validate, repair, merge, split, or rename an Agent Skill or an AGENTS.md instruction file: make a skill description fire more reliably, add eval cases, check a skill for stale guidance or broken links, reconcile AGENTS.md files, or fix failing skill validation. Do NOT use to install or run a skill."
+description: >-
+  Use when the user wants to create, improve, validate, repair, merge, split, or rename an Agent
+  Skill or an AGENTS.md instruction file: make a skill description fire more reliably, add eval
+  cases, check a skill for stale guidance or broken links, reconcile AGENTS.md files, or fix failing
+  skill validation. Do NOT use to install or run a skill.
 argument-hint: <operation> [arguments]
 ---
 
@@ -355,15 +358,15 @@ routes train a document: pass an absolute comprehension set `.json` path as the 
 with an `answer` field holding one option letter. `clear` is true when every query passes on every
 run; that is the goal state for every skill and every document.
 
-| Command or information | Arguments | When to use | Additional information |
-| --- | --- | --- | --- |
-| `train bundle` | `<skill-path>` | Before every baseline or attempt measurement | Blind bundle: catalog with the skill's on-disk description, router instructions, and one prompt per query and run; no labels, splits, or skill name. |
-| `train measure --measure-only` | `<skill-path> <responses>` | Once per frozen query set, before editing | Records a baseline and `SKILL.md` snapshot. Refuses failing deterministic checks. A new baseline requires query-set growth. |
-| `train measure --attempt` | `<skill-path> <responses> --attempt <n>` | After each candidate edit | Returns `accepted` or `blocked`, with gains and regressions per split. Hard failures block. A blocked attempt stores a `rejected` record. |
-| `train measure --track contract` | `<skill-path> --track contract [--measure-only\|--attempt <n>]` | Training the `SKILL.md` body against `evals/cases.jsonl` | No responses file. Candidate cases score train; challenge cases score validation. The same gate, snapshot, cap, and buffer apply. Challenge results are counts only. |
-| `train select` | `<skill-path> [--track contract]` | After attempts, and at every resume | Reports `decision`, `liveState` (`baseline`, `winner`, `measured`, `unrecorded`), snapshot paths, `nextAction`, and `doNotRetry`: rejected attempts of this generation with reason and ids. |
-| `train measure --status` | `<skill-path> <responses> --status <applied\|post-change\|rollback>` | After applying the winner, after suite edits, or after restoring the baseline | `applied` must match an accepted attempt. `applied` and `post-change` allow no regression; `rollback` must equal the baseline snapshot. |
-| `ratchet` | `<previous> <next>` | Before closeout whenever a matrix or query set changed | Names any removed or weakened case or query. |
+| Command or information           | Arguments                                                            | When to use                                                                   | Additional information                                                                                                                                                                      |
+| -------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `train bundle`                   | `<skill-path>`                                                       | Before every baseline or attempt measurement                                  | Blind bundle: catalog with the skill's on-disk description, router instructions, and one prompt per query and run; no labels, splits, or skill name.                                        |
+| `train measure --measure-only`   | `<skill-path> <responses>`                                           | Once per frozen query set, before editing                                     | Records a baseline and `SKILL.md` snapshot. Refuses failing deterministic checks. A new baseline requires query-set growth.                                                                 |
+| `train measure --attempt`        | `<skill-path> <responses> --attempt <n>`                             | After each candidate edit                                                     | Returns `accepted` or `blocked`, with gains and regressions per split. Hard failures block. A blocked attempt stores a `rejected` record.                                                   |
+| `train measure --track contract` | `<skill-path> --track contract [--measure-only\|--attempt <n>]`      | Training the `SKILL.md` body against `evals/cases.jsonl`                      | No responses file. Candidate cases score train; challenge cases score validation. The same gate, snapshot, cap, and buffer apply. Challenge results are counts only.                        |
+| `train select`                   | `<skill-path> [--track contract]`                                    | After attempts, and at every resume                                           | Reports `decision`, `liveState` (`baseline`, `winner`, `measured`, `unrecorded`), snapshot paths, `nextAction`, and `doNotRetry`: rejected attempts of this generation with reason and ids. |
+| `train measure --status`         | `<skill-path> <responses> --status <applied\|post-change\|rollback>` | After applying the winner, after suite edits, or after restoring the baseline | `applied` must match an accepted attempt. `applied` and `post-change` allow no regression; `rollback` must equal the baseline snapshot.                                                     |
+| `ratchet`                        | `<previous> <next>`                                                  | Before closeout whenever a matrix or query set changed                        | Names any removed or weakened case or query.                                                                                                                                                |
 
 An attempt allows at most one edit kind per attempt. An edit over the cap fails before any write.
 `--max-description-change <percent>` defaults to 25 of the baseline description characters;

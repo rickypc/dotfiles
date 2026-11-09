@@ -1,7 +1,11 @@
 ---
-
 name: aidx
-description: "Use when the user gives the path of an existing six-section plan file (.md) and asks to run, execute, carry out, resume, or work through it. AIDX executes that plan step by step, verifies each step, and records completion. Do NOT use to write, edit, explain, summarize, or report the status of a plan without running it (writing is /aidp), including only checking off, marking, or updating a plan's checklist text, or when no plan file path is given."
+description: >-
+  Use when the user gives the path of an existing six-section plan file (.md) and asks to run,
+  execute, carry out, resume, or work through it. AIDX executes that plan step by step, verifies
+  each step, and records completion. Do NOT use to write, edit, explain, summarize, or report the
+  status of a plan without running it (writing is /aidp), including only checking off, marking, or
+  updating a plan's checklist text, or when no plan file path is given.
 argument-hint: <plan-path-relative-or-absolute>
 ---
 

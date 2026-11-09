@@ -1,9 +1,23 @@
 ---
-
 name: repo-search
-description: "Use for ANY question about where things are in a codebase or what a file contains: find, locate, or list a file, symbol, config, definition, or usage; who calls what or where something is used or defined; how a repo or monorepo is structured or wired together (architecture, big picture); whether a dependency or string appears anywhere, including Docker images or several repos; or what an unknown, packed, or garbled binary, executable, or blob file is and what it contains. Mandatory first step for repository discovery. Do NOT use to edit code, review changes, or look up private knowledge-base notes."
+description: >-
+  Use for ANY question about where things are in a codebase or what a file contains: find, locate,
+  or list a file, symbol, config, definition, or usage; who calls what or where something is used or
+  defined; how a repo or monorepo is structured or wired together (architecture, big picture);
+  whether a dependency or string appears anywhere, including Docker images or several repos; or what
+  an unknown, packed, or garbled binary, executable, or blob file is and what it contains. Mandatory
+  first step for repository discovery. Do NOT use to edit code, review changes, or look up private
+  knowledge-base notes.
 argument-hint: <approved-root> <query...> | read <approved-root> <target> [query...] | inspect <approved-root> <jsonl-path>
-capabilities: ["Script-owned transport probe (CLI default, MCP stdio opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp)", One unified JSON response contract on every route, Deterministic three-verb caller grammar, Backend-store redaction (<backend-store>), Content-based binary gate plus eighteen-row binary router, Ordered staged fallback with named receipt strategies]
+capabilities:
+  [
+    "Script-owned transport probe (CLI default, MCP stdio opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp)",
+    One unified JSON response contract on every route,
+    Deterministic three-verb caller grammar,
+    Backend-store redaction (<backend-store>),
+    Content-based binary gate plus eighteen-row binary router,
+    Ordered staged fallback with named receipt strategies,
+  ]
 ---
 
 # Repo Search

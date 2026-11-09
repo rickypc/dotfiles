@@ -1,9 +1,17 @@
 ---
-
-schemaVersion: 1
-requiredCaseFields: [id, visibility, scenario, assertions, failureMode, repairBoundary, independentVerifier]
-requiredVisibility: [candidate, challenge]
 minimumPassRate: 1
+requiredCaseFields:
+  [
+    id,
+    visibility,
+    scenario,
+    assertions,
+    failureMode,
+    repairBoundary,
+    independentVerifier,
+  ]
+requiredVisibility: [candidate, challenge]
+schemaVersion: 1
 verifierIds: [source-structure]
 ---
 

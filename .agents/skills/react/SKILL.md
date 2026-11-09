@@ -1,7 +1,11 @@
 ---
-
 name: react
-description: "Use when the user builds, fixes, or reviews React or React Native code: screens, components, hooks such as useEffect and useState, re-renders and list performance, forms and dialogs with keyboard and screen reader support, navigation, platform-specific behavior, view transitions, or tests of what the user sees. Do NOT use for visual design decisions before any code exists, or for code that is not React."
+description: >-
+  Use when the user builds, fixes, or reviews React or React Native code: screens, components, hooks
+  such as useEffect and useState, re-renders and list performance, forms and dialogs with keyboard
+  and screen reader support, navigation, platform-specific behavior, view transitions, or tests of
+  what the user sees. Do NOT use for visual design decisions before any code exists, or for code
+  that is not React.
 argument-hint: <react-or-react-native-scope> <approved-design> <acceptance-criteria>
 ---
 

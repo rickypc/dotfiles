@@ -1,7 +1,10 @@
 ---
-
 name: knowledge-base
-description: "Use when the user asks to look up, save, validate, reconcile, or distill durable team knowledge in the private knowledge base (OKF records): past decisions, lessons, precedents, or prior incidents, or to import a completed plan. Do NOT use for finding code or files (that is repo-search), writing new documents or templates, compressing Markdown (that is md-compress), or general explanations."
+description: >-
+  Use when the user asks to look up, save, validate, reconcile, or distill durable team knowledge in
+  the private knowledge base (OKF records): past decisions, lessons, precedents, or prior incidents,
+  or to import a completed plan. Do NOT use for finding code or files (that is repo-search), writing
+  new documents or templates, compressing Markdown (that is md-compress), or general explanations.
 argument-hint: <operation> <private-kb-root> <scope-or-request>
 ---
 

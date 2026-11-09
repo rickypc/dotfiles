@@ -1,7 +1,11 @@
 ---
-
 name: aidp
-description: "Use when the user wants a written plan before any work starts: plan, scope, spec out, or design the approach for a software change such as a feature, migration, or refactor, or a handoff document another agent can carry out. It asks questions, gathers evidence, writes one six-section plan file, and hands it to /aidx. Do NOT use to execute a plan, write code, review a diff, summarize a plan, write a study plan or business proposal, or answer a quick question."
+description: >-
+  Use when the user wants a written plan before any work starts: plan, scope, spec out, or design
+  the approach for a software change such as a feature, migration, or refactor, or a handoff
+  document another agent can carry out. It asks questions, gathers evidence, writes one six-section
+  plan file, and hands it to /aidx. Do NOT use to execute a plan, write code, review a diff,
+  summarize a plan, write a study plan or business proposal, or answer a quick question.
 argument-hint: <goal-and-concerns>
 ---
 
