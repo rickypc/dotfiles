@@ -1,13 +1,6 @@
 {
   "baseline": {
-    "trainPassed": [
-      "train-01",
-      "train-02",
-      "train-03",
-      "train-04",
-      "train-05",
-      "train-06"
-    ],
+    "trainPassed": ["train-01", "train-02", "train-03", "train-04", "train-05", "train-06"],
     "validationPassed": 4
   },
   "decision": "perfect",
@@ -21,14 +14,7 @@
   },
   "measurement": {
     "trainFailed": [],
-    "trainPassed": [
-      "train-01",
-      "train-02",
-      "train-03",
-      "train-04",
-      "train-05",
-      "train-06"
-    ],
+    "trainPassed": ["train-01", "train-02", "train-03", "train-04", "train-05", "train-06"],
     "validationPassed": 4,
     "validationTotal": 4
   },

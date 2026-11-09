@@ -43,18 +43,14 @@ Every route prints exactly one JSON envelope with identical keys:
   "transport": "mcp | cli | none",
   "source": "graph | code | symbol | file | binary | fallback | none",
   "query": { "root": "...", "index": "... | null", "input": ["..."] },
-  "results": [
-    { "kind": "...", "name": "...", "location": "...", "detail": "..." }
-  ],
+  "results": [{ "kind": "...", "name": "...", "location": "...", "detail": "..." }],
   "reliability": {
     "backend": "...",
     "indexedAt": "...",
     "note": "...",
     "caveats": []
   },
-  "attempts": [
-    { "strategy": "...", "status": "...", "command": "...", "detail": "..." }
-  ],
+  "attempts": [{ "strategy": "...", "status": "...", "command": "...", "detail": "..." }],
   "next": ["..."]
 }
 ```

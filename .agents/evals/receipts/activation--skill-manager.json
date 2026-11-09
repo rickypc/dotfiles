@@ -39,14 +39,7 @@
     "readerVersion": "reader-v1+router-v1"
   },
   "measurement": {
-    "trainFailed": [
-      "train-14",
-      "train-20",
-      "train-23",
-      "train-24",
-      "train-25",
-      "train-27"
-    ],
+    "trainFailed": ["train-14", "train-20", "train-23", "train-24", "train-25", "train-27"],
     "trainPassed": [
       "train-01",
       "train-02",

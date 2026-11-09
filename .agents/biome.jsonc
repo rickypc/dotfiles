@@ -13,7 +13,7 @@
     }
   },
   "files": { "ignoreUnknown": true },
-  "formatter": { "indentStyle": "space", "indentWidth": 2 },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
   "javascript": {
     "formatter": {
       "arrowParentheses": "always",
@@ -75,10 +75,6 @@
       }
     }
   },
-  "markdown": {
-    "formatter": { "lineWidth": 100 },
-    "parser": { "frontmatter": true }
-  },
-  "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true },
-  "yaml": { "formatter": { "lineWidth": 100 } }
+  "markdown": { "parser": { "frontmatter": true } },
+  "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true }
 }
