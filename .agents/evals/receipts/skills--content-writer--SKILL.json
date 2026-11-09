@@ -33,7 +33,7 @@
   },
   "decision": "perfect",
   "document": "skills/content-writer/SKILL.md",
-  "documentSha256": "18ca5b0e3191ed2d904f3edb046169409980226f486997549ad447f59e96de10",
+  "documentSha256": "76941acd1cc1467f86a06c889026db0a4634750b5be6b20ecbd2007989261f53",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -76,7 +76,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "ae9af2ed9b6fe4fc5b8fee6677bd8cd273c112e7a8dd281e39f2a8644f64b996",
+  "selfSha256": "814f379510f37f5360e5033c091cdb12b2e628faa03333b9f69455c1a06fe587",
   "setPath": "skills/content-writer/evals/comprehension/SKILL.json",
   "setSha256": "7d3085911f3e3715ece05f12556892a5fc09fb03de741a860aecb595a5c0177b"
 }

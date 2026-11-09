@@ -60,6 +60,7 @@ workspace/project root, use it even if the path is also the user's home director
 user to name the project folder when runtime identifies one active root. If runtime context exposes
 ancillary output or temporary roots, do not treat them as project candidates. If there are multiple
 competing project roots and no runtime designation of the active one, ask which listed root to use.
+
 Default to every staged and unstaged tracked change with `git diff HEAD` (equivalent to
 `git diff HEAD -- .` from the project root), plus all non-ignored untracked project files listed by
 the runtime-provided read-only workspace inventory. If that inventory is unavailable or incomplete,
@@ -250,8 +251,9 @@ Use `[Bug]` for incorrect behavior, `[Risk]` for a supported failure or security
 `[Maintainability]` for a material conflict with explicit project or user conventions. Each finding
 must cite a file path and changed line and state the problem, consequence, and concrete correction.
 Keep ordinary findings concise; include more explanation for security or architectural findings when
-needed. Order findings by file path and line. Do not rerank across the two lenses. Say when a lens
-has no findings and name any limitation that static review cannot resolve.
+needed. Within each lens, sort findings by file path, then by line number. Do not rerank across the
+two lenses. Say when a lens has no findings and name any limitation that static review cannot
+resolve.
 
 ## 7. Evaluation Anchors
 

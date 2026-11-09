@@ -55,12 +55,17 @@ observes whether the registered agent loaded the skill, not whether query text c
 `argument-hint` may remain as a caller/UI hint, but a separate `trigger` frontmatter field is not
 allowed.
 
-Training evidence is separate from matrix evidence. The activation metric is the pass state of each
-`evals/trigger-queries.json` query across repeated blind runs; the ledger gate keeps an edit only
-with no regression, at least one unanimous gain, an unchanged query-set fingerprint, and passing
-deterministic checks. A matrix or query set may only be extended: `ratchet` fails any removed case,
-dropped assertion, changed query, or lowered threshold. The `source-structure` verifier also
-enforces the 500-line and 1,024-character description budgets.
+Training evidence is separate from matrix evidence. The activation metric is each
+`evals/trigger-queries.json` query's pass state across repeated blind runs. The ledger gate keeps an
+edit only when all four conditions hold:
+1. No query regresses.
+2. At least one query gains unanimously across all runs.
+3. The query-set fingerprint is unchanged.
+4. Deterministic checks pass.
+
+A matrix or query set may only be extended. `ratchet` rejects removed cases, dropped assertions,
+changed queries, and lowered thresholds. The `source-structure` verifier enforces the 500-line and
+1,024-character description budgets.
 
 Every migrated skill must expose a top-level `## 2. Usage` section and begin
 `## 5. Ordered Execution Chain` with a plain-text flow diagram before the step-by-step explanation.

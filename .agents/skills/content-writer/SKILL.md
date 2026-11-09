@@ -119,9 +119,14 @@ cannot meet the standard, retain the gap and stop.
 
 ### Refresh and research distillation
 
-Treat the current source as the starting authority. Fact-check draft-only claims against live
-evidence and classify them as current, confirmed-and- missing, conflicted/obsolete, or unverified.
-The verified current fact wins; reject obsolete and unverified claims instead of preserving a
+Treat the current source as the starting authority. Check each draft-only claim against live
+evidence, then assign one status:
+- `current`: the current source supports the claim.
+- `confirmed-and-missing`: live evidence confirms the claim, but the current source omits it.
+- `conflicted/obsolete`: evidence conflicts with the claim or shows it is obsolete.
+- `unverified`: live evidence cannot verify the claim.
+
+The verified current fact wins. Reject obsolete and unverified claims; do not preserve them as a
 chronological log.
 
 ## 6. Output & Completion Contract

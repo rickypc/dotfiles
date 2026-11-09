@@ -611,6 +611,9 @@ describe('record', () => {
     expect(harness.files.get(path.join(ROOT, RECEIPT))).toBe(before);
     expect(harness.output.join('')).toContain('REJECTED skills/aidp/SKILL.md');
     expect(harness.output.join('')).toContain('Train probe t1 passed at baseline and now fails.');
+    expect(harness.output.join('')).toContain('A baseline-passing train probe regressed.');
+    expect(harness.output.join('')).toContain('Preserve wording outside the cited rule');
+    expect(harness.output.join('')).toContain('smallest local edit');
     expect(harness.output.join('')).toContain('not accepted');
   });
 

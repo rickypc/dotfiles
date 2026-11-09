@@ -23,8 +23,12 @@ clickable plan link and one `/aidx` command.
 ### Trigger and accepted input
 
 **Trigger:** The user invokes `/aidp` with a request, partial request, or supporting context. AIDP
-accepts only that request/context; it does not accept a plan path or implementation arguments. AIDP
-never executes a plan and never hands a plan path back to run; running a plan path is `/aidx`.
+accepts only that request/context.
+
+AIDP does not accept a user-supplied plan path.
+
+It does not accept implementation arguments. AIDP never executes a plan and never hands a plan path
+back to run; running a plan path is `/aidx`.
 
 ## 2. Usage
 

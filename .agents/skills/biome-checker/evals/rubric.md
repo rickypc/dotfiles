@@ -17,15 +17,23 @@ verifierIds: [source-structure]
 
 # Biome TSC Checker Evaluation Rubric
 
-The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable
-operational rules, input and context schema, ordered execution chain, output and completion
-contract, and evaluation anchors. The canonical matrix checks each heading and challenges brittle
-exact-output or robotic-persona language; the contract must remain compatible with this skill's
-uncertainty, ownership, and proof boundary.
+The package follows the shared seven-part skill contract:
+1. Role and scope
+2. Usage
+3. Immutable operational rules
+4. Input and context schema
+5. Ordered execution chain
+6. Output and completion contract
+7. Evaluation anchors
 
-Verify selected-path lint, TypeScript, and top-level declaration-order behavior without target
-configuration changes or semantic declaration edits. Verify that barriers and cycles are reported
-rather than crossed.
+The canonical matrix checks all seven headings. It rejects brittle exact-output language and robotic
+personas. Keep this contract compatible with the skill's uncertainty, ownership, and proof boundary.
 
-For a fresh-session scenario, verify that the JSON result protocol distinguishes `passed`, `failed`
-with an action packet, and `blocked` without a permitted reorder.
+Verify lint, TypeScript, and top-level declaration order for the selected paths.
+Do not change target configuration or declaration meaning.
+Report barriers and cycles. Do not cross them.
+
+For a fresh session, verify the JSON result protocol:
+- `passed` reports success.
+- `failed` includes an action packet.
+- `blocked` means the requested reorder is not permitted.

@@ -83,10 +83,11 @@ in [usage-patterns.md](references/usage-patterns.md).
   bundled or vendored artifacts when relevant. Absence from an application manifest alone does not
   clear a packaged image. Route located binary candidates through the binary workflow; mark
   unavailable artifact evidence unverified.
-- **Index discipline:** search never creates an index; a missing or not-ready index is a caveat and
-  the local fallback answers. The `read` path indexes only when no matching index exists; the
-  `inspect` path requires a ready matching index and returns an error receipt without indexing when
-  none exists. After a symbol read indexes, `re-check status` and `retry the requested read once`.
+- **Index discipline:** The search never creates an index. If no ready index exists, report the caveat
+  and answer with the local fallback. `read` creates an index only when no matching index exists.
+  `inspect` requires a ready matching index; otherwise it returns an error receipt without indexing.
+  When a symbol `read` creates an index, run `re-check status` and
+  `retry the requested read once`.
 - **Query pipeline:** The script runs graph search first and accepts graph matches only through
   identity fields: `name`, `qualified_name`, `file_path`, and `path`. When no graph identity-field
   match remains, it runs code search and merges its results, including the directory cluster. It
@@ -95,15 +96,15 @@ in [usage-patterns.md](references/usage-patterns.md).
   under the approved root via `--hidden --no-ignore`) only when indexed discovery finds nothing. The
   staged fallback stops at the first exact literal match and the caller must never repeat a listed
   attempt.
-- **Binary rules:** The content gate classifies every located candidate by bytes - a NUL byte or
-  invalid UTF-8 plus magic bytes, with `file` mime corroboration, never extension-only. classify
-  always, decode as needed. The eighteen-row binary router in
-  [binary-router.md](references/binary-router.md) owns the route rows, the check-then-install idiom
-  for missing routed tools, extraction under the operating-system temporary directory that work on a
-  copy without creating ephemeral project indexes, and receipt strategies named
+- **Binary rules:** The content gate classifies every located candidate by bytes. It is never
+  extension-only. A NUL byte, or invalid UTF-8 plus magic bytes, identifies a binary candidate.
+  Use `file` mime as corroboration. Apply this rule: classify always, decode as needed. The [binary
+  router](references/binary-router.md) owns its eighteen route rows and check-then-install steps for
+  missing tools. Its extraction must work on a copy in the operating-system temporary directory
+  without creating ephemeral project indexes. It also owns receipt strategies:
   `binary-gate:classify`, `binary-tool-check`, `binary-tool-install`, and `binary-route:*`. The
-  website and running-app rows fire only on an explicitly provided target, never an inferred one.
-  The backend is the `codebase-memory-mcp` binary and its transports are probed, never hand-run.
+  website and running-app rows fire only on an explicitly provided target. Probe backend transports;
+  never hand-run the `codebase-memory-mcp` binary.
 
 ## 4. Input & Context Schema
 
@@ -113,9 +114,9 @@ in [usage-patterns.md](references/usage-patterns.md).
   request path for `inspect` on a root with a ready matching index.
 - **Optional:** Known subsystem boundaries, prior receipts, or one bounded batch of distinct
   independent reads through `inspect`. Duplicate normalized queries are rejected.
-- **Unknowns:** A missing index, a denied transport, or an empty result is reported in the envelope
-  with its caveat - never filled with a guess. never guess paths, never guess symbols, never guess
-  causes, and never guess completion.
+- **Unknowns:** Report missing indexes, denied transports, and empty results with their caveats.
+  The rule is to never guess paths, never guess symbols, never guess causes, and never guess
+  completion.
 
 ## 5. Ordered Execution Chain
 

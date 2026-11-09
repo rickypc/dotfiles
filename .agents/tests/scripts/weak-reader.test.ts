@@ -895,7 +895,12 @@ describe('suggest mode', () => {
     expect(system?.content).not.toContain('exactly one option letter');
     expect(user?.content).toContain('Q?');
     expect(user?.content).toContain('You answered B. The correct answer is A.');
-    expect(user?.content).toContain('make A obvious');
+    expect(user?.content).toContain('makes A obvious');
+    expect(user?.content).toContain('smallest local repair');
+    expect(user?.content).toContain('State whether the issue is wording\nor placement.');
+    expect(user?.content).toContain('keep its wording');
+    expect(user?.content).toContain('its own paragraph');
+    expect(user?.content).toContain('Do not rewrite surrounding text.');
   });
 
   test('releases the model and writes nothing when generation fails', async () => {

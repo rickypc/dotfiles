@@ -92,15 +92,16 @@ test('fails a source whose frontmatter starts the text but lacks name and descri
   });
 });
 
-test('fails a source over the line budget or with an overlong description', () => {
+test('counts the body for the line budget and checks description length', () => {
   const header = '---\nname: example\ndescription: test\n---\n';
   const verify = (text: string) =>
     runIndependentVerifier(matrixCase, { delegatedChecks: {}, ownedFiles: new Set(), text });
-  expect(verify(`${header}${'line\n'.repeat(494)}`).status).toBe('passed');
-  expect(verify(`${header}${'line\n'.repeat(500)}`)).toMatchObject({
-    detail: expect.stringContaining('at most 500 lines'),
+  expect(verify(`${header}${'line\n'.repeat(500)}`).status).toBe('passed');
+  expect(verify(`${header}${'line\n'.repeat(501)}`)).toMatchObject({
+    detail: expect.stringContaining('at most 500 body lines'),
     status: 'failed',
   });
+  expect(verify(`${'line\n'.repeat(501)}`).status).toBe('failed');
   expect(verify(`---\nname: example\ndescription: ${'x'.repeat(1025)}\n---\nbody`).status).toBe(
     'failed',
   );

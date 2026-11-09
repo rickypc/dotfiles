@@ -529,6 +529,7 @@ const diagnose = async (
   measured: Measured,
   setText: string,
   deps: GateDependencies,
+  baselineRegression = false,
 ): Promise<string> => {
   const failures = await failureEntries(measured, setText, target, deps);
   if (failures.length === 0) {
@@ -573,7 +574,10 @@ const diagnose = async (
   const subject = target.skill ? `${DESCRIPTION_PREFIX}${target.skill}` : target.document;
   const advice = target.skill
     ? 'Rewrite the description so a router picks this skill for these queries and no other skill does, then record again.'
-    : 'Rewrite the source passage as short, direct sentences and record again.';
+    : baselineRegression
+      ? 'A baseline-passing train probe regressed. Preserve wording outside the cited rule; make only '
+        + 'the smallest local edit to that rule, then record again.'
+      : 'Make the smallest local edit to the cited passage, preserve surrounding rules, and record again.';
   const odd = measured.readerLog
     .split('\n')
     .filter((line) => line.includes('unparseable reply'))
@@ -737,17 +741,21 @@ const recordTarget = async (
   const previous = previousText === undefined ? undefined : parseReceipt(previousText);
   const measured = await measureDocument(target, deps);
   const { measurement } = measured;
-  const verdict = decide(measurement, baselineOf(previous), {
+  const baseline = baselineOf(previous);
+  const verdict = decide(measurement, baseline, {
     ...options,
     fingerprintChanged:
       previous !== undefined && !fingerprintMatches(previous.fingerprint, currentFingerprint()),
   });
+  const baselineRegression = verdict.problems.some((problem) =>
+    problem.includes('passed at baseline and now fails'),
+  );
   const score = `train ${measurement.trainPassed.length}/${measurement.trainPassed.length + measurement.trainFailed.length}, validation ${measurement.validationPassed}/${measurement.validationTotal}`;
   if (!verdict.accepted || verdict.decision === undefined) {
     deps.write(
       `REJECTED ${target.document} (${score})\n${verdict.problems.map((p) => `  - ${p}`).join('\n')}\n`,
     );
-    deps.write(await diagnose(target, measured, setText, deps));
+    deps.write(await diagnose(target, measured, setText, deps, baselineRegression));
     return false;
   }
   const reason = options.rebaselineReason ?? options.allowEqualReason ?? '';

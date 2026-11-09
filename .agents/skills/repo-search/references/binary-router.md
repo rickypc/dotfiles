@@ -29,10 +29,15 @@ receipt; nothing here licenses a caller to bypass it.
 | `bplist00`                                                       | `plist`                                                                 |
 | `c6 1f bc 03`                                                    | `hermes`                                                                |
 | `d4 c3 b2 a1`, `a1 b2 c3 d4`, `0a 0d 0d 0a`                      | `pcap`                                                                  |
-| `1f 8b` (gzip), `070701`/`070707` (cpio), `27 05 19 56` (uImage) | `firmware`                                                              |
+| `1f 8b` (gzip)                                                   | `firmware`                                                              |
+| `070701` (cpio)                                                  | `firmware`                                                              |
+| `070707` (cpio)                                                  | `firmware`                                                              |
+| `27 05 19 56` (uImage)                                           | `firmware`                                                              |
 | `PK\x03\x04`, `PK\x05\x06`, `PK\x07\x08`                         | `zip`                                                                   |
 | small little-endian length then `{"files"` in the first 64 bytes | `asar`                                                                  |
 | any NUL byte or invalid UTF-8 in the head, no known magic        | `file(1)` mime and human output, keyword-mapped, else `generic-binary`  |
+
+If a file starts with `1f 8b`, classify it as `firmware`.
 
 Detection is by content, never extension-only. Text files never enter the router; a text file with
 `sourceMappingURL=` or lines longer than 500 characters routes as `text-bundle` through the explicit

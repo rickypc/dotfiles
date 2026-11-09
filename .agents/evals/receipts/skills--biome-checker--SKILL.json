@@ -33,7 +33,7 @@
   },
   "decision": "perfect",
   "document": "skills/biome-checker/SKILL.md",
-  "documentSha256": "0492ae674906d0cb19e94e474336def75949d726e7235c64684b1c3dd19068e4",
+  "documentSha256": "633b844e3a0d7869a124c0331c4a314e51f3cf698df60319f2e6857664106574",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -76,7 +76,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "9a303f0c57dc39c9c98a3e38d98ab18ae3c2ea049e5970eb31c95ca8750d7357",
+  "selfSha256": "f80671fdd150aa524c12331f73f769e1ab7dbb7efa98b6c91b1f6cdcf797cf57",
   "setPath": "skills/biome-checker/evals/comprehension/SKILL.json",
   "setSha256": "2c812691f9f6d5e7dbd5ec1ed8e34c3e94a0e958090d466432e0dc53f1cbf7d1"
 }

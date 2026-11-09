@@ -138,11 +138,11 @@ export const UNPARSEABLE_ROUTE = 'UNPARSEABLE';
 export const MODEL_REVISION =
   // biome-ignore lint/security/noSecrets: a public git revision, not a secret
   'dd693ff40353f057ca5f07e945ad867f4afbf2ec';
-// Bump when the prompt shape or decoding options change; every gate receipt then needs a rebaseline.
+// Bump when scored prompts or decoding options change; suggestion diagnostics do not affect scores.
 export const READER_VERSION = 'reader-v1';
 export const SUGGEST_MAX_NEW_TOKENS = 260;
 export const SUGGEST_INSTRUCTIONS =
-  'You are a reader with no other knowledge. Use only the document below. You may answer in full sentences.';
+  'You are diagnosing a failed reading question. Use only the document below; do not add facts.';
 export const MAX_CONTEXT_TOKENS = 131072;
 export const MIN_CONTEXT_TOKENS = 8192;
 export const PLAN_FILE = 'weak-reader-plan.json';
@@ -583,10 +583,16 @@ export const suggestionMessages = (
 ): readonly ChatMessage[] => [
   { content: `${SUGGEST_INSTRUCTIONS}\n\nDocument:\n${document}`, role: 'system' },
   {
-    content:
-      `Question:\n${failure.query}\n\nYou answered ${failure.given}. The correct answer is ${failure.expected}. `
-      + 'Quote the sentence in the document that decides the correct answer. Then explain in one sentence '
-      + `what made it hard to read. Then write a clearer replacement sentence, short and unambiguous, that would make ${failure.expected} obvious to a small reader.`,
+    content: `Question:\n${failure.query}
+
+You answered ${failure.given}. The correct answer is ${failure.expected}.
+Quote the shortest sentence that supports the correct answer. State whether the issue is wording
+or placement.
+Give the smallest local repair that makes ${failure.expected} obvious. Preserve all other rules
+and meaning.
+If the sentence is already correct but buried in a paragraph, keep its wording and recommend
+making it its own paragraph.
+Otherwise give one short replacement sentence. Do not rewrite surrounding text.`,
     role: 'user',
   },
 ];
