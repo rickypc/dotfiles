@@ -595,13 +595,12 @@ describe('run', () => {
     );
     expect(model.warmup).toHaveBeenCalledTimes(1);
     expect(model.dispose).toHaveBeenCalledTimes(1);
-    expect(harness.logs.some((line) => line.startsWith('provenance'))).toBe(true);
-    expect(harness.logs).toContain('query 1: first token 0.100 s, total 0.400 s');
-    expect(harness.logs).toContain('query 2: first token 0.100 s, total 0.500 s');
+    expect(harness.logs.some((line) => line.startsWith('provenance'))).toBe(false);
+    expect(harness.logs.some((line) => /^query \d+:/u.test(line))).toBe(false);
     expect(harness.logs).toContain(
-      'answered 3 probes from 2 queries; load 2.000 s, warmup 0.500 s, '
-        + 'first token of first query 0.100 s, mean per query 0.450 s, answering 0.900 s, '
-        + 'model start to end 3.400 s',
+      `GPU ready; context 11/8192 tokens; answered 3 probes from 2 queries; load 2.000 s, `
+        + `warmup 0.500 s, total 3.400 s; last query first token 0.100 s, total 0.500 s; `
+        + `model revision ${MODEL_SHA}; runtime bundle ${VENDORED_BUNDLE_SHA256}`,
     );
   });
 
@@ -773,7 +772,7 @@ describe('run with the vendored bundle', () => {
     expect(harness.deps.hashText).toHaveBeenCalledWith('vendored source');
     expect(harness.deps.importSource).toHaveBeenCalledWith('vendored source');
     expect(harness.deps.assignGlobals).toHaveBeenCalledWith({ [KV_CAPACITY_GLOBAL]: 8192 });
-    expect(harness.logs).toContain('context 11 of 8192 tokens');
+    expect(harness.logs.some((line) => line.includes('context 11/8192 tokens'))).toBe(true);
   });
 
   test('a vendored bundle that fails its pinned hash exits 3 before importing it', async () => {
@@ -884,7 +883,12 @@ describe('suggest mode', () => {
         + '{"id":"train-02","suggestion":"The deciding sentence is X."}\n',
     );
     expect(generate.mock.calls[0]?.[1]).toEqual({ maxNewTokens: SUGGEST_MAX_NEW_TOKENS });
-    expect(harness.logs).toContain('suggestion 2 of 2');
+    expect(harness.logs).toContain(
+      `GPU ready; context 11/8192 tokens; generated 2 suggestions; load 0.000 s, `
+        + `generation 0.000 s, total 0.000 s; model revision ${MODEL_SHA}; `
+        + `runtime bundle ${VENDORED_BUNDLE_SHA256}`,
+    );
+    expect(harness.logs.some((line) => line.startsWith('suggestion '))).toBe(false);
   });
 
   test('the prompt carries the document, the question, the given and correct letters', () => {

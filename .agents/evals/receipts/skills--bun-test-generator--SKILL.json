@@ -34,7 +34,7 @@
   },
   "decision": "perfect",
   "document": "skills/bun-test-generator/SKILL.md",
-  "documentSha256": "be71729668abd0a67360362e13843e49a404bb35a3a34edea2e41e378556883d",
+  "documentSha256": "af3329c35a3000883fed483727ceebf8c176f9bd9c178d420d1f2c9dcecb4b2e",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -78,7 +78,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "658158d824ea141c429918319c6c72a4993f9ca11e35616743e1995686f5575e",
+  "selfSha256": "309535c68b5b1cb4bb42f8b65cae3ce3983808188badbcfdd34b549a2843209c",
   "setPath": "skills/bun-test-generator/evals/comprehension/SKILL.json",
   "setSha256": "44b40932d962261e3c115838be0b3422bedb4560a7f840bb86d11cfbde830fcf"
 }

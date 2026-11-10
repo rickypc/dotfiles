@@ -368,7 +368,7 @@ describe('formatReceipt', () => {
     expect(text).toContain('"trainPassed": [\n      "train-00",\n');
     expect(formatReceipt(sealed())).toContain('"trainFailed": ["t2"],');
     const lines = text.split('\n').filter((line) => !line.includes('Sha256'));
-    expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(80);
+    expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(100);
   });
 
   test('round-trips through JSON and expands arrays that hold objects', () => {

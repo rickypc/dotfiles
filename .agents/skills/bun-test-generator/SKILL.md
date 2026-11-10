@@ -19,12 +19,14 @@ evidence with the real SUT and explicit boundary proof; `/playwright-test-genera
 browser flows.
 
 For a project-owned SUT, resolve the nearest `package.json` project root. Take the SUT path after
-the project root, keeping its subfolders such as `scripts/`. Put `tests/` in front of that path
-and use `.test.ts`: the test is exactly
-`<project-root>/tests/<sut-relative-path-without-extension>.test.ts`. For a declared globally
-owned SUT, use its declared canonical source and test root and record that ownership exception in
-the matrix. Never copy or symlink the SUT to satisfy a path convention. Example: the SUT
-`<project-root>/scripts/run.ts` gets the test `<project-root>/tests/scripts/run.test.ts`.
+the project root, keeping its subfolders such as `scripts/`. For `<project-root>/scripts/run.ts`,
+the canonical test is `<project-root>/tests/scripts/run.test.ts`. Keep `tests/` before the full
+SUT-relative path and use `.test.ts`. General template:
+`<project-root>/tests/<sut-relative-path-without-extension>.test.ts`.
+For a declared globally owned SUT, use its declared canonical source and test root and record that
+ownership exception in the matrix. Never copy or symlink the SUT to satisfy a path convention.
+Preserve every SUT subfolder in the test path. For example, `<project-root>/scripts/run.ts` maps to
+`<project-root>/tests/scripts/run.test.ts`.
 
 ## 2. Usage
 

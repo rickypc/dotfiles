@@ -315,7 +315,7 @@ const loadModel = async (
   deps: ReaderDependencies,
   snapshotDir: string,
   bundle: ReaderBundle,
-): Promise<ModelHandle> => {
+): Promise<{ readonly capacity: number; readonly model: ModelHandle; readonly needed: number }> => {
   const source = await deps.readVendoredBundle();
   if (deps.hashText(source) !== VENDORED_BUNDLE_SHA256) {
     throw new ReaderError(
@@ -343,8 +343,7 @@ const loadModel = async (
       EXIT_CODES.tooLong,
     );
   }
-  deps.log(`context ${needed} of ${capacity} tokens`);
-  return model;
+  return { capacity, model, needed };
 };
 
 export const mapNetworkError = (error: unknown, url: string): ReaderError => {
@@ -562,9 +561,6 @@ const answerAll = async (
         );
       }
       timings.push(answered.timing);
-      deps.log(
-        `query ${timings.length}: first token ${secondsOf(answered.timing.firstTokenMs)}, total ${secondsOf(answered.timing.totalMs)}`,
-      );
     }
     lines.push(
       JSON.stringify({
@@ -686,17 +682,23 @@ const prepareModel = async (
   deps: ReaderDependencies,
   bundle: ReaderBundle,
 ): Promise<{
+  readonly context: { readonly capacity: number; readonly needed: number };
   readonly loadedAt: number;
   readonly model: ModelHandle;
+  readonly provenance: Provenance;
   readonly startedLoad: number;
 }> => {
   const cache = await ensureCache(deps);
-  deps.log(`provenance ${JSON.stringify(cache.provenance)}`);
   await installGpu(deps);
-  deps.log('gpu adapter ready');
   const startedLoad = deps.now();
-  const model = await loadModel(deps, cache.snapshotDir, bundle);
-  return { loadedAt: deps.now(), model, startedLoad };
+  const { capacity, model, needed } = await loadModel(deps, cache.snapshotDir, bundle);
+  return {
+    context: { capacity, needed },
+    loadedAt: deps.now(),
+    model,
+    provenance: cache.provenance,
+    startedLoad,
+  };
 };
 
 const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Promise<number> => {
@@ -706,8 +708,9 @@ const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Pr
   }
   const bundle = parseBundle(await deps.readText(bundlePath), bundlePath);
   const failures = parseFailures(await deps.readText(failuresPath), failuresPath);
-  const { model } = await prepareModel(deps, bundle);
+  const { context, loadedAt, model, provenance, startedLoad } = await prepareModel(deps, bundle);
   try {
+    const generationStarted = deps.now();
     const lines: string[] = [];
     for (const failure of failures) {
       const suggestion = await completeText(
@@ -716,9 +719,15 @@ const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Pr
         SUGGEST_MAX_NEW_TOKENS,
       );
       lines.push(JSON.stringify({ id: failure.id, suggestion }));
-      deps.log(`suggestion ${lines.length} of ${failures.length}`);
     }
     await deps.writeText(suggestionsPath, lines.map((line) => `${line}\n`).join(''));
+    const endedAt = deps.now();
+    deps.log(
+      `GPU ready; context ${context.needed}/${context.capacity} tokens; generated ${lines.length} suggestions; `
+        + `load ${secondsOf(loadedAt - startedLoad)}, generation ${secondsOf(endedAt - generationStarted)}, `
+        + `total ${secondsOf(endedAt - startedLoad)}; model revision ${provenance.modelRevision}; `
+        + `runtime bundle ${provenance.bundleSha256}`,
+    );
   } finally {
     await model.dispose?.();
   }
@@ -734,20 +743,21 @@ export const run = async (args: readonly string[], deps: ReaderDependencies): Pr
     throw new ReaderError(usage(), EXIT_CODES.failure);
   }
   const bundle = parseBundle(await deps.readText(bundlePath), bundlePath);
-  const { loadedAt, model, startedLoad } = await prepareModel(deps, bundle);
+  const { context, loadedAt, model, provenance, startedLoad } = await prepareModel(deps, bundle);
   try {
     await model.warmup();
     const warmAt = deps.now();
     const { lines, timings } = await answerAll(model, bundle, deps);
     const endedAt = deps.now();
-    const meanMs = (endedAt - warmAt) / Math.max(1, timings.length);
-    deps.log(
-      `answered ${lines.length} probes from ${timings.length} queries; load ${secondsOf(loadedAt - startedLoad)}, `
-        + `warmup ${secondsOf(warmAt - loadedAt)}, first token of first query ${secondsOf(timings[0]?.firstTokenMs ?? 0)}, `
-        + `mean per query ${secondsOf(meanMs)}, answering ${secondsOf(endedAt - warmAt)}, `
-        + `model start to end ${secondsOf(endedAt - startedLoad)}`,
-    );
     await deps.writeText(answersPath, lines.map((line) => `${line}\n`).join(''));
+    deps.log(
+      `GPU ready; context ${context.needed}/${context.capacity} tokens; `
+        + `answered ${lines.length} probes from ${timings.length} queries; `
+        + `load ${secondsOf(loadedAt - startedLoad)}, warmup ${secondsOf(warmAt - loadedAt)}, `
+        + `total ${secondsOf(endedAt - startedLoad)}; last query first token `
+        + `${secondsOf(timings.at(-1)?.firstTokenMs ?? 0)}, total ${secondsOf(timings.at(-1)?.totalMs ?? 0)}; `
+        + `model revision ${provenance.modelRevision}; runtime bundle ${provenance.bundleSha256}`,
+    );
   } finally {
     await model.dispose?.();
   }

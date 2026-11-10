@@ -8,6 +8,7 @@ silent = true
 
 [test]
 coverage = true
+coveragePathIgnorePatterns = ["blob:*"]
 coverageReporter = ["lcov", "text"]
 coverageSkipTestFiles = true
 coverageThreshold = { functions = 1.0, lines = 1.0, statements = 1.0 }

@@ -1,41 +1,11 @@
 import { expect, mock, test } from 'bun:test';
 
-const canonicalTestPathFor = mock(() => '/repo/tests/source.test.ts');
-const convertJestToBun = mock(() => "import { test } from 'bun:test';");
-const renderBunTestTemplate = mock(() => 'rendered template');
-const testPathFor = mock(() => '/repo/tests/source.test.ts');
-const validateBunTestSource = mock((source: string) => {
-  if (source.includes('jest.fn')) {
-    throw new Error('bun:test');
-  }
-});
-const validateExternalDependencyMocks = mock((sutSource: string, testSource: string) => {
-  if (!sutSource || !testSource) {
-    throw new Error('sutSource and testSource');
-  }
-});
-
-mock.module('../scripts/bun-test-generator.js', () => ({
-  canonicalTestPathFor,
-  convertJestToBun,
-  renderBunTestTemplate,
-  testPathFor,
-  validateBunTestSource,
+import {
+  run,
+  runWhenMain,
+  usage,
   validateExternalDependencyMocks,
-}));
-mock.module('../utils/cli.js', () => ({
-  runWhenMain: (
-    isMain: boolean,
-    args: readonly string[],
-    runner: (runnerArgs: readonly string[]) => void,
-  ) => {
-    if (isMain) {
-      runner(args);
-    }
-  },
-}));
-
-const { run, runWhenMain, usage } = await import('../../scripts/bun-test-generator.js');
+} from '../../scripts/bun-test-generator.js';
 
 test('renders canonical test paths and validates Bun test sources', () => {
   const write = mock();
@@ -82,7 +52,19 @@ test('renders canonical test paths and validates Bun test sources', () => {
   ]);
 });
 
-test('rejects invalid input and guards the main boundary', () => {
+test.each([
+  { label: 'newline', source: '// fetch() is commented out\nexport const value = 1;' },
+  { label: 'end of input', source: '// fetch() is commented out' },
+])('ignores fetch in a line comment at $label', ({ source }) => {
+  expect(() =>
+    validateExternalDependencyMocks(
+      source,
+      "import { test } from 'bun:test'; test('boundary scan', () => {});",
+    ),
+  ).not.toThrow();
+});
+
+test('rejects invalid input and guards the main boundary', async () => {
   expect(() => run(['validate-source', 'jest.fn()'])).toThrow('bun:test');
   expect(() => run(['validate-boundaries', '{}'])).toThrow(
     'sutSource, testSource, and sutModuleSpecifier',
@@ -98,9 +80,20 @@ test('rejects invalid input and guards the main boundary', () => {
       }),
     ]),
   ).toThrow('scope must be');
+  expect(() =>
+    run([
+      'validate-boundaries',
+      JSON.stringify({
+        preloadSource: 42,
+        sutModuleSpecifier: './sut.js',
+        sutSource: 'export const load = () => true;',
+        testSource: "import { test } from 'bun:test';",
+      }),
+    ]),
+  ).toThrow('preloadSource must be a string');
   expect(() => run([])).toThrow(usage());
   const runner = mock();
-  runWhenMain(true, ['test-path', '/repo', '/repo/source.ts'], runner);
-  runWhenMain(false, [], runner);
+  await runWhenMain(true, ['test-path', '/repo', '/repo/source.ts'], runner);
+  await runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
 });

@@ -82,12 +82,15 @@ and `<answers>` is the absolute `.jsonl` path the reader writes for `train measu
 codes are 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package, 5
 document too long. A sandboxed process exits 2: run this one command outside the sandbox, or use
 in-session child agents instead. `<failures>` is an absolute JSON array of train misses, and
-`<suggestions>` is the absolute `.jsonl` path the reader writes for them. The `gate record` route
-needs the GPU, so run it outside the sandbox; its flags are `--allow-equal <reason>` and
-`--rebaseline <reason>`, and each needs a written reason. The `gate` routes also take
-`--agents-root <absolute-path>`, placed before the document paths. `<doc-path>` is an instruction
-document path relative to the agents root, or `descriptions` for the routing of every skill
-description; run `gate record descriptions` for that. For a project-local document, pass
+`<suggestions>` is the absolute `.jsonl` path the reader writes for them. `gate record` needs a GPU.
+Use an approved outside-sandbox runner when available. If none is available, give the user the exact
+command and working directory for a GPU host. State that no receipt was recorded; do not claim
+acceptance without a passing receipt. For one document, run
+`bun scripts/instruction-gate.ts record <doc-path>` from `<agents-root>`. Its flags are
+`--allow-equal <reason>` and `--rebaseline <reason>`, each requiring a written reason. The `gate`
+routes also take `--agents-root <absolute-path>`, placed before the document paths. `<doc-path>` is
+an instruction document path relative to the agents root, or `descriptions` for the routing of every
+skill description; run `gate record descriptions` for that. For a project-local document, pass
 `--agents-root <absolute-path>` with the absolute path of the project `.agents` directory. That root
 holds the document, its comprehension set, and its receipt. The scripts still run from the global
 package. `descriptions` is gated only for the global root. See the weak reader section of the train

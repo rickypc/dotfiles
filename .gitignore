@@ -37,6 +37,7 @@ aidlc
 .flutter
 .gcc-version
 .gemini
+.gemrc
 .github-*
 .gitlab-runner
 .gk

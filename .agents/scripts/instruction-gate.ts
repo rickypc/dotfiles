@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { AGENTS_ROOT_FLAG, splitAgentsRoot } from '../utils/agents-root.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
@@ -138,7 +139,7 @@ export const ROUTING_RECEIPT = path.join(RECEIPT_DIRECTORY, 'activation.json');
 export const ROUTING_BATCH = 4;
 export const ROOT_DOCUMENT_PATTERN = /^(AGENTS|CLAUDE|GEMINI)[^/]*\.md$/u;
 
-const PACKAGE_ROOT = path.join(import.meta.dir, '..');
+const PACKAGE_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const activeTrainIds = (set: ProbeSet): readonly string[] =>
   (set.queries ?? [])
@@ -386,7 +387,7 @@ const comparisonProblems = (receipt: Receipt, aggregate: boolean): string[] => {
   return verdict.problems.map((problem) => `Recorded result is worse: ${problem}`);
 };
 
-const JSON_LINE_WIDTH = 80;
+const JSON_LINE_WIDTH = 100;
 
 export const activationSkills = async (deps: GateDependencies): Promise<readonly string[]> => {
   const skills = await deps.listDirectory(path.join(deps.agentsRoot, 'skills'));
