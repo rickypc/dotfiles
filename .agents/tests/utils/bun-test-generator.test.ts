@@ -50,6 +50,12 @@ test('requires complete behavior-quality rows', () => {
 
 test('rejects Jest and type suppressions while requiring Bun APIs', () => {
   expect(() => validateBunTestSource('test("x", () => {})')).toThrow('bun:test');
+  expect(() =>
+    validateBunTestSource('test("x", () => {})', "import { describe } from 'bun:test';"),
+  ).not.toThrow();
+  expect(() => validateBunTestSource('test("x", () => {})', 'const clock = 1;')).toThrow(
+    'bun:test',
+  );
   expect(() => validateBunTestSource('import { test } from "bun:test"; jest.fn();')).toThrow(
     'Jest',
   );
@@ -123,12 +129,26 @@ test('requires mocks for every external SUT module and global boundary', () => {
   expect(() =>
     validateExternalDependencyMocks(
       sutSource,
-      testSource.replace(
-        "import { expect, mock, test } from 'bun:test';",
-        "import { expect, test } from 'bun:test';",
-      ),
+      testSource,
+      undefined,
+      'isolated-unit',
+      "import { mock } from 'bun:test';",
+    ),
+  ).not.toThrow();
+  expect(() =>
+    validateExternalDependencyMocks(
+      sutSource,
+      testSource.replace("import { expect, mock, test } from 'bun:test';", ''),
+      undefined,
+      'isolated-unit',
     ),
   ).toThrow('mock import');
+  expect(() =>
+    validateExternalDependencyMocks(
+      '/** @example console.log(result); */\nexport const id = (value: string): string => value;',
+      "import { test } from 'bun:test'; test('x', () => {});",
+    ),
+  ).not.toThrow();
 });
 
 test('protects shared Bun suites from local helper mock contamination', () => {

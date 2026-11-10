@@ -73,7 +73,13 @@ export const runStaticChecks = async (
   const biome = executor(
     command(
       `${request.agentsRoot}/node_modules/.bin/biome`,
-      ['check', '--config-path', `${request.agentsRoot}/biome.jsonc`, ...paths],
+      [
+        'check',
+        '--config-path',
+        `${request.agentsRoot}/biome.jsonc`,
+        '--vcs-use-ignore-file=false',
+        ...paths,
+      ],
       request.agentsRoot,
     ),
   );

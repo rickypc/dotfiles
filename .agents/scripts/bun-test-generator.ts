@@ -150,12 +150,43 @@ const runPathCommand = (
   return false;
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: boundary detection keeps comment states explicit.
+const stripComments = (source: string): string => {
+  let result = '';
+  let index = 0;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (char === '/' && next === '*') {
+      const end = source.indexOf('*/', index + 2);
+      index = end === -1 ? source.length : end + 2;
+      result += ' ';
+      continue;
+    }
+    if (char === '/' && next === '/') {
+      const end = source.indexOf('\n', index + 2);
+      index = end === -1 ? source.length : end;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      const end = source.indexOf(char, index + 1);
+      const close = end === -1 ? source.length : end + 1;
+      result += source.slice(index, close);
+      index = close;
+      continue;
+    }
+    result += char;
+    index += 1;
+  }
+  return result;
+};
+
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/bun-test-generator.ts <canonical-path|convert-jest|template|test-path|validate-boundaries|validate-source> <arguments>';
 
-export const validateBunTestSource = (source: string): void => {
-  if (!bunImport.test(source)) {
-    throw new Error('Generated tests must import from bun:test.');
+export const validateBunTestSource = (source: string, preloadSource?: string): void => {
+  if (!bunImport.test(source) && !bunImport.test(preloadSource ?? '')) {
+    throw new Error('Generated tests must import from bun:test or run under a preload that does.');
   }
   if (jestApi.test(source)) {
     throw new Error('Generated tests must not contain Jest APIs.');
@@ -196,6 +227,7 @@ export const validateExternalDependencyMocks = (
   testSource: string,
   sutModuleSpecifier?: string,
   scope: BunTestScope = 'isolated-unit',
+  preloadSource?: string,
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: boundary validation keeps each failure mode explicit.
 ): void => {
   if (sutModuleSpecifier !== undefined && !sutModuleSpecifier.trim()) {
@@ -223,7 +255,11 @@ export const validateExternalDependencyMocks = (
     scope === 'shared-suite-integration'
       ? externalModules.filter((specifier) => !localModules.includes(specifier))
       : externalModules;
-  if (modulesRequiringMocks.length > 0 && !bunMockImport.test(testSource)) {
+  if (
+    modulesRequiringMocks.length > 0
+    && !bunMockImport.test(testSource)
+    && !bunMockImport.test(preloadSource ?? '')
+  ) {
     throw new Error(
       'External module boundaries require mock.module() and a mock import from bun:test.',
     );
@@ -235,7 +271,7 @@ export const validateExternalDependencyMocks = (
       ),
   );
   const missingGlobals = globalBoundaries
-    .filter(([, pattern]) => pattern.test(sutSource))
+    .filter(([, pattern]) => pattern.test(stripComments(sutSource)))
     .filter(([name]) => {
       const root = name.split('.')[0] ?? name;
       const mockPattern = new RegExp(
@@ -260,6 +296,7 @@ export const validateExternalDependencyMocks = (
 
 const validateBoundaries = (input: string): void => {
   const parsed = JSON.parse(input) as {
+    readonly preloadSource?: unknown;
     readonly scope?: unknown;
     readonly sutSource?: unknown;
     readonly sutModuleSpecifier?: unknown;
@@ -281,12 +318,16 @@ const validateBoundaries = (input: string): void => {
   ) {
     throw new Error('Boundary validation scope must be isolated-unit or shared-suite-integration.');
   }
-  validateBunTestSource(parsed.testSource);
+  if (parsed.preloadSource !== undefined && typeof parsed.preloadSource !== 'string') {
+    throw new Error('Boundary validation preloadSource must be a string when provided.');
+  }
+  validateBunTestSource(parsed.testSource, parsed.preloadSource as string | undefined);
   validateExternalDependencyMocks(
     parsed.sutSource,
     parsed.testSource,
     parsed.sutModuleSpecifier,
     parsed.scope,
+    parsed.preloadSource as string | undefined,
   );
 };
 

@@ -18,12 +18,13 @@ conversion, repair, rename, or deletion, including work initiated by `/aidx`. It
 evidence with the real SUT and explicit boundary proof; `/playwright-test-generator` owns accepted
 browser flows.
 
-For a project-owned SUT, resolve the nearest `package.json` project root and use exactly
-`<project-root>/tests/<sut-relative-path-without-extension>.test.ts`. For a declared globally owned
-SUT, use its declared canonical source and test root and record that ownership exception in the
-matrix. Never copy or symlink the SUT to satisfy a path convention. Example: the SUT
-`<project-root>/scripts/run.ts` gets the test `<project-root>/tests/scripts/run.test.ts`. Keep the
-`scripts/` folder, put `tests/` in front, and use `.test.ts`.
+For a project-owned SUT, resolve the nearest `package.json` project root. Take the SUT path after
+the project root, keeping its subfolders such as `scripts/`. Put `tests/` in front of that path
+and use `.test.ts`: the test is exactly
+`<project-root>/tests/<sut-relative-path-without-extension>.test.ts`. For a declared globally
+owned SUT, use its declared canonical source and test root and record that ownership exception in
+the matrix. Never copy or symlink the SUT to satisfy a path convention. Example: the SUT
+`<project-root>/scripts/run.ts` gets the test `<project-root>/tests/scripts/run.test.ts`.
 
 ## 2. Usage
 
@@ -174,11 +175,15 @@ For boundary validation, `sutSource` and `testSource` are source strings and `su
 the exact import specifier used by the test:
 
 ```bash
-bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-testSource-and-sutModuleSpecifier>'
+bun <agents-root>/scripts/bun-test-generator.ts validate-boundaries '<json-with-sutSource-testSource-sutModuleSpecifier-and-optional-preloadSource>'
 ```
 
 The validator fails if the SUT specifier is passed to `mock.module()`; only other module specifiers
-are mockable. Add `"scope":"shared-suite-integration"` only when the shared condition is factual.
+are mockable. Add `"scope":"shared-suite-integration"` only when the shared condition is factual. A
+project whose test runner injects `bun:test` globals through a preload passes that preload source as
+`preloadSource`; the per-file `bun:test` import and mock import are then satisfied by the preload.
+Global-boundary detection matches executable code only, so comment mentions never trigger a
+boundary.
 
 Verify exact argument count, positional meanings, and source strings while `sutModuleSpecifier`
 remains the exact import specifier. Repair a rejected command before any retry. The command contract

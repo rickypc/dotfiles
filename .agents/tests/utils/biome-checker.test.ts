@@ -31,6 +31,7 @@ test('runs Biome and TypeScript and preserves failed diagnostics', async () => {
   expect(executor.mock.calls[0]?.[0].cwd).toBe('/agents');
   expect(executor.mock.calls[1]?.[0].cwd).toBe('/agents');
   expect(executor.mock.calls[0]?.[0].args).toContain('--config-path');
+  expect(executor.mock.calls[0]?.[0].args).toContain('--vcs-use-ignore-file=false');
   expect(executor.mock.calls[1]?.[0].args).toContain('check');
   expect(executor.mock.calls[1]?.[0].command).toBe('bun');
 });

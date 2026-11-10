@@ -62,7 +62,12 @@ in [usage-patterns.md](references/usage-patterns.md).
   the default route - the wrapper never spawns an MCP server on its own - and the MCP stdio
   transport runs only when `REPO_SEARCH_TRANSPORT_FORCE=mcp`; the staged local search answers when
   no transport works. The caller never chooses, bans, or hand-runs a transport, and never claims
-  the backend is unavailable without the script's transport receipt.
+  the backend is unavailable without the script's transport receipt. Repair a failed CLI probe
+  before relying on the fallback: the CLI transport writes its runtime settings under its own cache
+  root, so run the wrapper with the command workdir set to that backend root (an approved session
+  secondary root) and verify with the backend `config list` first. On harnesses that register the
+  codebase-memory-mcp MCP server, its MCP tools are the transport-independent indexed route, and
+  the daemon log (`cbm-daemon.log`) proves daemon health before any reinstall attempt.
 - **Backend-store isolation:** Callers never access the backend storage; the backend binary owns it
   and every path inside it is redacted to `<backend-store>` in all wrapper output. A cache-private
   or sandbox denial is a transport failure - never an empty result and never backend
