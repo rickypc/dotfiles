@@ -447,13 +447,17 @@ and report the exact blocker.
 
    The writer reads stdin, validates JSON, pretty-prints it, and writes only inside the OS temp
    directory. After materialization succeeds, invoke the owning command separately with the same
-   literal output path. For the knowledge-base skill, that command is:
+   literal output path. Only the writer reads stdin; the owner command takes the JSON path as an
+   argument. Never chain the owner command with the writer in one command. For the knowledge-base
+   skill, the reconcile command takes two arguments: the private-KB root first, the JSON output
+   path second:
 
    ```text
    bun <agents-root>/scripts/knowledge-base.ts reconcile <private-kb-root> <absolute-json-output-path>
    ```
 
-   The private-KB root comes first and the JSON path second.
+   The argument order is fixed: the private-KB root is the first argument and the JSON output path
+   is the second argument. Run this reconcile command separately after materialization succeeds.
 
 Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON boundary: heredoc, shell
 variables, command substitution, inline writers, Python, object-valued tool calls, direct
