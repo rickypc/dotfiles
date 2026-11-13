@@ -3,6 +3,7 @@ import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli
 import { nodeFileSystem, readText } from '../utils/filesystem.js';
 import { bunExecutor, type CommandExecutor } from '../utils/process.js';
 import {
+  condenseRepoSearchEnvelope,
   type RepoSearchEnvelope,
   repoSearchDiscover,
   repoSearchRead,
@@ -19,10 +20,12 @@ import {
 
 export interface RepoSearchCliRequest {
   readonly queries: readonly string[];
+  readonly raw?: boolean;
   readonly requestPath?: string;
   readonly root: string;
   readonly target?: string;
   readonly verb: RepoSearchCliVerb;
+  readonly verbose?: boolean;
 }
 
 export type RepoSearchCliVerb = 'inspect' | 'read' | 'search';
@@ -103,12 +106,15 @@ const runInspect = async (
 };
 
 export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/repo-search.ts [search] <absolute-root> <query...> '
+  'Usage: bun <agents-root>/scripts/repo-search.ts [search] <absolute-root> <query...> [--raw] '
   + '| read <absolute-root> <file-or-URL-or-PID-or-process-or-symbol> [query...] '
-  + '| inspect <absolute-root> <absolute-jsonl-request-path-under-os-tempdir>';
+  + '| inspect <absolute-root> <absolute-jsonl-request-path-under-os-tempdir> '
+  + '[--verbose]';
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the verb parser keeps every route, flag, and error transition explicit.
 export const parseRepoSearchArgs = (args: readonly string[]): RepoSearchCliRequest => {
-  const rest = [...args];
+  const verbose = args.includes('--verbose');
+  const rest = args.filter((argument) => argument !== '--verbose');
   const first = rest[0];
   const verb = verbs.includes(first as RepoSearchCliVerb)
     ? (rest.shift() as RepoSearchCliVerb)
@@ -122,20 +128,28 @@ export const parseRepoSearchArgs = (args: readonly string[]): RepoSearchCliReque
     if (!requestPath || rest.length > 0) {
       throw new Error(usage());
     }
-    return { queries: [], requestPath, root, verb };
+    return { queries: [], requestPath, root, verb, ...(verbose ? { verbose: true } : {}) };
   }
   if (verb === 'read') {
     const target = rest.shift();
     if (!target?.trim()) {
       throw new Error(usage());
     }
-    return { queries: rest, root, target, verb };
+    return { queries: rest, root, target, verb, ...(verbose ? { verbose: true } : {}) };
   }
-  const query = rest.join(' ').trim();
+  const raw = rest.includes('--raw');
+  const filtered = rest.filter((argument) => argument !== '--raw');
+  const query = filtered.join(' ').trim();
   if (!query) {
     throw new Error(usage());
   }
-  return { queries: [query], root, verb };
+  return {
+    queries: [query],
+    root,
+    verb,
+    ...(raw ? { raw: true } : {}),
+    ...(verbose ? { verbose: true } : {}),
+  };
 };
 
 export const run = async (
@@ -174,18 +188,25 @@ export const run = async (
         executor,
         probe: probed.attempt,
         query: request.queries[0] ?? '',
+        raw: request.raw,
         root: request.root,
         transport,
       });
     }
-    write(JSON.stringify(envelope, null, 2));
+    const printed = request.verbose === true ? envelope : condenseRepoSearchEnvelope(envelope);
+    write(JSON.stringify(printed, null, 2));
     if (envelope.status === 'error') {
       process.exitCode = 1;
     }
   } catch (error) {
+    const failure = errorEnvelope(
+      error instanceof Error ? error.message : String(error),
+      request,
+      transport,
+    );
     write(
       JSON.stringify(
-        errorEnvelope(error instanceof Error ? error.message : String(error), request, transport),
+        request.verbose === true ? failure : condenseRepoSearchEnvelope(failure),
         null,
         2,
       ),

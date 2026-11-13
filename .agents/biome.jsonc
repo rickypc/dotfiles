@@ -19,7 +19,6 @@
       "arrowParentheses": "always",
       "delimiterSpacing": false,
       "lineEnding": "lf",
-      "lineWidth": 100,
       "operatorLinebreak": "before",
       "quoteStyle": "single"
     }

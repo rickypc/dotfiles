@@ -139,6 +139,7 @@ whose `from` and `to` values are operation paths, and each operation's `metadata
 the common directory prefix shared between the `from` directory and the `to` path. Prepend `../` for
 each remaining directory level in the `from` path after the common prefix, then append the remaining
 `to` path. Three concrete examples:
+
 - Same directory: `from` = `idx/sub/A.md`, `to` = `idx/sub/B.md` → `](B.md)`
 - Adjacent subject: `from` = `idx/sub1/A.md`, `to` = `idx/sub2/B.md` → `](../sub2/B.md)`
 - Two levels up: `from` = `idx/sub1/sub2/A.md`, `to` = `idx/sub3/B.md` → `](../../sub3/B.md)`

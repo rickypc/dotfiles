@@ -3,6 +3,7 @@ import { expect, mock, test } from 'bun:test';
 import type { CommandSpec } from '../../utils/contracts.js';
 import {
   commandText,
+  fallbackQueryTokens,
   rgFilesCommand,
   rgLiteralCommand,
   skippedRgAttempts,
@@ -10,6 +11,18 @@ import {
 } from '../../utils/search-fallback.js';
 
 test('builds the shared literal and file-name rg commands', () => {
+  const defaultGlobs = [
+    '--glob',
+    '!**/.git/**',
+    '--glob',
+    '!**/node_modules/**',
+    '--glob',
+    '!**/build/**',
+    '--glob',
+    '!**/coverage/**',
+    '--glob',
+    '!**/dist/**',
+  ];
   expect(rgLiteralCommand('/repo', 'Needle', false)).toEqual({
     args: [
       '--color',
@@ -19,27 +32,14 @@ test('builds the shared literal and file-name rg commands', () => {
       '--line-number',
       '--fixed-strings',
       '--hidden',
-      '--no-ignore',
-      '--glob',
-      '!**/.git/**',
-      '--glob',
-      '!**/node_modules/**',
+      ...defaultGlobs,
       'Needle',
       '/repo',
     ],
     command: 'rg',
   });
   expect(rgLiteralCommand('/repo', 'Needle', true).args).toContain('--ignore-case');
-  expect(rgFilesCommand('/repo').args).toEqual([
-    '--files',
-    '--hidden',
-    '--no-ignore',
-    '--glob',
-    '!**/.git/**',
-    '--glob',
-    '!**/node_modules/**',
-    '/repo',
-  ]);
+  expect(rgFilesCommand('/repo').args).toEqual(['--files', '--hidden', ...defaultGlobs, '/repo']);
   expect(skippedRgAttempts('/repo', 'Needle', 'found')).toHaveLength(3);
   expect(
     commandText({
@@ -48,6 +48,17 @@ test('builds the shared literal and file-name rg commands', () => {
       environment: { A_FIRST: 'a', Z_LAST: 'z' },
     }),
   ).toBe('A_FIRST=a Z_LAST=z tool');
+});
+
+test('the raw escape restores the unfiltered ignore-transparent sweep', () => {
+  const rawLiteral = rgLiteralCommand('/repo', 'Needle', false, true).args;
+  const rawFiles = rgFilesCommand('/repo', true).args;
+  for (const args of [rawLiteral, rawFiles]) {
+    expect(args).toContain('--hidden');
+    expect(args).toContain('--no-ignore');
+  }
+  expect(rawLiteral).not.toContain('!**/coverage/**');
+  expect(rawFiles).not.toContain('!**/dist/**');
 });
 
 test('stops after a literal match and records skipped strategies', async () => {
@@ -153,18 +164,129 @@ test('does not treat stderr-only diagnostics as a content match', async () => {
   });
 });
 
-test('staged rg commands stay ignore-transparent under the approved root', () => {
+test('staged rg commands stay hidden-transparent and exclude the preconfigured dirs', () => {
   const literal = rgLiteralCommand('/repo', 'Needle', false).args;
   const insensitive = rgLiteralCommand('/repo', 'Needle', true).args;
   const files = rgFilesCommand('/repo').args;
   for (const args of [literal, insensitive, files]) {
     expect(args).toContain('--hidden');
-    expect(args).toContain('--no-ignore');
+    expect(args).not.toContain('--no-ignore');
+    for (const glob of ['!**/coverage/**', '!**/dist/**', '!**/build/**']) {
+      expect(args).toContain(glob);
+    }
   }
   const receipts = skippedRgAttempts('/repo', 'Needle', 'Skipped for the test.');
   expect(receipts).toHaveLength(3);
   for (const attempt of receipts) {
     expect(attempt.command).toContain('--hidden');
-    expect(attempt.command).toContain('--no-ignore');
+    expect(attempt.command).not.toContain('--no-ignore');
   }
+});
+
+test('tokenizes the fallback query into unique lowercase non-whole tokens', () => {
+  expect(fallbackQueryTokens('something blueberry in some pancake')).toEqual([
+    'something',
+    'blueberry',
+    'in',
+    'some',
+    'pancake',
+  ]);
+  expect(fallbackQueryTokens('  Blueberry   blueberry ')).toEqual(['blueberry']);
+  expect(fallbackQueryTokens('notosansmono')).toEqual([]);
+});
+
+test('a long-token tier-one hit never runs the sub-3-character tier', async () => {
+  const executor = mock(async (spec: CommandSpec) => {
+    if (spec.args.includes('rg-token:blueberry') || spec.args.includes('blueberry')) {
+      return { code: 0, stderr: '', stdout: '/repo/b.ts:1:blueberry' };
+    }
+    return { code: 1, stderr: '', stdout: '' };
+  });
+  const receipt = await stagedRgSearch(executor, '/repo', 'blueberry in');
+  expect(receipt.found).toBeTrue();
+  expect(receipt.slots).toEqual([{ keyword: 'blueberry', output: '/repo/b.ts:1:blueberry' }]);
+  expect(receipt.output).toBe('/repo/b.ts:1:blueberry');
+  expect(receipt.attempts.map((item) => item.strategy)).toEqual([
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-token:blueberry',
+  ]);
+  expect(executor).toHaveBeenCalledTimes(3);
+});
+
+test('sub-3-character tokens run only after every longer slot misses', async () => {
+  const executor = mock(async (spec: CommandSpec) => {
+    if (spec.args[0] === '--files') {
+      return { code: 0, stderr: '', stdout: '/repo/in zz/zz-file.ts' };
+    }
+    return { code: 1, stderr: '', stdout: '' };
+  });
+  const receipt = await stagedRgSearch(executor, '/repo', 'in zz');
+  expect(receipt.found).toBeTrue();
+  expect(receipt.slots).toEqual([]);
+  expect(receipt.attempts.map((item) => item.strategy)).toEqual([
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-token:in',
+    'rg-token:zz',
+    'rg-files',
+  ]);
+});
+
+test('a single-token query skips duplicate token slots and answers from file names', async () => {
+  const executor = mock(async (spec: CommandSpec) => {
+    if (spec.args[0] === '--files') {
+      return { code: 0, stderr: '', stdout: '/repo/needle-file.ts' };
+    }
+    return { code: 1, stderr: '', stdout: '' };
+  });
+  const receipt = await stagedRgSearch(executor, '/repo', 'needle');
+  expect(receipt.found).toBeTrue();
+  expect(receipt.slots).toEqual([]);
+  expect(receipt.attempts.map((item) => item.strategy)).toEqual([
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-files',
+  ]);
+});
+
+test('a tier-two token hit is tagged with its keyword', async () => {
+  const executor = mock(async (spec: CommandSpec) => {
+    if (spec.args.includes('zz')) {
+      return { code: 0, stderr: '', stdout: '/repo/x.ts:2:zz' };
+    }
+    return { code: 1, stderr: '', stdout: '' };
+  });
+  const receipt = await stagedRgSearch(executor, '/repo', 'in zz');
+  expect(receipt.found).toBeTrue();
+  expect(receipt.slots).toEqual([{ keyword: 'zz', output: '/repo/x.ts:2:zz' }]);
+  expect(receipt.attempts.map((item) => item.strategy)).toEqual([
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-token:in',
+    'rg-token:zz',
+  ]);
+});
+
+test('every tier-one token slot runs and each hit carries its own keyword', async () => {
+  const executor = mock(async (spec: CommandSpec) => {
+    if (spec.args.includes('custom') || spec.args.includes('module')) {
+      const keyword = spec.args.includes('custom') ? 'custom' : 'module';
+      return { code: 0, stderr: '', stdout: `/repo/${keyword}.ts:1:${keyword}` };
+    }
+    return { code: 1, stderr: '', stdout: '' };
+  });
+  const receipt = await stagedRgSearch(executor, '/repo', 'custom module');
+  expect(receipt.found).toBeTrue();
+  expect(receipt.slots).toEqual([
+    { keyword: 'custom', output: '/repo/custom.ts:1:custom' },
+    { keyword: 'module', output: '/repo/module.ts:1:module' },
+  ]);
+  expect(receipt.output).toBe('/repo/custom.ts:1:custom\n/repo/module.ts:1:module');
+  expect(receipt.attempts.map((item) => item.strategy)).toEqual([
+    'rg-literal',
+    'rg-literal-ignore-case',
+    'rg-token:custom',
+    'rg-token:module',
+  ]);
 });

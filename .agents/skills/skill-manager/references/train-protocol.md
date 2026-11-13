@@ -46,6 +46,7 @@ be weakened to pass.
 ## 3. Why this design
 
 The loop adapts the shared core of open-source prompt optimizers, minus provider calls:
+
 - Held-out selection (DSPy MIPROv2 and GEPA, the skill-creator description loop): edits are guided
   by the train split; the keep decision never uses train alone.
 - Reflection on failing traces (GEPA, TextGrad, OPRO): the agent reads train failures, names the
@@ -102,6 +103,7 @@ query text; it exists to catch overfitting, not to guide edits.
 ## 6. Suite runs and noise
 
 A description change can steal triggers from neighbors, so a single-skill pass is not enough:
+
 1. Baseline every skill against the unchanged catalog before editing any description.
 2. Train skills one at a time; the bundle substitutes the on-disk candidate description into the
    catalog, so neighbors are measured against current text.
@@ -223,6 +225,7 @@ question with one option letter in an `answer` field.
 ## 9. Edit cap and rejected-edit buffer
 
 Each attempt is one bounded edit. The script measures it against the baseline snapshot, not git.
+
 - An attempt changes the description or the body, never both.
 - The description edit changes at most 25 percent of the baseline description characters. Override
   it with `--max-description-change <percent>`.

@@ -58,9 +58,9 @@
       "train-55",
       "train-56"
     ],
-    "validationPassed": 27
+    "validationPassed": 28
   },
-  "decision": "improved",
+  "decision": "perfect",
   "document": "AGENTS.md",
   "documentSha256": "699e5ff33c6476b50170bd60562f10c12ae4c8d3e16eb516f1139107e8fcdc29",
   "fingerprint": {
@@ -134,7 +134,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "3539f0b5e1179d610e11ca63e3f50f7f1164da951249eabf9c681427a8b6389a",
+  "selfSha256": "b5e8816cdcc6d8d464b8d9fe96805c998fdd8f9e3576cb07f52a8deefcfc6b2e",
   "setPath": "evals/AGENTS.json",
   "setSha256": "3a15d839e4d866a5260d94ac16d6e05d4cc2447f7855e0ce1ffb1f3ad130591a"
 }

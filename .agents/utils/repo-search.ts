@@ -1,3 +1,6 @@
+// biome-ignore-all lint/style/noExcessiveLinesPerFile: the deterministic search and read pipelines stay one cohesive contract module.
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
 import {
   type BinaryHeadReader,
   defaultBinaryHeadReader,
@@ -12,7 +15,20 @@ import {
   type RepoSearchTransport,
   redactBackendStorePaths,
 } from './repo-search-transport.js';
-import { type SearchAttempt, skippedRgAttempts, stagedRgSearch } from './search-fallback.js';
+import {
+  detailMaxChars,
+  resultsPerSlot,
+  type SearchAttempt,
+  type SearchFallbackReceipt,
+  skippedRgAttempts,
+  stagedRgSearch,
+} from './search-fallback.js';
+
+/** One envelope attempt in condensed form: strategy code plus a compact status string. */
+export interface CondensedSearchAttempt {
+  readonly status: string;
+  readonly strategy: string;
+}
 
 interface ParsedIndexStatus {
   readonly indexedAt: string | null;
@@ -37,6 +53,11 @@ interface ParsedSearchGraph {
   readonly rows: readonly ParsedRow[];
 }
 
+/** The unified response contract with attempts condensed to strategy codes. */
+export interface RepoSearchCondensedEnvelope extends Omit<RepoSearchEnvelope, 'attempts'> {
+  readonly attempts: readonly CondensedSearchAttempt[];
+}
+
 export interface RepoSearchDiscoverRequest {
   readonly allowedRoots: readonly string[];
   readonly discoveryMode?: 'indexed-project' | 'private-kb-local';
@@ -44,7 +65,11 @@ export interface RepoSearchDiscoverRequest {
   readonly indexHint?: string;
   readonly probe?: SearchAttempt;
   readonly query: string;
+  /** Restores the unfiltered staged sweep (ignore-file transparency, no extra excludes). */
+  readonly raw?: boolean;
   readonly root: string;
+  /** Overrides the spill writer for the staged-fallback full-output file. */
+  readonly spillWrite?: (path: string, content: string) => Promise<void>;
   readonly transport: RepoSearchTransport | null;
 }
 
@@ -92,6 +117,8 @@ export interface RepoSearchReliability {
   readonly caveats: readonly string[];
   readonly indexedAt: string | null;
   readonly note: string;
+  /** Path of the OS-temp spill file carrying the full untruncated fallback output. */
+  readonly spillFile?: string | null;
 }
 
 /** One located answer item inside the unified response contract. */
@@ -100,6 +127,8 @@ export interface RepoSearchResult {
   readonly kind: 'binary' | 'cluster' | 'connection' | 'file' | 'location' | 'symbol' | 'text';
   readonly location: string | null;
   readonly name: string | null;
+  /** The staged-fallback slot keyword that produced this result (token slots only). */
+  readonly slot?: string | null;
 }
 
 /** The repo-search graph fields whose values identify a returned node or source path. */
@@ -212,6 +241,35 @@ const clusterResults = (code: ParsedSearchCode): readonly RepoSearchResult[] =>
     name: directory.dir,
   }));
 
+const compactExitDetail = (detail: string): string => {
+  const exitMatch = /^\s*Exit code (\d+)\.\s*$/u.exec(detail);
+  if (exitMatch) {
+    return `EXIT:${exitMatch[1] ?? ''}`;
+  }
+  return detail.replace(/\s+/gu, ' ').trim().slice(0, 120);
+};
+
+/**
+ * Condenses the envelope attempts to strategy codes with compact status strings for the
+ * default output; the strategy-to-command lookup lives in the repo-search SKILL.md, and
+ * `--verbose` restores the full command strings and details.
+ */
+export const condenseRepoSearchEnvelope = (
+  envelope: RepoSearchEnvelope,
+): RepoSearchCondensedEnvelope => ({
+  ...envelope,
+  attempts: envelope.attempts.map((attempt): CondensedSearchAttempt => {
+    if (attempt.status === 'found') {
+      return { status: 'found', strategy: attempt.strategy };
+    }
+    const compact = compactExitDetail(attempt.detail);
+    return {
+      status: compact ? `${attempt.status} (${compact})` : attempt.status,
+      strategy: attempt.strategy,
+    };
+  }),
+});
+
 const connectStage = async (
   transport: RepoSearchTransport,
   project: string,
@@ -266,6 +324,9 @@ const connectStage = async (
 const containsPath = (parent: string, child: string): boolean =>
   child === parent || child.startsWith(`${parent}/`);
 
+const defaultSpillWrite = (path: string, content: string): Promise<void> =>
+  Bun.write(path, content).then(() => undefined);
+
 const filenameResults = (output: string): readonly RepoSearchResult[] =>
   output
     .split('\n')
@@ -303,31 +364,34 @@ const literalLineResults = (output: string): readonly RepoSearchResult[] =>
     })
     .slice(0, 20);
 
-const localFallback = async (
-  executor: CommandExecutor,
-  query: string,
-  root: string,
-  gateRunner: typeof runBinaryGate,
-): Promise<{
-  readonly attempts: readonly SearchAttempt[];
-  readonly gateAttempts: readonly SearchAttempt[];
-  readonly gateFound: boolean;
-  readonly gateOutput: string;
-  readonly results: readonly RepoSearchResult[];
-}> => {
-  const fallback = await stagedRgSearch(executor, root, query);
-  const literal = literalLineResults(fallback.output);
-  const results = literal.length > 0 ? literal : filenameResults(fallback.output);
-  const gate = await gateRunner(executor, {
-    candidates: binaryGateCandidates(fallback.output),
-    query,
-  });
+/** Applies the per-slot result and detail budgets and tags each result with its slot. */
+const budgetedFallbackResults = (
+  receipt: SearchFallbackReceipt,
+): { readonly results: readonly RepoSearchResult[]; readonly truncated: boolean } => {
+  if (receipt.slots.length > 0) {
+    const perSlot = receipt.slots.map((slot) => {
+      const parsed = literalLineResults(slot.output);
+      const truncated =
+        parsed.length > resultsPerSlot
+        || parsed.some((result) => (result.detail?.length ?? 0) > detailMaxChars);
+      return {
+        results: parsed.slice(0, resultsPerSlot).map((result) => ({
+          ...result,
+          detail: result.detail === null ? null : result.detail.slice(0, detailMaxChars),
+          slot: slot.keyword,
+        })),
+        truncated,
+      };
+    });
+    return {
+      results: perSlot.flatMap((slot) => slot.results),
+      truncated: perSlot.some((slot) => slot.truncated),
+    };
+  }
+  const filename = filenameResults(receipt.output);
   return {
-    attempts: fallback.attempts,
-    gateAttempts: gate.attempts,
-    gateFound: gate.found,
-    gateOutput: gate.output,
-    results,
+    results: filename.slice(0, resultsPerSlot),
+    truncated: filename.length > resultsPerSlot,
   };
 };
 
@@ -457,6 +521,66 @@ export const skippedAttempt = (strategy: string, detail: string): SearchAttempt 
   status: 'skipped',
   strategy,
 });
+
+/**
+ * The deterministic OS-temp spill path for one root and query; reusing the same path keeps
+ * repeat invocations on one spill file instead of accumulating unique temp files.
+ */
+export const stagedSpillPath = (root: string, query: string): string =>
+  `${tmpdir()}/repo-search-spill-${createHash('sha256')
+    .update(`${root}\n${query}`)
+    .digest('hex')
+    .slice(0, 16)}.txt`;
+
+const localFallback = async (
+  executor: CommandExecutor,
+  query: string,
+  root: string,
+  gateRunner: typeof runBinaryGate,
+  options: {
+    readonly raw?: boolean;
+    readonly spillWrite?: (path: string, content: string) => Promise<void>;
+  },
+): Promise<{
+  readonly attempts: readonly SearchAttempt[];
+  readonly caveats: readonly string[];
+  readonly gateAttempts: readonly SearchAttempt[];
+  readonly gateFound: boolean;
+  readonly gateOutput: string;
+  readonly results: readonly RepoSearchResult[];
+  readonly spillFile: string | null;
+}> => {
+  const fallback = await stagedRgSearch(executor, root, query, { raw: options.raw === true });
+  const { results, truncated } = budgetedFallbackResults(fallback);
+  let spillFile: string | null = null;
+  const caveats: string[] = [];
+  if (truncated) {
+    spillFile = stagedSpillPath(root, query);
+    try {
+      await (options.spillWrite ?? defaultSpillWrite)(spillFile, fallback.output);
+    } catch (error) {
+      spillFile = null;
+      caveats.push(
+        `Full staged-fallback output could not be spilled (${
+          error instanceof Error ? error.message : String(error)
+        }); the envelope keeps only the budgeted results.`,
+      );
+    }
+  }
+  const gate = await gateRunner(executor, {
+    candidates: binaryGateCandidates(fallback.output),
+    query,
+  });
+  return {
+    attempts: fallback.attempts,
+    caveats,
+    gateAttempts: gate.attempts,
+    gateFound: gate.found,
+    gateOutput: gate.output,
+    results,
+    spillFile,
+  };
+};
 
 const symbolResult = (row: ParsedRow): RepoSearchResult => ({
   detail: row.qn,
@@ -600,6 +724,7 @@ export const repoSearchDiscover = async (
   let indexUsable = false;
   let results: RepoSearchResult[] = [];
   let source: RepoSearchEnvelope['source'] = 'none';
+  let spillFile: string | null = null;
   if (privateKbLocal) {
     attempts.push(
       skippedAttempt(
@@ -699,8 +824,12 @@ export const repoSearchDiscover = async (
       ...skippedRgAttempts(request.root, query, 'Skipped because indexed search found a match.'),
     );
   } else {
-    const fallback = await localFallback(request.executor, query, request.root, gateRunner);
+    const fallback = await localFallback(request.executor, query, request.root, gateRunner, {
+      raw: request.raw,
+      spillWrite: request.spillWrite,
+    });
     attempts.push(...fallback.attempts, ...fallback.gateAttempts);
+    caveats.push(...fallback.caveats);
     if (fallback.gateFound) {
       source = 'binary';
       results = [
@@ -711,6 +840,7 @@ export const repoSearchDiscover = async (
       source = 'fallback';
       results = [...fallback.results];
     }
+    spillFile = fallback.spillFile;
   }
   const found = results.length > 0;
   const next: string[] = results.some((result) => result.kind === 'symbol')
@@ -737,6 +867,7 @@ export const repoSearchDiscover = async (
         : `${indexUsable ? `Index ${index} ready.` : 'No usable project index for this run.'}${
             request.indexHint ? ` (requested index: ${request.indexHint})` : ''
           }`,
+      ...(spillFile === null ? {} : { spillFile }),
     },
     results,
     source,

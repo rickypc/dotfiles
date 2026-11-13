@@ -247,10 +247,10 @@
       "split": "validation"
     },
     {
-      "evidence": "(`rg-literal`, case-insensitive literal, file names,",
+      "evidence": "The staged fallback runs the whole-query slots first (`rg-literal`, then the case-insensitive literal)",
       "expected": "B",
       "id": "validation-09",
-      "query": "In which order does the staged literal search run its passes?\nA) File names, literal, case-insensitive literal\nB) `rg-literal`, case-insensitive literal, then file names\nC) Case-insensitive literal, file names, `rg-literal`\nD) `rg-literal`, file names, case-insensitive literal",
+      "query": "In which order does the staged fallback run its slots?\nA) File names, tokens, whole-query literal\nB) Whole-query literal slots, then token slots of three or more characters, then sub-3-character tokens, then file names\nC) Token slots first, then whole-query literal\nD) All slots run simultaneously in parallel",
       "split": "validation"
     },
     {
@@ -261,10 +261,10 @@
       "split": "validation"
     },
     {
-      "evidence": "the CLI transport is the default route and the MCP stdio transport runs only when `REPO_SEARCH_TRANSPORT_FORCE=mcp`",
+      "evidence": "transport is the second route, and the staged local search answers when no transport works",
       "expected": "A",
       "id": "validation-11",
-      "query": "The default run's CLI transport answers list_projects. Which source answers?\nA) The CLI transport, as the default route\nB) The staged local search\nC) A hand-spawned MCP server run by the caller\nD) No one; the run is an error",
+      "query": "The default run's MCP stdio route fails to connect. Which route answers next?\nA) The CLI transport, as the second route\nB) The staged local search\nC) A hand-spawned MCP server run by the caller\nD) No one; the run is an error",
       "split": "validation"
     },
     {

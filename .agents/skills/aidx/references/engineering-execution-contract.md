@@ -9,6 +9,7 @@ retired lifecycle tree is removed.
 Before mutation, maintain a small ledger distinguishing user facts, project instructions, fresh
 repository evidence, decisions, assumptions, and unknowns. Execute the plan's work packets in order:
 research, requirements, design, units, delivery, review, and validation. The order, one step each:
+
 1. research;
 2. requirements (always before design);
 3. design;
@@ -39,6 +40,7 @@ surface matches them:
 
 Route only to owners named by the plan. The role table is a quality lens, not permission to expand
 scope:
+
 - Product: confirm the implemented behavior still matches observable acceptance, exclusions, and
   preserved behavior.
 - Architect: confirm extension points, interfaces, data ownership, compatibility, reversibility,

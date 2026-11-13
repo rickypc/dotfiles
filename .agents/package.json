@@ -3,7 +3,7 @@
     "webgpu": "latest"
   },
   "devDependencies": {
-    "@biomejs/biome": "latest",
+    "@biomejs/biome": "2.6.5",
     "@modelcontextprotocol/sdk": "latest",
     "@types/bun": "latest",
     "gray-matter": "latest",

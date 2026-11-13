@@ -11,12 +11,15 @@ description: >-
 argument-hint: <approved-root> <query...> | read <approved-root> <target> [query...] | inspect <approved-root> <jsonl-path>
 capabilities:
   [
-    "Script-owned transport probe (CLI default, MCP stdio opt-in via REPO_SEARCH_TRANSPORT_FORCE=mcp)",
+    "Script-owned transport probe (MCP stdio primary via the SDK, CLI second; REPO_SEARCH_TRANSPORT_FORCE overrides)",
     One unified JSON response contract on every route,
     Deterministic three-verb caller grammar,
+    Condensed envelope attempts (strategy codes; --verbose restores full command strings),
     Backend-store redaction (<backend-store>),
     Content-based binary gate plus eighteen-row binary router,
-    Ordered staged fallback with named receipt strategies,
+    Tokenized staged fallback with excludes,
+    per-slot budgets,
+    and a spill file,
   ]
 ---
 
@@ -58,16 +61,16 @@ in [usage-patterns.md](references/usage-patterns.md).
 
 ## 3. Immutable Operational Rules
 
-- **Script-owned transport:** The script probes the transports once per run; the CLI transport is
-  the default route - the wrapper never spawns an MCP server on its own - and the MCP stdio
-  transport runs only when `REPO_SEARCH_TRANSPORT_FORCE=mcp`; the staged local search answers when
-  no transport works. The caller never chooses, bans, or hand-runs a transport, and never claims
-  the backend is unavailable without the script's transport receipt. Repair a failed CLI probe
-  before relying on the fallback: the CLI transport writes its runtime settings under its own cache
-  root, so run the wrapper with the command workdir set to that backend root (an approved session
-  secondary root) and verify with the backend `config list` first. On harnesses that register the
-  codebase-memory-mcp MCP server, its MCP tools are the transport-independent indexed route, and
-  the daemon log (`cbm-daemon.log`) proves daemon health before any reinstall attempt.
+- **Script-owned transport:** The script probes the transports once per run: the MCP stdio transport
+  is the primary route (official SDK client first, built-in stdio client second), the CLI transport
+  is the second route, and the staged local search answers when no transport works;
+  `REPO_SEARCH_TRANSPORT_FORCE` restricts the probe deterministically (`mcp`, `cli`, or `none`).
+  Every backend child process is spawned with its working directory pinned to the backend's own
+  cache root, so the caller's workspace cwd can no longer break the backend's runtime-settings load.
+  The caller never chooses, bans, or hand-runs a transport, and never claims the backend is
+  unavailable without the script's transport receipt. On harnesses that register the
+  codebase-memory-mcp MCP server, its MCP tools are the transport-independent indexed route, and the
+  daemon log (`cbm-daemon.log`) proves daemon health before any reinstall attempt.
 - **Backend-store isolation:** Callers never access the backend storage; the backend binary owns it
   and every path inside it is redacted to `<backend-store>` in all wrapper output. A cache-private
   or sandbox denial is a transport failure - never an empty result and never backend
@@ -88,22 +91,30 @@ in [usage-patterns.md](references/usage-patterns.md).
   bundled or vendored artifacts when relevant. Absence from an application manifest alone does not
   clear a packaged image. Route located binary candidates through the binary workflow; mark
   unavailable artifact evidence unverified.
-- **Index discipline:** The search never creates an index. If no ready index exists, report the caveat
-  and answer with the local fallback. `read` creates an index only when no matching index exists.
-  `inspect` requires a ready matching index; otherwise it returns an error receipt without indexing.
-  When a symbol `read` creates an index, run `re-check status` and
+- **Index discipline:** The search never creates an index. If no ready index exists, report the
+  caveat and answer with the local fallback. `read` creates an index only when no matching index
+  exists. `inspect` requires a ready matching index; otherwise it returns an error receipt
+  without indexing. When a symbol `read` creates an index, run `re-check status` and
   `retry the requested read once`.
 - **Query pipeline:** The script runs graph search first and accepts graph matches only through
   identity fields: `name`, `qualified_name`, `file_path`, and `path`. When no graph identity-field
   match remains, it runs code search and merges its results, including the directory cluster. It
   traces the connection between two symbols when the query names both and falls back to the staged
-  literal search (`rg-literal`, case-insensitive literal, file names, hidden- and ignore-transparent
-  under the approved root via `--hidden --no-ignore`) only when indexed discovery finds nothing. The
-  staged fallback stops at the first exact literal match and the caller must never repeat a listed
-  attempt.
+  local search only when indexed discovery finds nothing. The staged fallback runs the whole-query
+  slots first (`rg-literal`, then the case-insensitive literal), stopping at the first exact
+  literal match, then one slot per unique lowercase token of three or more characters, then
+  sub-3-character tokens only when every earlier slot returned zero results, then file-name
+  discovery. Every answered slot contributes results tagged with its slot keyword (`results[].slot`,
+  receipts named `rg-token:<keyword>`), and the caller must never repeat a listed attempt.
+- **Fallback sweep scope and budgets:** The default staged sweep keeps `--hidden`, respects ignore
+  files, and excludes `coverage/`, `dist/`, and `build/` alongside `.git/` and `node_modules/`; the
+  `--raw` search flag restores the unfiltered ignore-transparent sweep when a truly unfiltered
+  search is required. Slot results are budgeted to at most 8 results per slot with 200-character
+  details; when budgets cut output, the full output spills to one operating-system temporary file
+  carried in `reliability.spillFile`.
 - **Binary rules:** The content gate classifies every located candidate by bytes. It is never
-  extension-only. A NUL byte, or invalid UTF-8 plus magic bytes, identifies a binary candidate.
-  Use `file` mime as corroboration. Apply this rule: classify always, decode as needed. The [binary
+  extension-only. A NUL byte, or invalid UTF-8 plus magic bytes, identifies a binary candidate. Use
+  `file` mime as corroboration. Apply this rule: classify always, decode as needed. The [binary
   router](references/binary-router.md) owns its eighteen route rows and check-then-install steps for
   missing tools. Its extraction must work on a copy in the operating-system temporary directory
   without creating ephemeral project indexes. It also owns receipt strategies:
@@ -136,10 +147,13 @@ request -> enumerate approved root(s) when a bounded set is named
    parent or stop after a match. `read` classifies the target deterministically: URL, PID, absolute
    file, dotted symbol, then exact process name.
 2. **Read every envelope:** Each envelope states what happened (`status`), how it ran (`transport`,
-   `source`), where the information was found (`results[].location`), how reliable it is
-   (`reliability.indexedAt`, `reliability.caveats`), every executed or skipped attempt (`attempts`),
-   and the suggested next step (`next`). For dependency questions, also inspect relevant manifests,
-   lockfiles, build files, Dockerfiles, base-image package sources, and located bundled artifacts.
+   `source`), where the information was found (`results[].location`, and `results[].slot` for the
+   staged-fallback keyword slots), how reliable it is (`reliability.indexedAt`,
+   `reliability.caveats`, `reliability.spillFile` when budgets spilled the full output), every
+   executed or skipped attempt as a strategy code with a compact status (`attempts`; the default
+   output carries no command strings and `--verbose` restores them), and the suggested next step
+   (`next`). For dependency questions, also inspect relevant manifests, lockfiles, build files,
+   Dockerfiles, base-image package sources, and located bundled artifacts.
 3. **Answer:** Report one evidence-backed status for every expected root. Treat missing roots as
    unverified; mark failed or uninspected roots and artifacts unverified. An empty result in one
    root does not clear another; when an envelope is empty, follow `next` or stop - never guess.
@@ -149,7 +163,31 @@ request -> enumerate approved root(s) when a bounded set is named
 - **Script contract:** one unified JSON response contract with the same schema on every route -
   `{ok, status, transport, source, query, results, reliability, attempts, next}` - whether the
   answer came from the MCP transport, the CLI transport, the local staged fallback, or the binary
-  router. Binary evidence flows through the same unified contract with `source: "binary"`.
+  router. Binary evidence flows through the same unified contract with `source: "binary"`. In the
+  default output every attempt is condensed to its strategy code plus a compact status string such
+  as `not-found (EXIT:1)`; the table below is the 1:1 lookup from each strategy code to the command
+  it represents, and the `--verbose` flag restores the full command strings and details.
+
+  | Strategy code            | Command it represents                                                                                      | When it appears                        | Additional information                                   |
+  | ------------------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
+  | `transport-probe`        | `list_projects` over MCP stdio (SDK first, built-in second) or CLI                                         | first attempt of every run             | the probe itself is the availability receipt             |
+  | `resolve-index`          | `list_projects` plus explicit indexed-root resolution                                                      | indexed routes                         | a miss yields the staged fallback, never a guessed index |
+  | `index-status`           | `index_status <project>`                                                                                   | indexed routes                         | readiness gates graph, code, and symbol work             |
+  | `search-graph`           | `search_graph <project> <query>`                                                                           | graph stage                            | identity-field matches only                              |
+  | `search-code`            | `search_code <project> <query>`                                                                            | code stage                             | merged with the directory cluster                        |
+  | `connect:<direction>`    | `trace_path <symbol> --direction <inbound\|outbound>`                                                      | two-symbol queries                     | depth one, both directions                               |
+  | `index-repository`       | `index_repository <root> --mode full`                                                                      | deliberate reads without a ready index | search never indexes                                     |
+  | `rg-literal`             | `rg --fixed-strings <query> <root>`                                                                        | staged fallback, whole-query slot      | stops at the first exact literal match                   |
+  | `rg-literal-ignore-case` | `rg --fixed-strings --ignore-case <query> <root>`                                                          | staged fallback, whole-query slot      | runs only after the case-sensitive slot misses           |
+  | `rg-token:<token>`       | `rg --fixed-strings --ignore-case <token> <root>`                                                          | staged fallback, per-token slots       | `results[].slot` carries the keyword                     |
+  | `rg-files`               | `rg --files <root>`                                                                                        | staged fallback, last                  | file-name matches only                                   |
+  | `read:file`              | direct bounded text read                                                                                   | `read` on an absolute file             | `:start` / `:start-end` ranges honored                   |
+  | `read:symbol`            | `get_code_snippet <qualified-name>`                                                                        | `read` on a dotted qualified name      | requires a ready matching index                          |
+  | `inspect:<operation>`    | `get_architecture`, `get_graph_schema`, `search_graph`, `search_code`, `get_code_snippet`, or `trace_path` | `inspect` verb                         | one receipt per declared operation                       |
+  | `binary-gate:classify`   | content-based byte classification                                                                          | located binary candidates              | never extension-only                                     |
+  | `binary-tool-check`      | `command -v <executable>`                                                                                  | a routed tool is missing               | check-then-install, once                                 |
+  | `binary-tool-install`    | the row's install command                                                                                  | after a failed tool check              | owned by the binary router                               |
+  | `binary-route:<route>`   | the matched router row's extraction commands                                                               | routed binary targets                  | see the binary router reference                          |
 - **Success:** Answer with these four fields:
 
   ```text

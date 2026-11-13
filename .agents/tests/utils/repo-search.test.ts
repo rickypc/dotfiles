@@ -1,5 +1,8 @@
+// biome-ignore-all lint/style/noExcessiveLinesPerFile: the discovery and read suites share one hermetic fixture module.
 import { expect, mock, test } from 'bun:test';
-import { homedir } from 'node:os';
+import * as realCrypto from 'node:crypto';
+import * as realOs from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import * as realBinaryRouter from '../../utils/binary-router.js';
 import type { CommandExecutor } from '../../utils/process.js';
 import * as realProcess from '../../utils/process.js';
@@ -12,6 +15,8 @@ import * as realTransport from '../../utils/repo-search-transport.js';
 import type { SearchAttempt } from '../../utils/search-fallback.js';
 import * as realSearchFallback from '../../utils/search-fallback.js';
 
+mock.module('node:crypto', () => realCrypto);
+mock.module('node:os', () => realOs);
 mock.module('./binary-router.js', () => realBinaryRouter);
 mock.module('./process.js', () => realProcess);
 mock.module('./repo-search-transport.js', () => realTransport);
@@ -29,6 +34,7 @@ const {
   repoSearchProjectForRoot,
   repoSearchRead,
   resolveRepoSearchIndex,
+  stagedSpillPath,
   tokenizeBackendRow,
 } = await import('../../utils/repo-search.js');
 
@@ -391,6 +397,7 @@ test('search never indexes and answers from the staged fallback without an index
     kind: 'location',
     location: '/repo/found.ts:3',
     name: null,
+    slot: 'needle',
   });
 });
 
@@ -971,4 +978,208 @@ test('caps over-limit attempt details with a truncation suffix and keeps short t
   const long = 'x'.repeat(20_001);
   expect(capDetail(long)).toBe(`${'x'.repeat(20_000)}\n...truncated 1 chars`);
   expect(capDetail('short attempt detail')).toBe('short attempt detail');
+});
+
+test('the staged fallback enforces slot budgets and spills the full output', async () => {
+  const output = Array.from(
+    { length: 30 },
+    (_, index) => `/repo/big/file-${index}.ts:${index}:${'x'.repeat(300)}`,
+  ).join('\n');
+  const spillWrites: Array<{ readonly content: string; readonly path: string }> = [];
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor(output),
+      query: 'needle',
+      root: '/repo',
+      spillWrite: async (path, content) => {
+        spillWrites.push({ content, path });
+      },
+      transport: fakeTransport(() => backendError('no backend')),
+    },
+    async () => gateReceipt(false),
+  );
+  expect(envelope.source).toBe('fallback');
+  expect(envelope.results).toHaveLength(8);
+  for (const result of envelope.results) {
+    expect((result.detail ?? '').length).toBeLessThanOrEqual(200);
+    expect(result.slot).toBe('needle');
+  }
+  expect(spillWrites).toHaveLength(1);
+  expect(spillWrites[0]?.path).toBe(stagedSpillPath('/repo', 'needle'));
+  expect(spillWrites[0]?.content).toBe(output);
+  expect(envelope.reliability.spillFile).toBe(stagedSpillPath('/repo', 'needle'));
+});
+
+test('a spill write failure degrades to truncated-only output with a caveat', async () => {
+  const output = Array.from(
+    { length: 30 },
+    (_, index) => `/repo/big/file-${index}.ts:${index}:body`,
+  ).join('\n');
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor(output),
+      query: 'needle',
+      root: '/repo',
+      spillWrite: async () => {
+        throw new Error('disk full');
+      },
+      transport: fakeTransport(() => backendError('no backend')),
+    },
+    async () => gateReceipt(false),
+  );
+  expect(envelope.reliability.spillFile).toBeUndefined();
+  expect(envelope.reliability.caveats.join('\n')).toContain('could not be spilled');
+  expect(envelope.reliability.caveats.join('\n')).toContain('disk full');
+  expect(envelope.results).toHaveLength(8);
+});
+
+test('the spill path is deterministic per root and query for file reuse', () => {
+  expect(stagedSpillPath('/repo', 'needle')).toBe(stagedSpillPath('/repo', 'needle'));
+  expect(stagedSpillPath('/repo', 'needle')).not.toBe(stagedSpillPath('/repo', 'other'));
+  expect(stagedSpillPath('/repo', 'needle')).toContain(`${tmpdir()}/repo-search-spill-`);
+  expect(stagedSpillPath('/repo', 'needle')).toContain(
+    realCrypto.createHash('sha256').update('/repo\nneedle').digest('hex').slice(0, 16),
+  );
+});
+
+test('the default spill writer writes the full output through Bun.write', async () => {
+  const output = Array.from(
+    { length: 30 },
+    (_, index) => `/repo/big/f-${index}.ts:${index}:body`,
+  ).join('\n');
+  const bunGlobal = Bun as { write: typeof Bun.write };
+  const realWrite = bunGlobal.write;
+  const writes: Array<{ readonly content: string; readonly path: string }> = [];
+  try {
+    bunGlobal.write = ((path: string, content: string) => {
+      writes.push({ content: String(content), path: String(path) });
+      return Promise.resolve(0);
+    }) as unknown as typeof Bun.write;
+    const envelope = await repoSearchDiscover(
+      {
+        allowedRoots: ['/repo'],
+        executor: executorFor(output),
+        query: 'needle',
+        root: '/repo',
+        transport: fakeTransport(() => backendError('no backend')),
+      },
+      async () => gateReceipt(false),
+    );
+    expect(envelope.reliability.spillFile).toBe(stagedSpillPath('/repo', 'needle'));
+    expect(writes).toEqual([{ content: output, path: stagedSpillPath('/repo', 'needle') }]);
+  } finally {
+    bunGlobal.write = realWrite;
+  }
+});
+
+test('condenses attempts to strategy codes with compact status strings', async () => {
+  const { condenseRepoSearchEnvelope } = await import('../../utils/repo-search.js');
+  const envelope = {
+    attempts: [
+      {
+        command: 'rg --color never --fixed-strings needle /repo',
+        detail: '/repo/file.ts:1:needle',
+        status: 'found' as const,
+        strategy: 'rg-literal',
+      },
+      {
+        command: 'rg --color never --ignore-case needle /repo',
+        detail: 'Exit code 1.',
+        status: 'not-found' as const,
+        strategy: 'rg-literal-ignore-case',
+      },
+      {
+        command: 'cli:list_projects',
+        detail: 'boom\nsecond line',
+        status: 'error' as const,
+        strategy: 'resolve-index',
+      },
+      {
+        command: 'rg --files /repo',
+        detail: 'Skipped because indexed search found a match.',
+        status: 'skipped' as const,
+        strategy: 'rg-files',
+      },
+    ],
+    found: true,
+    next: ['read <approved-root> <qualified-name> for one snippet'],
+    ok: true,
+    query: { index: 'repo', input: ['needle'], root: '/repo' },
+    reliability: {
+      backend: 'codebase-memory-mcp via mcp',
+      caveats: [],
+      indexedAt: null,
+      note: 'Index repo ready.',
+    },
+    results: [],
+    source: 'fallback' as const,
+    status: 'found' as const,
+    transport: 'mcp' as const,
+    verb: 'search' as const,
+  };
+  const condensed = condenseRepoSearchEnvelope(envelope);
+  expect(condensed.attempts).toEqual([
+    { status: 'found', strategy: 'rg-literal' },
+    { status: 'not-found (EXIT:1)', strategy: 'rg-literal-ignore-case' },
+    { status: 'error (boom second line)', strategy: 'resolve-index' },
+    {
+      status: 'skipped (Skipped because indexed search found a match.)',
+      strategy: 'rg-files',
+    },
+  ]);
+  expect(condensed.found).toBeTrue();
+  expect(condensed.next).toEqual(envelope.next);
+  expect(condensed.reliability).toEqual(envelope.reliability);
+  expect(condensed.results).toEqual(envelope.results);
+  expect(condensed.source).toBe('fallback');
+  expect(condensed.status).toBe('found');
+  expect(condensed.transport).toBe('mcp');
+  expect(condensed.verb).toBe('search');
+});
+
+test('explicit URL targets route through the binary router with found evidence', async () => {
+  const envelope = await repoSearchRead({
+    allowedRoots: ['https://example.com'],
+    executor: executorFor('<html>needle build artifact</html>'),
+    queries: ['needle'],
+    readFile: mock(async () => ''),
+    root: 'https://example.com',
+    target: 'https://example.com',
+    transport: null,
+  });
+  expect(envelope.found).toBeTrue();
+  expect(envelope.source).toBe('binary');
+  expect(envelope.reliability.backend).toBe('binary router');
+  expect(envelope.results[0]).toMatchObject({
+    kind: 'binary',
+    location: 'https://example.com',
+  });
+  expect(
+    envelope.attempts.some((attempt) => attempt.strategy === 'binary-route:website:fetch'),
+  ).toBeTrue();
+});
+
+test('the fallback answers from file names when every content slot misses', async () => {
+  const executor = mock(async (spec: { readonly args: readonly string[] }) => {
+    if (spec.args[0] === '--files') {
+      return { code: 0, stderr: '', stdout: '/repo/needle-file.ts\n/repo/other.ts' };
+    }
+    return { code: 1, stderr: '', stdout: '' };
+  }) as unknown as CommandExecutor;
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor,
+      query: 'needle-file',
+      root: '/repo',
+      transport: fakeTransport(() => backendError('no backend')),
+    },
+    async () => gateReceipt(false),
+  );
+  expect(envelope.found).toBeTrue();
+  expect(envelope.source).toBe('fallback');
+  expect(envelope.results[0]).toMatchObject({ kind: 'file', location: '/repo/needle-file.ts' });
+  expect(envelope.results[0].slot).toBeUndefined();
 });

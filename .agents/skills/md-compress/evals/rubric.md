@@ -10,6 +10,7 @@ verifierIds: [source-structure]
 # Markdown Compression Evaluation Rubric
 
 The package also conforms to the shared seven-part skill contract. The parts, in order:
+
 1. role and scope
 2. usage
 3. immutable operational rules
@@ -20,7 +21,6 @@ The package also conforms to the shared seven-part skill contract. The parts, in
 
 The part right after usage is immutable operational rules. The part right before usage is role and
 scope.
-
 
 The canonical matrix checks each heading and challenges brittle exact-output or robotic-persona
 language; the contract must remain compatible with this skill's uncertainty, ownership, and proof

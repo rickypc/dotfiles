@@ -15,7 +15,7 @@
   },
   "decision": "perfect",
   "document": "skills/repo-search/references/usage-patterns.md",
-  "documentSha256": "77a276e2136ba3cb85daac9de2d20d2e7eaf0b27ea664f9da0aad432ac694c64",
+  "documentSha256": "6b32a663384e426120a3367b3f73bbd05a9acd370f3b1ed78c39b9ce95b98f7e",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -40,7 +40,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "bf9fbd2ebac67c6483785444e0bc5eb9d7970f9ac1572c3ef07a8af1ef1b4b2d",
+  "selfSha256": "7b68e5c746543735cc60aede17e9651f420b908a0323660838e3159171c7e2b2",
   "setPath": "skills/repo-search/evals/comprehension/references-usage-patterns.json",
   "setSha256": "c4bb6a9328f21ceff4ddcf7e116733f87593280f795c773c1250913e6e48737f"
 }

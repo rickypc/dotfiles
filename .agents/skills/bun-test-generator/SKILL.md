@@ -93,6 +93,7 @@ editing the selected test surface.
 
 See [references/lessons-learned.md](references/lessons-learned.md) for documented patterns that
 cause hanging or slow tests and their fixes:
+
 - `<pattern:hanging-stdin>` - inject stdin as mockable dependency
 - `<pattern:real-timers-in-tests>` - use fake timers with `advanceTimers()`
 - `<pattern:unmocked-external-boundaries>` - mock every boundary with `mock()`/`mock.module()`

@@ -22,13 +22,10 @@ clickable plan link and one `/aidx` command.
 
 ### Trigger and accepted input
 
-**Trigger:** The user invokes `/aidp` with a request, partial request, or supporting context. AIDP
-accepts only that request/context.
+**Trigger:** The user invokes `/aidp` with a request, partial request, or supporting context; AIDP
+accepts only that request/context - not a user-supplied plan path, not implementation arguments.
 
-AIDP does not accept a user-supplied plan path.
-
-It does not accept implementation arguments. AIDP never executes a plan and never hands a plan path
-back to run; running a plan path is `/aidx`.
+AIDP never executes a plan; running a plan path is `/aidx`.
 
 ## 2. Usage
 
@@ -159,6 +156,7 @@ assumption is invalid and must not be handed off.
 
 Any of the following, when the user has not explicitly decided it and verified evidence has not
 established it, is a forbidden assumption:
+
 - A scope, ownership, or boundary the user did not confirm.
 - A framework, library, command, gate string, or API shape inferred from
   "how these projects usually work" rather than verified against the repo or `package.json`.
@@ -170,6 +168,7 @@ established it, is a forbidden assumption:
 ### The only allowed fill-ins
 
 The only values AIDP may write without a user decision are:
+
 - Values returned by `/repo-search` or `/knowledge-base` receipts, cited with the receipt path.
 - Values the user typed in this turn or a prior turn of this session, quoted.
 - A labelled, explicit `assumption:` marker used only to _flag_ an assumption for the user - but a
@@ -178,6 +177,7 @@ The only values AIDP may write without a user decision are:
 ### Mechanical enforcement
 
 The plan author and the validator enforce this mechanically as well as in prose:
+
 - Every workflow step that asserts a user decision MUST carry a `decision:` or `clarified:` marker
   followed by the decision text or the user's quoted answer. A step asserting a decision without the
   marker fails validation.
@@ -232,6 +232,7 @@ the plan author.
 The Agent Role / Human Owner / Authority & Escalation block has this shape; do not invent an
 alternative shape, and do not omit any of the four sub-bullets when the plan crosses a project,
 brownfield, or cross-cutting boundary:
+
 - **Agent Role (Identity).** Name the plan author (the AIDP skill running in this turn) and
   explicitly state that the AIDP skill does NOT execute the plan; AIDP produces one durable Markdown
   plan and a `/aidx` handoff. The executor of every workflow step is the AIDX skill invoked with
@@ -339,8 +340,7 @@ status: "pending"
 ```
 
 The first line after the closing `---` is the document H1 and must be exactly `# <title>` where
-`<title>` is the same string as the frontmatter `title` field. The validator rejects H1/title
-mismatch.
+`<title>` is the frontmatter `title`; the validator rejects a mismatch.
 
 ```markdown
 # <title>
@@ -348,24 +348,30 @@ mismatch.
 ## 1. TARGET DIRECTIVES
 
 ...
+
 ## 2. VARIABLE DEFINITION MATRIX
 
 ...
+
 ## 3. CHRONOLOGICAL WORKFLOW
 
 ...
+
 ## 4. TOOL STRATEGY & FALLBACKS
 
 ...
+
 ## 5. SYSTEMATIC VERIFICATION CHECKLIST
 
 ...
+
 ## 6. RIGID OUTPUT SCHEMA
 
 ...
 ```
 
 Author each section with these minimum contents:
+
 - **TARGET DIRECTIVES:** one objective, included ownership, and explicit exclusions.
 - **VARIABLE DEFINITION MATRIX:** every required path, value, source fragment, dependency, strict
   type, and required/optional state.
@@ -385,13 +391,12 @@ Author each section with these minimum contents:
 - **RIGID OUTPUT SCHEMA:** exact final labels, order, delimiters, required values, and omission
   rules.
 
-The workflow checklist is mandatory: AIDP writes every executable step as `- [ ]`. AIDX owns the
-later transition to `- [x]` for completed work or `- [-]` with a factual reason for an intentionally
-skipped step.
+The workflow checklist is mandatory: AIDP writes every executable step as `- [ ]`; AIDX owns the
+later transition to `- [x]` for completed work or `- [-]` with a factual inapplicability reason.
 
-Keep facts, decisions, assumptions, and unknowns visibly separate throughout the skeleton. A
-complete plan is not a list of plausible tasks: it is the resolved evidence, decisions, ownership,
-dependency order, acceptance proof, fallbacks, and final output contract needed by AIDX.
+Keep facts, decisions, assumptions, and unknowns visibly separate: a complete plan is the resolved
+evidence, decisions, ownership, dependency order, acceptance proof, fallbacks, and final output
+contract needed by AIDX - not a list of plausible tasks.
 
 ## 5. Ordered Execution Chain
 
@@ -469,11 +474,10 @@ Plan: [<absolute-plan-path>](<absolute-plan-path>)
 ```
 
 The link must open the materialized plan, and the fenced block must contain only the `/aidx`
-command. The command path may be relative or absolute because AIDX canonicalizes either form. The
-absolute form `/aidx <absolute-plan-path>` is therefore valid, but the handoff must use the
-relative-or-absolute form shown above so the contract does not imply that absolute paths are
-required. Then stop. If validation fails, report every finding and preserve the prior plan when one
-exists; do not hand off an invalid candidate.
+command. AIDX canonicalizes either path form - the absolute form `/aidx <absolute-plan-path>` is
+valid - so the handoff keeps the relative-or-absolute form shown above. Then stop. If validation
+fails, report every finding and preserve the prior plan when one exists; do not hand off an invalid
+candidate.
 
 ### Standalone plan validation
 

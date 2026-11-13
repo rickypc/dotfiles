@@ -12,6 +12,7 @@ not permission to invent a fact. For brownfield work, capture current behavior, 
 consumers, data/protocol boundaries, existing proof, compatibility, and uncertainty.
 
 Build one compact evidence set before decomposition:
+
 - Research record: sources read, observed facts, unknowns, and search limits.
 - Requirements record: actor/trigger, outcome, success and failure behavior, preserved behavior,
   exclusions, constraints, dependencies, and one proof per acceptance item.

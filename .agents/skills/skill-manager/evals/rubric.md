@@ -50,6 +50,7 @@ allowed.
 Training evidence is separate from matrix evidence. The activation metric is each
 `evals/trigger-queries.json` query's pass state across repeated blind runs. The ledger gate keeps an
 edit only when all four conditions hold:
+
 1. No query regresses.
 2. At least one query gains unanimously across all runs.
 3. The query-set fingerprint is unchanged.

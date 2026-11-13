@@ -5,6 +5,11 @@ type SpawnMode = 'broken' | 'normal' | 'throw';
 const realFileSystem = await import('node:fs/promises');
 const realPath = await import('node:path');
 const realProcess = await import('node:process');
+// Plain snapshots taken before mock.module registration so the afterAll hook can
+// restore the real modules for later test files running in the same process.
+const realFileSystemExports = { ...realFileSystem };
+const realPathExports = { ...realPath };
+const realProcessExports = { ...realProcess };
 const cliArgv = ['bun', 'sanitize-hidden.ts'];
 const exitCodes: Array<string | number | null | undefined> = [];
 const fileContents = new Map<string, string | Uint8Array>();
@@ -115,6 +120,9 @@ afterAll(() => {
   Bun.spawn = originalSpawn;
   console.log = originalLog;
   console.error = originalError;
+  mock.module('node:fs/promises', () => realFileSystemExports);
+  mock.module('node:path', () => realPathExports);
+  mock.module('node:process', () => realProcessExports);
 });
 
 const clearFiles = (): void => {

@@ -7,7 +7,9 @@
  * set, so the default gate never reports a skipped test.
  */
 
-import { describe, expect, mock, test } from 'bun:test';
+import { afterAll, describe, expect, mock, test } from 'bun:test';
+import * as realChildProcess from 'node:child_process';
+import * as realFsPromises from 'node:fs/promises';
 import * as nodePath from 'node:path';
 import { runWhenMainWithHelp } from '../../utils/cli.js';
 
@@ -16,6 +18,8 @@ import { runWhenMainWithHelp } from '../../utils/cli.js';
 // inside the mock factory would resolve to the mock itself.
 const realPathExports = { ...nodePath };
 const realJoin: (...paths: string[]) => string = realPathExports.join;
+const realFsPromisesExports = { ...realFsPromises };
+const realChildProcessExports = { ...realChildProcess };
 
 const fsState: {
   dirs: string[];
@@ -63,6 +67,12 @@ const { defaultReflowDeps, run, usage } = await import('../../scripts/reflow.js'
 const { reflowText, residualOverLimitLines, verifyInvariants } = await import(
   '../../utils/reflow-file.js'
 );
+
+afterAll(() => {
+  mock.module('node:fs/promises', () => realFsPromisesExports);
+  mock.module('node:child_process', () => realChildProcessExports);
+  mock.module('node:path', () => realPathExports);
+});
 
 const makeDeps = (over: Partial<ReturnType<typeof defaultReflowDeps>> = {}) => ({
   log: mock(),

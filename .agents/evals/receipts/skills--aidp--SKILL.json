@@ -34,7 +34,7 @@
   },
   "decision": "perfect",
   "document": "skills/aidp/SKILL.md",
-  "documentSha256": "40298703dacb3c8e7fafec9b3a56e2b92cab35469f6168021cfdda90eeefb4e5",
+  "documentSha256": "5b542eed77350a0ca1795ac1220068e03ae84975188ffe26e089b1fc7fe43bee",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -78,7 +78,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "08869e8aa269c4ca8f597a9677f9489ddd7f7a413c5da0943680d28b2ea2c0a2",
+  "selfSha256": "d31f29f9d73a05955008db20c97cefed086b914a604024edc51f05e3d9c9f892",
   "setPath": "skills/aidp/evals/comprehension/SKILL.json",
   "setSha256": "c786faad880cb6681b447c7c72c50b3dbbd78de6e4c51a221be252c0a978381f"
 }

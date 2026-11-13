@@ -18,7 +18,7 @@
   },
   "decision": "perfect",
   "document": "skills/bun-test-generator/references/lessons-learned.md",
-  "documentSha256": "cb5f5ae816ee2ccc9e265c9ba00d7d2da65511890a860a1128ef050e1e3a38e0",
+  "documentSha256": "a31c6daa4d28b5b6dc9b3c1dbae00ff3d650e0b45ed4ff55363151631d13bfaf",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -46,7 +46,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "4554082a9a9a5ea96d0c0d6a64d7099322526bb85af701287404b33e9e7f9d52",
+  "selfSha256": "56222580fdd88b01fb0dd946c5f58d2bcd61f5472b06b8dcf0c2a6af84aad461",
   "setPath": "skills/bun-test-generator/evals/comprehension/references-lessons-learned.json",
   "setSha256": "eb9baa560585123324315141d09280395e9ca4b7b6ee170c756ef66c0cb5e939"
 }

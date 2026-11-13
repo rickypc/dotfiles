@@ -121,6 +121,7 @@ cannot meet the standard, retain the gap and stop.
 
 Treat the current source as the starting authority. Check each draft-only claim against live
 evidence, then assign one status:
+
 - `current`: the current source supports the claim.
 - `confirmed-and-missing`: live evidence confirms the claim, but the current source omits it.
 - `conflicted/obsolete`: evidence conflicts with the claim or shows it is obsolete.

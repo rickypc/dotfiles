@@ -62,6 +62,14 @@ const initializeTimeoutMs = 10_000;
 const defaultCallTimeoutMs = 5 * 60_000;
 const mcpProtocolVersion = '2025-06-18';
 
+/**
+ * The canonical backend cache root every backend child uses as its spawn cwd, resolved with
+ * the same environment the child receives. Spawning from the caller cwd breaks the backend's
+ * runtime settings load under write-restricted sandboxes.
+ */
+export const backendCacheRoot = (): string =>
+  `${Bun.env.XDG_CACHE_HOME ?? `${homedir()}/.cache`}/codebase-memory-mcp`;
+
 /** Environment guarantees every backend child needs to resolve the canonical cache root. */
 export const backendChildEnvironment = (): Record<string, string> => {
   const home = homedir();
@@ -103,6 +111,7 @@ export const createBuiltinMcpClient = async (
   try {
     server = Bun.spawn({
       cmd: [binary, ...serverArgs],
+      cwd: backendCacheRoot(),
       env: { ...Bun.env, ...backendChildEnvironment() },
       stderr: 'pipe',
       stdin: 'pipe',
@@ -254,6 +263,7 @@ export const createSdkMcpClient = async (
       readonly StdioClientTransport: new (options: {
         readonly args?: readonly string[];
         readonly command: string;
+        readonly cwd?: string;
         readonly env?: Record<string, string>;
       }) => unknown;
     };
@@ -262,6 +272,7 @@ export const createSdkMcpClient = async (
       new StdioClientTransport({
         args: serverArgs,
         command: binary,
+        cwd: backendCacheRoot(),
         env: Object.fromEntries(
           Object.entries({ ...Bun.env, ...backendChildEnvironment() }).filter(
             (entry): entry is [string, string] => entry[1] !== undefined,
@@ -337,6 +348,7 @@ export const repoSearchCliCommand = (
     ...Object.entries(call.args).flatMap(([name, value]) => [`--${name}`, value]),
   ],
   command: binary ?? repoSearchBackendBinary(),
+  cwd: backendCacheRoot(),
   environment: { ...backendChildEnvironment(), REPO_SEARCH_LOG_LEVEL: 'error' },
   ...(call.timeoutMs ? { timeoutMs: call.timeoutMs } : {}),
 });
@@ -369,6 +381,17 @@ const cliTransport = (executor: CommandExecutor, binary: string): RepoSearchTran
 
 const listProjectsCall: RepoSearchBackendCall = { args: {}, tool: 'list_projects' };
 
+/** Creates one MCP client, mapping any construction failure to undefined. */
+const createClientSafe = async (
+  createClient: McpClientThunk,
+): Promise<McpClientLike | undefined> => {
+  try {
+    return await createClient();
+  } catch {
+    return undefined;
+  }
+};
+
 const defaultMcpClientFactory = (
   binary: string,
   serverArgs: readonly string[],
@@ -378,9 +401,42 @@ const defaultMcpClientFactory = (
 ];
 
 /**
- * Probes the backend transports once per run: the CLI transport is the default route (the
- * wrapper never spawns an MCP server on its own) and the MCP stdio transport runs only when
- * REPO_SEARCH_TRANSPORT_FORCE=mcp. The probe itself is the availability receipt.
+ * Runs the MCP client chain (SDK first, built-in stdio second) and returns the first
+ * transport whose list_projects probe answers, or null when every candidate fails.
+ */
+const probeMcpClientChain = async (
+  binary: string,
+  serverArgs: readonly string[],
+  factory: (binary: string, serverArgs: readonly string[]) => readonly McpClientThunk[],
+): Promise<RepoSearchTransport | null> => {
+  for (const createClient of factory(binary, serverArgs)) {
+    const client = await createClientSafe(createClient);
+    if (!client) {
+      continue;
+    }
+    try {
+      const probe = await client.callTool(listProjectsCall.tool, listProjectsCall.args);
+      if (!probe.isError) {
+        return mcpTransport(client);
+      }
+    } catch {
+      // The probe call failed; fall through to the next client or transport.
+    }
+    try {
+      await client.close();
+    } catch {
+      // A failed client close never blocks the next transport candidate.
+    }
+  }
+  return null;
+};
+
+/**
+ * Probes the backend transports once per run: the MCP stdio transport is the primary route
+ * (SDK client first, built-in stdio client second), the CLI transport is the second route,
+ * and the staged literal fallback answers when no transport does. REPO_SEARCH_TRANSPORT_FORCE
+ * keeps its override semantics: mcp restricts the probe to the MCP chain, cli to the CLI
+ * route, and none disables the backend. The probe itself is the availability receipt.
  */
 export const probeRepoSearchTransport = async (
   options: RepoSearchTransportOptions = {},
@@ -400,50 +456,37 @@ export const probeRepoSearchTransport = async (
       transport: null,
     };
   }
-  if (force === 'mcp') {
-    const serverArgs = options.serverArgs ?? [];
-    const factory = options.mcpClientFactory ?? defaultMcpClientFactory;
-    for (const createClient of factory(binary, serverArgs)) {
-      let client: McpClientLike | undefined;
-      try {
-        client = await createClient();
-      } catch {
-        client = undefined;
-      }
-      if (!client) {
-        continue;
-      }
-      try {
-        const probe = await client.callTool(listProjectsCall.tool, listProjectsCall.args);
-        if (!probe.isError) {
-          return {
-            attempt: {
-              command: `${binary} (stdio MCP)`,
-              detail: 'MCP stdio transport forced and available (list_projects answered).',
-              status: 'found',
-              strategy: 'transport-probe',
-            },
-            transport: mcpTransport(client),
-          };
-        }
-      } catch {
-        // The probe call failed; fall through to the next client or transport.
-      }
-      try {
-        await client.close();
-      } catch {
-        // A failed client close never blocks the next transport candidate.
-      }
+  if (force !== 'cli') {
+    const mcp = await probeMcpClientChain(
+      binary,
+      options.serverArgs ?? [],
+      options.mcpClientFactory ?? defaultMcpClientFactory,
+    );
+    if (mcp) {
+      return {
+        attempt: {
+          command: `${binary} (stdio MCP)`,
+          detail:
+            force === 'mcp'
+              ? 'MCP stdio transport forced and available (list_projects answered).'
+              : 'MCP stdio transport is primary and available (list_projects answered).',
+          status: 'found',
+          strategy: 'transport-probe',
+        },
+        transport: mcp,
+      };
     }
-    return {
-      attempt: {
-        command: `${binary} (stdio MCP)`,
-        detail: 'MCP transport forced but unavailable.',
-        status: 'error',
-        strategy: 'transport-probe',
-      },
-      transport: null,
-    };
+    if (force === 'mcp') {
+      return {
+        attempt: {
+          command: `${binary} (stdio MCP)`,
+          detail: 'MCP transport forced but unavailable.',
+          status: 'error',
+          strategy: 'transport-probe',
+        },
+        transport: null,
+      };
+    }
   }
   const cli = cliTransport(executor, binary);
   const probe = await cli.call(listProjectsCall);
@@ -451,7 +494,7 @@ export const probeRepoSearchTransport = async (
     return {
       attempt: {
         command: commandText(repoSearchCliCommand(listProjectsCall, binary)),
-        detail: 'CLI transport is the default route and answered list_projects.',
+        detail: 'CLI transport answered list_projects after the MCP route was unavailable.',
         status: 'found',
         strategy: 'transport-probe',
       },
@@ -461,7 +504,9 @@ export const probeRepoSearchTransport = async (
   return {
     attempt: {
       command: commandText(repoSearchCliCommand(listProjectsCall, binary)),
-      detail: `No backend transport answered: ${probe.error ?? 'no response'}.`,
+      detail: `No backend transport answered: the MCP stdio route and the CLI route both failed (${
+        probe.error ?? 'no response'
+      }).`,
       status: 'error',
       strategy: 'transport-probe',
     },

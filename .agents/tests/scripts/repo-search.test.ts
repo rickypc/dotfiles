@@ -32,6 +32,12 @@ test('parses the three-verb grammar and the bare search alias', () => {
     root: '/repo',
     verb: 'search',
   });
+  expect(parseRepoSearchArgs(['/repo', 'needle', '--raw'])).toEqual({
+    queries: ['needle'],
+    raw: true,
+    root: '/repo',
+    verb: 'search',
+  });
   expect(parseRepoSearchArgs(['read', '/repo', '/repo/file.ts', 'extra'])).toEqual({
     queries: ['extra'],
     root: '/repo',
@@ -203,4 +209,51 @@ test('rejects an inspection when no project index matches the root', async () =>
   expect(printed.status).toBe('error');
   expect(write.mock.calls[0]?.[0]).toContain('No matching project index');
   expect(process.exitCode).toBe(1);
+});
+
+test('the default output condenses attempts and --verbose restores commands', async () => {
+  const transport: RepoSearchTransport = {
+    call: mock(async () => ({
+      error: null,
+      isError: false,
+      text: 'projects: 1  (cols: name root_path branch)\n  other /other main\ntotal: 1',
+    })),
+    close: mock(async () => undefined),
+    kind: 'mcp',
+  };
+  const searchExecutor = mock(async () => ({
+    code: 0,
+    stderr: '',
+    stdout: '/repo/needle.ts:4:needle found',
+  })) as unknown as CommandExecutor;
+  const condensedWrite = mock();
+  await run(
+    ['/repo', 'needle'],
+    condensedWrite,
+    mock(),
+    '/os-temp',
+    probeFor(transport),
+    searchExecutor,
+  );
+  const condensed = JSON.parse(String(condensedWrite.mock.calls[0]?.[0])) as {
+    attempts: Readonly<Record<string, unknown>>[];
+  };
+  expect(condensed.attempts.length).toBeGreaterThan(0);
+  for (const attempt of condensed.attempts) {
+    expect(Object.keys(attempt).sort()).toEqual(['status', 'strategy']);
+  }
+  const verboseWrite = mock();
+  await run(
+    ['/repo', 'needle', '--verbose'],
+    verboseWrite,
+    mock(),
+    '/os-temp',
+    probeFor(transport),
+    searchExecutor,
+  );
+  const verbose = JSON.parse(String(verboseWrite.mock.calls[0]?.[0])) as {
+    attempts: Readonly<Record<string, unknown>>[];
+  };
+  expect(verbose.attempts.some((attempt) => typeof attempt.command === 'string')).toBeTrue();
+  expect(verbose.attempts.some((attempt) => typeof attempt.detail === 'string')).toBeTrue();
 });

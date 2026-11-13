@@ -10,6 +10,7 @@ verifierIds: [source-structure]
 # Biome TSC Checker Evaluation Rubric
 
 The package follows the shared seven-part skill contract:
+
 1. Role and scope
 2. Usage
 3. Immutable operational rules
@@ -26,6 +27,7 @@ Do not change target configuration or declaration meaning.
 Report barriers and cycles. Do not cross them.
 
 For a fresh session, verify the JSON result protocol:
+
 - `passed` reports success.
 - `failed` includes an action packet.
 - `blocked` means the requested reorder is not permitted.

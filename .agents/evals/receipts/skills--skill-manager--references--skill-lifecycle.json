@@ -17,7 +17,7 @@
   },
   "decision": "perfect",
   "document": "skills/skill-manager/references/skill-lifecycle.md",
-  "documentSha256": "7a885aa82a67309647ed90560751d206c03306831bcf987538a4a5bca36e29df",
+  "documentSha256": "c32d8f01be6dfa29346a776fd5a193b28738e21b0be1e84de37902614026cc8a",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -44,7 +44,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "9a2d4da0ca179a83ef395f19368453331c5d144cbc3604f647379e3df2f3bdb9",
+  "selfSha256": "f1de26e427ce4f9926863ddb3d7c5cd507a5453d9515cb2c1c2a9c721c301c92",
   "setPath": "skills/skill-manager/evals/comprehension/references-skill-lifecycle.json",
   "setSha256": "a641bf0cd68f26c583cb9a1ab693bf9f4362e36b74eeb4bc6be1c194e0719d13"
 }

@@ -112,6 +112,7 @@ advanceTimers(1_050); // advance 1050ms more
 ```
 
 **Anti-pattern**: Using real `setTimeout` in test mocks:
+
 ```ts
 // BAD - uses real timer
 const timers = mock((cb, delay) => setTimeout(cb, delay));

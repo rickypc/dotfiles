@@ -8,6 +8,7 @@ Branch-only detail for the wrapper engine in `utils/repo-search.ts`,
 
 `probeRepoSearchTransport` runs once per wrapper invocation and is the only authority on backend
 availability. It tries, in order:
+
 1. **CLI transport (default):** run `codebase-memory-mcp cli --quiet --json <tool>` subcommands and
    parse the raw MCP result envelope the CLI prints. The wrapper never spawns an MCP server on its
    own; each CLI child joins the shared per-account coordination daemon when one is running.
@@ -65,6 +66,7 @@ wrapper exits 1 exactly when `status` is `error`.
 
 The backend emits human-oriented tables inside the MCP envelope; the engine parses them
 deterministically instead of trusting raw output:
+
 - `list_projects`: rows of `name root_path branch` after the `projects:` header; double-quoted paths
   with spaces are honored.
 - `index_status`: top-level `key: value` lines. The index is ready only when the line is exactly

@@ -17,8 +17,21 @@ mock.module('./contracts.js', () => realContracts);
 mock.module('./process.js', () => realProcessModule);
 mock.module('./search-fallback.js', () => realSearchFallback);
 mock.module('@modelcontextprotocol/sdk/client/index.js', () => realSdkClient);
-mock.module('@modelcontextprotocol/sdk/client/stdio.js', () => realSdkStdio);
 mock.module('bun', () => realBunModule);
+
+// The SDK transport boundary is wrapped (not replaced) so fixture connections keep working
+// while the constructor options are recorded for the cwd-pin assertion.
+const sdkStdioOptions: unknown[] = [];
+class RecordingStdioTransport extends realSdkStdio.StdioClientTransport {
+  constructor(options: ConstructorParameters<typeof realSdkStdio.StdioClientTransport>[0]) {
+    sdkStdioOptions.push(options);
+    super(options);
+  }
+}
+mock.module('@modelcontextprotocol/sdk/client/stdio.js', () => ({
+  ...realSdkStdio,
+  StdioClientTransport: RecordingStdioTransport,
+}));
 
 const {
   backendChildEnvironment,
@@ -62,6 +75,7 @@ test('renders one backend operation as the CLI transport command', () => {
       REPO_SEARCH_LOG_LEVEL: 'error',
       XDG_CACHE_HOME: '/tmp/repo-search-xdg',
     });
+    expect(command.cwd).toBe('/tmp/repo-search-xdg/codebase-memory-mcp');
   } finally {
     if (previousXdgCacheHome === undefined) {
       delete Bun.env.XDG_CACHE_HOME;
@@ -214,31 +228,52 @@ test('a forced MCP probe moves past failing and throwing clients, then reports u
   expect(executor).not.toHaveBeenCalled();
 });
 
-test('the default probe answers through the CLI transport without spawning MCP', async () => {
+test('the default probe prefers the MCP stdio transport when it answers', async () => {
   const executor = mock(async () => result(envelopeLine('projects: 0')));
-  const factory = mock(() => []);
+  const probe = await probeRepoSearchTransport({
+    executor,
+    mcpClientFactory: () => [
+      async () => ({
+        callTool: async () => ({ error: null, isError: false, text: 'probe ok' }),
+        close: async () => undefined,
+      }),
+    ],
+  });
+  expect(probe.transport?.kind).toBe('mcp');
+  expect(probe.attempt.status).toBe('found');
+  expect(probe.attempt.detail).toContain('MCP stdio transport is primary and available');
+  expect(executor).not.toHaveBeenCalled();
+});
+
+test('the default probe falls back to the CLI transport when no MCP client answers', async () => {
+  const executor = mock(async () => result(envelopeLine('projects: 0')));
+  const factory = mock((): readonly never[] => []);
   const probe = await probeRepoSearchTransport({
     binary: 'definitely-missing-repo-search-binary',
     executor,
     mcpClientFactory: factory,
   });
-  expect(factory).not.toHaveBeenCalled();
+  expect(factory).toHaveBeenCalled();
   expect(probe.transport?.kind).toBe('cli');
   expect(probe.attempt.status).toBe('found');
-  expect(probe.attempt.detail).toContain('CLI transport is the default route');
+  expect(probe.attempt.detail).toContain(
+    'CLI transport answered list_projects after the MCP route',
+  );
   const answered = await probe.transport?.call({ args: {}, tool: 'list_projects' });
   expect(answered?.text).toBe('projects: 0');
 });
 
-test('reports a missing transport when the CLI probe fails', async () => {
+test('the default probe lists both failed routes when MCP and CLI miss', async () => {
   const executor = mock(async () => result('denied', 1));
   const probe = await probeRepoSearchTransport({
     binary: 'definitely-missing-repo-search-binary',
     executor,
+    mcpClientFactory: () => [],
   });
   expect(probe.transport).toBeNull();
   expect(probe.attempt.status).toBe('error');
   expect(probe.attempt.detail).toContain('No backend transport answered');
+  expect(probe.attempt.detail).toContain('MCP stdio route and the CLI route both failed');
 });
 
 test('honors forced transports for deterministic routing', async () => {
@@ -407,9 +442,13 @@ test('the built-in client rejects pending waiters when the stdout read stream fa
   const realSpawn = bunGlobal.spawn;
   const spawnCommands: string[][] = [];
   const killSignals: number[] = [];
+  const spawnCwds: (string | undefined)[] = [];
+  const previousXdgCacheHome = Bun.env.XDG_CACHE_HOME;
   try {
-    bunGlobal.spawn = ((options: { cmd: readonly string[] }) => {
+    Bun.env.XDG_CACHE_HOME = '/tmp/repo-search-xdg';
+    bunGlobal.spawn = ((options: { cmd: readonly string[]; cwd?: string }) => {
       spawnCommands.push([...options.cmd]);
+      spawnCwds.push(options.cwd);
       return {
         kill: async (signal?: number) => {
           killSignals.push(signal ?? 0);
@@ -425,7 +464,24 @@ test('the built-in client rejects pending waiters when the stdout read stream fa
     await expect(createBuiltinMcpClient('bun', ['-e', ''])).resolves.toBeUndefined();
   } finally {
     bunGlobal.spawn = realSpawn;
+    if (previousXdgCacheHome === undefined) {
+      delete Bun.env.XDG_CACHE_HOME;
+    } else {
+      Bun.env.XDG_CACHE_HOME = previousXdgCacheHome;
+    }
   }
   expect(spawnCommands).toEqual([['bun', '-e', '']]);
+  expect(spawnCwds).toEqual(['/tmp/repo-search-xdg/codebase-memory-mcp']);
   expect(killSignals).toEqual([9]);
+});
+
+test('the SDK transport receives the canonical cache root as its spawn cwd', async () => {
+  const client = await createSdkMcpClient('bun', [fixtureServer]);
+  if (!client) {
+    throw new Error('Expected the SDK MCP client to connect.');
+  }
+  const options = sdkStdioOptions.at(-1) as { command?: string; cwd?: string };
+  expect(options.command).toBe('bun');
+  expect(options.cwd).toBe(`${realOs.homedir()}/.cache/codebase-memory-mcp`);
+  await client.close();
 });
