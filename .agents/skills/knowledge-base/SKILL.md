@@ -96,17 +96,38 @@ root and scope -> retrieve evidence -> choose disposition -> guarded write
    L. Then L is `new-primary` (L becomes its own concept) and C gets a `link-related` link from L.
    So the answer is `new-primary` for L plus `link-related` for C. Never make C own L, never use
    `link-related` for L itself, and never make both `new-primary`.
-4. **Write or import:** Materialize rich JSON through the fixed TypeScript writer, then run the
-   owning reconcile/import command. Validate metadata, links, preconditions, and every returned
-   receipt before applying writes.
+4. **Write or import:** For one concept, run `capture` with metadata, body, and evidence as separate
+   positional arguments. For coordinated multi-concept changes, materialize the reconciliation
+   request through the fixed TypeScript writer, then run `reconcile`. Validate metadata, links,
+   preconditions, and every returned receipt before applying writes.
 5. **Guard and verify:** For no-edit validation run `/md-compress` `guard`. For changed Markdown run
    these steps in this order: first `begin`, then edit, then `finalize`. Then validate OKF and
    indexes, and return receipts. If evidence or authority fails, preserve the existing KB and stop.
 
+### Single-concept capture command
+
+Use this exact command shape for one new concept:
+
+```text
+bun <agents-root>/scripts/knowledge-base.ts capture <private-kb-root> <concept-relative-path> <metadata-json> <body> <evidence>
+```
+
+`<concept-relative-path>` is `<kb-scope-or-shared>/<subject>/<concept>.md`. `<metadata-json>` must be
+one valid JSON object with type, title, description, and tags; `<body>` and `<evidence>` are
+separate positional arguments. Metadata JSON, body, and evidence are separate positional arguments
+and must each be passed as one shell argument. Capture does not take a request-file path and does
+not use `write-json.ts`. Quote each argument for the caller's shell.
+
+Example:
+
+```text
+bun <agents-root>/scripts/knowledge-base.ts capture "<private-kb-root>" "<kb-scope>/<subject>/<concept>.md" '{"type":"reference","title":"Example","description":"One-line summary","tags":["example"]}' "## Context\n\nObserved situation.\n\n## Action\n\nReusable guidance." "Source: user-provided example; verification: not independently run."
+```
+
 ### Fixed JSON request boundary
 
-For reconciliation or capture JSON containing backticks, dollar signs, quotes, or newlines, follow
-the four-step procedure in AGENTS.md §8 "String-only JSON boundary". The preferred source method is
+For reconciliation request JSON containing backticks, dollar signs, quotes, or newlines, follow the
+four-step procedure in AGENTS.md §8 "String-only JSON boundary". The preferred source method is
 a TypeScript builder script (`bun <builder>.ts > <source>`) that avoids shell interpretation
 entirely. After the source file is ready, run this exact pipe with the literal paths:
 
@@ -122,6 +143,19 @@ Python, object-valued string payload, or `JSON.stringify(request)`. Encode a Mar
 character raw.
 
 ### Reconciliation schema and dispositions
+
+Run reconciliation with one absolute JSON request path:
+
+```text
+bun <agents-root>/scripts/knowledge-base.ts reconcile <private-kb-root> <absolute-reconciliation-request-path>
+```
+
+The request is a `ReconciliationPlan`, not the single-concept capture arguments. Its required
+top-level fields are `canonicalPath` (a string naming one operation path), `links` (an array, which
+may be empty), and non-empty `operations` (an array). Each operation contains `disposition`,
+`relativePath`, `metadata`, `body`, and `evidence`. Declare a link only when both endpoints are
+operations and the source body contains the required relative Markdown link marker. Use the JSON
+example below, the fixed writer pipe, and the exact command above as one end-to-end contract.
 
 The request is the `ReconciliationPlan` contract: required top-level `canonicalPath` (one operation
 path), `links` (possibly empty; endpoints and body link markers must match), and non-empty
@@ -140,8 +174,9 @@ the common directory prefix shared between the `from` directory and the `to` pat
 each remaining directory level in the `from` path after the common prefix, then append the remaining
 `to` path. Three concrete examples:
 
-- Same directory: `from` = `idx/sub/A.md`, `to` = `idx/sub/B.md` → `](B.md)`
-- Adjacent subject: `from` = `idx/sub1/A.md`, `to` = `idx/sub2/B.md` → `](../sub2/B.md)`
+- Same directory: `from` = `idx/sub/A.md`, `to` = `idx/sub/B.md` → `](B.md)`. For adjacent subjects,
+  go up one level from the source subject, then enter the target subject: `from` = `idx/sub1/A.md`,
+  `to` = `idx/sub2/B.md` → `](../sub2/B.md)`.
 - Two levels up: `from` = `idx/sub1/sub2/A.md`, `to` = `idx/sub3/B.md` → `](../../sub3/B.md)`
 - Two levels up, other names: `from` = `idx/a/b/X.md`, `to` = `idx/c/Y.md` → `](../../c/Y.md)`
 
@@ -247,8 +282,7 @@ matched against validated local OKF files across the private KB. The `discovery`
 the local repo-search attempt. Results are deduplicated and ordered by title/description coverage.
 
 For several independent terms use `search-batch` with the private-KB root and one to four distinct
-queries. A missing scope folder yields no local concepts; an approved `new-primary` capture creates
-the folder and its required indexes.
+queries. A missing scope folder yields no local concepts.
 
 ## 6. Output & Completion Contract
 
