@@ -1,0 +1,139 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:playwright-test-generator",
+  "scope": "evals/skills/playwright-test-generator/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Phase 6 adds distinct owner-specific behavior coverage; the incomplete lane blocks evaluation until then."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/playwright-test-generator/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/playwright-test-generator/SKILL.md",
+      "sha256": "0809457bc14003c2edde0091743d3e33a7590def9b47ee85517d126bcc920faf"
+    },
+    {
+      "sourcePath": "evals/skills/playwright-test-generator/rubric.md",
+      "sha256": "bc1c4d45fcef64d9a50f5205fb289a72b082bc0d758a6840198ed2c0d1fe9d2f"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/playwright-test-generator/cases.jsonl",
+      "canonicalPath": "evals/skills/playwright-test-generator/cases.jsonl",
+      "sha256": "35b9e02455badc5b633ca7021201a1147a6c525a26d638ceff27efb283c21b9e",
+      "caseIds": [
+        "playwright-acceptance-boundary",
+        "playwright-project-ownership",
+        "playwright-performance-boundary",
+        "playwright-test-integrity",
+        "playwright-controlled-boundaries",
+        "playwright-skill-contract-template",
+        "playwright-skill-contract-no-robotic-persona"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/playwright-test-generator/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/playwright-test-generator/SKILL.md",
+        "setPath": "evals/skills/playwright-test-generator/comprehension/SKILL.json",
+        "queryCount": 38,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "train-15",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/playwright-test-generator/rubric.md",
+        "setPath": "evals/skills/playwright-test-generator/comprehension/evals-rubric.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/playwright-test-generator/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/playwright-test-generator/SKILL.md",
+        "setPath": "evals/skills/playwright-test-generator/comprehension/SKILL.json",
+        "path": "evals/skills/playwright-test-generator/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/playwright-test-generator/rubric.md",
+        "setPath": "evals/skills/playwright-test-generator/comprehension/evals-rubric.json",
+        "path": "evals/skills/playwright-test-generator/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/playwright-test-generator/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 7,
+    "activationQueries": 62,
+    "comprehensionQueries": 52
+  },
+  "fingerprints": {
+    "casesSha256": "05fc926235b2d709e470daa90b8e4131593adf38d012e2917800b38b48281c69",
+    "activationQueriesSha256": "3517451825aaa7dfd1c9aa586c9c24502b6f787086f52c5d0bd198c6127bda55",
+    "sourceRubricSha256": "bc1c4d45fcef64d9a50f5205fb289a72b082bc0d758a6840198ed2c0d1fe9d2f"
+  }
+}

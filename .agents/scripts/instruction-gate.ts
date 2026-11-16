@@ -7,12 +7,48 @@ import { AGENTS_ROOT_FLAG, splitAgentsRoot } from '../utils/agents-root.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import {
+  CATALOG_ROUTING_RECEIPT,
+  DESCRIPTION_PREFIX,
+  type GateTarget,
+  instructionDocuments,
+  isGlobalAgentsRoot,
+  RECEIPT_DIRECTORY,
+  ROOT_DOCUMENT_PATTERN,
+  ROUTING_RECEIPT,
+  ROUTING_TOKEN,
+  receiptPathFor,
+  routingReceiptPathFor,
+  routingSkillTarget,
+  setPathFor,
+} from './instruction-gate-paths.js';
+import type { RoutingRuntime } from './instruction-gate-routing.js';
+import {
+  recordRouting as recordRoutingImpl,
+  verifyRouting as verifyRoutingImpl,
+} from './instruction-gate-routing.js';
+import {
   MAX_NEW_TOKENS,
   MODEL_REVISION,
   READER_VERSION,
   ROUTER_VERSION,
   VENDORED_BUNDLE_SHA256,
 } from './weak-reader.js';
+
+export type { GateTarget };
+export {
+  CATALOG_ROUTING_RECEIPT,
+  DESCRIPTION_PREFIX,
+  instructionDocuments,
+  isGlobalAgentsRoot,
+  RECEIPT_DIRECTORY,
+  ROOT_DOCUMENT_PATTERN,
+  ROUTING_RECEIPT,
+  ROUTING_TOKEN,
+  receiptPathFor,
+  routingReceiptPathFor,
+  routingSkillTarget,
+  setPathFor,
+};
 
 export interface Baseline {
   readonly trainPassed: readonly string[];
@@ -46,20 +82,13 @@ export interface GateDependencies {
   readonly executor: CommandExecutor;
   readonly listDirectory: (directory: string) => Promise<readonly DirectoryItem[]>;
   readonly makeTempDir: () => Promise<string>;
+  readonly now: () => Date;
   readonly readText: (file: string) => Promise<string | undefined>;
   readonly sha256: (text: string) => string;
   // The package root: executable helpers (`scripts/<name>`) always resolve from it.
   readonly toolsRoot: string;
   readonly write: (message: string) => void;
   readonly writeText: (file: string, content: string) => Promise<void>;
-}
-
-interface GateTarget {
-  readonly document: string;
-  readonly receiptPath: string;
-  readonly setPath: string;
-  // Set for a skill-description (routing) target; absent for an instruction document.
-  readonly skill?: string;
 }
 
 interface Inputs {
@@ -73,6 +102,7 @@ interface Measured {
   readonly answers: string;
   readonly bundle: string;
   readonly measurement: Measurement;
+  readonly rawReplies: string;
   readonly readerLog: string;
   readonly work: string;
 }
@@ -102,12 +132,15 @@ interface ProbeSet {
 
 export interface Receipt {
   readonly baseline: Baseline | null;
+  readonly catalogManifestSha256?: string;
   readonly decision: Decision;
   readonly document: string;
   readonly documentSha256: string;
   readonly fingerprint: Fingerprint;
   readonly measurement: Measurement;
   readonly reason: string;
+  readonly runId?: string;
+  readonly runReferenceSha256?: string;
   readonly schema: 1;
   readonly selfSha256: string;
   readonly setPath: string;
@@ -119,25 +152,11 @@ export interface RecordOptions {
   readonly rebaselineReason?: string;
 }
 
-interface RoutingInputs {
-  readonly catalogHash: string;
-  readonly setSha: string;
-  readonly sets: ReadonlyMap<string, string>;
-  readonly skills: readonly string[];
-}
+export type Verdict =
+  | { readonly accepted: true; readonly decision: Decision; readonly problems: readonly string[] }
+  | { readonly accepted: false; readonly decision?: never; readonly problems: readonly string[] };
 
-export interface Verdict {
-  readonly accepted: boolean;
-  readonly decision?: Decision;
-  readonly problems: readonly string[];
-}
-
-export const RECEIPT_DIRECTORY = path.join('evals', 'receipts');
-export const DESCRIPTION_PREFIX = 'description:';
-export const ROUTING_TOKEN = 'descriptions';
-export const ROUTING_RECEIPT = path.join(RECEIPT_DIRECTORY, 'activation.json');
 export const ROUTING_BATCH = 4;
-export const ROOT_DOCUMENT_PATTERN = /^(AGENTS|CLAUDE|GEMINI)[^/]*\.md$/u;
 
 const PACKAGE_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -170,6 +189,7 @@ export const defaultDependencies = (agentsRoot = PACKAGE_ROOT): GateDependencies
       name: entry.name,
     })),
   makeTempDir: () => mkdtemp(path.join(tmpdir(), 'instruction-gate-')),
+  now: () => new Date(),
   readText: async (file) => {
     try {
       return await readFile(file, 'utf8');
@@ -245,6 +265,7 @@ const measureDocument = async (target: GateTarget, deps: GateDependencies): Prom
   const script = (name: string): string => path.join(deps.toolsRoot, 'scripts', name);
   const bundle = path.join(work, 'bundle.json');
   const answers = path.join(work, 'answers.jsonl');
+  const rawReplies = path.join(work, 'raw-replies.jsonl');
   const built = await deps.executor({
     args: [script('skill-manager.ts'), 'train', 'bundle', set],
     command: 'bun',
@@ -254,7 +275,7 @@ const measureDocument = async (target: GateTarget, deps: GateDependencies): Prom
   }
   await deps.writeText(bundle, built.stdout);
   const read = await deps.executor({
-    args: [script('weak-reader.ts'), bundle, answers],
+    args: [script('weak-reader.ts'), '--raw-replies', rawReplies, bundle, answers],
     command: 'bun',
     timeoutMs: 20 * 60 * 1000,
   });
@@ -282,6 +303,7 @@ const measureDocument = async (target: GateTarget, deps: GateDependencies): Prom
     answers,
     bundle,
     measurement: measurementOf(measured.stdout),
+    rawReplies,
     readerLog: read.stderr,
     work,
   };
@@ -306,9 +328,6 @@ const reasonProblems = (receipt: Receipt): string[] =>
   ['allowed-equal', 'rebaseline'].includes(receipt.decision) && receipt.reason.trim() === ''
     ? [`The ${receipt.decision} decision has no recorded reason.`]
     : [];
-
-export const receiptPathFor = (document: string): string =>
-  path.join(RECEIPT_DIRECTORY, `${document.replace(/\.md$/u, '').replaceAll('/', '--')}.json`);
 
 const sameIds = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length && [...left].sort().join('\n') === [...right].sort().join('\n');
@@ -472,17 +491,6 @@ export const formatReceipt = (receipt: Receipt): string => `${formatJsonValue(re
 
 const isCustomRoot = (deps: GateDependencies): boolean => deps.agentsRoot !== deps.toolsRoot;
 
-const mergeRouting = (skills: readonly string[], parts: readonly Measured[]): Measurement => ({
-  trainFailed: parts.flatMap((part, index) =>
-    part.measurement.trainFailed.map((id) => `${skills[index]}/${id}`),
-  ),
-  trainPassed: parts.flatMap((part, index) =>
-    part.measurement.trainPassed.map((id) => `${skills[index]}/${id}`),
-  ),
-  validationPassed: parts.reduce((sum, part) => sum + part.measurement.validationPassed, 0),
-  validationTotal: parts.reduce((sum, part) => sum + part.measurement.validationTotal, 0),
-});
-
 const missingInput = (
   target: GateTarget,
   documentText: string | undefined,
@@ -498,28 +506,40 @@ const queriesOf = (setText: string): readonly ProbeDetail[] =>
 const failureEntries = async (
   measured: Measured,
   setText: string,
-  target: GateTarget,
   deps: GateDependencies,
-): Promise<readonly { expected: string; given: string; id: string; query: string }[]> => {
+): Promise<
+  readonly { expected: string; given: string; id: string; query: string; rawReply?: string }[]
+> => {
   const queries = queriesOf(setText);
   const answerLines = ((await deps.readText(measured.answers)) ?? '').split('\n').filter(Boolean);
+  const rawReplyLines = ((await deps.readText(measured.rawReplies)) ?? '')
+    .split('\n')
+    .filter(Boolean);
+  const rawReplies = new Map<string, string>();
+  for (const line of rawReplyLines) {
+    const entry = JSON.parse(line) as { query_id?: string; raw_reply?: string };
+    if (entry.query_id !== undefined && entry.raw_reply !== undefined) {
+      rawReplies.set(entry.query_id, entry.raw_reply);
+    }
+  }
   const given = new Map<string, string>();
   for (const line of answerLines) {
-    const entry = JSON.parse(line) as { answer?: string; query_id?: string; skill_name?: string };
+    const entry = JSON.parse(line) as {
+      answer?: string;
+      query_id?: string;
+      skill_name?: string;
+    };
     given.set(entry.query_id ?? '', entry.answer ?? entry.skill_name ?? '');
   }
   return measured.measurement.trainFailed.map((id) => {
     const probe = queries.find((query) => query.id === id);
-    const expected = target.skill
-      ? probe?.should_trigger
-        ? target.skill
-        : `anything but ${target.skill}`
-      : (probe?.expected ?? '');
+    const reply = given.get(id);
     return {
-      expected,
-      given: given.get(id) ?? '',
+      expected: probe?.expected ?? '',
+      given: reply ?? '',
       id,
       query: probe?.query ?? '',
+      rawReply: rawReplies.get(id),
     };
   });
 };
@@ -532,7 +552,7 @@ const diagnose = async (
   deps: GateDependencies,
   baselineRegression = false,
 ): Promise<string> => {
-  const failures = await failureEntries(measured, setText, target, deps);
+  const failures = await failureEntries(measured, setText, deps);
   if (failures.length === 0) {
     return '';
   }
@@ -562,23 +582,25 @@ const diagnose = async (
   );
   const queries = queriesOf(setText);
   const blocks = failures.map((failure) => {
-    const evidence = target.skill
-      ? `the description of ${target.skill} in the router catalog`
-      : (queries.find((query) => query.id === failure.id)?.evidence ?? '');
+    const evidence = queries.find((query) => query.id === failure.id)?.evidence ?? '';
     return [
       `--- ${failure.id}: expected ${failure.expected}, the reader answered ${failure.given}`,
       failure.query,
       `Source rule: ${evidence}`,
+      `Reader's original reply: ${JSON.stringify(failure.rawReply ?? '(not captured)')}`,
       `Reader's view: ${suggestions.get(failure.id) ?? '(no suggestion available)'}`,
     ].join('\n');
   });
-  const subject = target.skill ? `${DESCRIPTION_PREFIX}${target.skill}` : target.document;
-  const advice = target.skill
-    ? 'Rewrite the description so a router picks this skill for these queries and no other skill does, then record again.'
-    : baselineRegression
-      ? 'A baseline-passing train probe regressed. Preserve wording outside the cited rule; make only '
-        + 'the smallest local edit to that rule, then record again.'
-      : 'Make the smallest local edit to the cited passage, preserve surrounding rules, and record again.';
+  const advice = baselineRegression
+    ? 'A baseline-passing train probe regressed. The independent diagnosis is advisory; compare it '
+      + 'with the original reply, source, and expected answer. For a placement issue, move the existing rule beside '
+      + 'the output it governs without changing the rule. For a wording issue, state the intended order '
+      + 'or condition so the expected answer follows. Choose the change needed to fix the behavior; '
+      + 'there is no edit-size cap. Preserve unrelated accepted behavior, then record again.'
+    : 'The independent diagnosis is advisory; compare it with the original reply, source, and expected answer. For a '
+      + 'placement issue, move the existing rule beside the output it governs without changing the rule. '
+      + 'For a wording issue, state the intended order or condition so the expected answer follows. '
+      + 'Choose the change needed to fix the behavior; there is no edit-size cap. Then record again.';
   const odd = measured.readerLog
     .split('\n')
     .filter((line) => line.includes('unparseable reply'))
@@ -587,87 +609,11 @@ const diagnose = async (
     odd.length > 0
       ? `Replies the reader gave that were not a skill name or letter:\n${odd.join('\n')}\n`
       : '';
-  return `DIAGNOSIS ${subject}: failing train probes. ${advice}\n${blocks.join('\n')}\n${replies}`;
+  return `DIAGNOSIS ${target.document}: failing train probes. ${advice}\n${blocks.join('\n')}\n${replies}`;
 };
 
-const routingIds = (inputs: RoutingInputs): readonly string[] =>
-  inputs.skills.flatMap((skill) =>
-    activeTrainIds(JSON.parse(inputs.sets.get(skill) ?? '{}') as ProbeSet).map(
-      (id) => `${skill}/${id}`,
-    ),
-  );
-
-const routingScore = (skills: readonly string[], parts: readonly Measured[]): string =>
-  skills
-    .map((skill, index) => {
-      const part = parts[index]?.measurement;
-      const train = (part?.trainPassed.length ?? 0) + (part?.trainFailed.length ?? 0);
-      return `${skill} ${part?.trainPassed.length}/${train}`;
-    })
-    .join(', ');
-
-export const routingSkillTarget = (skill: string): GateTarget => ({
-  document: path.join('skills', skill, 'SKILL.md'),
-  receiptPath: ROUTING_RECEIPT,
-  setPath: path.join('skills', skill, 'evals', 'trigger-queries.json'),
-  skill,
-});
-
-const measureRouting = async (
-  skills: readonly string[],
-  deps: GateDependencies,
-): Promise<readonly Measured[]> => {
-  const parts: Measured[] = [];
-  for (let start = 0; start < skills.length; start += ROUTING_BATCH) {
-    const batch = skills.slice(start, start + ROUTING_BATCH);
-    parts.push(
-      ...(await Promise.all(
-        batch.map((skill) => measureDocument(routingSkillTarget(skill), deps)),
-      )),
-    );
-  }
-  return parts;
-};
-
-const readRoutingInputs = async (deps: GateDependencies): Promise<RoutingInputs | string> => {
-  const skills = await activationSkills(deps);
-  if (skills.length === 0) {
-    return 'No skills found under skills/.';
-  }
-  const texts = await Promise.all(
-    skills.map((skill) =>
-      deps.readText(path.join(deps.agentsRoot, routingSkillTarget(skill).setPath)),
-    ),
-  );
-  const missing = skills.find((_skill, index) => texts[index] === undefined);
-  if (missing !== undefined) {
-    return `No trigger query set at ${routingSkillTarget(missing).setPath}; create it before editing.`;
-  }
-  const catalogHash = await catalogSha(deps, skills);
-  if (catalogHash === undefined) {
-    return 'Could not read the skill catalog from `train bundle`.';
-  }
-  const sets = new Map(skills.map((skill, index) => [skill, texts[index] ?? ''] as const));
-  const setSha = deps.sha256(skills.map((skill) => `${skill}\0${sets.get(skill)}`).join('\n'));
-  return { catalogHash, setSha, sets, skills };
-};
-
-const routingDiagnosis = async (
-  inputs: RoutingInputs,
-  parts: readonly Measured[],
-  deps: GateDependencies,
-): Promise<string> => {
-  const blocks: string[] = [];
-  for (const [index, skill] of inputs.skills.entries()) {
-    const part = parts[index];
-    if (part !== undefined && part.measurement.trainFailed.length > 0) {
-      blocks.push(
-        await diagnose(routingSkillTarget(skill), part, inputs.sets.get(skill) ?? '', deps),
-      );
-    }
-  }
-  return blocks.join('');
-};
+const recordRouting = (options: RecordOptions, deps: GateDependencies): Promise<boolean> =>
+  recordRoutingImpl(options, deps, routingRuntime);
 
 const sealedFields = (receipt: Omit<Receipt, 'selfSha256'>): string =>
   JSON.stringify(canonicalize(receipt));
@@ -676,53 +622,6 @@ export const sealReceipt = (
   receipt: Omit<Receipt, 'selfSha256'>,
   sha256: (text: string) => string,
 ): Receipt => canonicalize({ ...receipt, selfSha256: sha256(sealedFields(receipt)) }) as Receipt;
-
-const recordRouting = async (options: RecordOptions, deps: GateDependencies): Promise<boolean> => {
-  const inputs = await readRoutingInputs(deps);
-  if (typeof inputs === 'string') {
-    deps.write(`${ROUTING_TOKEN}: ${inputs}\n`);
-    return false;
-  }
-  const previousText = await deps.readText(path.join(deps.agentsRoot, ROUTING_RECEIPT));
-  const previous = previousText === undefined ? undefined : parseReceipt(previousText);
-  const parts = await measureRouting(inputs.skills, deps);
-  const measurement = mergeRouting(inputs.skills, parts);
-  const verdict = decide(measurement, baselineOf(previous), {
-    ...options,
-    aggregate: true,
-    fingerprintChanged:
-      previous !== undefined && !fingerprintMatches(previous.fingerprint, currentFingerprint(true)),
-  });
-  const total = measurement.trainPassed.length + measurement.trainFailed.length;
-  const score = `train ${measurement.trainPassed.length}/${total}, validation ${measurement.validationPassed}/${measurement.validationTotal}; ${routingScore(inputs.skills, parts)}`;
-  if (!verdict.accepted || verdict.decision === undefined) {
-    deps.write(
-      `REJECTED ${ROUTING_TOKEN} (${score})\n${verdict.problems.map((p) => `  - ${p}`).join('\n')}\n`,
-    );
-    deps.write(await routingDiagnosis(inputs, parts, deps));
-    return false;
-  }
-  const reason = options.rebaselineReason ?? options.allowEqualReason ?? '';
-  const receipt = sealReceipt(
-    {
-      baseline: baselineOf(previous),
-      decision: verdict.decision,
-      document: 'skills/*/SKILL.md',
-      documentSha256: inputs.catalogHash,
-      fingerprint: currentFingerprint(true),
-      measurement,
-      reason: ['allowed-equal', 'rebaseline'].includes(verdict.decision) ? reason : '',
-      schema: 1,
-      setPath: 'skills/*/evals/trigger-queries.json',
-      setSha256: inputs.setSha,
-    },
-    deps.sha256,
-  );
-  await deps.writeText(path.join(deps.agentsRoot, ROUTING_RECEIPT), formatReceipt(receipt));
-  deps.write(`ACCEPTED ${ROUTING_TOKEN} (${score}) as ${verdict.decision}\n`);
-  deps.write(await routingDiagnosis(inputs, parts, deps));
-  return true;
-};
 
 const recordTarget = async (
   target: GateTarget,
@@ -781,20 +680,6 @@ const recordTarget = async (
   return true;
 };
 
-export const setPathFor = (document: string): string => {
-  if (!document.includes('/')) {
-    return path.join('evals', `${document.replace(/\.md$/u, '')}.json`);
-  }
-  const [, skill, ...rest] = document.split('/');
-  return path.join(
-    'skills',
-    skill ?? '',
-    'evals',
-    'comprehension',
-    `${rest.join('-').replace(/\.md$/u, '')}.json`,
-  );
-};
-
 const staleProblems = (receipt: Receipt, inputs: Inputs, deps: GateDependencies): string[] => {
   const stale: string[] = [];
   if (receipt.documentSha256 !== deps.sha256(inputs.documentText)) {
@@ -806,11 +691,14 @@ const staleProblems = (receipt: Receipt, inputs: Inputs, deps: GateDependencies)
   return stale;
 };
 
-const targetOf = (document: string): GateTarget => ({
-  document,
-  receiptPath: receiptPathFor(document),
-  setPath: setPathFor(document),
-});
+const targetOf = (document: string, deps: GateDependencies): GateTarget => {
+  const central = isGlobalAgentsRoot(deps.agentsRoot);
+  return {
+    document,
+    receiptPath: receiptPathFor(document, central),
+    setPath: setPathFor(document, central),
+  };
+};
 
 const recordSafely = async (
   token: string,
@@ -820,7 +708,7 @@ const recordSafely = async (
   try {
     return token === ROUTING_TOKEN
       ? await recordRouting(options, deps)
-      : await recordTarget(targetOf(token), options, deps);
+      : await recordTarget(targetOf(token, deps), options, deps);
   } catch (error) {
     deps.write(`FAILED ${token}: ${error instanceof Error ? error.message : String(error)}\n`);
     return false;
@@ -851,34 +739,6 @@ export const parseRecordArguments = (
   const values = new Set([options.allowEqualReason, options.rebaselineReason]);
   const documents = args.filter((arg) => !arg.startsWith('--') && !values.has(arg));
   return { documents, options };
-};
-
-const walk = async (deps: GateDependencies, relative: string): Promise<readonly string[]> => {
-  const items = await deps.listDirectory(path.join(deps.agentsRoot, relative));
-  const nested = await Promise.all(
-    items.map(async (item) => {
-      const child = path.join(relative, item.name);
-      if (item.isDirectory) {
-        return walk(deps, child);
-      }
-      return item.name.endsWith('.md') ? [child] : [];
-    }),
-  );
-  return nested.flat();
-};
-
-export const instructionDocuments = async (deps: GateDependencies): Promise<readonly string[]> => {
-  const root = await deps.listDirectory(deps.agentsRoot);
-  const rootDocuments = root
-    .filter((item) => !item.isDirectory && ROOT_DOCUMENT_PATTERN.test(item.name))
-    .map((item) => item.name);
-  const skills = await deps.listDirectory(path.join(deps.agentsRoot, 'skills'));
-  const skillDocuments = await Promise.all(
-    skills
-      .filter((item) => item.isDirectory)
-      .map((item) => walk(deps, path.join('skills', item.name))),
-  );
-  return [...rootDocuments, ...skillDocuments.flat()].sort();
 };
 
 const withoutSeal = (receipt: Receipt): Omit<Receipt, 'selfSha256'> => {
@@ -917,34 +777,18 @@ const recordedProblems = (
   ];
 };
 
-export const verifyRouting = async (deps: GateDependencies): Promise<readonly string[]> => {
-  const inputs = await readRoutingInputs(deps);
-  if (typeof inputs === 'string') {
-    return [inputs];
-  }
-  const receiptText = await deps.readText(path.join(deps.agentsRoot, ROUTING_RECEIPT));
-  const receipt = receiptText === undefined ? undefined : parseReceipt(receiptText);
-  if (receipt === undefined) {
-    return [`No valid receipt at ${ROUTING_RECEIPT}; run record where a GPU adapter exists.`];
-  }
-  const stale: string[] = [];
-  if (receipt.documentSha256 !== inputs.catalogHash) {
-    stale.push(
-      'A skill description changed after the routing receipt was recorded; the router reads every description.',
-    );
-  }
-  if (receipt.setSha256 !== inputs.setSha) {
-    stale.push('A trigger query set changed after the routing receipt was recorded.');
-  }
-  return [
-    ...stale,
-    ...recordedProblems(receipt, deps, {
-      fingerprint: currentFingerprint(true),
-      ids: routingIds(inputs),
-      routing: true,
-    }),
-  ];
+const routingRuntime: RoutingRuntime = {
+  currentFingerprint,
+  decide,
+  fingerprintMatches,
+  formatReceipt,
+  measureDocument,
+  recordedProblems,
+  sealReceipt,
 };
+
+export const verifyRouting = (deps: GateDependencies): Promise<readonly string[]> =>
+  verifyRoutingImpl(deps, routingRuntime);
 
 export const verifyTarget = async (
   target: GateTarget,
@@ -986,7 +830,7 @@ const recordPlan = async (
   }
   const stale: string[] = [];
   for (const document of await instructionDocuments(deps)) {
-    if ((await verifyTarget(targetOf(document), deps)).length > 0) {
+    if ((await verifyTarget(targetOf(document, deps), deps)).length > 0) {
       stale.push(document);
     }
   }
@@ -1022,7 +866,7 @@ export const verify = async (deps: GateDependencies): Promise<number> => {
   }
   const checks: (readonly [string, readonly string[]])[] = [];
   for (const document of documents) {
-    checks.push([document, await verifyTarget(targetOf(document), deps)]);
+    checks.push([document, await verifyTarget(targetOf(document, deps), deps)]);
   }
   if (!isCustomRoot(deps)) {
     checks.push([ROUTING_TOKEN, await verifyRouting(deps)]);

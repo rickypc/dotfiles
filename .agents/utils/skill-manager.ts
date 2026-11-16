@@ -1,7 +1,12 @@
 import { homedir } from 'node:os';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import matter from 'gray-matter';
 import type { FileSystem } from './filesystem.js';
+import {
+  type EvaluationRubric,
+  parseEvaluationCasesJsonl,
+  validateEvaluationRubric,
+} from './quality-engine/evaluation-cases.js';
 import {
   casesFor,
   evaluateMatrix,
@@ -16,6 +21,18 @@ import { createReceipt, failedCheckNames, receiptPasses } from './quality-engine
 import type { WorkflowState } from './quality-engine/state.js';
 import { loadTriggerQuerySet, querySetBalanceProblems } from './quality-engine/train.js';
 import { isMatrixVerifierId, runIndependentVerifier } from './quality-engine/verifier.js';
+import {
+  agentsRootFor,
+  isWithin,
+  markdownFilesUnder,
+  readOptional,
+  type SkillEvaluationPaths,
+  skillEvaluationPathsFor,
+  skillNameFor,
+} from './skill-evaluation-paths.js';
+
+export type { SkillEvaluationPaths };
+export { skillEvaluationPathsFor };
 
 export interface SkillInitializationReceipt {
   readonly description: string;
@@ -97,15 +114,6 @@ const actionTitleFor = (state: WorkflowState): string => {
     return 'Repair every compatible failed assertion in one candidate batch';
   }
   throw new Error(`No Skill Manager action packet is available for ${state}.`);
-};
-
-const agentsRootFor = (path: string): string | undefined => {
-  const marker = '/.agents/';
-  const index = path.indexOf(marker);
-  if (index >= 0) {
-    return path.slice(0, index + '/.agents'.length);
-  }
-  return path.endsWith('/.agents') ? path : undefined;
 };
 
 export const createSkillManagerPacket = (input: SkillManagerPacketInput): ActionPacket => {
@@ -212,25 +220,6 @@ export const parseSkillRubric = (content: string): SkillRubricContract => {
   };
 };
 
-const validateRubricForMatrix = (
-  rubric: SkillRubricContract,
-  matrix: readonly MatrixCase[],
-): void => {
-  if (!matrix.every((matrixCase) => rubric.verifierIds.includes(matrixCase.independentVerifier))) {
-    throw new Error('Evaluation rubric does not authorize every matrix verifier.');
-  }
-};
-
-const skillNamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
-
-const skillNameFor = (skillPath: string): string => {
-  const name = basename(resolve(skillPath));
-  if (!skillNamePattern.test(name)) {
-    throw new Error('Skill directory names must use lowercase letters, digits, and hyphens.');
-  }
-  return name;
-};
-
 const titleFor = (name: string): string =>
   name
     .split('-')
@@ -328,6 +317,15 @@ export const initializeSkill = async (
   return { description, name, path, status: 'created' };
 };
 
+const validateRubricForMatrix = (
+  rubric: Pick<SkillRubricContract, 'verifierIds'> | Pick<EvaluationRubric, 'verifierIds'>,
+  matrix: readonly MatrixCase[],
+): void => {
+  if (!matrix.every((matrixCase) => rubric.verifierIds.includes(matrixCase.independentVerifier))) {
+    throw new Error('Evaluation rubric does not authorize every matrix verifier.');
+  }
+};
+
 export const validateSkill = async (
   fileSystem: Pick<FileSystem, 'readFile'>,
   skillPath: string,
@@ -369,9 +367,6 @@ const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
 const isProsePath = (path: string): boolean => proseExtensions.has(extname(path));
-
-const isWithin = (path: string, root: string): boolean =>
-  path === root || path.startsWith(`${root}/`);
 
 export const localMarkdownLinkTargets = (source: string): readonly string[] => {
   const prose = source.replace(/```[\s\S]*?```/g, '');
@@ -430,55 +425,19 @@ export const ignoredByAgentsGitignore = (
   return ignored;
 };
 
-const readOptional = async (
-  fileSystem: Pick<FileSystem, 'readFile'>,
-  path: string,
-): Promise<string | undefined> => {
-  try {
-    return await fileSystem.readFile(path, 'utf8');
-  } catch {
-    return undefined;
-  }
-};
-
-const skillMatrixPaths = async (
-  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
-  skillPath: string,
-): Promise<readonly string[]> => {
-  const evalsPath = join(skillPath, 'evals');
-  const entries = await fileSystem.readdir?.(evalsPath, {
-    withFileTypes: true,
-  });
-  if (!entries) {
-    throw new Error('Skill evaluation requires directory listing support.');
-  }
-  const matrixPaths = entries
-    .filter((entry) => !entry.isDirectory() && entry.name.endsWith('.jsonl'))
-    .map((entry) => join(evalsPath, entry.name))
-    .sort();
-  if (matrixPaths.length === 0) {
-    throw new Error(`Skill has no evaluation matrix: ${evalsPath}`);
-  }
-  if (!matrixPaths.includes(join(evalsPath, 'cases.jsonl'))) {
-    throw new Error(
-      `Skill is missing its canonical evaluation matrix: ${join(evalsPath, 'cases.jsonl')}`,
-    );
-  }
-  const rubricPath = join(evalsPath, 'rubric.md');
-  if (!(await readOptional(fileSystem, rubricPath))?.trim()) {
-    throw new Error(`Skill is missing a nonblank evaluation rubric: ${rubricPath}`);
-  }
-  return matrixPaths;
-};
-
 const validateTriggerQueries = async (
   fileSystem: Pick<FileSystem, 'readFile'>,
   skillPath: string,
+  triggerQueriesPath: string,
+  expectedFingerprint?: string,
 ): Promise<void> => {
-  const querySet = await loadTriggerQuerySet(
-    fileSystem,
-    join(skillPath, 'evals', 'trigger-queries.json'),
-  );
+  if (
+    expectedFingerprint
+    && fingerprint(await fileSystem.readFile(triggerQueriesPath, 'utf8')) !== expectedFingerprint
+  ) {
+    throw new Error(`Skill activation-query fingerprint is stale: ${triggerQueriesPath}`);
+  }
+  const querySet = await loadTriggerQuerySet(fileSystem, triggerQueriesPath);
   const problems = [
     ...(querySet.skillName === basename(resolve(skillPath))
       ? []
@@ -492,6 +451,35 @@ const validateTriggerQueries = async (
 
 const instructionDocumentPattern = /^(?:AGENTS|CLAUDE|GEMINI)(?:\.[^./]+)*\.md$/iu;
 
+const evaluationMatrixFor = async (
+  fileSystem: Pick<FileSystem, 'readFile'>,
+  evaluationPaths: SkillEvaluationPaths,
+  matrixPath: string,
+): Promise<MatrixCase[]> => {
+  const matrixText = await fileSystem.readFile(matrixPath, 'utf8');
+  if (
+    evaluationPaths.central
+    && evaluationPaths.fingerprints
+    && fingerprint(matrixText) !== evaluationPaths.fingerprints.casesSha256
+  ) {
+    throw new Error(`Skill case-matrix fingerprint is stale: ${matrixPath}`);
+  }
+  if (!evaluationPaths.central) {
+    return parseMatrixJsonl(matrixText);
+  }
+  return parseEvaluationCasesJsonl(matrixText)
+    .filter((evaluationCase) => evaluationCase.kind === 'contract')
+    .map((evaluationCase) => ({
+      assertions: evaluationCase.assertions,
+      failureMode: evaluationCase.failureMode,
+      id: evaluationCase.id,
+      independentVerifier: evaluationCase.independentVerifier,
+      repairBoundary: evaluationCase.repairBoundary,
+      scenario: evaluationCase.scenario,
+      visibility: evaluationCase.visibility,
+    }));
+};
+
 const instructionDocumentsIn = async (
   fileSystem: Pick<FileSystem, 'readdir'>,
   directory: string,
@@ -501,23 +489,6 @@ const instructionDocumentsIn = async (
     .filter((entry) => !entry.isDirectory() && instructionDocumentPattern.test(entry.name))
     .map((entry) => entry.name)
     .sort();
-};
-
-const markdownFilesUnder = async (
-  fileSystem: Pick<FileSystem, 'readdir'>,
-  directory: string,
-): Promise<readonly string[]> => {
-  const entries = (await fileSystem.readdir?.(directory, { withFileTypes: true })) ?? [];
-  const nested = await Promise.all(
-    entries.map(async (entry) => {
-      const child = join(directory, entry.name);
-      if (entry.isDirectory()) {
-        return markdownFilesUnder(fileSystem, child);
-      }
-      return extname(entry.name) === '.md' ? [child] : [];
-    }),
-  );
-  return nested.flat().sort();
 };
 
 // A project-local runtime lives in `<project-root>/.agents`; its project-root instruction files
@@ -544,6 +515,36 @@ const validateComprehensionSet = async (
   }
 };
 
+const validateEvaluationMatrix = (
+  rubric: Parameters<typeof validateRubricForMatrix>[0],
+  matrix: Parameters<typeof validateRubricForMatrix>[1],
+  matrixPath: string,
+  sourceText: string,
+  sourceFingerprint: string,
+): { readonly candidateCount: number; readonly challengeCount: number } => {
+  validateRubricForMatrix(rubric, matrix);
+  const candidateCount = matrix.filter(({ visibility }) => visibility === 'candidate').length;
+  const challengeCount = matrix.filter(({ visibility }) => visibility === 'challenge').length;
+  const phases = [
+    { count: candidateCount, label: 'candidate', phase: 'candidate_checked' as const },
+    { count: challengeCount, label: 'challenge', phase: 'challenge_checked' as const },
+  ].filter(({ count }) => count > 0);
+  for (const { label, phase } of phases) {
+    const receipt = evaluateSkillMatrix(
+      matrix,
+      { delegatedChecks: {}, ownedFiles: new Set(), text: sourceText },
+      sourceFingerprint,
+      phase,
+    );
+    if (!receiptPasses(receipt)) {
+      throw new Error(
+        `${matrixPath} ${label} evaluation failed: ${failedCheckNames(receipt).join(', ')}`,
+      );
+    }
+  }
+  return { candidateCount, challengeCount };
+};
+
 export const validateInstructionSets = async (
   fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
   agentsRoot: string,
@@ -556,15 +557,19 @@ export const validateInstructionSets = async (
       )
     : [];
   const targets = [
-    ...rootDocuments.map((document) => ({ document, prefix: '../' })),
-    ...projectDocuments.map((document) => ({ document, prefix: '../../' })),
+    ...rootDocuments.map((document) => ({ document, prefix: '../../' })),
+    ...projectDocuments.map((document) => ({ document, prefix: '../../../' })),
   ];
   for (const { document, prefix } of targets) {
     const key = document.replace(/\.md$/iu, '');
-    await validateComprehensionSet(fileSystem, join(agentsRoot, 'evals', `${key}.json`), {
-      subject: `instructions--${key.toLowerCase()}`,
-      target: `${prefix}${document}`,
-    });
+    await validateComprehensionSet(
+      fileSystem,
+      join(agentsRoot, 'evals', 'comprehension', `${key}.json`),
+      {
+        subject: `instructions--${key.toLowerCase()}`,
+        target: `${prefix}${document}`,
+      },
+    );
   }
   return targets.length;
 };
@@ -572,8 +577,31 @@ export const validateInstructionSets = async (
 const validateSkillComprehension = async (
   fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
   skillPath: string,
+  evaluationPaths: SkillEvaluationPaths,
 ): Promise<void> => {
   const name = basename(resolve(skillPath));
+  if (evaluationPaths.central) {
+    for (const set of evaluationPaths.comprehensionSets) {
+      const expectedTarget = relative(dirname(set.setPath), set.sourcePath).split(sep).join('/');
+      await validateComprehensionSet(fileSystem, set.setPath, {
+        subject: set.subject,
+        target: expectedTarget,
+      });
+      const parsed = JSON.parse(await fileSystem.readFile(set.setPath, 'utf8')) as {
+        readonly queries?: readonly { readonly id?: unknown }[];
+      };
+      const queryIds = parsed.queries?.map((query) => query.id);
+      if (
+        !queryIds
+        || queryIds.length !== set.queryCount
+        || queryIds.some((id) => typeof id !== 'string')
+        || JSON.stringify(queryIds) !== JSON.stringify(set.queryIds)
+      ) {
+        throw new Error(`Skill comprehension IDs or count are stale: ${set.setPath}`);
+      }
+    }
+    return;
+  }
   for (const file of await markdownFilesUnder(fileSystem, skillPath)) {
     const relativePath = relative(skillPath, file);
     const key = relativePath.replace(/\.md$/u, '').replaceAll('/', '-');
@@ -592,57 +620,46 @@ export const validateSkillEvaluations = async (
   const sourcePath = join(skillPath, 'SKILL.md');
   const sourceText = await fileSystem.readFile(sourcePath, 'utf8');
   const sourceFingerprint = fingerprint(sourceText);
-  const matrixPaths = await skillMatrixPaths(fileSystem, skillPath);
-  const rubric = parseSkillRubric(
-    (await readOptional(fileSystem, join(skillPath, 'evals', 'rubric.md'))) ?? '',
+  const evaluationPaths = await skillEvaluationPathsFor(fileSystem, skillPath);
+  const rubricText = (await readOptional(fileSystem, evaluationPaths.rubricPath)) ?? '';
+  if (!rubricText.trim()) {
+    throw new Error(`Skill is missing a nonblank evaluation rubric: ${evaluationPaths.rubricPath}`);
+  }
+  const rubric = evaluationPaths.central
+    ? validateEvaluationRubric(matter(rubricText).data)
+    : parseSkillRubric(rubricText);
+  const matrices: readonly MatrixCase[][] = await Promise.all(
+    evaluationPaths.matrixPaths.map((matrixPath) =>
+      evaluationMatrixFor(fileSystem, evaluationPaths, matrixPath),
+    ),
   );
   let candidateCount = 0;
   let challengeCount = 0;
-  for (const matrixPath of matrixPaths) {
-    const matrix = parseMatrixJsonl(await fileSystem.readFile(matrixPath, 'utf8'));
-    validateRubricForMatrix(rubric, matrix);
-    const matrixCandidateCount = matrix.filter(
-      ({ visibility }) => visibility === 'candidate',
-    ).length;
-    const matrixChallengeCount = matrix.filter(
-      ({ visibility }) => visibility === 'challenge',
-    ).length;
-    candidateCount += matrixCandidateCount;
-    challengeCount += matrixChallengeCount;
-    const phases = [
-      {
-        count: matrixCandidateCount,
-        label: 'candidate',
-        phase: 'candidate_checked' as const,
-      },
-      {
-        count: matrixChallengeCount,
-        label: 'challenge',
-        phase: 'challenge_checked' as const,
-      },
-    ].filter(({ count }) => count > 0);
-    for (const { label, phase } of phases) {
-      const receipt = evaluateSkillMatrix(
-        matrix,
-        { delegatedChecks: {}, ownedFiles: new Set(), text: sourceText },
-        sourceFingerprint,
-        phase,
-      );
-      if (!receiptPasses(receipt)) {
-        throw new Error(
-          `${matrixPath} ${label} evaluation failed: ${failedCheckNames(receipt).join(', ')}`,
-        );
-      }
-    }
+  for (const [index, matrix] of matrices.entries()) {
+    const matrixPath = evaluationPaths.matrixPaths[index] ?? skillPath;
+    const counts = validateEvaluationMatrix(
+      rubric,
+      matrix,
+      matrixPath,
+      sourceText,
+      sourceFingerprint,
+    );
+    candidateCount += counts.candidateCount;
+    challengeCount += counts.challengeCount;
   }
   if (candidateCount === 0 || challengeCount === 0) {
     throw new Error(
       `Skill evaluation requires at least one candidate and one challenge case: ${skillPath}`,
     );
   }
-  await validateTriggerQueries(fileSystem, skillPath);
-  await validateSkillComprehension(fileSystem, skillPath);
-  return matrixPaths.length;
+  await validateTriggerQueries(
+    fileSystem,
+    skillPath,
+    evaluationPaths.triggerQueriesPath,
+    evaluationPaths.fingerprints?.activationQueriesSha256,
+  );
+  await validateSkillComprehension(fileSystem, skillPath, evaluationPaths);
+  return evaluationPaths.matrixPaths.length;
 };
 
 export const validateAllSkills = async (

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:codex:instruction-evaluations:cases",
+  "title": "Instruction evaluation case schema",
+  "schemaVersion": 2,
+  "$comment": "Each JSONL row must match exactly one case variant. The runtime parser additionally enforces unique case ids across the full file and rejects contradictory expected/forbidden outcomes.",
+  "oneOf": [
+    { "$ref": "#/$defs/contractCase" },
+    { "$ref": "#/$defs/behaviorCase" }
+  ],
+  "$defs": {
+    "nonBlankString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "contractCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "visibility",
+        "scenario",
+        "assertions",
+        "failureMode",
+        "repairBoundary",
+        "independentVerifier"
+      ],
+      "properties": {
+        "kind": { "const": "contract" },
+        "id": { "$ref": "#/$defs/nonBlankString" },
+        "visibility": { "enum": ["candidate", "challenge"] },
+        "scenario": { "$ref": "#/$defs/nonBlankString" },
+        "assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["expected", "kind"],
+            "properties": {
+              "expected": { "$ref": "#/$defs/nonBlankString" },
+              "kind": {
+                "enum": ["delegated-gate", "forbidden-text", "frontmatter", "owned-file", "required-text"]
+              }
+            }
+          }
+        },
+        "failureMode": { "$ref": "#/$defs/nonBlankString" },
+        "repairBoundary": { "$ref": "#/$defs/nonBlankString" },
+        "independentVerifier": { "enum": ["matrix-shape", "source-structure"] }
+      }
+    },
+    "behaviorCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "split",
+        "taskFamily",
+        "task",
+        "fixture",
+        "expectedOutcomes",
+        "forbiddenOutcomes",
+        "hardAssertions",
+        "rubricAxes",
+        "failureMode",
+        "repairBoundary"
+      ],
+      "properties": {
+        "kind": { "const": "behavior" },
+        "id": { "$ref": "#/$defs/nonBlankString" },
+        "split": { "enum": ["train", "validation", "challenge"] },
+        "taskFamily": { "$ref": "#/$defs/nonBlankString" },
+        "task": { "$ref": "#/$defs/nonBlankString" },
+        "fixture": { "$ref": "#/$defs/nonBlankString" },
+        "expectedOutcomes": { "$ref": "#/$defs/nonEmptyStringList" },
+        "forbiddenOutcomes": { "$ref": "#/$defs/nonEmptyStringList" },
+        "hardAssertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["expected", "id", "kind"],
+            "properties": {
+              "expected": { "$ref": "#/$defs/nonBlankString" },
+              "id": { "$ref": "#/$defs/nonBlankString" },
+              "kind": {
+                "enum": ["diff-contains", "diff-omits", "output-contains", "output-omits", "trace-contains", "trace-omits"]
+              }
+            }
+          }
+        },
+        "rubricAxes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema-diff-integrity",
+            "negative-constraint-adherence",
+            "step-sequence-compliance",
+            "scope-discipline"
+          ],
+          "properties": {
+            "schema-diff-integrity": { "$ref": "#/$defs/nonBlankString" },
+            "negative-constraint-adherence": { "$ref": "#/$defs/nonBlankString" },
+            "step-sequence-compliance": { "$ref": "#/$defs/nonBlankString" },
+            "scope-discipline": { "$ref": "#/$defs/nonBlankString" }
+          }
+        },
+        "failureMode": { "$ref": "#/$defs/nonBlankString" },
+        "repairBoundary": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    "nonEmptyStringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonBlankString" }
+    },
+    "rubricContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptanceRule",
+        "aggregateScore",
+        "axes",
+        "graderDisagreement",
+        "minimumPassRate",
+        "requiredCaseFields",
+        "requiredSplits",
+        "requiredVisibility",
+        "schemaVersion",
+        "verifierIds"
+      ],
+      "properties": {
+        "acceptanceRule": { "const": "all-hard-assertions-and-axes-pass" },
+        "aggregateScore": { "const": "none" },
+        "axes": {
+          "type": "object",
+          "required": [
+            "schema-diff-integrity",
+            "negative-constraint-adherence",
+            "step-sequence-compliance",
+            "scope-discipline"
+          ],
+          "propertyNames": {
+            "enum": ["schema-diff-integrity", "negative-constraint-adherence", "step-sequence-compliance", "scope-discipline"]
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence", "fail", "pass"],
+            "properties": {
+              "evidence": { "$ref": "#/$defs/nonBlankString" },
+              "fail": { "$ref": "#/$defs/nonBlankString" },
+              "pass": { "$ref": "#/$defs/nonBlankString" }
+            }
+          }
+        },
+        "graderDisagreement": { "const": "block" },
+        "minimumPassRate": { "const": 1 },
+        "requiredCaseFields": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["behavior", "contract"],
+          "properties": {
+            "contract": {
+              "const": ["kind", "id", "visibility", "scenario", "assertions", "failureMode", "repairBoundary", "independentVerifier"]
+            },
+            "behavior": {
+              "const": ["kind", "id", "split", "taskFamily", "task", "fixture", "expectedOutcomes", "forbiddenOutcomes", "hardAssertions", "rubricAxes", "failureMode", "repairBoundary"]
+            }
+          }
+        },
+        "requiredSplits": { "const": ["train", "validation", "challenge"] },
+        "requiredVisibility": { "const": ["candidate", "challenge"] },
+        "schemaVersion": { "const": 2 },
+        "verifierIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["matrix-shape", "source-structure"] }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "kind": "contract",
+      "id": "example-contract-boundary",
+      "visibility": "candidate",
+      "scenario": "A bounded instruction edit must keep its declared file scope.",
+      "assertions": [{ "expected": "Only the owned instruction file changed", "kind": "owned-file" }],
+      "failureMode": "The edit changes a file outside the declared scope.",
+      "repairBoundary": "Restore unrelated files and limit the patch to the owner.",
+      "independentVerifier": "source-structure"
+    },
+    {
+      "kind": "behavior",
+      "id": "example-behavior-boundary",
+      "split": "train",
+      "taskFamily": "bounded-file-edit",
+      "task": "Update one named instruction while preserving unrelated files.",
+      "fixture": "A repository with one requested instruction file and one unrelated dirty file.",
+      "expectedOutcomes": ["The requested instruction is updated", "The unrelated file is unchanged"],
+      "forbiddenOutcomes": ["The unrelated file is modified"],
+      "hardAssertions": [{ "id": "diff-scope", "kind": "diff-omits", "expected": "unrelated-file" }],
+      "rubricAxes": {
+        "schema-diff-integrity": "The diff contains only the requested structural change.",
+        "negative-constraint-adherence": "The unrelated file remains untouched.",
+        "step-sequence-compliance": "The requested edit follows the declared workflow order.",
+        "scope-discipline": "All changed paths are within the owned file scope."
+      },
+      "failureMode": "A forbidden side effect appears in the diff.",
+      "repairBoundary": "Revert the unrelated change and retain the requested instruction update."
+    }
+  ],
+  "rubricExample": {
+    "acceptanceRule": "all-hard-assertions-and-axes-pass",
+    "aggregateScore": "none",
+    "axes": {
+      "schema-diff-integrity": { "evidence": "Changed-file diff and parsed structure.", "fail": "An unrelated structure or data field changed.", "pass": "Only the requested structure and data changed." },
+      "negative-constraint-adherence": { "evidence": "Captured output, tool trace, and changed-file diff.", "fail": "A forbidden outcome appears in output, trace, or diff.", "pass": "No forbidden outcome appears in any captured evidence." },
+      "step-sequence-compliance": { "evidence": "Captured tool trace with ordered steps.", "fail": "A required action is missing, skipped, or reordered.", "pass": "Required actions appear in the required order." },
+      "scope-discipline": { "evidence": "Changed-path list and declared repair boundary.", "fail": "Any changed path is outside the declared boundary.", "pass": "Every changed path is inside the declared boundary." }
+    },
+    "graderDisagreement": "block",
+    "minimumPassRate": 1,
+    "requiredCaseFields": {
+      "contract": ["kind", "id", "visibility", "scenario", "assertions", "failureMode", "repairBoundary", "independentVerifier"],
+      "behavior": ["kind", "id", "split", "taskFamily", "task", "fixture", "expectedOutcomes", "forbiddenOutcomes", "hardAssertions", "rubricAxes", "failureMode", "repairBoundary"]
+    },
+    "requiredSplits": ["train", "validation", "challenge"],
+    "requiredVisibility": ["candidate", "challenge"],
+    "schemaVersion": 2,
+    "verifierIds": ["matrix-shape", "source-structure"]
+  },
+  "scoreContract": {
+    "binding": ["caseId", "matrixFingerprint", "sourceFingerprint"],
+    "hardAssertions": "Recompute output, tool-trace, and diff assertions from captured evidence; claimed results must match exactly.",
+    "axisVector": "Require one evidenced agreed pass/fail result for each of the four fixed axes.",
+    "acceptance": "Every deterministic hard assertion passes and every rubric axis is agreed pass; disagreement, missing evidence, stale fingerprints, or any hard failure blocks.",
+    "aggregation": "none"
+  }
+}

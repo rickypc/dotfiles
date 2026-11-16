@@ -80,23 +80,29 @@ directory (activation track) or an absolute comprehension set `.json` path (docu
 and `<answers>` is the absolute `.jsonl` path the reader writes for `train measure`. The
 `train read` route runs `bun <agents-root>/scripts/weak-reader.ts <bundle> <answers>`; the exit
 codes are 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package, 5
-document too long. A sandboxed process exits 2: run this one command outside the sandbox, or use
-in-session child agents instead. `<failures>` is an absolute JSON array of train misses, and
-`<suggestions>` is the absolute `.jsonl` path the reader writes for them. `gate record` needs a GPU.
-Use an approved outside-sandbox runner when available. If none is available, give the user the exact
-command and working directory for a GPU host. State that no receipt was recorded; do not claim
-acceptance without a passing receipt. For one document, run
-`bun scripts/instruction-gate.ts record <doc-path>` from `<agents-root>`. Its flags are
-`--allow-equal <reason>` and `--rebaseline <reason>`, each requiring a written reason. The `gate`
-routes also take `--agents-root <absolute-path>`, placed before the document paths. `<doc-path>` is
-an instruction document path relative to the agents root, or `descriptions` for the routing of every
-skill description; run `gate record descriptions` for that. For a project-local document, pass
-`--agents-root <absolute-path>` with the absolute path of the project `.agents` directory. That root
-holds the document, its comprehension set, and its receipt. The scripts still run from the global
-package. `descriptions` is gated only for the global root. See the weak reader section of the train
-protocol. `[flags]` are `--measure-only`, `--attempt <n>`, `--status <ledger-status>`, `--runs <n>`,
-`--ledger-root <path>`, and `--skills-root <path>`; ledger statuses are `baseline`, `attempt`,
-`applied`, `post-change`, and `rollback`.
+document too long. A sandboxed process exits 2 when no GPU adapter is available. If an approved host
+GPU runner is available, run this one command outside the sandbox. Without a host GPU run, the gate
+blocks the run and writes no receipt. This does not cancel an authorized instruction edit. Do not
+stop the edit. Finish it and all available checks, then ask the user to run the exact GPU command on
+a GPU host. Put the command in a fenced block with its working directory and wait for them to paste
+its output. Do not claim a receipt from the sandbox attempt.
+Do not use in-session child agents as a Gemma substitute; child-agent answers do not replace the
+Gemma reader. `<failures>` is an absolute JSON array of train misses, and `<suggestions>` is the
+absolute `.jsonl` path the reader writes for them. `gate record` needs a GPU. Use an approved
+outside-sandbox runner when available. If none is available, give the user the exact command and
+working directory for a GPU host. State that no receipt was recorded; do not claim acceptance
+without a passing receipt. For one document, run `bun scripts/instruction-gate.ts record <doc-path>`
+from `<agents-root>`. Its flags are `--allow-equal <reason>` and `--rebaseline <reason>`, each
+requiring a written reason. The `gate` routes also take `--agents-root <absolute-path>`, placed
+before the document paths. `<doc-path>` is an instruction document path relative to the agents root,
+or `descriptions` for the routing of every skill description; run `gate record descriptions` for
+that. For a project-local document, pass `--agents-root <absolute-path>` with the absolute path of
+the project `.agents` directory. That root holds the document, its comprehension set, and its
+receipt. The scripts still run from the global package. `descriptions` is gated only for the global
+root. See the weak reader section of the train protocol. `[flags]` are `--measure-only`,
+`--attempt <n>`, `--status <ledger-status>`, `--runs <n>`, `--ledger-root <path>`, and
+`--skills-root <path>`; ledger statuses are `baseline`, `attempt`, `applied`, `post-change`, and
+`rollback`.
 
 Usage governance: the aligned block is the only invocation catalog. Use `<name>` for required
 arguments, `[name]` for optional arguments, and `-` when a command takes none. Keep comments
@@ -137,8 +143,12 @@ invocation catalogs, but retain necessary owner-specific tables outside `Usage`.
 - For a skill package change, define and freeze the quality matrix before editing. Every case needs
   typed assertions, failure mode, repair boundary, and independent verifier. Never weaken the frozen
   matrix or reuse stale evidence.
-- Resume or prepare the matching quality-engine review before editing. If that state or a required
-  verifier is unavailable, state the exact blocker and stop before the governed edit.
+- Resume or prepare the matching quality-engine review before editing. If review state cannot be
+  prepared, state the exact blocker and pause the governed edit. GPU unavailability in the sandbox
+  does not block an authorized edit: complete it and the available checks, then ask the user to run
+  the exact GPU command in a fenced block with its working directory and wait for them to paste its
+  output. Do not stop the edit or close the work before checking that output. Do not claim the gate
+  passed before checking that output.
 - A no-edit Markdown pass is any pass that reads a Markdown file without editing it. It always needs
   the command `/md-compress guard <absolute-markdown-path>` and the `guarded` receipt. Require that
   receipt before continuing; never skip the guard because the pass is read-only. For edits, process
@@ -276,10 +286,10 @@ request -> artifact and active owner -> review state and frozen matrix
 4. **Check:** Run GREEN against the same matrix and require a changed source fingerprint. Use
    REFACTOR to close new loopholes, then run challenge cases against the same candidate source and
    matrix. For description or body changes that affect activation, run the in-session training loop
-   below against `evals/trigger-queries.json`. For output changes, compare clean with-skill and
-   without-skill or prior-version runs, grade each assertion with evidence, retain timing/token
-   deltas, and manually review outputs. For instructions, review precedence, active-path selection,
-   links, cross-file conflicts, and the exact requested rule.
+   below against `<agents-root>/evals/skills/<skill>/trigger-queries.json`. For output changes,
+   compare clean with-skill and without-skill or prior-version runs, grade each assertion with
+   evidence, retain timing/token deltas, and manually review outputs. For instructions, review
+   precedence, active-path selection, links, cross-file conflicts, and the exact requested rule.
 5. **Finalize:** Validate frontmatter, structure, and resources or the instruction format; review
    links and policy inheritance; then run applicable project gates. On any Markdown guard or
    finalization failure, preserve its backup and lock, search the private knowledge base and
@@ -312,31 +322,33 @@ when both a base file and an override exist.
 
 ### Evaluation contract
 
-Each `evals/rubric.md` defines machine-readable `schemaVersion`, `requiredCaseFields`,
-`requiredVisibility`, `minimumPassRate`, and fixed `verifierIds`. Reject missing or unknown verifier
-ids. Run declared verifiers only through the in-process fixed registry; arbitrary shell commands and
-descriptive verifier prose are not executable evidence. Candidate and challenge receipts must show
-that independent verifiers actually ran.
+Each `<agents-root>/evals/skills/<skill>/rubric.md` defines machine-readable `schemaVersion`,
+`requiredCaseFields`, `requiredVisibility`, `minimumPassRate`, and fixed `verifierIds`. Reject
+missing or unknown verifier ids. Run declared verifiers only through the in-process fixed registry;
+arbitrary shell commands and descriptive verifier prose are not executable evidence. Candidate and
+challenge receipts must show that independent verifiers actually ran.
 
-Use the frozen `evals/cases.jsonl` and, when applicable, `evals/trigger-queries.json`. Record the
-matrix fingerprint before RED and keep it unchanged through candidate and challenge; record source
-fingerprints for every phase. **RED** runs without the candidate and preserves exact failures and
-rationalizations. **GREEN** applies the smallest repair to the same matrix. **REFACTOR** identifies
-new rationalizations, adds targeted counters, and reruns candidate and challenge checks until
-stable. Choose the guidance form from baseline evidence: a bright-line rule, counter, and red flag
-for pressure failures; a positive recipe or structural contract for wrong shape; and a
-predicate/action/boundary for conditional behavior.
+Use the frozen `<agents-root>/evals/skills/<skill>/cases.jsonl` and, when applicable,
+`<agents-root>/evals/skills/<skill>/trigger-queries.json`. Record the matrix fingerprint before RED
+and keep it unchanged through candidate and challenge; record source fingerprints for every phase.
+**RED** runs without the candidate and preserves exact failures and rationalizations. **GREEN**
+applies the smallest repair to the same matrix. **REFACTOR** identifies new rationalizations, adds
+targeted counters, and reruns candidate and challenge checks until stable. Choose the guidance form
+from baseline evidence: a bright-line rule, counter, and red flag for pressure failures; a positive
+recipe or structural contract for wrong shape; and a predicate/action/boundary for conditional
+behavior.
 
 For discipline evaluations, use a no-guidance control, at least three combined pressures, 5+
 independent samples where supported, manual review of flagged outputs, captured rationalizations,
 and variance as a signal. Remove always-pass or always-fail assertions, inspect outliers, and retain
 the evidence; scores or measurements do not close a review.
 
-Description evaluations use the fixed train/validation split in `evals/trigger-queries.json`. Each
-split needs balanced `should-trigger` and `should-not-trigger` queries: at least two of each, and no
-polarity below a third. `validate` enforces this. Example splits: 3 should-trigger and 6
-should-not-trigger passes; 1 and 5 fails, because it has only one should-trigger query; 6 and 1
-fails; 2 and 8 fails, because 2 of 10 is below a third.
+Description evaluations use the fixed train/validation split in
+`<agents-root>/evals/skills/<skill>/trigger-queries.json`. Each split needs balanced
+`should-trigger` and `should-not-trigger` queries: at least two of each, and no polarity below a
+third. `validate` enforces this. Example splits: 3 should-trigger and 6 should-not-trigger passes; 1
+and 5 fails, because it has only one should-trigger query; 6 and 1 fails; 2 and 8 fails, because 2
+of 10 is below a third.
 
 Run every query repeatedly: five runs by default, three at minimum. Observe trigger rates from the
 actual registered agent where available, otherwise from the blind child agents below. A query passes
@@ -366,7 +378,7 @@ run; that is the goal state for every skill and every document.
 | `train bundle`                   | `<skill-path>`                                                       | Before every baseline or attempt measurement                                  | Blind bundle: catalog with the skill's on-disk description, router instructions, and one prompt per query and run; no labels, splits, or skill name.                                        |
 | `train measure --measure-only`   | `<skill-path> <responses>`                                           | Once per frozen query set, before editing                                     | Records a baseline and `SKILL.md` snapshot. Refuses failing deterministic checks. A new baseline requires query-set growth.                                                                 |
 | `train measure --attempt`        | `<skill-path> <responses> --attempt <n>`                             | After each candidate edit                                                     | Returns `accepted` or `blocked`, with gains and regressions per split. Hard failures block. A blocked attempt stores a `rejected` record.                                                   |
-| `train measure --track contract` | `<skill-path> --track contract [--measure-only\|--attempt <n>]`      | Training the `SKILL.md` body against `evals/cases.jsonl`                      | No responses file. Candidate cases score train; challenge cases score validation. The same gate, snapshot, cap, and buffer apply. Challenge results are counts only.                        |
+| `train measure --track contract` | `<skill-path> --track contract [--measure-only\|--attempt <n>]`      | Training the `SKILL.md` body against `<agents-root>/evals/skills/<skill>/cases.jsonl` | No responses file. Candidate cases score train; challenge cases score validation. The same gate, snapshot, cap, and buffer apply. Challenge results are counts only.                        |
 | `train select`                   | `<skill-path> [--track contract]`                                    | After attempts, and at every resume                                           | Reports `decision`, `liveState` (`baseline`, `winner`, `measured`, `unrecorded`), snapshot paths, `nextAction`, and `doNotRetry`: rejected attempts of this generation with reason and ids. |
 | `train measure --status`         | `<skill-path> <responses> --status <applied\|post-change\|rollback>` | After applying the winner, after suite edits, or after restoring the baseline | `applied` must match an accepted attempt. `applied` and `post-change` allow no regression; `rollback` must equal the baseline snapshot.                                                     |
 | `ratchet`                        | `<previous> <next>`                                                  | Before closeout whenever a matrix or query set changed                        | Names any removed or weakened case or query.                                                                                                                                                |

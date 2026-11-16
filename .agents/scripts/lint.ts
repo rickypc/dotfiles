@@ -26,7 +26,10 @@ export const lintCommandsFor = (
 }[] => [
   {
     name: 'biome',
-    spec: shellCommand('bun x biome check .', agentsRoot),
+    spec: shellCommand(
+      "rg --files -0 -g '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}' | xargs -0 bun x biome check",
+      agentsRoot,
+    ),
   },
   {
     name: 'declaration-order',

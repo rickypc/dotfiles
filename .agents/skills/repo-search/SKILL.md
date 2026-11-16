@@ -77,7 +77,10 @@ in [usage-patterns.md](references/usage-patterns.md).
   unavailability - and stays inside the envelope's transport receipt.
 - **Wrapper-only:** Never invoke the underlying engine directly, including the backend CLI or a
   hand-spawned MCP server. Do not use `find`, `rg`, `grep`, shell globs, or ad-hoc reads as a
-  caller-side substitute for the wrapper.
+  caller-side substitute for the wrapper. Use snippets and ranges already returned by `search`.
+  When more context is needed, call `/repo-search read <approved-root>
+  <absolute-file[:start-end]|qualified-symbol>`. In short, never use direct file reads or globs. Do
+  not repeat a search or read for the same returned range.
 - **Approved root:** The approved root is explicit and never inferred, and every file target must
   stay under it.
 - **Multi-repository coverage:** When a request names or links to a bounded set of repositories,
@@ -96,16 +99,21 @@ in [usage-patterns.md](references/usage-patterns.md).
   exists. `inspect` requires a ready matching index; otherwise it returns an error receipt
   without indexing. When a symbol `read` creates an index, run `re-check status` and
   `retry the requested read once`.
-- **Query pipeline:** The script runs graph search first and accepts graph matches only through
-  identity fields: `name`, `qualified_name`, `file_path`, and `path`. When no graph identity-field
-  match remains, it runs code search and merges its results, including the directory cluster. It
-  traces the connection between two symbols when the query names both and falls back to the staged
-  local search only when indexed discovery finds nothing. The staged fallback runs the whole-query
-  slots first (`rg-literal`, then the case-insensitive literal), stopping at the first exact
-  literal match, then one slot per unique lowercase token of three or more characters, then
-  sub-3-character tokens only when every earlier slot returned zero results, then file-name
-  discovery. Every answered slot contributes results tagged with its slot keyword (`results[].slot`,
-  receipts named `rg-token:<keyword>`), and the caller must never repeat a listed attempt.
+- **Query pipeline:** One-token queries make one `search_code` call with `mode: "full"`. The request
+  is `search_code --mode full --pattern <pattern> --project <project>` (generic form:
+  `search_code --mode full --pattern <query> --project <project>`), with the default 10-line
+  excerpt. The full-mode payload differs from compact rows; preserve it in `results[].detail` and
+  extract returned file, line range, and snippet there, even when `results[].location` is null.
+  Report the snippet with any stale-index caveat. Do not repeat a search or read for the same
+  returned range. Use `read` only for more lines or current working-tree context. Multi-token
+  queries run graph search first and accept identity fields only (`name`, `qualified_name`,
+  `file_path`, `path`). If none remain, compact code search runs and merges its results with the
+  directory cluster. Trace connections when two symbols are named. Use staged fallback only when
+  indexed discovery finds nothing. It runs whole- query literal slots (case-sensitive, then
+  insensitive), stopping at the first exact match; then unique lowercase tokens of three or more
+  characters, sub-3-character tokens only when earlier slots return zero results, then file names.
+  Tag each answered slot in `results[].slot` and receipts as `rg-token:<keyword>`; never repeat a
+  listed attempt.
 - **Fallback sweep scope and budgets:** The default staged sweep keeps `--hidden`, respects ignore
   files, and excludes `coverage/`, `dist/`, and `build/` alongside `.git/` and `node_modules/`; the
   `--raw` search flag restores the unfiltered ignore-transparent sweep when a truly unfiltered
@@ -168,26 +176,26 @@ request -> enumerate approved root(s) when a bounded set is named
   as `not-found (EXIT:1)`; the table below is the 1:1 lookup from each strategy code to the command
   it represents, and the `--verbose` flag restores the full command strings and details.
 
-  | Strategy code            | Command it represents                                                                                      | When it appears                        | Additional information                                   |
-  | ------------------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
-  | `transport-probe`        | `list_projects` over MCP stdio (SDK first, built-in second) or CLI                                         | first attempt of every run             | the probe itself is the availability receipt             |
-  | `resolve-index`          | `list_projects` plus explicit indexed-root resolution                                                      | indexed routes                         | a miss yields the staged fallback, never a guessed index |
-  | `index-status`           | `index_status <project>`                                                                                   | indexed routes                         | readiness gates graph, code, and symbol work             |
-  | `search-graph`           | `search_graph <project> <query>`                                                                           | graph stage                            | identity-field matches only                              |
-  | `search-code`            | `search_code <project> <query>`                                                                            | code stage                             | merged with the directory cluster                        |
-  | `connect:<direction>`    | `trace_path <symbol> --direction <inbound\|outbound>`                                                      | two-symbol queries                     | depth one, both directions                               |
-  | `index-repository`       | `index_repository <root> --mode full`                                                                      | deliberate reads without a ready index | search never indexes                                     |
-  | `rg-literal`             | `rg --fixed-strings <query> <root>`                                                                        | staged fallback, whole-query slot      | stops at the first exact literal match                   |
-  | `rg-literal-ignore-case` | `rg --fixed-strings --ignore-case <query> <root>`                                                          | staged fallback, whole-query slot      | runs only after the case-sensitive slot misses           |
-  | `rg-token:<token>`       | `rg --fixed-strings --ignore-case <token> <root>`                                                          | staged fallback, per-token slots       | `results[].slot` carries the keyword                     |
-  | `rg-files`               | `rg --files <root>`                                                                                        | staged fallback, last                  | file-name matches only                                   |
-  | `read:file`              | direct bounded text read                                                                                   | `read` on an absolute file             | `:start` / `:start-end` ranges honored                   |
-  | `read:symbol`            | `get_code_snippet <qualified-name>`                                                                        | `read` on a dotted qualified name      | requires a ready matching index                          |
-  | `inspect:<operation>`    | `get_architecture`, `get_graph_schema`, `search_graph`, `search_code`, `get_code_snippet`, or `trace_path` | `inspect` verb                         | one receipt per declared operation                       |
-  | `binary-gate:classify`   | content-based byte classification                                                                          | located binary candidates              | never extension-only                                     |
-  | `binary-tool-check`      | `command -v <executable>`                                                                                  | a routed tool is missing               | check-then-install, once                                 |
-  | `binary-tool-install`    | the row's install command                                                                                  | after a failed tool check              | owned by the binary router                               |
-  | `binary-route:<route>`   | the matched router row's extraction commands                                                               | routed binary targets                  | see the binary router reference                          |
+  | Strategy code            | Command it represents                                                                                      | When it appears                                     | Additional information                                                             |
+  | ------------------------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------- |
+  | `transport-probe`        | `list_projects` over MCP stdio (SDK first, built-in second) or CLI                                         | first attempt of every run                          | the probe itself is the availability receipt                                       |
+  | `resolve-index`          | `list_projects` plus explicit indexed-root resolution                                                      | indexed routes                                      | a miss yields the staged fallback, never a guessed index                           |
+  | `index-status`           | `index_status <project>`                                                                                   | indexed routes                                      | readiness gates graph, code, and symbol work                                       |
+  | `search-graph`           | `search_graph <project> <query>`                                                                           | graph stage                                         | identity-field matches only                                                        |
+  | `search-code`            | `search_code <project> <query>`                                                                            | code search stage                                   | compact rows merge the directory cluster                                           |
+  | `connect:<direction>`    | `trace_path <symbol> --direction <inbound\|outbound>`                                                      | two-symbol queries                                  | depth one, both directions                                                         |
+  | `index-repository`       | `index_repository <root> --mode full`                                                                      | deliberate reads without a ready index              | search never indexes                                                               |
+  | `rg-literal`             | `rg --fixed-strings <query> <root>`                                                                        | staged fallback, whole-query slot                   | stops at the first exact literal match                                             |
+  | `rg-literal-ignore-case` | `rg --fixed-strings --ignore-case <query> <root>`                                                          | staged fallback, whole-query slot                   | runs only after the case-sensitive slot misses                                     |
+  | `rg-token:<token>`       | `rg --fixed-strings --ignore-case <token> <root>`                                                          | staged fallback, per-token slots                    | `results[].slot` carries the keyword                                               |
+  | `rg-files`               | `rg --files <root>`                                                                                        | staged fallback, last                               | file-name matches only                                                             |
+  | `read:file`              | direct bounded text read                                                                                   | `read` on an absolute file                          | `:start` / `:start-end` ranges honored                                             |
+  | `read:symbol`            | `get_code_snippet <qualified-name>`                                                                        | `read` on a dotted qualified name                   | requires a ready matching index                                                    |
+  | `inspect:<operation>`    | `get_architecture`, `get_graph_schema`, `search_graph`, `search_code`, `get_code_snippet`, or `trace_path` | `inspect` verb                                      | one receipt per declared operation                                                 |
+  | `binary-gate:classify`   | content-based byte classification                                                                          | located binary candidates                           | never extension-only                                                               |
+  | `binary-tool-check`      | `command -v <executable>`                                                                                  | a routed tool is missing                            | check-then-install, once                                                           |
+  | `binary-tool-install`    | the row's install command                                                                                  | after a failed tool check                           | owned by the binary router                                                         |
+  | `binary-route:<route>`   | the matched router row's extraction commands                                                               | routed binary targets                               | see the binary router reference                                                    |
 - **Success:** Answer with these four fields:
 
   ```text

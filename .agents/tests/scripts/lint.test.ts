@@ -1,6 +1,14 @@
 import { expect, mock, test } from 'bun:test';
 
-import { processExit, run, runWhenMain, usage } from '../../scripts/lint.js';
+import { lintCommandsFor, processExit, run, runWhenMain, usage } from '../../scripts/lint.js';
+
+test('limits Biome to JavaScript and TypeScript sources, leaving evaluation data unchanged', () => {
+  const biome = lintCommandsFor('/agents').find(({ name }) => name === 'biome');
+  expect(biome?.spec.args).toEqual([
+    '-lc',
+    "rg --files -0 -g '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}' | xargs -0 bun x biome check",
+  ]);
+});
 
 test('sets a nonzero exit code after replaying every failed command diagnostic', async () => {
   const executor = mock(async ({ args }: { args: readonly string[] }) => ({

@@ -31,6 +31,7 @@ export interface RepoSearchBackendCall {
 export interface RepoSearchBackendResult {
   readonly error: string | null;
   readonly isError: boolean;
+  readonly structuredContent?: unknown;
   readonly text: string;
 }
 
@@ -82,23 +83,31 @@ export const backendChildEnvironment = (): Record<string, string> => {
 const backendResult = (
   content: ReadonlyArray<{ readonly text?: unknown; readonly type?: unknown }>,
   isError: boolean,
+  structuredContent?: unknown,
 ): RepoSearchBackendResult => {
   const text = content
     .map((item) => (typeof item.text === 'string' ? item.text : ''))
     .filter(Boolean)
     .join('\n');
-  return { error: isError ? text || 'backend error' : null, isError, text };
+  return {
+    error: isError ? text || 'backend error' : null,
+    isError,
+    ...(structuredContent === undefined ? {} : { structuredContent }),
+    text,
+  };
 };
 
 const fromSdkResult = (result: unknown): RepoSearchBackendResult => {
   const record = (result ?? {}) as {
     readonly content?: unknown;
     readonly isError?: unknown;
+    readonly structuredContent?: unknown;
   };
   const content = Array.isArray(record.content) ? record.content : [];
   return backendResult(
     content as ReadonlyArray<{ readonly text?: unknown }>,
     record.isError === true,
+    record.structuredContent,
   );
 };
 
@@ -316,6 +325,7 @@ export const parseBackendEnvelope = (raw: string): RepoSearchBackendResult => {
       const parsed = JSON.parse(trimmed) as {
         readonly content?: unknown;
         readonly isError?: unknown;
+        readonly structuredContent?: unknown;
       };
       if (!parsed || typeof parsed !== 'object' || !('content' in parsed)) {
         continue;
@@ -324,6 +334,7 @@ export const parseBackendEnvelope = (raw: string): RepoSearchBackendResult => {
       return backendResult(
         content as ReadonlyArray<{ readonly text?: unknown }>,
         parsed.isError === true,
+        parsed.structuredContent,
       );
     } catch {
       // A non-JSON line is transport noise; keep scanning.

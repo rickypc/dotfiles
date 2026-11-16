@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "retirements": [
+    {
+      "caseId": "skill-manager-trigger-query-set",
+      "reason": "The pre-centralization contract pointed to evals/trigger-queries.json. Centralization moved the active input to evals/skills/<skill>/trigger-queries.json; retire the obsolete case id and retain this scenario under a new id with the canonical path assertion."
+    }
+  ]
+}

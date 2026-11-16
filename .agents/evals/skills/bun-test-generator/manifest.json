@@ -1,0 +1,182 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:bun-test-generator",
+  "scope": "evals/skills/bun-test-generator/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Phase 6 adds distinct owner-specific behavior coverage; the incomplete lane blocks evaluation until then."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/bun-test-generator/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/bun-test-generator/SKILL.md",
+      "sha256": "23d3f096715a9d4ae4ef94acd153ab5b251476d08a6380de733fe85678b683ed"
+    },
+    {
+      "sourcePath": "evals/skills/bun-test-generator/rubric.md",
+      "sha256": "415a71ca8791c8cd9fb8abf68cd0a58981401322878bbd0029990540358c01a9"
+    },
+    {
+      "sourcePath": "skills/bun-test-generator/references/lessons-learned.md",
+      "sha256": "a31c6daa4d28b5b6dc9b3c1dbae00ff3d650e0b45ed4ff55363151631d13bfaf"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/cases.jsonl",
+      "canonicalPath": "evals/skills/bun-test-generator/cases.jsonl",
+      "sha256": "23c8290bbe782c2055798281a07ab8b5536bcddf9250740a7eb1f6de825d9f5a",
+      "caseIds": [
+        "btg-path",
+        "btg-quality",
+        "btg-shared-isolation",
+        "btg-command-contract",
+        "btg-test-integrity",
+        "btg-full-gate",
+        "btg-coverage-scope",
+        "btg-same-process-gate",
+        "btg-boundary-doubles",
+        "btg-skill-contract-template",
+        "btg-skill-contract-no-robotic-persona",
+        "btg-focused-per-file-function-coverage"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/bun-test-generator/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/bun-test-generator/SKILL.md",
+        "setPath": "evals/skills/bun-test-generator/comprehension/SKILL.json",
+        "queryCount": 41,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "train-16",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "validation-07",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "train-28",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "validation-13"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/bun-test-generator/rubric.md",
+        "setPath": "evals/skills/bun-test-generator/comprehension/evals-rubric.json",
+        "queryCount": 15,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-05",
+          "validation-06"
+        ]
+      },
+      {
+        "sourcePath": "skills/bun-test-generator/references/lessons-learned.md",
+        "setPath": "evals/skills/bun-test-generator/comprehension/references-lessons-learned.json",
+        "queryCount": 18,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "validation-05",
+          "validation-06"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/bun-test-generator/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/bun-test-generator/SKILL.md",
+        "setPath": "evals/skills/bun-test-generator/comprehension/SKILL.json",
+        "path": "evals/skills/bun-test-generator/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/bun-test-generator/rubric.md",
+        "setPath": "evals/skills/bun-test-generator/comprehension/evals-rubric.json",
+        "path": "evals/skills/bun-test-generator/receipts/rubric.json"
+      },
+      {
+        "sourcePath": "skills/bun-test-generator/references/lessons-learned.md",
+        "setPath": "evals/skills/bun-test-generator/comprehension/references-lessons-learned.json",
+        "path": "evals/skills/bun-test-generator/receipts/references--lessons-learned.json"
+      }
+    ],
+    "ledger": "evals/skills/bun-test-generator/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 12,
+    "activationQueries": 62,
+    "comprehensionQueries": 74
+  },
+  "fingerprints": {
+    "casesSha256": "c43d39a92a49adecd96598583ffdbc3073159fe3b28fad99fad4036efd010598",
+    "activationQueriesSha256": "fa84b6021a5382a2c242a8ed731c6b5a1d534c4aadc03afa955a43414c3b1827",
+    "sourceRubricSha256": "415a71ca8791c8cd9fb8abf68cd0a58981401322878bbd0029990540358c01a9"
+  }
+}

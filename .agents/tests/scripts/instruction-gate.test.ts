@@ -3,6 +3,7 @@ import * as realCrypto from 'node:crypto';
 import * as realFsPromises from 'node:fs/promises';
 import * as realOs from 'node:os';
 import path from 'node:path';
+import * as realUrl from 'node:url';
 import type {
   Baseline,
   GateDependencies,
@@ -14,18 +15,24 @@ import type { CommandResult, CommandSpec } from '../../utils/contracts.js';
 interface Harness {
   readonly deps: GateDependencies;
   readonly executor: ReturnType<typeof mock>;
+  readonly executorCalls: () => number;
   readonly files: Map<string, string>;
   readonly output: string[];
+  readonly readPaths: string[];
 }
 
 const realProcess = await import('../../utils/process.js');
+const realAgentsRoot = await import('../../utils/agents-root.js');
 const realWeakReader = await import('../../scripts/weak-reader.js');
+const realInstructionGatePaths = await import('../../scripts/instruction-gate-paths.js');
+const realInstructionGateRouting = await import('../../scripts/instruction-gate-routing.js');
 
 const fsReaddir = mock(async () => [] as unknown[]);
 const fsMkdtemp = mock(async (prefix: string) => `${prefix}abc123`);
 const fsReadFile = mock(async (file: string) => `content of ${file}`);
 const fsMkdir = mock(async () => undefined);
 const fsWriteFile = mock(async () => undefined);
+const osHome = mock(() => '/test-home');
 
 mock.module('node:fs/promises', () => ({
   ...realFsPromises,
@@ -35,11 +42,23 @@ mock.module('node:fs/promises', () => ({
   readFile: fsReadFile,
   writeFile: fsWriteFile,
 }));
-mock.module('node:os', () => ({ ...realOs, tmpdir: mock(() => '/os-temp') }));
+mock.module('node:os', () => ({ ...realOs, homedir: osHome, tmpdir: mock(() => '/os-temp') }));
 mock.module('node:path', () => ({ default: path }));
 mock.module('node:crypto', () => realCrypto);
+mock.module('node:url', () => realUrl);
+mock.module('../utils/agents-root.js', () => realAgentsRoot);
 mock.module('../utils/process.js', () => realProcess);
+mock.module('./instruction-gate-paths.js', () => realInstructionGatePaths);
+mock.module('./instruction-gate-routing.js', () => realInstructionGateRouting);
 mock.module('./weak-reader.js', () => realWeakReader);
+const centralPathCases = await import('./instruction-gate-central-cases.js');
+const catalogGenerationCases = await import('./instruction-gate-routing-generation-cases.js');
+const catalogGenerationRejectionCases = await import(
+  './instruction-gate-routing-generation-rejection-cases.js'
+);
+const gateValueCases = await import('./instruction-gate-value-cases.js');
+const gateCommandCases = await import('./instruction-gate-command-cases.js');
+mock.module('./instruction-gate-central-cases.js', () => centralPathCases);
 
 const {
   RECEIPT_DIRECTORY,
@@ -61,13 +80,17 @@ const {
   setPathFor,
   usage,
   verify,
+  verifyRouting,
   verifyTarget,
 } = await import('../../scripts/instruction-gate.js');
 
 const ROOT = '/agents';
+const GLOBAL_ROOT = '/test-home/.agents';
 const DOCUMENT = 'skills/aidp/SKILL.md';
 const SET = 'skills/aidp/evals/comprehension/SKILL.json';
+const CENTRAL_SET = 'evals/skills/aidp/comprehension/SKILL.json';
 const RECEIPT = receiptPathFor(DOCUMENT);
+const CENTRAL_RECEIPT = 'evals/skills/aidp/receipts/SKILL.json';
 const hash = (text: string): string => `h(${text})`;
 
 const SET_TEXT = JSON.stringify({
@@ -112,26 +135,34 @@ const measureStdout = (passed: readonly string[], failed: readonly string[], val
     },
   });
 
-const scriptedResult = (
+const ROUTING_PROMPTS = [
+  { query: 'Plan it', query_id: 'a1', run: 1 },
+  { query: 'Hello', query_id: 'a2', run: 1 },
+  { query: 'Held out', query_id: 'av', run: 1 },
+] as const;
+
+const ROUTING_BUNDLE = JSON.stringify({
+  catalog: CATALOG,
+  document: 'Skill catalog:\n- aidp: d',
+  instructions: 'Return the matching skill name or NO_SKILL.',
+  names: ['aidp'],
+  prompts: ROUTING_PROMPTS,
+});
+
+const bundleCommandResult = (
   spec: CommandSpec,
-  files: Map<string, string>,
-  measure: string | undefined,
-  readerStderr = '',
-): CommandResult => {
-  if (spec.args.includes('bundle')) {
-    const router = !(spec.args.at(-1) ?? '').endsWith('.json');
-    return { ...OK, stdout: router ? JSON.stringify({ catalog: CATALOG }) : '{"bundle":true}' };
-  }
-  if (spec.args.includes('measure')) {
-    return { ...OK, stdout: measure ?? measureStdout(['t1', 't2'], []) };
-  }
-  if (spec.args.includes('suggest')) {
-    files.set(
-      '/work/suggestions.jsonl',
-      '{"id":"t1","suggestion":"Say it plainly."}\n{"id":"t2","suggestion":"Shorten it."}\n',
-    );
-    return OK;
-  }
+  readerBundle: string | undefined,
+): CommandResult | undefined =>
+  spec.args.includes('bundle')
+    ? {
+        ...OK,
+        stdout: (spec.args.at(-1) ?? '').endsWith('.json')
+          ? '{"bundle":true}'
+          : (readerBundle ?? ROUTING_BUNDLE),
+      }
+    : undefined;
+
+const fallbackCommandResult = (files: Map<string, string>, readerStderr: string): CommandResult => {
   files.set(
     '/work/answers.jsonl',
     '{"answer":"B","query_id":"t1","run":1}\n{"answer":"C","query_id":"t2","run":1}\n',
@@ -139,34 +170,207 @@ const scriptedResult = (
   return { ...OK, stderr: readerStderr };
 };
 
+const measureCommandResult = (
+  spec: CommandSpec,
+  measure: string | undefined,
+): CommandResult | undefined =>
+  spec.args.includes('measure')
+    ? { ...OK, stdout: measure ?? measureStdout(['t1', 't2'], []) }
+    : undefined;
+
+const parsedBundleHasCatalog = (bundleText: string): boolean => {
+  try {
+    const parsedBundle = JSON.parse(bundleText) as { readonly catalog?: unknown };
+    return Array.isArray(parsedBundle.catalog);
+  } catch {
+    return false;
+  }
+};
+
+const routingPromptsOf = (
+  bundleText: string,
+): readonly { readonly query: string; readonly query_id: string; readonly run: number }[] => {
+  try {
+    const parsed = JSON.parse(bundleText) as {
+      readonly prompts?: readonly {
+        readonly query: string;
+        readonly query_id: string;
+        readonly run: number;
+      }[];
+    };
+    return parsed.prompts ?? ROUTING_PROMPTS;
+  } catch {
+    return ROUTING_PROMPTS;
+  }
+};
+
+const routingAnswersFor = (bundleText: string): string => {
+  return `${routingPromptsOf(bundleText)
+    .map((prompt) =>
+      JSON.stringify({
+        query_id: prompt.query_id,
+        run: prompt.run,
+        skill_name: prompt.query_id === 'a2' ? 'NO_SKILL' : 'aidp',
+      }),
+    )
+    .join('\n')}\n`;
+};
+
+const routingRawRepliesFor = (bundleText: string): string => {
+  return `${routingPromptsOf(bundleText)
+    .map((prompt) =>
+      JSON.stringify({
+        query_id: prompt.query_id,
+        raw_reply: `raw-${prompt.query_id}`,
+        run: prompt.run,
+      }),
+    )
+    .join('\n')}\n`;
+};
+
+const suggestionCommandResult = (
+  spec: CommandSpec,
+  files: Map<string, string>,
+): CommandResult | undefined => {
+  if (!spec.args.includes('suggest')) {
+    return undefined;
+  }
+  files.set(
+    '/work/suggestions.jsonl',
+    '{"id":"t1","suggestion":"Say it plainly."}\n{"id":"t2","suggestion":"Shorten it."}\n',
+  );
+  return OK;
+};
+
+const writeRawReplies = (
+  files: Map<string, string>,
+  target: string | undefined,
+  contents: string,
+): void => {
+  if (target !== undefined) {
+    files.set(target, contents);
+  }
+};
+
+const weakReaderCommandResult = (
+  spec: CommandSpec,
+  files: Map<string, string>,
+  readerStderr: string,
+  readerOptions: {
+    readonly answers?: string;
+    readonly bundle?: string;
+    readonly log?: string;
+  },
+): CommandResult | undefined => {
+  if (!spec.args.some((arg) => arg.endsWith('/weak-reader.ts'))) {
+    return undefined;
+  }
+  const bundlePath = spec.args.at(-2) ?? '';
+  const answersPath = spec.args.at(-1) ?? '/work/answers.jsonl';
+  const rawRepliesFlag = spec.args.indexOf('--raw-replies');
+  const rawRepliesPath = rawRepliesFlag === -1 ? undefined : spec.args[rawRepliesFlag + 1];
+  const bundleText = files.get(bundlePath) ?? ROUTING_BUNDLE;
+  if (readerOptions.bundle === undefined && !parsedBundleHasCatalog(bundleText)) {
+    files.set(
+      answersPath,
+      '{"answer":"B","query_id":"t1","run":1}\n{"answer":"C","query_id":"t2","run":1}\n',
+    );
+    writeRawReplies(
+      files,
+      rawRepliesPath,
+      '{"query_id":"t1","raw_reply":"raw-t1","run":1}\n{"query_id":"t2","raw_reply":"raw-t2","run":1}\n',
+    );
+    return { ...OK, stderr: readerStderr };
+  }
+  files.set(answersPath, readerOptions.answers ?? routingAnswersFor(bundleText));
+  writeRawReplies(files, rawRepliesPath, routingRawRepliesFor(bundleText));
+  const prompts = routingPromptsOf(bundleText);
+  const fingerprint = currentFingerprint(true);
+  const log =
+    readerOptions.log
+    ?? `[weak-reader] GPU ready; context 3/10 tokens; answered ${prompts.length} probes from ${new Set(prompts.map((prompt) => prompt.query)).size} queries; load 0.001 s, warmup 0.001 s, total 0.002 s; last query first token 0.001 s, total 0.001 s; model revision ${fingerprint.modelRevision}; runtime bundle ${fingerprint.bundleSha256}`;
+  return { ...OK, stderr: [log, readerStderr].filter(Boolean).join('\n') };
+};
+
+const scriptedResult = (
+  spec: CommandSpec,
+  files: Map<string, string>,
+  measure: string | undefined,
+  readerStderr = '',
+  readerOptions: {
+    readonly answers?: string;
+    readonly bundle?: string;
+    readonly log?: string;
+  } = {},
+): CommandResult =>
+  bundleCommandResult(spec, readerOptions.bundle)
+  ?? measureCommandResult(spec, measure)
+  ?? suggestionCommandResult(spec, files)
+  ?? weakReaderCommandResult(spec, files, readerStderr, readerOptions)
+  ?? fallbackCommandResult(files, readerStderr);
+
 const makeHarness = (
   options: {
+    readonly agentsRoot?: string;
     readonly measure?: string;
     readonly readerStderr?: string;
+    readonly readerAnswers?: readonly string[];
+    readonly readerBundles?: readonly string[];
+    readonly readerLogs?: readonly string[];
+    readonly missingReadPaths?: readonly string[];
     readonly overrides?: (spec: CommandSpec) => CommandResult | undefined;
+    readonly tempDirs?: readonly string[];
+    readonly transformRead?: (file: string, text: string | undefined) => string | undefined;
     readonly tree?: Record<string, readonly { isDirectory: boolean; name: string }[]>;
+    readonly toolsRoot?: string;
   } = {},
 ): Harness => {
+  const agentsRoot = options.agentsRoot ?? ROOT;
   const files = new Map<string, string>([
-    [path.join(ROOT, DOCUMENT), 'document text'],
-    [path.join(ROOT, SET), SET_TEXT],
-    [path.join(ROOT, 'skills', 'aidp', 'evals', 'trigger-queries.json'), TRIGGER_SET],
+    [path.join(agentsRoot, DOCUMENT), 'document text'],
+    [path.join(agentsRoot, SET), SET_TEXT],
+    [path.join(agentsRoot, 'skills', 'aidp', 'evals', 'trigger-queries.json'), TRIGGER_SET],
   ]);
   const output: string[] = [];
+  const readPaths: string[] = [];
+  let readerCalls = 0;
+  let tempDirCalls = 0;
   const executor = mock(async (spec: CommandSpec): Promise<CommandResult> => {
+    const isReader =
+      spec.args.some((arg) => arg.endsWith('/weak-reader.ts')) && !spec.args.includes('suggest');
+    const readerIndex = readerCalls;
+    if (isReader) {
+      readerCalls += 1;
+    }
     return (
       options.overrides?.(spec)
-      ?? scriptedResult(spec, files, options.measure, options.readerStderr)
+      ?? scriptedResult(spec, files, options.measure, options.readerStderr, {
+        answers: options.readerAnswers?.[readerIndex],
+        bundle: options.readerBundles?.[readerIndex],
+        log: options.readerLogs?.[readerIndex],
+      })
     );
   });
   const deps: GateDependencies = {
-    agentsRoot: ROOT,
+    agentsRoot,
     executor,
     listDirectory: mock(async (directory: string) => options.tree?.[directory] ?? []),
-    makeTempDir: mock(async () => '/work'),
-    readText: mock(async (file: string) => files.get(file)),
+    makeTempDir: mock(async () => {
+      const configured = options.tempDirs?.[tempDirCalls];
+      tempDirCalls += 1;
+      return configured ?? '/work';
+    }),
+    now: mock(() => new Date('2026-11-14T18:00:00.000Z')),
+    readText: mock(async (file: string) => {
+      readPaths.push(file);
+      if (options.missingReadPaths?.includes(file)) {
+        return undefined;
+      }
+      const text = files.get(file);
+      return text === undefined ? undefined : (options.transformRead?.(file, text) ?? text);
+    }),
     sha256: hash,
-    toolsRoot: ROOT,
+    toolsRoot: options.toolsRoot ?? ROOT,
     write: (message: string) => {
       output.push(message);
     },
@@ -174,8 +378,41 @@ const makeHarness = (
       files.set(file, content);
     }),
   };
-  return { deps, executor, files, output };
+  return {
+    deps,
+    executor,
+    executorCalls: () => executor.mock.calls.length,
+    files,
+    output,
+    readPaths,
+  };
 };
+
+const centralTestContext = {
+  centralReceipt: CENTRAL_RECEIPT,
+  centralSet: CENTRAL_SET,
+  currentFingerprint,
+  document: DOCUMENT,
+  formatReceipt,
+  globalRoot: GLOBAL_ROOT,
+  instructionDocuments,
+  join: path.join,
+  makeHarness,
+  receipt: RECEIPT,
+  receiptPathFor,
+  record,
+  routingReceipt: ROUTING_RECEIPT,
+  sealReceipt: (receipt: Omit<Receipt, 'selfSha256'>) => sealReceipt(receipt, hash),
+  set: SET,
+  setPathFor,
+  setText: SET_TEXT,
+  triggerSet: TRIGGER_SET,
+  verifyRouting,
+};
+
+centralPathCases.registerCentralPathTests(centralTestContext);
+catalogGenerationCases.registerCatalogGenerationTests(centralTestContext);
+catalogGenerationRejectionCases.registerCatalogGenerationRejectionTests(centralTestContext);
 
 const sealed = (overrides: Partial<Omit<Receipt, 'selfSha256'>> = {}): Receipt =>
   sealReceipt(
@@ -204,6 +441,33 @@ const withReceipt = (harness: Harness, receipt: Receipt | string): Harness => {
 };
 
 const target = { document: DOCUMENT, receiptPath: RECEIPT, setPath: SET };
+
+const gateTestContext = {
+  currentFingerprint,
+  DOCUMENT,
+  fingerprintMatches,
+  formatReceipt,
+  GLOBAL_ROOT,
+  hash,
+  makeHarness,
+  measurement,
+  parseRecordArguments,
+  processExit,
+  RECEIPT,
+  RECEIPT_DIRECTORY,
+  ROOT,
+  ROOT_DOCUMENT_PATTERN,
+  receiptPathFor,
+  record,
+  run,
+  runCli,
+  SET,
+  SET_TEXT,
+  sealed,
+  sealReceipt,
+  setPathFor,
+  usage,
+};
 
 const withActivationReceipt = (harness: Harness): Harness => {
   harness.files.set(
@@ -257,7 +521,7 @@ describe('decide', () => {
     expect(verdict.problems[1]).toContain('fell from 2 to 1');
   });
 
-  test.each([
+  test.each<[string, Measurement, number]>([
     ['a newly passing train probe', measurement(['t1', 't2'], []), 2],
     ['a validation gain', measurement(['t1'], ['t2']), 3],
   ])('%s is an improvement', (_label, candidate, valid) => {
@@ -283,103 +547,7 @@ describe('decide', () => {
   });
 });
 
-describe('paths and fingerprints', () => {
-  test('maps a document to its receipt and comprehension set', () => {
-    expect(receiptPathFor('skills/aidp/SKILL.md')).toBe(
-      path.join(RECEIPT_DIRECTORY, 'skills--aidp--SKILL.json'),
-    );
-    expect(setPathFor('AGENTS.md')).toBe(path.join('evals', 'AGENTS.json'));
-    expect(setPathFor('skills/aidp/SKILL.md')).toBe(SET);
-    expect(setPathFor('skills/aidp/references/deep/guide.md')).toBe(
-      path.join('skills', 'aidp', 'evals', 'comprehension', 'references-deep-guide.json'),
-    );
-  });
-
-  test('the root document pattern accepts instruction files only', () => {
-    for (const name of ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'AGENTS.local.md']) {
-      expect(ROOT_DOCUMENT_PATTERN.test(name)).toBe(true);
-    }
-    for (const name of ['README.md', 'agents.md', 'AGENTS.json', 'MYAGENTS.md']) {
-      expect(ROOT_DOCUMENT_PATTERN.test(name)).toBe(false);
-    }
-  });
-
-  test.each(['bundleSha256', 'maxNewTokens', 'modelRevision', 'readerVersion'] as const)(
-    'a different %s is a different reader',
-    (field) => {
-      const current = currentFingerprint();
-      const other = { ...current, [field]: typeof current[field] === 'number' ? 999 : 'other' };
-
-      expect(fingerprintMatches(current, current)).toBe(true);
-      expect(fingerprintMatches(current, other)).toBe(false);
-    },
-  );
-
-  test('a sealed receipt has sorted keys at every depth, whatever the construction order', () => {
-    const shuffled = sealReceipt(
-      {
-        baseline: null,
-        decision: 'baseline',
-        document: DOCUMENT,
-        documentSha256: hash('document text'),
-        fingerprint: { bundleSha256: 'b', maxNewTokens: 8, modelRevision: 'm', readerVersion: 'v' },
-        measurement: {
-          trainFailed: ['t2'],
-          trainPassed: ['t1'],
-          validationPassed: 2,
-          validationTotal: 3,
-        },
-        reason: '',
-        schema: 1,
-        setPath: SET,
-        setSha256: hash(SET_TEXT),
-      },
-      hash,
-    );
-
-    expect(Object.keys(shuffled)).toEqual(Object.keys(shuffled).sort());
-    expect(Object.keys(shuffled.measurement)).toEqual(Object.keys(shuffled.measurement).sort());
-    expect(Object.keys(shuffled.fingerprint)).toEqual(Object.keys(shuffled.fingerprint).sort());
-    expect(shuffled.selfSha256).toBe(
-      sealReceipt(
-        { ...shuffled, selfSha256: undefined } as unknown as Omit<Receipt, 'selfSha256'>,
-        hash,
-      ).selfSha256,
-    );
-  });
-
-  test('sealing is deterministic and depends on every field', () => {
-    expect(sealed().selfSha256).toBe(sealed().selfSha256);
-    expect(sealed({ reason: 'x' }).selfSha256).not.toBe(sealed().selfSha256);
-  });
-});
-
-describe('formatReceipt', () => {
-  const many = Array.from(
-    { length: 30 },
-    (_value, index) => `train-${String(index).padStart(2, '0')}`,
-  );
-
-  test('keeps short arrays on one line, expands long ones, and ends with a newline', () => {
-    const text = formatReceipt(sealed({ measurement: measurement(many, []) }));
-
-    expect(text.endsWith('\n')).toBe(true);
-    expect(text).toContain('"trainFailed": [],');
-    expect(text).toContain('"trainPassed": [\n      "train-00",\n');
-    expect(formatReceipt(sealed())).toContain('"trainFailed": ["t2"],');
-    const lines = text.split('\n').filter((line) => !line.includes('Sha256'));
-    expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(100);
-  });
-
-  test('round-trips through JSON and expands arrays that hold objects', () => {
-    const odd = { ...sealed(), empty: {}, nested: [{ a: 1 }, [2, 3]] } as unknown as Receipt;
-    const text = formatReceipt(odd);
-
-    expect(JSON.parse(text)).toEqual(JSON.parse(JSON.stringify(odd)));
-    expect(text).toContain('"empty": {},');
-    expect(text).toContain('"nested": [\n    {\n      "a": 1\n    },\n    [2, 3]\n  ]');
-  });
-});
+gateValueCases.registerGateValueCases(gateTestContext);
 
 describe('verifyTarget', () => {
   const problemsFor = async (harness: Harness): Promise<readonly string[]> =>
@@ -570,7 +738,8 @@ describe('record', () => {
     );
     expect(commands[0]).toContain(`train bundle ${path.join(ROOT, SET)}`);
     expect(commands[1]).toBe(
-      `${path.join(ROOT, 'scripts', 'weak-reader.ts')} /work/bundle.json /work/answers.jsonl`,
+      `${path.join(ROOT, 'scripts', 'weak-reader.ts')} --raw-replies /work/raw-replies.jsonl `
+        + '/work/bundle.json /work/answers.jsonl',
     );
     expect(commands[2]).toContain('--measure-only --ledger-root /work/ledger');
     expect(harness.files.get('/work/bundle.json')).toBe('{"bundle":true}');
@@ -609,12 +778,11 @@ describe('record', () => {
     expect(await record([DOCUMENT], {}, harness.deps)).toBe(1);
 
     expect(harness.files.get(path.join(ROOT, RECEIPT))).toBe(before);
-    expect(harness.output.join('')).toContain('REJECTED skills/aidp/SKILL.md');
-    expect(harness.output.join('')).toContain('Train probe t1 passed at baseline and now fails.');
-    expect(harness.output.join('')).toContain('A baseline-passing train probe regressed.');
-    expect(harness.output.join('')).toContain('Preserve wording outside the cited rule');
-    expect(harness.output.join('')).toContain('smallest local edit');
-    expect(harness.output.join('')).toContain('not accepted');
+    const output = harness.output.join('');
+    expect(output).toMatch(
+      /For a placement issue[\s\S]*beside the output it governs without changing the rule/u,
+    );
+    expect(output).toContain('there is no edit-size cap');
   });
 
   test('an improvement is accepted and the old result becomes the stored baseline', async () => {
@@ -687,42 +855,6 @@ describe('record diagnosis', () => {
     harness.files.set(path.join(ROOT, SET), richSet);
     return harness;
   };
-
-  test('a rejected edit prints each failing probe with the source rule and the reader view', async () => {
-    const harness = withRichSet(
-      withReceipt(
-        makeHarness({ measure: measureStdout(['t2'], ['t1']) }),
-        sealed({ measurement: measurement(['t1'], ['t2']) }),
-      ),
-    );
-    harness.files.set(path.join(ROOT, SET), richSet);
-    harness.files.set(
-      path.join(ROOT, RECEIPT),
-      JSON.stringify(
-        sealed({ measurement: measurement(['t1'], ['t2']), setSha256: hash(richSet) }),
-      ),
-    );
-
-    expect(await record([DOCUMENT], {}, harness.deps)).toBe(1);
-
-    const text = harness.output.join('');
-    expect(text).toContain('DIAGNOSIS skills/aidp/SKILL.md');
-    expect(text).toContain('--- t1: expected A, the reader answered B');
-    expect(text).toContain('Which letter?');
-    expect(text).toContain('Source rule: Rule one.');
-    expect(text).toContain("Reader's view: Say it plainly.");
-    const suggestCall = harness.executor.mock.calls
-      .map(([spec]) => (spec as CommandSpec).args)
-      .find((args) => args.includes('suggest'));
-    expect(suggestCall?.slice(-3)).toEqual([
-      '/work/bundle.json',
-      '/work/failures.json',
-      '/work/suggestions.jsonl',
-    ]);
-    expect(JSON.parse(harness.files.get('/work/failures.json') ?? '[]')).toEqual([
-      { expected: 'A', given: 'B', id: 't1', query: 'Which letter?\nA) one\nB) two' },
-    ]);
-  });
 
   test('replies the reader could not parse are shown with the diagnosis, at most five', async () => {
     const lines = Array.from(
@@ -799,256 +931,54 @@ describe('record diagnosis', () => {
   });
 });
 
-describe('record failures', () => {
-  test.each([
-    [
-      'train bundle',
-      (spec: CommandSpec) =>
-        spec.args.includes('bundle') ? { code: 1, stderr: 'no set', stdout: '' } : undefined,
-      'train bundle failed: no set',
-    ],
-    [
-      'the reader without a GPU',
-      (spec: CommandSpec) =>
-        spec.args.some((a) => a.endsWith('weak-reader.ts'))
-          ? { code: 2, stderr: 'no adapter', stdout: '' }
-          : undefined,
-      'outside the sandbox',
-    ],
-    [
-      'the reader failing otherwise',
-      (spec: CommandSpec) =>
-        spec.args.some((a) => a.endsWith('weak-reader.ts'))
-          ? { code: 3, stderr: 'bad blob', stdout: '' }
-          : undefined,
-      'weak reader exited 3: bad blob',
-    ],
-    [
-      'train measure',
-      (spec: CommandSpec) =>
-        spec.args.includes('measure') ? { code: 1, stderr: 'bad answers', stdout: '' } : undefined,
-      'train measure failed: bad answers',
-    ],
-    [
-      'unusable measure output',
-      (spec: CommandSpec) =>
-        spec.args.includes('measure')
-          ? { code: 0, stderr: '', stdout: '{"measurement":{}}' }
-          : undefined,
-      'returned no trainQueries',
-    ],
-    [
-      'unusable measure output shape',
-      (spec: CommandSpec) =>
-        spec.args.includes('measure') ? { code: 0, stderr: '', stdout: '[]' } : undefined,
-      'returned no trainQueries',
-    ],
-  ])(
-    '%s fails the document with its reason and writes no receipt',
-    async (_label, overrides, message) => {
-      const harness = makeHarness({ overrides });
-
-      expect(await record([DOCUMENT], {}, harness.deps)).toBe(1);
-      expect(harness.output.join('')).toContain(`FAILED ${DOCUMENT}`);
-      expect(harness.output.join('')).toContain(message);
-      expect(harness.files.has(path.join(ROOT, RECEIPT))).toBe(false);
-    },
-  );
-
-  test('a thrown non-error value is still reported', async () => {
-    const harness = makeHarness();
-    const failing = {
-      ...harness.deps,
-      executor: mock(async () => {
-        throw 'plain text';
-      }),
-    };
-
-    expect(await record([DOCUMENT], {}, failing)).toBe(1);
-    expect(harness.output.join('')).toContain('FAILED skills/aidp/SKILL.md: plain text');
-  });
-});
-
-describe('arguments, run, and the command line', () => {
-  test('parses paths and reasons', () => {
-    expect(parseRecordArguments(['a.md', '--allow-equal', 'typo fix', 'b.md'])).toEqual({
-      documents: ['a.md', 'b.md'],
-      options: { allowEqualReason: 'typo fix', rebaselineReason: undefined },
+describe('record diagnosis evidence', () => {
+  test('a rejection prints the scored reply separately and keeps raw text out of answers', async () => {
+    const set = JSON.stringify({
+      queries: [
+        {
+          evidence: 'Rule one.',
+          expected: 'A',
+          id: 't1',
+          query: 'Which letter?\nA) one\nB) two',
+          split: 'train',
+        },
+      ],
     });
-    expect(parseRecordArguments(['--rebaseline', 'new model']).options.rebaselineReason).toBe(
-      'new model',
+    const harness = makeHarness({
+      measure: measureStdout(['t2'], ['t1']),
+    });
+    harness.files.set(path.join(ROOT, SET), set);
+    withReceipt(
+      harness,
+      sealed({ measurement: measurement(['t1'], ['t2']), setSha256: hash(set) }),
     );
-    expect(parseRecordArguments([]).documents).toEqual([]);
-  });
 
-  test.each<[readonly string[]]>([
-    [['--allow-equal']],
-    [['--rebaseline', ' ']],
-    [['--allow-equal', '--rebaseline', 'x']],
-  ])('a flag without a written reason is refused: %p', (args) => {
-    expect(() => parseRecordArguments(args)).toThrow('needs a written reason');
-  });
+    expect(await record([DOCUMENT], {}, harness.deps)).toBe(1);
 
-  test('run routes verify and record and rejects everything else', async () => {
-    const harness = makeHarness();
-
-    expect(await run(['verify'], harness.deps)).toBe(1);
-    expect(await run(['record', DOCUMENT], harness.deps)).toBe(0);
-    for (const bad of [[], ['verify', 'extra'], ['unknown']]) {
-      await expect(run(bad, harness.deps)).rejects.toThrow('Usage:');
-    }
-    expect(usage()).toContain('instruction-gate.ts verify');
-  });
-
-  test('runCli sets the exit code from run and reports errors', async () => {
-    const harness = makeHarness();
-    const codes: number[] = [];
-
-    await runCli(['verify'], harness.deps, (code) => codes.push(code));
-    await runCli(['bogus'], harness.deps, (code) => codes.push(code));
-    await runCli(
-      ['verify'],
+    const text = harness.output.join('');
+    expect(text).toContain('--- t1: expected A, the reader answered B');
+    expect(text).toContain('Source rule: Rule one.');
+    expect(text).toContain("Reader's original reply: " + '"raw-t1"');
+    expect(text).toContain("Reader's view: Say it plainly.");
+    expect(harness.files.get('/work/answers.jsonl')).not.toContain('raw_reply');
+    expect(harness.files.get('/work/raw-replies.jsonl')).toContain('raw-t1');
+    const readerCall = harness.executor.mock.calls
+      .map(([spec]) => (spec as CommandSpec).args)
+      .find((args) => args.some((arg) => arg.endsWith('/weak-reader.ts')));
+    expect(readerCall).toContain('--raw-replies');
+    expect(JSON.parse(harness.files.get('/work/failures.json') ?? '[]')).toEqual([
       {
-        ...harness.deps,
-        listDirectory: mock(async () => {
-          throw 'not an error';
-        }),
+        expected: 'A',
+        given: 'B',
+        id: 't1',
+        query: 'Which letter?\nA) one\nB) two',
+        rawReply: 'raw-t1',
       },
-      (code) => codes.push(code),
-    );
-
-    expect(codes).toEqual([1, 1, 1]);
-    expect(harness.output.join('')).toContain('Usage:');
-    expect(harness.output.join('')).toContain('not an error');
-  });
-
-  test.each(['--help', '-h'])('runCli prints the usage for %s without running', async (flag) => {
-    const harness = makeHarness();
-    const codes: number[] = [];
-
-    await runCli([flag], harness.deps, (code) => codes.push(code));
-
-    expect(harness.output.join('')).toContain('Usage:');
-    expect(codes).toEqual([]);
-    expect(harness.executor).not.toHaveBeenCalled();
-  });
-
-  test('runCli defaults its exit-code setter to the process boundary', async () => {
-    const harness = makeHarness();
-    const original = processExit.setExitCode;
-    const setter = mock();
-    processExit.setExitCode = setter;
-    try {
-      await runCli(['bogus'], harness.deps);
-    } finally {
-      processExit.setExitCode = original;
-    }
-
-    expect(setter).toHaveBeenCalledWith(1);
-  });
-
-  test('processExit writes to a supplied target', () => {
-    const exitTarget: { exitCode?: number } = {};
-    processExit.setExitCode(3, exitTarget);
-
-    expect(exitTarget.exitCode).toBe(3);
+    ]);
   });
 });
 
-describe('--agents-root', () => {
-  const PROJECT = '/project/.agents';
-  const projectTree = {
-    [PROJECT]: [{ isDirectory: true, name: 'skills' }],
-    [path.join(PROJECT, 'skills')]: [{ isDirectory: true, name: 'aidp' }],
-    [path.join(PROJECT, 'skills', 'aidp')]: [{ isDirectory: false, name: 'SKILL.md' }],
-  };
-  const commandsOf = (harness: Harness): string[] =>
-    harness.executor.mock.calls.map(([spec]) => (spec as CommandSpec).args.join(' '));
-  const projectHarness = (): Harness => {
-    const harness = makeHarness({ tree: projectTree });
-    for (const relative of [DOCUMENT, SET]) {
-      harness.files.set(
-        path.join(PROJECT, relative),
-        harness.files.get(path.join(ROOT, relative)) ?? '',
-      );
-      harness.files.delete(path.join(ROOT, relative));
-    }
-    return harness;
-  };
-
-  test('without the flag the content root stays the package root', async () => {
-    const harness = makeHarness();
-
-    expect(await run(['record', DOCUMENT], harness.deps)).toBe(0);
-    expect(harness.files.has(path.join(ROOT, RECEIPT))).toBe(true);
-    expect(commandsOf(harness)[0]).toContain(`train bundle ${path.join(ROOT, SET)}`);
-  });
-
-  test('record resolves the document, set, and receipt under the flag root', async () => {
-    const harness = projectHarness();
-
-    expect(await run(['record', '--agents-root', PROJECT, DOCUMENT], harness.deps)).toBe(0);
-
-    expect(harness.files.has(path.join(ROOT, RECEIPT))).toBe(false);
-    expect(JSON.parse(harness.files.get(path.join(PROJECT, RECEIPT)) ?? '{}')).toMatchObject({
-      document: DOCUMENT,
-      setPath: SET,
-    });
-    expect(commandsOf(harness)[0]).toContain(`train bundle ${path.join(PROJECT, SET)}`);
-  });
-
-  test('tools still resolve from the package root', async () => {
-    const harness = projectHarness();
-
-    await run(['record', '--agents-root', PROJECT, DOCUMENT], harness.deps);
-
-    const commands = commandsOf(harness);
-    expect(commands[0]).toContain(path.join(ROOT, 'scripts', 'skill-manager.ts'));
-    expect(commands[1]).toContain(path.join(ROOT, 'scripts', 'weak-reader.ts'));
-    expect(commands.some((command) => command.includes(path.join(PROJECT, 'scripts')))).toBe(false);
-  });
-
-  test('verify checks the documents under the flag root and skips the routing receipt', async () => {
-    const harness = projectHarness();
-    await run(['record', '--agents-root', PROJECT, DOCUMENT], harness.deps);
-    harness.output.length = 0;
-
-    expect(await run(['verify', '--agents-root', PROJECT], harness.deps)).toBe(0);
-    expect(harness.output.join('')).toContain('passed - 1 instruction documents have');
-  });
-
-  test.each<[string[], string]>([
-    [['relative/path'], 'an absolute path'],
-    [['/project/../etc'], 'without ".." segments'],
-    [['/missing'], 'an existing directory'],
-    [['/empty'], 'contains a skills or evals directory'],
-    [[], 'an absolute path'],
-  ])('the root %p is rejected before any measurement', async (value, message) => {
-    const harness = makeHarness();
-    const deps: GateDependencies = {
-      ...harness.deps,
-      listDirectory: mock(async (directory: string) => {
-        if (directory === '/missing') {
-          throw new Error('ENOENT');
-        }
-        return directory === '/empty' ? [{ isDirectory: false, name: 'notes.md' }] : [];
-      }),
-    };
-
-    await expect(run(['record', '--agents-root', ...value], deps)).rejects.toThrow(message);
-    expect(harness.executor).not.toHaveBeenCalled();
-  });
-
-  test('descriptions are rejected for a non-default root and documented in the usage', async () => {
-    const harness = projectHarness();
-
-    await expect(
-      run(['record', '--agents-root', PROJECT, 'descriptions'], harness.deps),
-    ).rejects.toThrow('gated only for the default root');
-    expect(harness.executor).not.toHaveBeenCalled();
-    expect(usage()).toContain('--agents-root <absolute-path>');
-  });
-});
+gateCommandCases.registerGateCommandCases(gateTestContext);
 
 describe('defaultDependencies', () => {
   test('wires the process boundaries to node primitives', async () => {
@@ -1082,7 +1012,8 @@ describe('defaultDependencies', () => {
     try {
       const deps = defaultDependencies();
       deps.write('hello');
-      expect(deps.agentsRoot.endsWith('.agents') || deps.agentsRoot.length > 0).toBe(true);
+      expect(typeof deps.agentsRoot).toBe('string');
+      expect(deps.now()).toBeInstanceOf(Date);
     } finally {
       process.stdout.write = original;
     }

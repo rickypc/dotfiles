@@ -1,0 +1,32 @@
+{
+  "baseline": null,
+  "decision": "baseline",
+  "document": "evals/skills/biome-checker/rubric.md",
+  "documentSha256": "894ffb6a1547dd32fc64403b61f052a03df8e7ffbb69b83c9ef43e52076fa86c",
+  "fingerprint": {
+    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+    "maxNewTokens": 8,
+    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+    "readerVersion": "reader-v1"
+  },
+  "measurement": {
+    "trainFailed": [],
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08"
+    ],
+    "validationPassed": 5,
+    "validationTotal": 5
+  },
+  "reason": "",
+  "schema": 1,
+  "selfSha256": "46dab47cd44b7d4294d52519768ed31dfdfe160e822e4a11c530e7127a665717",
+  "setPath": "evals/skills/biome-checker/comprehension/evals-rubric.json",
+  "setSha256": "d3214e2c02e4ae5899a106abcb0340ce274a2dd97b4cf4da22642d7b6041c13b"
+}

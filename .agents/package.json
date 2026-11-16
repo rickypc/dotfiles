@@ -1,14 +1,14 @@
 {
   "dependencies": {
-    "webgpu": "latest"
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "gray-matter": "4.0.3",
+    "tree-sitter": "0.25.1",
+    "tree-sitter-typescript": "0.23.2",
+    "webgpu": "0.6.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.5",
-    "@modelcontextprotocol/sdk": "latest",
-    "@types/bun": "latest",
-    "gray-matter": "latest",
-    "tree-sitter": "latest",
-    "tree-sitter-typescript": "latest"
+    "@biomejs/biome": "2.6.6",
+    "@types/bun": "1.4.4"
   },
   "license": "Apache-2.0",
   "name": "agent-infrastructure",

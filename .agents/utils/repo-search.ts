@@ -153,6 +153,16 @@ export const backendCall = (
   tool,
 });
 
+const backendResultText = (result: RepoSearchBackendResult): string => {
+  if (typeof result.structuredContent === 'string') {
+    return result.structuredContent;
+  }
+  if (result.structuredContent !== undefined) {
+    return JSON.stringify(result.structuredContent) ?? '';
+  }
+  return result.text;
+};
+
 /** Candidate file paths for the binary content gate, from literal and filename output. */
 const binaryGateCandidates = (output: string): readonly string[] => {
   const paths = output
@@ -493,6 +503,54 @@ export const repoSearchProjectForRoot = (
   return best.name;
 };
 
+const searchCodePayloadHasMatches = (payload: unknown): boolean | undefined => {
+  if (Array.isArray(payload)) {
+    return payload.length > 0;
+  }
+  if (!payload || typeof payload !== 'object') {
+    return undefined;
+  }
+  const record = payload as Record<string, unknown>;
+  const results = [record.results, record.rows, record.matches].find(Array.isArray);
+  if (Array.isArray(results)) {
+    return results.length > 0;
+  }
+  const resultCount = [
+    record.total_results,
+    record.total_matches,
+    record.results_returned,
+    record.raw_match_count,
+  ].find((value) => typeof value === 'number');
+  if (typeof resultCount === 'number') {
+    return resultCount > 0;
+  }
+  return searchCodePayloadHasMatches(record.data) ?? searchCodePayloadHasMatches(record.result);
+};
+
+const hasFullSearchCodeMatches = (result: RepoSearchBackendResult, detail: string): boolean => {
+  const structured = searchCodePayloadHasMatches(result.structuredContent);
+  if (structured !== undefined) {
+    return structured;
+  }
+  try {
+    const parsed = searchCodePayloadHasMatches(JSON.parse(detail));
+    if (parsed !== undefined) {
+      return parsed;
+    }
+  } catch {
+    // Full mode can return a readable text envelope rather than JSON text.
+  }
+  const rows = /(?:^|\n)rows:\s*(\d+)\b/u.exec(detail);
+  if (rows) {
+    return Number(rows[1]) > 0;
+  }
+  const totalResults = /(?:^|\n)total_results:\s*(\d+)\b/u.exec(detail);
+  if (totalResults) {
+    return Number(totalResults[1]) > 0;
+  }
+  return detail.length > 0;
+};
+
 const sectionRows = (
   text: string,
   section: 'directories' | 'projects' | 'results',
@@ -701,9 +759,9 @@ export const transportKind = (
 ): RepoSearchEnvelope['transport'] => transport?.kind ?? 'none';
 
 /**
- * The deterministic search pipeline: resolve the index, run graph then code search,
- * connect traced symbols, and fall back to the staged local search plus the binary
- * content gate only when indexed discovery finds nothing.
+ * The deterministic search pipeline: use full code search for single-token queries,
+ * graph discovery for multi-token queries, and the staged local fallback when indexed
+ * discovery finds nothing.
  */
 // biome-ignore lint/complexity/noExcessiveLinesPerFunction: the pipeline receipt assembly is one deterministic stage list.
 export const repoSearchDiscover = async (
@@ -770,52 +828,71 @@ export const repoSearchDiscover = async (
     caveats.push('No backend transport answered; answered from the local staged fallback.');
   }
   if (indexUsable && request.transport && index) {
-    const graph = await callAttempt(
-      request.transport,
-      backendCall('search_graph', { limit: searchLimit, project: index, query }),
-      'search-graph',
-    );
-    attempts.push(graph.attempt);
-    const graphRows =
-      graph.attempt.status === 'error'
-        ? []
-        : parseSearchGraph(graph.result.text).rows.filter((row) => graphIdentityMatch(row, query));
-    if (graphRows.length > 0) {
-      source = 'graph';
-      results = graphRows.map(symbolResult);
-      if (parseSearchGraph(graph.result.text).hasMore) {
-        caveats.push('Graph results truncated by the search limit.');
-      }
-      caveats.push('The indexed snapshot may differ from the working tree.');
-      attempts.push(skippedAttempt('search-code', 'Skipped because search-graph found a match.'));
-      const connected = await connectStage(request.transport, index, query, graphRows);
-      attempts.push(...connected.attempts);
-      results.push(...connected.results);
-    } else {
+    if (!/\s/u.test(query)) {
       const code = await callAttempt(
         request.transport,
-        backendCall('search_code', {
-          limit: searchLimit,
-          mode: 'compact',
-          pattern: query,
-          project: index,
-        }),
+        backendCall('search_code', { mode: 'full', pattern: query, project: index }),
         'search-code',
       );
       attempts.push(code.attempt);
-      const codeParsed =
-        code.attempt.status === 'error' ? undefined : parseSearchCode(code.result.text);
-      if (graph.attempt.status === 'error' && code.attempt.status === 'error') {
+      const detail = code.attempt.status === 'error' ? '' : backendResultText(code.result).trim();
+      if (hasFullSearchCodeMatches(code.result, detail)) {
+        source = 'code';
+        results = [{ detail: capDetail(detail), kind: 'text', location: null, name: query }];
+        caveats.push('The indexed snapshot may differ from the working tree.');
+      } else if (code.attempt.status === 'error') {
         caveats.push('Indexed discovery errored; answered from the local staged fallback.');
       }
-      if (codeParsed && codeParsed.rows.length > 0) {
-        source = 'code';
-        results = codeParsed.rows.map(symbolResult);
-        results.push(...clusterResults(codeParsed));
-        if (codeParsed.hasMore) {
-          caveats.push('Code results truncated by the search limit.');
+    } else {
+      const graph = await callAttempt(
+        request.transport,
+        backendCall('search_graph', { limit: searchLimit, project: index, query }),
+        'search-graph',
+      );
+      attempts.push(graph.attempt);
+      const graphRows =
+        graph.attempt.status === 'error'
+          ? []
+          : parseSearchGraph(graph.result.text).rows.filter((row) =>
+              graphIdentityMatch(row, query),
+            );
+      if (graphRows.length > 0) {
+        source = 'graph';
+        results = graphRows.map(symbolResult);
+        if (parseSearchGraph(graph.result.text).hasMore) {
+          caveats.push('Graph results truncated by the search limit.');
         }
         caveats.push('The indexed snapshot may differ from the working tree.');
+        attempts.push(skippedAttempt('search-code', 'Skipped because search-graph found a match.'));
+        const connected = await connectStage(request.transport, index, query, graphRows);
+        attempts.push(...connected.attempts);
+        results.push(...connected.results);
+      } else {
+        const code = await callAttempt(
+          request.transport,
+          backendCall('search_code', {
+            limit: searchLimit,
+            mode: 'compact',
+            pattern: query,
+            project: index,
+          }),
+          'search-code',
+        );
+        attempts.push(code.attempt);
+        const codeParsed =
+          code.attempt.status === 'error' ? undefined : parseSearchCode(code.result.text);
+        if (graph.attempt.status === 'error' && code.attempt.status === 'error') {
+          caveats.push('Indexed discovery errored; answered from the local staged fallback.');
+        }
+        if (codeParsed && codeParsed.rows.length > 0) {
+          source = 'code';
+          results = codeParsed.rows.map(symbolResult);
+          results.push(...clusterResults(codeParsed));
+          if (codeParsed.hasMore) {
+            caveats.push('Code results truncated by the search limit.');
+          }
+          caveats.push('The indexed snapshot may differ from the working tree.');
+        }
       }
     }
   }

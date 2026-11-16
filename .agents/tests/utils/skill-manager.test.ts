@@ -1,4 +1,5 @@
 import { expect, mock, test } from 'bun:test';
+import * as realOs from 'node:os';
 import * as path from 'node:path';
 import realMatter from 'gray-matter';
 
@@ -16,6 +17,7 @@ interface AllSkillsFixtureOptions {
 }
 
 mock.module('node:path', () => path);
+mock.module('node:os', () => ({ ...realOs, homedir: mock(() => '/test-home') }));
 mock.module('gray-matter', () => ({ default: realMatter }));
 
 const {
@@ -684,7 +686,7 @@ test('requires a comprehension set for AGENTS and CLAUDE instruction documents',
     [`/tmp/.agents/${name}`, '# Policy'],
     ...(set === undefined
       ? []
-      : ([[`/tmp/.agents/evals/${name.replace(/\.md$/u, '')}.json`, set]] as const)),
+      : ([[`/tmp/.agents/evals/comprehension/${name.replace(/\.md$/u, '')}.json`, set]] as const)),
   ];
   const run = (names: readonly string[], files: readonly (readonly [string, string])[]) =>
     validateAllSkills(
@@ -697,7 +699,7 @@ test('requires a comprehension set for AGENTS and CLAUDE instruction documents',
   await expect(
     run(
       ['AGENTS.md', 'notes.md'],
-      instruction('AGENTS.md', comprehensionSetFor('instructions--agents', '../AGENTS.md')),
+      instruction('AGENTS.md', comprehensionSetFor('instructions--agents', '../../AGENTS.md')),
     ),
   ).resolves.toMatchObject({ status: 'valid' });
   await expect(
@@ -705,7 +707,7 @@ test('requires a comprehension set for AGENTS and CLAUDE instruction documents',
       ['CLAUDE.local.md'],
       instruction(
         'CLAUDE.local.md',
-        comprehensionSetFor('instructions--claude.local', '../CLAUDE.local.md'),
+        comprehensionSetFor('instructions--claude.local', '../../CLAUDE.local.md'),
       ),
     ),
   ).resolves.toMatchObject({ status: 'valid' });
@@ -715,7 +717,9 @@ test('requires a comprehension set for AGENTS and CLAUDE instruction documents',
 
 test('requires a comprehension set for project-root instruction documents', async () => {
   const set = (name: string, target: string, subject = `instructions--${name.toLowerCase()}`) =>
-    [[`/tmp/.agents/evals/${name}.json`, comprehensionSetFor(subject, target)]] as const;
+    [
+      [`/tmp/.agents/evals/comprehension/${name}.json`, comprehensionSetFor(subject, target)],
+    ] as const;
   const run = (
     projectNames: readonly string[],
     agentsFiles: readonly (readonly [string, string])[] = [],
@@ -727,19 +731,19 @@ test('requires a comprehension set for project-root instruction documents', asyn
     );
   await expect(run(['AGENTS.override.md'])).rejects.toThrow('AGENTS.override.json');
   await expect(
-    run(['AGENTS.override.md', 'README.md'], set('AGENTS.override', '../../AGENTS.override.md')),
+    run(['AGENTS.override.md', 'README.md'], set('AGENTS.override', '../../../AGENTS.override.md')),
   ).resolves.toMatchObject({ status: 'valid' });
   await expect(
-    run(['AGENTS.override.md'], set('AGENTS.override', '../AGENTS.override.md')),
-  ).rejects.toThrow('target must be ../../AGENTS.override.md');
+    run(['AGENTS.override.md'], set('AGENTS.override', '../../AGENTS.override.md')),
+  ).rejects.toThrow('target must be ../../../AGENTS.override.md');
   await expect(
-    run(['AGENTS.override.md'], set('AGENTS.override', '../../AGENTS.override.md', 'other')),
+    run(['AGENTS.override.md'], set('AGENTS.override', '../../../AGENTS.override.md', 'other')),
   ).rejects.toThrow('skill_name must be instructions--agents.override');
   // An agents-root document of the same name owns the set; the project-root copy is skipped.
   await expect(
     run(
       ['AGENTS.md'],
-      [['/tmp/.agents/AGENTS.md', '# Policy'], ...set('AGENTS', '../AGENTS.md')],
+      [['/tmp/.agents/AGENTS.md', '# Policy'], ...set('AGENTS', '../../AGENTS.md')],
       ['AGENTS.md'],
     ),
   ).resolves.toMatchObject({ status: 'valid' });

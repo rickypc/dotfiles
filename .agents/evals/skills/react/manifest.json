@@ -1,0 +1,138 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:react",
+  "scope": "evals/skills/react/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/react/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/react/SKILL.md",
+      "sha256": "bdee1085515bb446e4d641bcba4fa4a43a8f45fc52f28ee753150855b8e33fe3"
+    },
+    {
+      "sourcePath": "evals/skills/react/rubric.md",
+      "sha256": "9f67f42d364736e859d3b06fd018e31748490db43b6de26b56ac5f96d6949860"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/react/cases.jsonl",
+      "canonicalPath": "evals/skills/react/cases.jsonl",
+      "sha256": "abfed7a4f920d7a4090474c1d846d94c5fc2a169ef4d99c891e82ad3a5fc7365",
+      "caseIds": [
+        "react-state-contract",
+        "react-async-accessibility",
+        "react-skill-contract-template",
+        "react-skill-contract-no-robotic-persona"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/react/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/react/SKILL.md",
+        "setPath": "evals/skills/react/comprehension/SKILL.json",
+        "queryCount": 40,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "train-16",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "train-28",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/react/rubric.md",
+        "setPath": "evals/skills/react/comprehension/evals-rubric.json",
+        "queryCount": 13,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/react/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/react/SKILL.md",
+        "setPath": "evals/skills/react/comprehension/SKILL.json",
+        "path": "evals/skills/react/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/react/rubric.md",
+        "setPath": "evals/skills/react/comprehension/evals-rubric.json",
+        "path": "evals/skills/react/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/react/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 4,
+    "activationQueries": 62,
+    "comprehensionQueries": 53,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "7471491071472049c4f4a134d1d49c9efdd1706ddb63f76ffa8d95860f6b123c",
+    "activationQueriesSha256": "d6b8293fd40078ad129e03abd42c7a518eec8950e74862aa0ec61d55dc8443e3",
+    "sourceRubricSha256": "9f67f42d364736e859d3b06fd018e31748490db43b6de26b56ac5f96d6949860"
+  }
+}

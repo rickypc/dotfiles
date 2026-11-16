@@ -388,11 +388,14 @@ mv <absolute-source-path> <trash-destination>
 ```
 
 where `<trash-destination>` is `~/.Trash/<basename>` or, on collision,
-`~/.Trash/<basename>.<suffix>`. The suffix goes AFTER the full basename: a colliding `notes.md` goes
-to `~/.Trash/notes.md.1`, never to `~/.Trash/1.notes.md`. Use the `trash.ts` module's
-`defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for shell-level
-retirement. Never skip this rule for "trivial" temp files - the OS tmpdir janitor handles those, and
-any other file must be trashed, not deleted.
+`~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>`
+first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the
+full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1`. This never
+produces `~/.Trash/1.notes.md`, which would prepend the suffix. For any collision question,
+substitute the concrete basename and suffix into the pattern and compare each proposed destination
+exactly. Use the `trash.ts` module's `defaultMoveSourceToTrash` for programmatic retirement; use
+`mv` directly for shell-level retirement. Never skip this rule for "trivial" temp files - the OS
+tmpdir janitor handles those, and any other file must be trashed, not deleted.
 
 ### String-only JSON boundary
 
@@ -509,6 +512,42 @@ switching to a different provider/model.
   `agent-infrastructure/ptc-mode-file-writing-with-run-code-and-write.md`.
 
 ## 9. Validation, gates, and closeout
+
+### Behavioral evaluation sessions
+
+Use the active harness's in-session LLM for behavioral target, grader, and reflection roles across
+Codex, Claude, Antigravity, and other harnesses. Do not call a separate provider or model API for
+these roles. Start fresh isolated sessions and keep labels, expected outcomes, parent history, and
+held-out cases out of target and reflection context.
+
+Capture the session IDs and any model/runtime details exposed by the active harness. Mark omitted
+optional fields `unavailable`; never infer them from model output or child self-report. Immediately
+before each target/grader pair, the caller creates a fresh UUIDv4 `runId`, includes it in both
+requests, and binds the root manifest's stable `evaluationId`, echoed ID, case/session envelope,
+owner/case/run index, input and prompt fingerprints, and evidence hashes in the receipt. A matching
+`runId` correlates these artifacts; it is not cryptographic authentication or proof that a reported
+tool was invoked. A target's runId-bound `toolTrace` may be used as `reported-in-session` evidence.
+Keep that label in the case receipt and aggregate. The grader may judge whether the reported trace
+is consistent with the task, output, diff, and fixture, but must not describe it as an independently
+verified harness event log. Missing runId linkage, a required response/session envelope, or input
+binding blocks receipt admission. Gemma 4 E2B stays the separate local comprehension reader and does
+not replace the in-session behavioral LLM.
+
+### Gate diagnosis
+
+When a gate returns a diagnosis, read its complete output before editing. Compare the reported
+failure, expected result, quoted source rule, and candidate diff. Treat the gate's classification
+and quoted source as evidence; treat its proposed repair as a hypothesis to verify. If the issue is
+placement and the source already supports the expected result, preserve the rule's wording and
+meaning and move it directly beside the action or output it governs. Never reverse an order or
+priority to fit a wrong answer. A held-out count is only a regression signal: use visible training
+evidence and the candidate diff to guide the next change; do not infer or seek hidden probe text. Do
+not measure the same candidate again without a distinct, evidence-based source change. Finish local
+checks before requesting an outside-sandbox measurement.
+
+Complete all required Markdown reflow before refreshing a manifest source hash or running
+`instruction-gate record`. Reflow changes the document fingerprint even when it only wraps lines.
+Revalidate after reflow. Any later edit or reflow makes the receipt stale and requires a new record.
 
 After the complete implementation batch:
 

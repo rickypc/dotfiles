@@ -28,6 +28,7 @@ const {
   editorMeasurementOf,
   LedgerError,
   ledgerPathFor,
+  ledgerEntriesForSubject,
   loadResponses,
   loadTriggerQuerySet,
   matrixFingerprintForQuerySet,
@@ -611,6 +612,32 @@ test('selects the recorded baseline for the never-worse gate', () => {
   ).toEqual(entryFor(2, 'baseline', 0.5, 0.5));
 });
 
+test('filters shared ledger entries to the requested subject in append order', () => {
+  const activationBaseline = entryFor(1, 'baseline', 0.5, 0.5);
+  const contractBaseline = {
+    ...entryFor(2, 'baseline', 0.6, 0.6),
+    measurement: { ...measurementFor(0.6, 0.6), skillName: 'skill-manager-contract' },
+  };
+  const activationAttempt = entryFor(3, 'attempt', 0.7, 0.5);
+  const contractAttempt = {
+    ...entryFor(4, 'attempt', 0.8, 0.6),
+    measurement: { ...measurementFor(0.8, 0.6), skillName: 'skill-manager-contract' },
+  };
+  const entries = [activationBaseline, contractBaseline, activationAttempt, contractAttempt];
+
+  expect(ledgerEntriesForSubject(entries, 'skill-manager')).toEqual([
+    activationBaseline,
+    activationAttempt,
+  ]);
+  expect(ledgerEntriesForSubject(entries, 'skill-manager-contract')).toEqual([
+    contractBaseline,
+    contractAttempt,
+  ]);
+  expect(baselineEntryFor(ledgerEntriesForSubject(entries, 'skill-manager'))).toBe(
+    activationBaseline,
+  );
+});
+
 const measuredFor = (answers: Readonly<Record<string, readonly string[]>>) =>
   measurementFromRecords(querySet, recordsFor(answers));
 
@@ -673,7 +700,7 @@ test('accepts a candidate with a unanimous gain and no regression', () => {
   expect(accepted.candidate).toEqual({ attempt: 1, sourceFingerprint: 'baseline-source' });
 });
 
-test('blocks a candidate that regresses any previously passing query even with a gain', () => {
+test('blocks a candidate that regresses a previously passing query even with a gain', () => {
   const regressed = measuredFor({
     'train-01': ALL_TARGET,
     'train-02': ALL_OTHER,

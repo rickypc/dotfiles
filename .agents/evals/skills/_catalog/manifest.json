@@ -1,0 +1,127 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill-catalog",
+  "scope": "evals/skills/_catalog/",
+  "requiredLanes": [
+    "activation"
+  ],
+  "sources": [
+    {
+      "skill": "aidp",
+      "sourcePath": "skills/aidp/SKILL.md"
+    },
+    {
+      "skill": "aidx",
+      "sourcePath": "skills/aidx/SKILL.md"
+    },
+    {
+      "skill": "biome-checker",
+      "sourcePath": "skills/biome-checker/SKILL.md"
+    },
+    {
+      "skill": "bun-test-generator",
+      "sourcePath": "skills/bun-test-generator/SKILL.md"
+    },
+    {
+      "skill": "content-writer",
+      "sourcePath": "skills/content-writer/SKILL.md"
+    },
+    {
+      "skill": "frontend-design",
+      "sourcePath": "skills/frontend-design/SKILL.md"
+    },
+    {
+      "skill": "knowledge-base",
+      "sourcePath": "skills/knowledge-base/SKILL.md"
+    },
+    {
+      "skill": "md-compress",
+      "sourcePath": "skills/md-compress/SKILL.md"
+    },
+    {
+      "skill": "playwright-test-generator",
+      "sourcePath": "skills/playwright-test-generator/SKILL.md"
+    },
+    {
+      "skill": "react",
+      "sourcePath": "skills/react/SKILL.md"
+    },
+    {
+      "skill": "repo-search",
+      "sourcePath": "skills/repo-search/SKILL.md"
+    },
+    {
+      "skill": "review-changes",
+      "sourcePath": "skills/review-changes/SKILL.md"
+    },
+    {
+      "skill": "skill-manager",
+      "sourcePath": "skills/skill-manager/SKILL.md"
+    }
+  ],
+  "inputs": {
+    "activationSets": [
+      {
+        "skill": "aidp",
+        "path": "evals/skills/aidp/trigger-queries.json"
+      },
+      {
+        "skill": "aidx",
+        "path": "evals/skills/aidx/trigger-queries.json"
+      },
+      {
+        "skill": "biome-checker",
+        "path": "evals/skills/biome-checker/trigger-queries.json"
+      },
+      {
+        "skill": "bun-test-generator",
+        "path": "evals/skills/bun-test-generator/trigger-queries.json"
+      },
+      {
+        "skill": "content-writer",
+        "path": "evals/skills/content-writer/trigger-queries.json"
+      },
+      {
+        "skill": "frontend-design",
+        "path": "evals/skills/frontend-design/trigger-queries.json"
+      },
+      {
+        "skill": "knowledge-base",
+        "path": "evals/skills/knowledge-base/trigger-queries.json"
+      },
+      {
+        "skill": "md-compress",
+        "path": "evals/skills/md-compress/trigger-queries.json"
+      },
+      {
+        "skill": "playwright-test-generator",
+        "path": "evals/skills/playwright-test-generator/trigger-queries.json"
+      },
+      {
+        "skill": "react",
+        "path": "evals/skills/react/trigger-queries.json"
+      },
+      {
+        "skill": "repo-search",
+        "path": "evals/skills/repo-search/trigger-queries.json"
+      },
+      {
+        "skill": "review-changes",
+        "path": "evals/skills/review-changes/trigger-queries.json"
+      },
+      {
+        "skill": "skill-manager",
+        "path": "evals/skills/skill-manager/trigger-queries.json"
+      }
+    ]
+  },
+  "artifacts": {
+    "activationReceipt": "evals/skills/_catalog/receipts/activation.json",
+    "ledger": "evals/skills/_catalog/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "skills": 13
+  }
+}

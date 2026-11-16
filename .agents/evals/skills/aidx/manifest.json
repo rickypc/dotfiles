@@ -1,0 +1,218 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:aidx",
+  "scope": "evals/skills/aidx/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/aidx/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/aidx/SKILL.md",
+      "sha256": "1a53a57086f699760b25e680be87d20816a0ce675e80827b36d161ad8d48ef53"
+    },
+    {
+      "sourcePath": "evals/skills/aidx/rubric.md",
+      "sha256": "a0e03dd10c608f2f2dfe082887055d1af53fd419ac0b981901e90000fad26c6d"
+    },
+    {
+      "sourcePath": "skills/aidx/references/engineering-execution-contract.md",
+      "sha256": "98810d55bf884f40bc7e0c1faa3b051b0b60bd8a9b8c1cba560b09bd9258f976"
+    },
+    {
+      "sourcePath": "skills/aidx/references/execution-contract.md",
+      "sha256": "f59c37e9fe815c16dc3d2437d503d70681a42e784e78c2417391e1b3ce37bba3"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/cases.jsonl",
+      "canonicalPath": "evals/skills/aidx/cases.jsonl",
+      "sha256": "cee953e18f77bf4bc32193261d89b8bc58ad26a0b80faea32c2da8335da24509",
+      "caseIds": [
+        "aidx-path-safety",
+        "aidx-sequential",
+        "aidx-shared-checklist",
+        "aidx-no-plan-rewrite",
+        "aidx-fallback-boundary",
+        "aidx-fresh-proof",
+        "aidx-hard-stop",
+        "aidx-replan-trigger",
+        "aidx-brownfield-and-nfr",
+        "aidx-acceptance-mapping",
+        "aidx-test-owner-routing",
+        "aidx-terminal-closeout",
+        "aidx-plan-retirement",
+        "aidx-language-routing",
+        "aidx-role-routing",
+        "aidx-work-packet-proof",
+        "aidx-self-contained-migration",
+        "aidx-code-review-delegation"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/aidx/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/aidx/SKILL.md",
+        "setPath": "evals/skills/aidx/comprehension/SKILL.json",
+        "queryCount": 41,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "train-16",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "validation-07",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "train-28",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "validation-13"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/aidx/rubric.md",
+        "setPath": "evals/skills/aidx/comprehension/evals-rubric.json",
+        "queryCount": 13,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-04",
+          "validation-05"
+        ]
+      },
+      {
+        "sourcePath": "skills/aidx/references/engineering-execution-contract.md",
+        "setPath": "evals/skills/aidx/comprehension/references-engineering-execution-contract.json",
+        "queryCount": 19,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "validation-06",
+          "validation-07"
+        ]
+      },
+      {
+        "sourcePath": "skills/aidx/references/execution-contract.md",
+        "setPath": "evals/skills/aidx/comprehension/references-execution-contract.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/aidx/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/aidx/SKILL.md",
+        "setPath": "evals/skills/aidx/comprehension/SKILL.json",
+        "path": "evals/skills/aidx/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/aidx/rubric.md",
+        "setPath": "evals/skills/aidx/comprehension/evals-rubric.json",
+        "path": "evals/skills/aidx/receipts/rubric.json"
+      },
+      {
+        "sourcePath": "skills/aidx/references/engineering-execution-contract.md",
+        "setPath": "evals/skills/aidx/comprehension/references-engineering-execution-contract.json",
+        "path": "evals/skills/aidx/receipts/references--engineering-execution-contract.json"
+      },
+      {
+        "sourcePath": "skills/aidx/references/execution-contract.md",
+        "setPath": "evals/skills/aidx/comprehension/references-execution-contract.json",
+        "path": "evals/skills/aidx/receipts/references--execution-contract.json"
+      }
+    ],
+    "ledger": "evals/skills/aidx/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 18,
+    "activationQueries": 62,
+    "comprehensionQueries": 87,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "ee25f4e4e0b6b3c9bc11d8f33b00b068b0f8f962647abfe08350a065bd1cb7d2",
+    "activationQueriesSha256": "823f3b216ffe9c3bda8e9025dcc910be68ca3076781599bc6066d519d133e688",
+    "sourceRubricSha256": "a0e03dd10c608f2f2dfe082887055d1af53fd419ac0b981901e90000fad26c6d"
+  }
+}

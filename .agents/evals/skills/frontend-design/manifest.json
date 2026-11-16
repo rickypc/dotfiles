@@ -1,0 +1,144 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:frontend-design",
+  "scope": "evals/skills/frontend-design/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/frontend-design/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/frontend-design/SKILL.md",
+      "sha256": "30bf5f222562ef00c0aa00ce5f9a2d37005b4ba074bb96d47f5566653777b2e3"
+    },
+    {
+      "sourcePath": "evals/skills/frontend-design/rubric.md",
+      "sha256": "112c8b352889c0adee43390019a323ad3c93a504b022445bc15271d4f75ee7f9"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/frontend-design/cases.jsonl",
+      "canonicalPath": "evals/skills/frontend-design/cases.jsonl",
+      "sha256": "63471cbdcff3ca1f492ae402ac028d899a9d1a723c20992e30f8d6e7f1fabe25",
+      "caseIds": [
+        "frontend-design-contract",
+        "frontend-design-discovery",
+        "frontend-design-review-gate",
+        "frontend-design-boundary",
+        "frontend-design-skill-contract-template",
+        "frontend-design-skill-contract-no-robotic-persona",
+        "frontend-design-baseline-context",
+        "frontend-design-iteration-routing"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/frontend-design/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/frontend-design/SKILL.md",
+        "setPath": "evals/skills/frontend-design/comprehension/SKILL.json",
+        "queryCount": 40,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "validation-07",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "validation-13"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/frontend-design/rubric.md",
+        "setPath": "evals/skills/frontend-design/comprehension/evals-rubric.json",
+        "queryCount": 15,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/frontend-design/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/frontend-design/SKILL.md",
+        "setPath": "evals/skills/frontend-design/comprehension/SKILL.json",
+        "path": "evals/skills/frontend-design/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/frontend-design/rubric.md",
+        "setPath": "evals/skills/frontend-design/comprehension/evals-rubric.json",
+        "path": "evals/skills/frontend-design/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/frontend-design/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 8,
+    "activationQueries": 62,
+    "comprehensionQueries": 55,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "8aa5c0bed8f86ef6686b4f2f102db2ee99a19faeeaeccbb51dc136361f925129",
+    "activationQueriesSha256": "09f5c48cdc802a642e605e0871b1a55cb74239cde0a5cc7e3664af76048bbcf5",
+    "sourceRubricSha256": "112c8b352889c0adee43390019a323ad3c93a504b022445bc15271d4f75ee7f9"
+  }
+}

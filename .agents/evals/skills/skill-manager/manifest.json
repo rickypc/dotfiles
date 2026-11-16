@@ -1,0 +1,373 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:skill-manager",
+  "scope": "evals/skills/skill-manager/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/skill-manager/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/skill-manager/SKILL.md",
+      "sha256": "67a7b3bf4df82f81e946f1d6d80eb001ec49cf01094286934b0e7ec46d810c7f"
+    },
+    {
+      "sourcePath": "evals/skills/skill-manager/rubric.md",
+      "sha256": "6c799c445d5cbc74d428bea5a1c1ca06a4bf2d63dba09a9eceaf53af9c320913"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/agent-skills-guidance.md",
+      "sha256": "42f62e6823084bff24b97a59b9a411a8db542440cca4142dda7dd58c76fd21a2"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/index.md",
+      "sha256": "4345a0cb1ad527bc83c1d71bf0d79a12b724cab4b1ed5eba4dc7253e062a9c20"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
+      "sha256": "c32d8f01be6dfa29346a776fd5a193b28738e21b0be1e84de37902614026cc8a"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/skill-template.md",
+      "sha256": "4b947a56af34923de40441c33d803b4af0c90f58a799435fd9dcd0530af94e13"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/train-protocol.md",
+      "sha256": "ec3aa2ecaa6fe2f763479b7fe4141951a47b569f9a71404f5bcbe0b781ca848e"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/cases.jsonl",
+      "canonicalPath": "evals/skills/skill-manager/cases.jsonl",
+      "sha256": "5547e8b09262982370816746d59cde76ea29f0df4dfafd7a54339126b38566e1",
+      "caseIds": [
+        "skill-manager-controller",
+        "skill-manager-resume",
+        "skill-manager-frozen-matrix",
+        "skill-manager-md-compress",
+        "skill-manager-usage-governance",
+        "skill-manager-domain-command-options",
+        "skill-manager-prose-link-scope",
+        "skill-manager-runtime-adapter",
+        "skill-manager-md-transaction-serial",
+        "skill-manager-md-failure-recovery",
+        "skill-manager-no-provider",
+        "skill-manager-adapter-boundary",
+        "skill-manager-matrix-identity",
+        "skill-manager-red-green-refactor",
+        "skill-manager-pressure-evidence",
+        "skill-manager-skill-contract-template",
+        "skill-manager-cohesive-rewrite",
+        "skill-manager-skill-contract-no-robotic-persona",
+        "skill-manager-cohesion-boundary",
+        "skill-manager-agent-skills-guidance",
+        "skill-manager-description-evals",
+        "skill-manager-output-evals",
+        "skill-manager-script-interface",
+        "skill-manager-frontmatter-extension",
+        "skill-manager-trigger-query-set",
+        "skill-manager-usage-and-flow",
+        "skill-manager-md-compress-no-edit-guard",
+        "skill-manager-review-scope-no-edit-guard",
+        "skill-manager-md-compress-edit-is-action",
+        "skill-manager-train-never-worse",
+        "skill-manager-train-blind",
+        "skill-manager-ratchet",
+        "skill-manager-train-usage",
+        "skill-manager-no-provider-training",
+        "skill-manager-train-closeout",
+        "skill-manager-train-edit-cap",
+        "skill-manager-train-rejected-buffer",
+        "skill-manager-train-contract-track",
+        "skill-manager-train-do-not-retry",
+        "skill-manager-contract-challenge-counts",
+        "skill-manager-weak-reader-route",
+        "skill-manager-weak-reader-exit-codes",
+        "skill-manager-weak-reader-sandbox-remedy",
+        "skill-manager-reflow-edited-markdown",
+        "skill-manager-weak-reader-suggest-route",
+        "skill-manager-gate-routes",
+        "skill-manager-gate-receipt-rule",
+        "skill-manager-gate-retry-loop",
+        "skill-manager-gate-descriptions"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/skill-manager/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/skill-manager/SKILL.md",
+        "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
+        "queryCount": 52,
+        "queryIds": [
+          "train-37",
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "train-15",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "train-27",
+          "train-28",
+          "train-29",
+          "train-30",
+          "train-31",
+          "validation-13",
+          "validation-14",
+          "validation-15",
+          "train-32",
+          "train-33",
+          "train-34",
+          "train-35",
+          "train-36"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/skill-manager/rubric.md",
+        "setPath": "evals/skills/skill-manager/comprehension/evals-rubric.json",
+        "queryCount": 18,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05",
+          "train-10",
+          "train-11",
+          "validation-06",
+          "validation-07"
+        ]
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/agent-skills-guidance.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-agent-skills-guidance.json",
+        "queryCount": 15,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05",
+          "train-10"
+        ]
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/index.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-index.json",
+        "queryCount": 10,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "validation-01",
+          "validation-02",
+          "train-04",
+          "train-05",
+          "train-06",
+          "validation-03",
+          "validation-04"
+        ]
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json",
+        "queryCount": 17,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "validation-05",
+          "validation-06"
+        ]
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/skill-template.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-skill-template.json",
+        "queryCount": 17,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "validation-05",
+          "validation-06"
+        ]
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/train-protocol.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
+        "queryCount": 32,
+        "queryIds": [
+          "train-20",
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "validation-06",
+          "validation-07",
+          "train-14",
+          "train-15",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/skill-manager/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/skill-manager/SKILL.md",
+        "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
+        "path": "evals/skills/skill-manager/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/skill-manager/rubric.md",
+        "setPath": "evals/skills/skill-manager/comprehension/evals-rubric.json",
+        "path": "evals/skills/skill-manager/receipts/rubric.json"
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/agent-skills-guidance.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-agent-skills-guidance.json",
+        "path": "evals/skills/skill-manager/receipts/references--agent-skills-guidance.json"
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/index.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-index.json",
+        "path": "evals/skills/skill-manager/receipts/references--index.json"
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json",
+        "path": "evals/skills/skill-manager/receipts/references--skill-lifecycle.json"
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/skill-template.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-skill-template.json",
+        "path": "evals/skills/skill-manager/receipts/references--skill-template.json"
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/train-protocol.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
+        "path": "evals/skills/skill-manager/receipts/references--train-protocol.json"
+      }
+    ],
+    "ledger": "evals/skills/skill-manager/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+    "caseRetirements": "evals/skills/skill-manager/retirements.json"
+  },
+  "inventory": {
+    "contractCases": 50,
+    "activationQueries": 62,
+    "comprehensionQueries": 161,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "7f8bb3c786d824e03598deaaf2344542aead8e96f95e991ab66d99c5cfd834bc",
+    "activationQueriesSha256": "3a30ed9841b5f71973f0feb73eb8912ffbe666875f478688efce8be7dddbca7d",
+    "sourceRubricSha256": "6c799c445d5cbc74d428bea5a1c1ca06a4bf2d63dba09a9eceaf53af9c320913",
+    "caseRetirementsSha256": "1a812cb03675b32d4554e533382e35c3447e3a34a9dbbad97a767b373957c85c"
+  }
+}

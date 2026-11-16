@@ -6,23 +6,27 @@ Branch-only detail for the wrapper engine in `utils/repo-search.ts`,
 
 ## Transport probe
 
-`probeRepoSearchTransport` runs once per wrapper invocation and is the only authority on backend
-availability. It tries, in order:
+`probeRepoSearchTransport` runs once per wrapper invocation and is the authority on backend
+availability. With no override, it tries these routes in order:
 
-1. **CLI transport (default):** run `codebase-memory-mcp cli --quiet --json <tool>` subcommands and
-   parse the raw MCP result envelope the CLI prints. The wrapper never spawns an MCP server on its
-   own; each CLI child joins the shared per-account coordination daemon when one is running.
-2. **MCP stdio transport (forced):** only with `REPO_SEARCH_TRANSPORT_FORCE=mcp`, spawn the backend
-   binary with no arguments as a stdio MCP server, complete the `initialize` handshake, and issue
-   one `tools/call list_projects` probe. The official `@modelcontextprotocol/sdk` client is used
-   when installed; a zero-dependency built-in JSON-RPC client is the automatic fallback, and both
-   speak the same protocol.
-3. **None:** with no answering transport the engine runs the staged local search only and records
-   the failure as the transport receipt.
+1. **MCP stdio:** try the `@modelcontextprotocol/sdk` client, then the built-in stdio client. Each
+   sends `initialize` and `tools/call list_projects`.
+2. **CLI:** if neither MCP client answers, run the `codebase-memory-mcp cli --quiet --json <tool>`
+   subcommand and parse its result envelope.
+3. **Staged local search:** when no backend transport answers, continue with the local search stage.
+   The wrapper also runs this stage when indexed discovery finds no result.
 
-`REPO_SEARCH_TRANSPORT_FORCE` (`mcp`, `cli`, or `none`) and `REPO_SEARCH_BACKEND_BINARY` override
-the probe for testing. A spawn failure, handshake timeout, or backend denial never throws to the
-caller: it lands in `attempts[0]` as the transport receipt.
+`REPO_SEARCH_TRANSPORT_FORCE` changes the backend probe for testing:
+
+- `mcp` (`REPO_SEARCH_TRANSPORT_FORCE=mcp`) limits the probe to the MCP client chain. If neither
+  client answers, the probe records an error and does not try the CLI; the wrapper can still
+  continue with staged local search.
+- `cli` limits the probe to the CLI transport.
+- `none` disables backend transports; the wrapper can still use staged local search.
+
+`REPO_SEARCH_BACKEND_BINARY` overrides the backend binary. A spawn failure, `initialize` handshake
+timeout, or backend denial is captured in `attempts[0]` as the transport-probe receipt instead of
+being thrown to the caller. On the default route, an MCP failure is followed by the CLI probe.
 
 Every spawned backend child receives a pinned child environment: `HOME` from the platform resolver
 and `XDG_CACHE_HOME` from the caller environment or `<home>/.cache` when unset. The pin keeps the

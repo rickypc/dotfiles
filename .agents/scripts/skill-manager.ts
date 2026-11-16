@@ -1,10 +1,16 @@
-import { basename, dirname, join, resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 
 import { runWhenMainWithHelp } from '../utils/cli.js';
 import { type FileSystem, nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
+import { parseEvaluationCasesJsonl } from '../utils/quality-engine/evaluation-cases.js';
 import type { MatrixCase } from '../utils/quality-engine/matrix.js';
-import { matrixFingerprintFor, matrixRatchetViolations } from '../utils/quality-engine/matrix.js';
+import { matrixFingerprintFor } from '../utils/quality-engine/matrix.js';
 import { fingerprint, renderActionPacket } from '../utils/quality-engine/packet.js';
+import {
+  skillHistoryPathsFor,
+  temporarySnapshotRootFor,
+} from '../utils/quality-engine/skill-history-paths.js';
 import type { WorkflowState } from '../utils/quality-engine/state.js';
 import {
   appendLedgerEntry,
@@ -21,14 +27,12 @@ import {
   type LedgerEntry,
   type LedgerEntryInput,
   type LedgerStatus,
-  ledgerPathFor,
+  ledgerEntriesForSubject,
   loadResponses,
   loadTriggerQuerySet,
   matrixFingerprintForQuerySet,
   measurementFromMatrix,
   measurementFromRecords,
-  parseTriggerQuerySet,
-  queryRatchetViolations,
   readBaselineSnapshot,
   readLedger,
   rejectedEditFor,
@@ -47,19 +51,25 @@ import {
 import {
   createSkillManagerPacket,
   evaluateSkillManagerBatch,
-  evaluateSkillMatrix,
   initializeSkill,
   parseMatrixJsonl,
   reviewSkillProse,
+  skillEvaluationPathsFor,
   validateSkill,
   validateSkillEvaluations,
 } from '../utils/skill-manager.js';
+import { runSkillManagerEvaluation, runSkillManagerRatchet } from './skill-manager-evaluation.js';
 
 interface ContractSubject {
   readonly cases: readonly MatrixCase[];
   readonly hardFailure: () => Promise<string | undefined>;
   readonly skillName: string;
   readonly sourcePath: string;
+}
+
+interface HistoryPaths {
+  readonly ledgerPath: string;
+  readonly snapshotRoot: string;
 }
 
 interface ScoredSubject {
@@ -98,7 +108,7 @@ export const usage = (): string =>
     '  bun <agents-root>/scripts/skill-manager.ts evaluate <baseline-or-candidate-or-challenge> <absolute-matrix-jsonl-path> <absolute-skill-file-path>',
     '  bun <agents-root>/scripts/skill-manager.ts batch <review-id> <baseline-or-candidate> <absolute-matrix-jsonl-path> <absolute-skill-file-path> ...',
     '  bun <agents-root>/scripts/skill-manager.ts packet <review-id> <candidate-checked-or-candidate-requested-or-draft> <absolute-skill-path> [failed-assertion-ids]',
-    '  bun <agents-root>/scripts/skill-manager.ts ratchet <absolute-previous-matrix-or-query-set-path> <absolute-next-path>',
+    '  bun <agents-root>/scripts/skill-manager.ts ratchet <absolute-previous-matrix-or-query-set-path> <absolute-next-path> [absolute-retirements.json]',
     '  bun <agents-root>/scripts/skill-manager.ts train bundle <absolute-skill-path-or-comprehension-set-json> [--skills-root <absolute-path>]',
     '  bun <agents-root>/scripts/skill-manager.ts train measure <absolute-skill-path-or-comprehension-set-json> <absolute-responses-jsonl-path> [--attempt <n>] [--runs <n>] [--measure-only] [--status <applied|attempt|baseline|post-change|rollback>] [--max-description-change <percent>] [--max-body-lines <n>] [--ledger-root <absolute-path>] [--skills-root <absolute-path>]',
     '  bun <agents-root>/scripts/skill-manager.ts train measure <absolute-skill-path> --track contract [--attempt <n>] [--measure-only] [--status <applied|attempt|baseline|post-change|rollback>] [--max-description-change <percent>] [--max-body-lines <n>] [--ledger-root <absolute-path>]',
@@ -140,21 +150,6 @@ const batchPairsFor = (
     );
   }
   return parsed;
-};
-
-const phaseFor = (
-  phase: string,
-): 'baseline_recorded' | 'candidate_checked' | 'challenge_checked' => {
-  if (phase === 'baseline') {
-    return 'baseline_recorded';
-  }
-  if (phase === 'candidate') {
-    return 'candidate_checked';
-  }
-  if (phase === 'challenge') {
-    return 'challenge_checked';
-  }
-  throw new Error(usage());
 };
 
 const runInit = async (
@@ -224,6 +219,89 @@ const ledgerStatuses = new Set<LedgerStatus>([
 ]);
 
 const agentsRoot = (): string => dirname(import.meta.dir);
+
+const relativePathWithin = (root: string, path: string): string | undefined => {
+  const candidate = relative(root, resolve(path));
+  return candidate === '..' || candidate.startsWith(`..${sep}`) || candidate.startsWith(sep)
+    ? undefined
+    : candidate;
+};
+
+const rootDocumentScopeFor = (root: string, sourceRelative: string): string | undefined => {
+  const isRootMarkdown = !sourceRelative.includes(sep) && extname(sourceRelative) === '.md';
+  return isRootMarkdown || sourceRelative === join('evals', 'rubric.md')
+    ? join(root, 'evals')
+    : undefined;
+};
+
+const skillNameForHistorySource = (sourceRelative: string): string | undefined => {
+  const parts = sourceRelative.split(sep);
+  if (parts[0] === 'skills') {
+    return parts[1];
+  }
+  if (parts[0] === 'evals' && parts[1] === 'skills') {
+    return parts[2];
+  }
+  return undefined;
+};
+
+const centralOwnerRootFor = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  sourcePath: string,
+): Promise<string | undefined> => {
+  const root = resolve(agentsRoot());
+  if (root !== resolve(join(homedir(), '.agents'))) {
+    return undefined;
+  }
+  const sourceRelative = relativePathWithin(root, sourcePath);
+  if (!sourceRelative) {
+    return undefined;
+  }
+  const rootDocumentScope = rootDocumentScopeFor(root, sourceRelative);
+  if (rootDocumentScope) {
+    return rootDocumentScope;
+  }
+  const skillName = skillNameForHistorySource(sourceRelative);
+  if (!skillName || skillName === '_catalog') {
+    return undefined;
+  }
+  const paths = await skillEvaluationPathsFor(fileSystem, join(root, 'skills', skillName));
+  return paths.central
+    && paths.comprehensionSets.some((set) => resolve(set.sourcePath) === resolve(sourcePath))
+    ? dirname(paths.matrixPaths[0] ?? '')
+    : undefined;
+};
+
+const historyPathsFor = async (
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+  sourcePath: string,
+  skillName: string,
+  overrideRoot?: string,
+): Promise<HistoryPaths> => {
+  const root = resolve(agentsRoot());
+  const ownerRoot = overrideRoot ? undefined : await centralOwnerRootFor(fileSystem, sourcePath);
+  const ledgerOwnerRoot = resolve(ownerRoot ?? overrideRoot ?? defaultLedgerRootFor(root));
+  const temporarySnapshotRoot = temporarySnapshotRootFor(
+    {
+      ownerRoot: ledgerOwnerRoot,
+      repositoryRoot: root,
+      skillName,
+      temporaryDirectory: tmpdir(),
+    },
+    join,
+    fingerprint,
+  );
+  return skillHistoryPathsFor(
+    {
+      legacyRoot: defaultLedgerRootFor(root),
+      ...(ownerRoot ? { ownerRoot } : {}),
+      ...(overrideRoot ? { overrideRoot } : {}),
+      skillName,
+      temporarySnapshotRoot,
+    },
+    join,
+  );
+};
 
 const trainValueFlags = new Set([
   '--attempt',
@@ -430,12 +508,15 @@ const assertMeasureArguments = (
 
 const assertWithinEditCap = async (
   fileSystem: FileSystem,
-  ledgerRoot: string,
+  snapshotRoot: string,
   baseline: LedgerEntry,
   sourceText: string,
   flags: TrainFlags,
 ): Promise<string> => {
-  const size = editSizeOf(await readBaselineSnapshot(fileSystem, ledgerRoot, baseline), sourceText);
+  const size = editSizeOf(
+    await readBaselineSnapshot(fileSystem, snapshotRoot, baseline),
+    sourceText,
+  );
   const violation = editCapViolation(size, {
     maxBodyLines: flags.maxBodyLines ?? DEFAULT_EDIT_CAPS.maxBodyLines,
     maxDescriptionPercent: flags.maxDescriptionChange ?? DEFAULT_EDIT_CAPS.maxDescriptionPercent,
@@ -452,14 +533,14 @@ const changeSummaryFor = async (
     readonly baseline: LedgerEntry;
     readonly fileSystem: FileSystem;
     readonly flags: TrainFlags;
-    readonly ledgerRoot: string;
+    readonly snapshotRoot: string;
     readonly sourceText: string;
   },
 ): Promise<string | undefined> =>
   status === 'attempt'
     ? assertWithinEditCap(
         request.fileSystem,
-        request.ledgerRoot,
+        request.snapshotRoot,
         request.baseline,
         request.sourceText,
         request.flags,
@@ -521,56 +602,6 @@ const runBatch = async (
   );
 };
 
-const runEvaluate = async (
-  args: readonly string[],
-  read: (path: string) => Promise<string | Buffer>,
-  write: (message: string) => void,
-): Promise<void> => {
-  const [, phase, matrixPath, skillFilePath] = args;
-  if (!phase || !matrixPath || !skillFilePath || args.length !== 4) {
-    throw new Error(usage());
-  }
-  const [matrixContent, sourceContent] = await Promise.all([read(matrixPath), read(skillFilePath)]);
-  const sourceText = String(sourceContent);
-  const receipt = evaluateSkillMatrix(
-    parseMatrixJsonl(String(matrixContent)),
-    { delegatedChecks: {}, ownedFiles: new Set(), text: sourceText },
-    fingerprint(sourceText),
-    phaseFor(phase),
-  );
-  write(JSON.stringify(receipt, null, 2));
-};
-
-const runRatchet = async (
-  args: readonly string[],
-  read: (path: string) => Promise<string | Buffer>,
-  write: (message: string) => void,
-): Promise<void> => {
-  const [, previousPath, nextPath] = args;
-  const extension = previousPath?.endsWith('.jsonl') ? '.jsonl' : '.json';
-  if (
-    args.length !== 3
-    || !previousPath?.startsWith('/')
-    || !nextPath?.startsWith('/')
-    || !previousPath.endsWith(extension)
-    || !nextPath.endsWith(extension)
-  ) {
-    throw new Error(usage());
-  }
-  const [previous, next] = (await Promise.all([read(previousPath), read(nextPath)])).map(String);
-  const violations =
-    extension === '.jsonl'
-      ? matrixRatchetViolations(parseMatrixJsonl(previous ?? ''), parseMatrixJsonl(next ?? ''))
-      : queryRatchetViolations(
-          parseTriggerQuerySet(previous ?? '', previousPath),
-          parseTriggerQuerySet(next ?? '', nextPath),
-        );
-  if (violations.length > 0) {
-    throw new Error(`Ratchet violations: ${violations.join(' ')}`);
-  }
-  write(JSON.stringify({ nextPath, previousPath, status: 'ratchet-ok', violations }, null, 2));
-};
-
 const statusFor = (flags: TrainFlags): LedgerStatus =>
   flags.status ?? (flags.measureOnly ? 'baseline' : 'attempt');
 
@@ -589,20 +620,53 @@ const structuralFailureFor = async (
 const contractSubjectFor = async (
   fileSystem: FileSystem,
   skillPath: string,
-): Promise<ContractSubject> => ({
-  cases: parseMatrixJsonl(
-    await fileSystem.readFile(join(skillPath, 'evals', 'cases.jsonl'), 'utf8'),
-  ),
-  hardFailure: () => structuralFailureFor(fileSystem, skillPath),
-  skillName: `${basename(skillPath)}-contract`,
-  sourcePath: join(skillPath, 'SKILL.md'),
-});
+): Promise<ContractSubject> => {
+  const paths = await skillEvaluationPathsFor(fileSystem, skillPath);
+  const matrixText = await fileSystem.readFile(paths.matrixPaths[0] ?? '', 'utf8');
+  if (
+    paths.central
+    && paths.fingerprints
+    && fingerprint(matrixText) !== paths.fingerprints.casesSha256
+  ) {
+    throw new Error(`Skill case-matrix fingerprint is stale: ${paths.matrixPaths[0]}`);
+  }
+  const cases = paths.central
+    ? parseEvaluationCasesJsonl(matrixText)
+        .filter((evaluationCase) => evaluationCase.kind === 'contract')
+        .map((evaluationCase) => ({
+          assertions: evaluationCase.assertions,
+          failureMode: evaluationCase.failureMode,
+          id: evaluationCase.id,
+          independentVerifier: evaluationCase.independentVerifier,
+          repairBoundary: evaluationCase.repairBoundary,
+          scenario: evaluationCase.scenario,
+          visibility: evaluationCase.visibility,
+        }))
+    : parseMatrixJsonl(matrixText);
+  return {
+    cases,
+    hardFailure: () => structuralFailureFor(fileSystem, skillPath),
+    skillName: `${basename(skillPath)}-contract`,
+    sourcePath: join(skillPath, 'SKILL.md'),
+  };
+};
 
 const subjectFor = async (fileSystem: FileSystem, path: string): Promise<TrainSubject> => {
   if (!path.endsWith('.json')) {
+    const evaluationPaths = await skillEvaluationPathsFor(fileSystem, path);
+    const triggerText = await fileSystem.readFile(evaluationPaths.triggerQueriesPath, 'utf8');
+    if (
+      evaluationPaths.central
+      && evaluationPaths.fingerprints
+      && fingerprint(triggerText) !== evaluationPaths.fingerprints.activationQueriesSha256
+    ) {
+      throw new Error(
+        `Skill activation-query fingerprint is stale: ${evaluationPaths.triggerQueriesPath}`,
+      );
+    }
     return {
       hardFailure: () => hardFailureFor(fileSystem, path),
-      querySet: await loadTriggerQuerySet(fileSystem, join(path, 'evals', 'trigger-queries.json')),
+      querySet: await loadTriggerQuerySet(fileSystem, evaluationPaths.triggerQueriesPath),
       sourcePath: join(path, 'SKILL.md'),
     };
   }
@@ -673,9 +737,9 @@ const runTrainSelect = async (
     throw new Error(usage());
   }
   const { skillName, sourcePath } = await ledgerSubjectFor(fileSystem, skillPath, flags);
-  const ledgerRoot = flags.ledgerRoot ?? defaultLedgerRootFor(agentsRoot());
-  const ledgerPath = ledgerPathFor(ledgerRoot, skillName);
-  const entries = await readLedger(fileSystem, ledgerPath);
+  const paths = await historyPathsFor(fileSystem, sourcePath, skillName, flags.ledgerRoot);
+  const { ledgerPath, snapshotRoot } = paths;
+  const entries = ledgerEntriesForSubject(await readLedger(fileSystem, ledgerPath), skillName);
   const baseline = baselineEntryFor(entries);
   if (!baseline) {
     throw new Error(`A recorded baseline is required before selection: ${ledgerPath}`);
@@ -687,7 +751,7 @@ const runTrainSelect = async (
   const liveState = liveStateFor(liveFingerprint, baseline, winner, liveEntry);
   const summary = (entry: LedgerEntry) => ({
     entryId: entry.id,
-    snapshot: snapshotPathFor(ledgerRoot, entry.id),
+    snapshot: snapshotPathFor(snapshotRoot, entry.id),
     sourceFingerprint: entry.sourceFingerprint,
     train: entry.measurement.train.score,
     validation: entry.measurement.validation.score,
@@ -771,9 +835,15 @@ const runTrainMeasure = async (
   const { matrixFingerprint, measurement } = subject;
   const sourceText = await fileSystem.readFile(subject.sourcePath, 'utf8');
   const status = statusFor(flags);
-  const ledgerRoot = flags.ledgerRoot ?? defaultLedgerRootFor(agentsRoot());
-  const ledgerPath = ledgerPathFor(ledgerRoot, subject.skillName);
-  const priorEntries = await readLedger(fileSystem, ledgerPath);
+  const paths = await historyPathsFor(
+    fileSystem,
+    subject.sourcePath,
+    subject.skillName,
+    flags.ledgerRoot,
+  );
+  const { ledgerPath, snapshotRoot } = paths;
+  const ledgerEntries = await readLedger(fileSystem, ledgerPath);
+  const priorEntries = ledgerEntriesForSubject(ledgerEntries, subject.skillName);
   const baseline = baselineEntryFor(priorEntries);
   const hardFailure = await subject.hardFailure();
   assertRecordable({
@@ -785,7 +855,7 @@ const runTrainMeasure = async (
     status,
   });
   const changeSummary = baseline
-    ? await changeSummaryFor(status, { baseline, fileSystem, flags, ledgerRoot, sourceText })
+    ? await changeSummaryFor(status, { baseline, fileSystem, flags, snapshotRoot, sourceText })
     : undefined;
   const input: LedgerEntryInput = {
     attempt: flags.attempt,
@@ -810,14 +880,19 @@ const runTrainMeasure = async (
     ledgerPath,
     rejected ? { ...input, rejected } : input,
   );
-  const snapshot = snapshotPathFor(ledgerRoot, entry.id);
+  const snapshot = snapshotPathFor(snapshotRoot, entry.id);
   await writeText(fileSystem, snapshot, sourceText);
   write(
     JSON.stringify(
       {
         boundary: measurement.boundary,
         decision: gate,
-        ledger: { entries: priorEntries.length + 1, entryId: entry.id, path: ledgerPath, snapshot },
+        ledger: {
+          entries: ledgerEntries.length + 1,
+          entryId: entry.id,
+          path: ledgerPath,
+          snapshot,
+        },
         matrixFingerprint,
         measurement: editorMeasurementOf(measurement),
         sourceFingerprint: input.sourceFingerprint,
@@ -889,13 +964,13 @@ export const run = async (
     return runBatch(args, read, write);
   }
   if (command === 'evaluate') {
-    return runEvaluate(args, read, write);
+    return runSkillManagerEvaluation(args, read, write, usage);
   }
   if (command === 'train') {
     return runTrain(args, write, fileSystem);
   }
   if (command === 'ratchet') {
-    return runRatchet(args, read, write);
+    return runSkillManagerRatchet(args, read, write, usage);
   }
   return runPacket(args, write);
 };

@@ -1,0 +1,168 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:aidp",
+  "scope": "evals/skills/aidp/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/aidp/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/aidp/SKILL.md",
+      "sha256": "5b542eed77350a0ca1795ac1220068e03ae84975188ffe26e089b1fc7fe43bee"
+    },
+    {
+      "sourcePath": "evals/skills/aidp/rubric.md",
+      "sha256": "bf3088f42ae6049ba3a4ccf286400617b0786123fa71e910fc835ddc9fd7244c"
+    },
+    {
+      "sourcePath": "skills/aidp/references/engineering-planning-contract.md",
+      "sha256": "f97f040fbc8bd555aaebd47cf7c380b9bc6e3bf4efcfbef9c86eccca77b0b018"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/cases.jsonl",
+      "canonicalPath": "evals/skills/aidp/cases.jsonl",
+      "sha256": "1b6f67a34ab39019874430120e5c4a674f46a8caa61c26b3038d6c68495a74e0",
+      "caseIds": [
+        "aidp-private-kb-search-contract",
+        "aidp-repo-search-mode-boundary"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/aidp/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/aidp/SKILL.md",
+        "setPath": "evals/skills/aidp/comprehension/SKILL.json",
+        "queryCount": 41,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "train-16",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "validation-07",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "train-28",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "validation-13"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/aidp/rubric.md",
+        "setPath": "evals/skills/aidp/comprehension/evals-rubric.json",
+        "queryCount": 11,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "validation-01",
+          "validation-02",
+          "train-05",
+          "train-06",
+          "train-07",
+          "validation-03",
+          "validation-04"
+        ]
+      },
+      {
+        "sourcePath": "skills/aidp/references/engineering-planning-contract.md",
+        "setPath": "evals/skills/aidp/comprehension/references-engineering-planning-contract.json",
+        "queryCount": 17,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "validation-05",
+          "validation-06"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/aidp/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/aidp/SKILL.md",
+        "setPath": "evals/skills/aidp/comprehension/SKILL.json",
+        "path": "evals/skills/aidp/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/aidp/rubric.md",
+        "setPath": "evals/skills/aidp/comprehension/evals-rubric.json",
+        "path": "evals/skills/aidp/receipts/rubric.json"
+      },
+      {
+        "sourcePath": "skills/aidp/references/engineering-planning-contract.md",
+        "setPath": "evals/skills/aidp/comprehension/references-engineering-planning-contract.json",
+        "path": "evals/skills/aidp/receipts/references--engineering-planning-contract.json"
+      }
+    ],
+    "ledger": "evals/skills/aidp/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 2,
+    "activationQueries": 62,
+    "comprehensionQueries": 69,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "ba887b7c0fa0e5193cdad6d8ad5c5cdeec8a80c0c14474288727d27249276710",
+    "activationQueriesSha256": "e8d3d0de042d050a167174052aa9d76c9ba7764c97ddf0fd635e36b201ad6374",
+    "sourceRubricSha256": "bf3088f42ae6049ba3a4ccf286400617b0786123fa71e910fc835ddc9fd7244c"
+  }
+}

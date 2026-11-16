@@ -1,0 +1,2146 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "evaluationId": "7c7628f9-e5d2-4062-a785-803e607b1e06",
+  "caseSchema": "evals/schema.json",
+  "rubric": "evals/rubric.md",
+  "policy": {
+    "oneOwnerPerSource": true,
+    "oneOwnerPerArtifact": true,
+    "behaviorRunsPerCase": 3,
+    "unknownLanesFailClosed": true,
+    "pathRoots": [
+      "evals/",
+      "evals/skills/{skill}/",
+      "evals/skills/_catalog/",
+      "evals/vendor/gemma-4-e2b/"
+    ],
+    "preflight": {
+      "beforeMeasurementOrAcceptance": true,
+      "rejectMissingOrBlank": [
+        "manifest",
+        "rubric",
+        "cases",
+        "required comprehension sets",
+        "required activation sets"
+      ],
+      "rejectUnknownSchemaOrLane": true,
+      "rejectDuplicateSourceOrArtifactOwner": true,
+      "rejectUnknownVerifierOrCaseKind": true,
+      "rejectDuplicateCaseIdsWithinOwner": true,
+      "rejectMissingRequiredLane": true,
+      "rejectLegacyFallback": true,
+      "receiptRequiredForEveryDeclaredRun": true
+    }
+  },
+  "artifactConventions": {
+    "rootManifest": "evals/manifest.json",
+    "skillManifest": "evals/skills/{skill}/manifest.json",
+    "catalogManifest": "evals/skills/_catalog/manifest.json",
+    "readerManifest": "evals/vendor/gemma-4-e2b/manifest.json",
+    "sharedRubric": "evals/rubric.md",
+    "rootCases": "evals/cases.jsonl",
+    "skillCases": "evals/skills/{skill}/cases.jsonl",
+    "skillComprehension": "evals/skills/{skill}/comprehension/{source-key}.json",
+    "skillActivationQueries": "evals/skills/{skill}/trigger-queries.json",
+    "sourceReceipts": {
+      "root": "evals/receipts/{source-path-key}.json",
+      "skill": "evals/skills/{skill}/receipts/{source-path-key}.json",
+      "catalog": "evals/skills/_catalog/receipts/{source-path-key}.json",
+      "runtime": "evals/vendor/gemma-4-e2b/receipts/{source-path-key}.json"
+    },
+    "ownerLedgers": [
+      "evals/ledger.jsonl",
+      "evals/skills/{skill}/ledger.jsonl",
+      "evals/skills/_catalog/ledger.jsonl",
+      "evals/vendor/gemma-4-e2b/ledger.jsonl"
+    ],
+    "ownerRuns": [
+      "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+    ],
+    "transientRunStorage": {
+      "root": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "record": "run.json; compact metadata only",
+      "outsideRepositoryAndUntracked": true
+    },
+    "transientPayloadStorage": {
+      "root": "os.tmpdir()/agents-evaluation-snapshots/{repositoryId}/{ownerId}/",
+      "snapshot": "{entryId}.snapshot.md",
+      "fullSnapshotsAndRawPayloads": "outside-repository-and-untracked",
+      "missingPayloadRequiredForRollbackOrComparison": "fail-closed"
+    },
+    "caseRetirements": "evals/skills/{skill}/retirements.json"
+  },
+  "receiptFingerprintInputs": [
+    "source fingerprint and owned source paths",
+    "cases and schema version",
+    "shared rubric fingerprint",
+    "global and per-scope manifest fingerprints",
+    "reader or child prompt fingerprint",
+    "runner and profile versions",
+    "run id and per-case result vector",
+    "captured output, tool trace, and diff hashes"
+  ],
+  "owners": [
+    {
+      "id": "root",
+      "kind": "root-instruction",
+      "sourcePaths": [
+        "AGENTS.md"
+      ],
+      "directory": "evals/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension"
+      ],
+      "artifacts": {
+        "manifestRef": "evals/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/cases.jsonl",
+        "comprehension": [
+          "evals/comprehension/AGENTS.json"
+        ],
+        "receipts": [
+          "evals/receipts/AGENTS.json"
+        ],
+        "ledger": "evals/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/root-instruction-comprehension.json"
+      ]
+    },
+    {
+      "id": "skill:aidp",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/aidp/SKILL.md",
+        "evals/skills/aidp/rubric.md",
+        "skills/aidp/references/engineering-planning-contract.md"
+      ],
+      "directory": "evals/skills/aidp/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/aidp/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/aidp/cases.jsonl",
+        "comprehension": [
+          "evals/skills/aidp/comprehension/SKILL.json",
+          "evals/skills/aidp/comprehension/evals-rubric.json",
+          "evals/skills/aidp/comprehension/references-engineering-planning-contract.json"
+        ],
+        "triggerQueries": "evals/skills/aidp/trigger-queries.json",
+        "receipts": [
+          "evals/skills/aidp/receipts/SKILL.json",
+          "evals/skills/aidp/receipts/rubric.json",
+          "evals/skills/aidp/receipts/references--engineering-planning-contract.json"
+        ],
+        "ledger": "evals/skills/aidp/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/aidp/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/aidp/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/aidp/comprehension/references-engineering-planning-contract.json",
+        "evals/archive/phase-3-eval-retirement/aidp/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/aidp/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/aidp/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidp/skills--aidp--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidp/skills--aidp--references--engineering-planning-contract.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidp/skills--aidp--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/aidp.json"
+      ]
+    },
+    {
+      "id": "skill:aidx",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/aidx/SKILL.md",
+        "evals/skills/aidx/rubric.md",
+        "skills/aidx/references/engineering-execution-contract.md",
+        "skills/aidx/references/execution-contract.md"
+      ],
+      "directory": "evals/skills/aidx/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/aidx/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/aidx/cases.jsonl",
+        "comprehension": [
+          "evals/skills/aidx/comprehension/SKILL.json",
+          "evals/skills/aidx/comprehension/evals-rubric.json",
+          "evals/skills/aidx/comprehension/references-engineering-execution-contract.json",
+          "evals/skills/aidx/comprehension/references-execution-contract.json"
+        ],
+        "triggerQueries": "evals/skills/aidx/trigger-queries.json",
+        "receipts": [
+          "evals/skills/aidx/receipts/SKILL.json",
+          "evals/skills/aidx/receipts/rubric.json",
+          "evals/skills/aidx/receipts/references--engineering-execution-contract.json",
+          "evals/skills/aidx/receipts/references--execution-contract.json"
+        ],
+        "ledger": "evals/skills/aidx/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/aidx/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/aidx/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/aidx/comprehension/references-engineering-execution-contract.json",
+        "evals/archive/phase-3-eval-retirement/aidx/comprehension/references-execution-contract.json",
+        "evals/archive/phase-3-eval-retirement/aidx/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/aidx/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/aidx/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--references--engineering-execution-contract.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--references--execution-contract.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/aidx.json"
+      ]
+    },
+    {
+      "id": "skill:biome-checker",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/biome-checker/SKILL.md",
+        "evals/skills/biome-checker/rubric.md"
+      ],
+      "directory": "evals/skills/biome-checker/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/biome-checker/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/biome-checker/cases.jsonl",
+        "comprehension": [
+          "evals/skills/biome-checker/comprehension/SKILL.json",
+          "evals/skills/biome-checker/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/biome-checker/trigger-queries.json",
+        "receipts": [
+          "evals/skills/biome-checker/receipts/SKILL.json",
+          "evals/skills/biome-checker/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/biome-checker/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/biome-checker/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/biome-checker/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/biome-checker/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/biome-checker/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/biome-checker/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/biome-checker/skills--biome-checker--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/biome-checker/skills--biome-checker--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/biome-checker.json"
+      ]
+    },
+    {
+      "id": "skill:bun-test-generator",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/bun-test-generator/SKILL.md",
+        "evals/skills/bun-test-generator/rubric.md",
+        "skills/bun-test-generator/references/lessons-learned.md"
+      ],
+      "directory": "evals/skills/bun-test-generator/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/bun-test-generator/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/bun-test-generator/cases.jsonl",
+        "comprehension": [
+          "evals/skills/bun-test-generator/comprehension/SKILL.json",
+          "evals/skills/bun-test-generator/comprehension/evals-rubric.json",
+          "evals/skills/bun-test-generator/comprehension/references-lessons-learned.json"
+        ],
+        "triggerQueries": "evals/skills/bun-test-generator/trigger-queries.json",
+        "receipts": [
+          "evals/skills/bun-test-generator/receipts/SKILL.json",
+          "evals/skills/bun-test-generator/receipts/rubric.json",
+          "evals/skills/bun-test-generator/receipts/references--lessons-learned.json"
+        ],
+        "ledger": "evals/skills/bun-test-generator/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/references-lessons-learned.json",
+        "evals/archive/phase-3-eval-retirement/bun-test-generator/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/bun-test-generator/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/bun-test-generator/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/bun-test-generator/skills--bun-test-generator--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/bun-test-generator/skills--bun-test-generator--references--lessons-learned.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/bun-test-generator/skills--bun-test-generator--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/bun-test-generator.json"
+      ]
+    },
+    {
+      "id": "skill:content-writer",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/content-writer/SKILL.md",
+        "evals/skills/content-writer/rubric.md"
+      ],
+      "directory": "evals/skills/content-writer/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/content-writer/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/content-writer/cases.jsonl",
+        "comprehension": [
+          "evals/skills/content-writer/comprehension/SKILL.json",
+          "evals/skills/content-writer/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/content-writer/trigger-queries.json",
+        "receipts": [
+          "evals/skills/content-writer/receipts/SKILL.json",
+          "evals/skills/content-writer/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/content-writer/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/content-writer/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/content-writer/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/content-writer/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/content-writer/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/content-writer/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/content-writer/skills--content-writer--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/content-writer/skills--content-writer--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/content-writer.json"
+      ]
+    },
+    {
+      "id": "skill:frontend-design",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/frontend-design/SKILL.md",
+        "evals/skills/frontend-design/rubric.md"
+      ],
+      "directory": "evals/skills/frontend-design/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/frontend-design/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/frontend-design/cases.jsonl",
+        "comprehension": [
+          "evals/skills/frontend-design/comprehension/SKILL.json",
+          "evals/skills/frontend-design/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/frontend-design/trigger-queries.json",
+        "receipts": [
+          "evals/skills/frontend-design/receipts/SKILL.json",
+          "evals/skills/frontend-design/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/frontend-design/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/frontend-design/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/frontend-design/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/frontend-design/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/frontend-design/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/frontend-design/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/frontend-design/skills--frontend-design--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/frontend-design/skills--frontend-design--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/frontend-design.json"
+      ]
+    },
+    {
+      "id": "skill:knowledge-base",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/knowledge-base/SKILL.md",
+        "evals/skills/knowledge-base/rubric.md"
+      ],
+      "directory": "evals/skills/knowledge-base/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/knowledge-base/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/knowledge-base/cases.jsonl",
+        "comprehension": [
+          "evals/skills/knowledge-base/comprehension/SKILL.json",
+          "evals/skills/knowledge-base/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/knowledge-base/trigger-queries.json",
+        "receipts": [
+          "evals/skills/knowledge-base/receipts/SKILL.json",
+          "evals/skills/knowledge-base/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/knowledge-base/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/knowledge-base/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/knowledge-base/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/knowledge-base/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/knowledge-base/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/knowledge-base/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/knowledge-base/skills--knowledge-base--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/knowledge-base/skills--knowledge-base--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/knowledge-base.json"
+      ]
+    },
+    {
+      "id": "skill:md-compress",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/md-compress/SKILL.md",
+        "evals/skills/md-compress/rubric.md"
+      ],
+      "directory": "evals/skills/md-compress/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation",
+        "transaction-contract"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/md-compress/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/md-compress/cases.jsonl",
+        "comprehension": [
+          "evals/skills/md-compress/comprehension/SKILL.json",
+          "evals/skills/md-compress/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/md-compress/trigger-queries.json",
+        "receipts": [
+          "evals/skills/md-compress/receipts/SKILL.json",
+          "evals/skills/md-compress/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/md-compress/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "auxiliary": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/md-compress/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/md-compress/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/md-compress/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/md-compress/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/md-compress/cli-transaction.matrix.jsonl",
+        "evals/archive/phase-3-eval-retirement/md-compress/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/md-compress/skills--md-compress--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/md-compress/skills--md-compress--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/md-compress.json"
+      ]
+    },
+    {
+      "id": "skill:playwright-test-generator",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/playwright-test-generator/SKILL.md",
+        "evals/skills/playwright-test-generator/rubric.md"
+      ],
+      "directory": "evals/skills/playwright-test-generator/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/playwright-test-generator/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/playwright-test-generator/cases.jsonl",
+        "comprehension": [
+          "evals/skills/playwright-test-generator/comprehension/SKILL.json",
+          "evals/skills/playwright-test-generator/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/playwright-test-generator/trigger-queries.json",
+        "receipts": [
+          "evals/skills/playwright-test-generator/receipts/SKILL.json",
+          "evals/skills/playwright-test-generator/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/playwright-test-generator/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/playwright-test-generator/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/playwright-test-generator/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/playwright-test-generator/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/playwright-test-generator/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/playwright-test-generator/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/playwright-test-generator/skills--playwright-test-generator--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/playwright-test-generator/skills--playwright-test-generator--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/playwright-test-generator.json"
+      ]
+    },
+    {
+      "id": "skill:react",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/react/SKILL.md",
+        "evals/skills/react/rubric.md"
+      ],
+      "directory": "evals/skills/react/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/react/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/react/cases.jsonl",
+        "comprehension": [
+          "evals/skills/react/comprehension/SKILL.json",
+          "evals/skills/react/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/react/trigger-queries.json",
+        "receipts": [
+          "evals/skills/react/receipts/SKILL.json",
+          "evals/skills/react/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/react/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/react/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/react/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/react/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/react/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/react/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/react/skills--react--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/react/skills--react--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/react.json"
+      ]
+    },
+    {
+      "id": "skill:repo-search",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/repo-search/SKILL.md",
+        "evals/skills/repo-search/rubric.md",
+        "skills/repo-search/references/binary-router.md",
+        "skills/repo-search/references/engine.md",
+        "skills/repo-search/references/usage-patterns.md"
+      ],
+      "directory": "evals/skills/repo-search/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/repo-search/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/repo-search/cases.jsonl",
+        "comprehension": [
+          "evals/skills/repo-search/comprehension/SKILL.json",
+          "evals/skills/repo-search/comprehension/evals-rubric.json",
+          "evals/skills/repo-search/comprehension/references-binary-router.json",
+          "evals/skills/repo-search/comprehension/references-engine.json",
+          "evals/skills/repo-search/comprehension/references-usage-patterns.json"
+        ],
+        "triggerQueries": "evals/skills/repo-search/trigger-queries.json",
+        "receipts": [
+          "evals/skills/repo-search/receipts/SKILL.json",
+          "evals/skills/repo-search/receipts/rubric.json",
+          "evals/skills/repo-search/receipts/references--binary-router.json",
+          "evals/skills/repo-search/receipts/references--engine.json",
+          "evals/skills/repo-search/receipts/references--usage-patterns.json"
+        ],
+        "ledger": "evals/skills/repo-search/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/repo-search/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/repo-search/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/repo-search/comprehension/references-binary-router.json",
+        "evals/archive/phase-3-eval-retirement/repo-search/comprehension/references-engine.json",
+        "evals/archive/phase-3-eval-retirement/repo-search/comprehension/references-usage-patterns.json",
+        "evals/archive/phase-3-eval-retirement/repo-search/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/repo-search/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/repo-search/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--references--binary-router.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--references--engine.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--references--usage-patterns.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/repo-search.json"
+      ]
+    },
+    {
+      "id": "skill:review-changes",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/review-changes/SKILL.md",
+        "evals/skills/review-changes/rubric.md"
+      ],
+      "directory": "evals/skills/review-changes/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/review-changes/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/review-changes/cases.jsonl",
+        "comprehension": [
+          "evals/skills/review-changes/comprehension/SKILL.json",
+          "evals/skills/review-changes/comprehension/evals-rubric.json"
+        ],
+        "triggerQueries": "evals/skills/review-changes/trigger-queries.json",
+        "receipts": [
+          "evals/skills/review-changes/receipts/SKILL.json",
+          "evals/skills/review-changes/receipts/rubric.json"
+        ],
+        "ledger": "evals/skills/review-changes/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/review-changes/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/review-changes/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/review-changes/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/review-changes/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/review-changes/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/review-changes/skills--review-changes--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/review-changes/skills--review-changes--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/review-changes.json"
+      ]
+    },
+    {
+      "id": "skill:skill-manager",
+      "kind": "skill",
+      "sourcePaths": [
+        "skills/skill-manager/SKILL.md",
+        "evals/skills/skill-manager/rubric.md",
+        "skills/skill-manager/references/agent-skills-guidance.md",
+        "skills/skill-manager/references/index.md",
+        "skills/skill-manager/references/skill-lifecycle.md",
+        "skills/skill-manager/references/skill-template.md",
+        "skills/skill-manager/references/train-protocol.md"
+      ],
+      "directory": "evals/skills/skill-manager/",
+      "requiredLanes": [
+        "contract",
+        "behavior",
+        "comprehension",
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/skill-manager/manifest.json",
+        "rubricRef": "evals/rubric.md",
+        "cases": "evals/skills/skill-manager/cases.jsonl",
+        "comprehension": [
+          "evals/skills/skill-manager/comprehension/SKILL.json",
+          "evals/skills/skill-manager/comprehension/evals-rubric.json",
+          "evals/skills/skill-manager/comprehension/references-agent-skills-guidance.json",
+          "evals/skills/skill-manager/comprehension/references-index.json",
+          "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json",
+          "evals/skills/skill-manager/comprehension/references-skill-template.json",
+          "evals/skills/skill-manager/comprehension/references-train-protocol.json"
+        ],
+        "triggerQueries": "evals/skills/skill-manager/trigger-queries.json",
+        "receipts": [
+          "evals/skills/skill-manager/receipts/SKILL.json",
+          "evals/skills/skill-manager/receipts/rubric.json",
+          "evals/skills/skill-manager/receipts/references--agent-skills-guidance.json",
+          "evals/skills/skill-manager/receipts/references--index.json",
+          "evals/skills/skill-manager/receipts/references--skill-lifecycle.json",
+          "evals/skills/skill-manager/receipts/references--skill-template.json",
+          "evals/skills/skill-manager/receipts/references--train-protocol.json"
+        ],
+        "ledger": "evals/skills/skill-manager/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/SKILL.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/evals-rubric.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-agent-skills-guidance.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-index.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-skill-lifecycle.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-skill-template.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-train-protocol.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/trigger-queries.json",
+        "evals/archive/phase-3-eval-retirement/skill-manager/cases.jsonl",
+        "evals/archive/phase-3-eval-retirement/skill-manager/rubric.md",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--evals--rubric.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--agent-skills-guidance.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--index.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--skill-lifecycle.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--skill-template.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--train-protocol.json",
+        "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--SKILL.json",
+        "evals/archive/phase-3-eval-retirement/activation-receipts/skill-manager.json"
+      ]
+    },
+    {
+      "id": "skill-catalog",
+      "kind": "catalog",
+      "sourcePaths": [],
+      "derivedFromOwners": [
+        "skill:aidp",
+        "skill:aidx",
+        "skill:biome-checker",
+        "skill:bun-test-generator",
+        "skill:content-writer",
+        "skill:frontend-design",
+        "skill:knowledge-base",
+        "skill:md-compress",
+        "skill:playwright-test-generator",
+        "skill:react",
+        "skill:repo-search",
+        "skill:review-changes",
+        "skill:skill-manager"
+      ],
+      "directory": "evals/skills/_catalog/",
+      "requiredLanes": [
+        "activation"
+      ],
+      "artifacts": {
+        "manifest": "evals/skills/_catalog/manifest.json",
+        "activationReceipt": "evals/skills/_catalog/receipts/activation.json",
+        "ledger": "evals/skills/_catalog/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "inputs": {
+        "aidp": "evals/skills/aidp/trigger-queries.json",
+        "aidx": "evals/skills/aidx/trigger-queries.json",
+        "biome-checker": "evals/skills/biome-checker/trigger-queries.json",
+        "bun-test-generator": "evals/skills/bun-test-generator/trigger-queries.json",
+        "content-writer": "evals/skills/content-writer/trigger-queries.json",
+        "frontend-design": "evals/skills/frontend-design/trigger-queries.json",
+        "knowledge-base": "evals/skills/knowledge-base/trigger-queries.json",
+        "md-compress": "evals/skills/md-compress/trigger-queries.json",
+        "playwright-test-generator": "evals/skills/playwright-test-generator/trigger-queries.json",
+        "react": "evals/skills/react/trigger-queries.json",
+        "repo-search": "evals/skills/repo-search/trigger-queries.json",
+        "review-changes": "evals/skills/review-changes/trigger-queries.json",
+        "skill-manager": "evals/skills/skill-manager/trigger-queries.json"
+      },
+      "archivedArtifacts": [
+        "evals/archive/phase-3-eval-retirement/root-catalog-activation-receipt.json"
+      ]
+    },
+    {
+      "id": "weak-reader",
+      "kind": "reader-runtime",
+      "sourcePaths": [
+        "scripts/weak-reader.ts"
+      ],
+      "directory": "evals/vendor/gemma-4-e2b/",
+      "derivedFromOwners": [
+        "root",
+        "skill:aidp",
+        "skill:aidx",
+        "skill:biome-checker",
+        "skill:bun-test-generator",
+        "skill:content-writer",
+        "skill:frontend-design",
+        "skill:knowledge-base",
+        "skill:md-compress",
+        "skill:playwright-test-generator",
+        "skill:react",
+        "skill:repo-search",
+        "skill:review-changes",
+        "skill:skill-manager",
+        "skill-catalog"
+      ],
+      "requiredLanes": [
+        "reader-baseline",
+        "reader-candidate",
+        "runtime-provenance"
+      ],
+      "artifacts": {
+        "manifest": "evals/vendor/gemma-4-e2b/manifest.json",
+        "baselineReceipt": "evals/vendor/gemma-4-e2b/phase-1-baseline.json",
+        "answerSets": "os.tmpdir()/agents-evaluation-snapshots/{repositoryId}/{ownerNamespace}/{runId}/",
+        "ledger": "evals/vendor/gemma-4-e2b/ledger.jsonl",
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+      },
+      "baselineFingerprint": {
+        "bundleSha256": "fd5442e04ca76564d4a9560b9a8679469442d30b12d188a5509e1d1e77a6a1df",
+        "answersSha256": "be1f2b613aa200e0522682487441c0080ecbdc415e7bbc3fffad5ce08c9e51e1",
+        "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+        "runtimeBundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+        "queries": 84,
+        "probes": 252,
+        "fullProcessSeconds": 55.49,
+        "readerReportedSeconds": 53.404,
+        "peakMemoryFootprintBytes": 8608863872,
+        "maximumResidentSetBytes": 3818045440,
+        "limitation": "One full-process timing sample; per-query timing is absent; repeat before claiming an optimization."
+      },
+      "baselineRun": {
+        "benchmarkInput": "/Users/rhuang/.agents/evals/archive/phase-3-eval-retirement/root-instruction-comprehension.json",
+        "currentCanonicalInput": "/Users/rhuang/.agents/evals/comprehension/AGENTS.json",
+        "sourceDocument": "/Users/rhuang/.agents/AGENTS.md",
+        "bundlePath": "/private/tmp/aidx-phase1-gemma-bundle.json",
+        "bundleSha256": "fd5442e04ca76564d4a9560b9a8679469442d30b12d188a5509e1d1e77a6a1df",
+        "bundleProfile": {
+          "documentBytes": 39783,
+          "instructionBytes": 184,
+          "promptCount": 252
+        },
+        "modelCachePath": "/Users/rhuang/.cache/huggingface/hub/models--google--gemma-4-E2B-it-qat-mobile-transformers",
+        "cachePlanRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+        "cacheSnapshotPresent": true,
+        "environment": {
+          "macOS": "26.7.3 build 25G342",
+          "adapter": "Apple M4 Max, 32 GPU cores, Metal supported",
+          "HF_HOME": "unset; default Hugging Face cache"
+        },
+        "attemptedCommand": "/usr/bin/time -l bun scripts/weak-reader.ts /private/tmp/aidx-phase1-gemma-bundle.json /private/tmp/aidx-phase1-gemma-answers.jsonl",
+        "workingDirectory": "/Users/rhuang/.agents",
+        "exitCode": 0,
+        "output": "[weak-reader] GPU ready; context 8950/17408 tokens; answered 252 probes from 84 queries; load 1.964 s, warmup 0.944 s, total 53.404 s; last query first token 0.421 s, total 0.455 s; model revision dd693ff40353f057ca5f07e945ad867f4afbf2ec; runtime bundle 12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a. /usr/bin/time -l: 55.49 real, 49.25 user, 7.87 sys, 3818045440 maximum resident set size, 8608863872 peak memory footprint, 0 swaps.",
+        "answersPath": "/private/tmp/aidx-phase1-gemma-answers.jsonl",
+        "answersFilePresent": true,
+        "answersSha256": "be1f2b613aa200e0522682487441c0080ecbdc415e7bbc3fffad5ce08c9e51e1",
+        "answersRows": 252,
+        "distinctQueries": 84,
+        "runLabelsPerQuery": 3,
+        "actualModelGenerations": 84,
+        "latencyRecorded": true,
+        "peakMemoryRecorded": true,
+        "timingGranularity": "The run log reports load, warmup, total, and the last query's first-token/total latency. The answer JSONL has no timing columns; weak-reader.ts generates once per distinct query and duplicates the answer across its three deterministic run labels.",
+        "memoryTools": {
+          "vmmap": "/usr/bin/vmmap exists",
+          "footprint": "/usr/bin/footprint exists",
+          "timeL": "succeeded outside the Codex sandbox; the earlier in-sandbox probe failed on sysctl kern.clockrate."
+        },
+        "gateState": "Phase 1 reader and performance baseline recorded. The generated training ledger is a temporary measurement artifact, not an instruction-gate receipt. Repeated full-process timing samples remain necessary before claiming an optimization gain.",
+        "sandboxFailure": {
+          "command": "bun scripts/weak-reader.ts /private/tmp/aidx-phase1-gemma-bundle.json /private/tmp/aidx-phase1-gemma-answers.jsonl",
+          "exitCode": 2,
+          "output": "No GPU adapter is available; this process is probably sandboxed. Run this one command outside the sandbox."
+        },
+        "exitStatusEvidence": "The external terminal did not print a separate status line. Successful GPU-ready output, a complete 252-row answer file, and exit-0 train measurement establish the reader success path; weak-reader's answered status is exit 0."
+      },
+      "corpusCounts": {
+        "comprehensionQueries": {
+          "train": 655,
+          "validation": 330,
+          "total": 985
+        },
+        "activationQueries": {
+          "train": 469,
+          "validation": 338,
+          "total": 807
+        },
+        "caseMatrixLines": {
+          "wcLTotal": 200,
+          "mdCompressCliTransactionMatrix": 3
+        }
+      }
+    },
+    {
+      "id": "evaluation-contract",
+      "kind": "evaluation-contract",
+      "sourcePaths": [],
+      "directory": "evals/",
+      "requiredLanes": [],
+      "artifacts": {
+        "manifest": "evals/manifest.json",
+        "schema": "evals/schema.json",
+        "rubric": "evals/rubric.md",
+        "coverageMap": "evals/coverage-map.json"
+      }
+    }
+  ],
+  "sourceOwners": [
+    {
+      "sourcePath": "AGENTS.md",
+      "ownerId": "root"
+    },
+    {
+      "sourcePath": "scripts/weak-reader.ts",
+      "ownerId": "weak-reader"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/rubric.md",
+      "ownerId": "skill:aidp"
+    },
+    {
+      "sourcePath": "skills/aidp/references/engineering-planning-contract.md",
+      "ownerId": "skill:aidp"
+    },
+    {
+      "sourcePath": "skills/aidp/SKILL.md",
+      "ownerId": "skill:aidp"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/rubric.md",
+      "ownerId": "skill:aidx"
+    },
+    {
+      "sourcePath": "skills/aidx/references/engineering-execution-contract.md",
+      "ownerId": "skill:aidx"
+    },
+    {
+      "sourcePath": "skills/aidx/references/execution-contract.md",
+      "ownerId": "skill:aidx"
+    },
+    {
+      "sourcePath": "skills/aidx/SKILL.md",
+      "ownerId": "skill:aidx"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/biome-checker/rubric.md",
+      "ownerId": "skill:biome-checker"
+    },
+    {
+      "sourcePath": "skills/biome-checker/SKILL.md",
+      "ownerId": "skill:biome-checker"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/rubric.md",
+      "ownerId": "skill:bun-test-generator"
+    },
+    {
+      "sourcePath": "skills/bun-test-generator/references/lessons-learned.md",
+      "ownerId": "skill:bun-test-generator"
+    },
+    {
+      "sourcePath": "skills/bun-test-generator/SKILL.md",
+      "ownerId": "skill:bun-test-generator"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/content-writer/rubric.md",
+      "ownerId": "skill:content-writer"
+    },
+    {
+      "sourcePath": "skills/content-writer/SKILL.md",
+      "ownerId": "skill:content-writer"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/frontend-design/rubric.md",
+      "ownerId": "skill:frontend-design"
+    },
+    {
+      "sourcePath": "skills/frontend-design/SKILL.md",
+      "ownerId": "skill:frontend-design"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/knowledge-base/rubric.md",
+      "ownerId": "skill:knowledge-base"
+    },
+    {
+      "sourcePath": "skills/knowledge-base/SKILL.md",
+      "ownerId": "skill:knowledge-base"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/rubric.md",
+      "ownerId": "skill:md-compress"
+    },
+    {
+      "sourcePath": "skills/md-compress/SKILL.md",
+      "ownerId": "skill:md-compress"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/playwright-test-generator/rubric.md",
+      "ownerId": "skill:playwright-test-generator"
+    },
+    {
+      "sourcePath": "skills/playwright-test-generator/SKILL.md",
+      "ownerId": "skill:playwright-test-generator"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/react/rubric.md",
+      "ownerId": "skill:react"
+    },
+    {
+      "sourcePath": "skills/react/SKILL.md",
+      "ownerId": "skill:react"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/rubric.md",
+      "ownerId": "skill:repo-search"
+    },
+    {
+      "sourcePath": "skills/repo-search/references/binary-router.md",
+      "ownerId": "skill:repo-search"
+    },
+    {
+      "sourcePath": "skills/repo-search/references/engine.md",
+      "ownerId": "skill:repo-search"
+    },
+    {
+      "sourcePath": "skills/repo-search/references/usage-patterns.md",
+      "ownerId": "skill:repo-search"
+    },
+    {
+      "sourcePath": "skills/repo-search/SKILL.md",
+      "ownerId": "skill:repo-search"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/review-changes/rubric.md",
+      "ownerId": "skill:review-changes"
+    },
+    {
+      "sourcePath": "skills/review-changes/SKILL.md",
+      "ownerId": "skill:review-changes"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/rubric.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/agent-skills-guidance.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/index.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/skill-template.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/train-protocol.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/SKILL.md",
+      "ownerId": "skill:skill-manager"
+    }
+  ],
+  "artifactOwners": [
+    {
+      "path": "os.tmpdir()/agents-evaluation-snapshots/{repositoryId}/{ownerNamespace}/{runId}/",
+      "ownerId": "weak-reader",
+      "lane": "reader-runtime"
+    },
+    {
+      "path": "evals/vendor/gemma-4-e2b/ledger.jsonl",
+      "ownerId": "weak-reader",
+      "lane": "reader-runtime"
+    },
+    {
+      "path": "evals/vendor/gemma-4-e2b/manifest.json",
+      "ownerId": "weak-reader",
+      "lane": "reader-runtime"
+    },
+    {
+      "path": "evals/vendor/gemma-4-e2b/phase-1-baseline.json",
+      "ownerId": "weak-reader",
+      "lane": "reader-runtime"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "weak-reader",
+      "lane": "reader-runtime"
+    },
+    {
+      "path": "evals/cases.jsonl",
+      "ownerId": "root",
+      "lane": "root-evaluation"
+    },
+    {
+      "path": "evals/comprehension/AGENTS.json",
+      "ownerId": "root",
+      "lane": "root-evaluation"
+    },
+    {
+      "path": "evals/coverage-map.json",
+      "ownerId": "evaluation-contract",
+      "lane": "evaluation-contract"
+    },
+    {
+      "path": "evals/ledger.jsonl",
+      "ownerId": "root",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/manifest.json",
+      "ownerId": "evaluation-contract",
+      "lane": "evaluation-contract"
+    },
+    {
+      "path": "evals/skills/_catalog/receipts/activation.json",
+      "ownerId": "skill-catalog",
+      "lane": "activation-receipt"
+    },
+    {
+      "path": "evals/receipts/AGENTS.json",
+      "ownerId": "root",
+      "lane": "receipt"
+    },
+    {
+      "path": "evals/rubric.md",
+      "ownerId": "evaluation-contract",
+      "lane": "evaluation-contract"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "root",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/schema.json",
+      "ownerId": "evaluation-contract",
+      "lane": "evaluation-contract"
+    },
+    {
+      "path": "evals/skills/_catalog/ledger.jsonl",
+      "ownerId": "skill-catalog",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/_catalog/manifest.json",
+      "ownerId": "skill-catalog",
+      "lane": "catalog-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill-catalog",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/aidp/cases.jsonl",
+      "ownerId": "skill:aidp",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/aidp/comprehension/evals-rubric.json",
+      "ownerId": "skill:aidp",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidp/comprehension/references-engineering-planning-contract.json",
+      "ownerId": "skill:aidp",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidp/comprehension/SKILL.json",
+      "ownerId": "skill:aidp",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidp/ledger.jsonl",
+      "ownerId": "skill:aidp",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/aidp/manifest.json",
+      "ownerId": "skill:aidp",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:aidp",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/aidp/trigger-queries.json",
+      "ownerId": "skill:aidp",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/aidx/cases.jsonl",
+      "ownerId": "skill:aidx",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/aidx/comprehension/evals-rubric.json",
+      "ownerId": "skill:aidx",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidx/comprehension/references-engineering-execution-contract.json",
+      "ownerId": "skill:aidx",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidx/comprehension/references-execution-contract.json",
+      "ownerId": "skill:aidx",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidx/comprehension/SKILL.json",
+      "ownerId": "skill:aidx",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/aidx/ledger.jsonl",
+      "ownerId": "skill:aidx",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/aidx/manifest.json",
+      "ownerId": "skill:aidx",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:aidx",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/aidx/trigger-queries.json",
+      "ownerId": "skill:aidx",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/biome-checker/cases.jsonl",
+      "ownerId": "skill:biome-checker",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/biome-checker/comprehension/evals-rubric.json",
+      "ownerId": "skill:biome-checker",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/biome-checker/comprehension/SKILL.json",
+      "ownerId": "skill:biome-checker",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/biome-checker/ledger.jsonl",
+      "ownerId": "skill:biome-checker",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/biome-checker/manifest.json",
+      "ownerId": "skill:biome-checker",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:biome-checker",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/biome-checker/trigger-queries.json",
+      "ownerId": "skill:biome-checker",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/cases.jsonl",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/comprehension/evals-rubric.json",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/comprehension/references-lessons-learned.json",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/comprehension/SKILL.json",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/ledger.jsonl",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/manifest.json",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/bun-test-generator/trigger-queries.json",
+      "ownerId": "skill:bun-test-generator",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/content-writer/cases.jsonl",
+      "ownerId": "skill:content-writer",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/content-writer/comprehension/evals-rubric.json",
+      "ownerId": "skill:content-writer",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/content-writer/comprehension/SKILL.json",
+      "ownerId": "skill:content-writer",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/content-writer/ledger.jsonl",
+      "ownerId": "skill:content-writer",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/content-writer/manifest.json",
+      "ownerId": "skill:content-writer",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:content-writer",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/content-writer/trigger-queries.json",
+      "ownerId": "skill:content-writer",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/frontend-design/cases.jsonl",
+      "ownerId": "skill:frontend-design",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/frontend-design/comprehension/evals-rubric.json",
+      "ownerId": "skill:frontend-design",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/frontend-design/comprehension/SKILL.json",
+      "ownerId": "skill:frontend-design",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/frontend-design/ledger.jsonl",
+      "ownerId": "skill:frontend-design",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/frontend-design/manifest.json",
+      "ownerId": "skill:frontend-design",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:frontend-design",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/frontend-design/trigger-queries.json",
+      "ownerId": "skill:frontend-design",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/knowledge-base/cases.jsonl",
+      "ownerId": "skill:knowledge-base",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/knowledge-base/comprehension/evals-rubric.json",
+      "ownerId": "skill:knowledge-base",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/knowledge-base/comprehension/SKILL.json",
+      "ownerId": "skill:knowledge-base",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/knowledge-base/ledger.jsonl",
+      "ownerId": "skill:knowledge-base",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/knowledge-base/manifest.json",
+      "ownerId": "skill:knowledge-base",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:knowledge-base",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/knowledge-base/trigger-queries.json",
+      "ownerId": "skill:knowledge-base",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl",
+      "ownerId": "skill:md-compress",
+      "lane": "transaction-contract"
+    },
+    {
+      "path": "evals/skills/md-compress/cases.jsonl",
+      "ownerId": "skill:md-compress",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/md-compress/comprehension/evals-rubric.json",
+      "ownerId": "skill:md-compress",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/md-compress/comprehension/SKILL.json",
+      "ownerId": "skill:md-compress",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/md-compress/ledger.jsonl",
+      "ownerId": "skill:md-compress",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/md-compress/manifest.json",
+      "ownerId": "skill:md-compress",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:md-compress",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/md-compress/trigger-queries.json",
+      "ownerId": "skill:md-compress",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/playwright-test-generator/cases.jsonl",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/playwright-test-generator/comprehension/evals-rubric.json",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/playwright-test-generator/comprehension/SKILL.json",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/playwright-test-generator/ledger.jsonl",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/playwright-test-generator/manifest.json",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/playwright-test-generator/trigger-queries.json",
+      "ownerId": "skill:playwright-test-generator",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/react/cases.jsonl",
+      "ownerId": "skill:react",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/react/comprehension/evals-rubric.json",
+      "ownerId": "skill:react",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/react/comprehension/SKILL.json",
+      "ownerId": "skill:react",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/react/ledger.jsonl",
+      "ownerId": "skill:react",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/react/manifest.json",
+      "ownerId": "skill:react",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:react",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/react/trigger-queries.json",
+      "ownerId": "skill:react",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/repo-search/cases.jsonl",
+      "ownerId": "skill:repo-search",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/repo-search/comprehension/evals-rubric.json",
+      "ownerId": "skill:repo-search",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/repo-search/comprehension/references-binary-router.json",
+      "ownerId": "skill:repo-search",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/repo-search/comprehension/references-engine.json",
+      "ownerId": "skill:repo-search",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/repo-search/comprehension/references-usage-patterns.json",
+      "ownerId": "skill:repo-search",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/repo-search/comprehension/SKILL.json",
+      "ownerId": "skill:repo-search",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/repo-search/ledger.jsonl",
+      "ownerId": "skill:repo-search",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/repo-search/manifest.json",
+      "ownerId": "skill:repo-search",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:repo-search",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/repo-search/trigger-queries.json",
+      "ownerId": "skill:repo-search",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/review-changes/cases.jsonl",
+      "ownerId": "skill:review-changes",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/review-changes/comprehension/evals-rubric.json",
+      "ownerId": "skill:review-changes",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/review-changes/comprehension/SKILL.json",
+      "ownerId": "skill:review-changes",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/review-changes/ledger.jsonl",
+      "ownerId": "skill:review-changes",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/review-changes/manifest.json",
+      "ownerId": "skill:review-changes",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:review-changes",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/review-changes/trigger-queries.json",
+      "ownerId": "skill:review-changes",
+      "lane": "activation"
+    },
+    {
+      "path": "evals/skills/skill-manager/cases.jsonl",
+      "ownerId": "skill:skill-manager",
+      "lane": "contract-and-behavior"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/evals-rubric.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/references-agent-skills-guidance.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/references-index.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/references-skill-template.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/SKILL.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/ledger.jsonl",
+      "ownerId": "skill:skill-manager",
+      "lane": "ledger"
+    },
+    {
+      "path": "evals/skills/skill-manager/manifest.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "skill-manifest"
+    },
+    {
+      "path": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+      "ownerId": "skill:skill-manager",
+      "lane": "runs"
+    },
+    {
+      "path": "evals/skills/skill-manager/trigger-queries.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "activation"
+    }
+  ],
+  "artifactMappings": [
+    {
+      "sourcePath": "evals/receipts/AGENTS.json",
+      "targetPath": "evals/receipts/AGENTS.json"
+    }
+  ],
+  "archivedArtifactMappings": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/root-instruction-comprehension.json",
+      "targetPath": "evals/comprehension/AGENTS.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/comprehension/SKILL.json",
+      "targetPath": "evals/skills/aidp/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/aidp/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/comprehension/references-engineering-planning-contract.json",
+      "targetPath": "evals/skills/aidp/comprehension/references-engineering-planning-contract.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/comprehension/SKILL.json",
+      "targetPath": "evals/skills/aidx/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/aidx/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/comprehension/references-engineering-execution-contract.json",
+      "targetPath": "evals/skills/aidx/comprehension/references-engineering-execution-contract.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/comprehension/references-execution-contract.json",
+      "targetPath": "evals/skills/aidx/comprehension/references-execution-contract.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/biome-checker/comprehension/SKILL.json",
+      "targetPath": "evals/skills/biome-checker/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/biome-checker/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/biome-checker/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/SKILL.json",
+      "targetPath": "evals/skills/bun-test-generator/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/bun-test-generator/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/references-lessons-learned.json",
+      "targetPath": "evals/skills/bun-test-generator/comprehension/references-lessons-learned.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/content-writer/comprehension/SKILL.json",
+      "targetPath": "evals/skills/content-writer/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/content-writer/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/content-writer/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/frontend-design/comprehension/SKILL.json",
+      "targetPath": "evals/skills/frontend-design/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/frontend-design/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/frontend-design/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/knowledge-base/comprehension/SKILL.json",
+      "targetPath": "evals/skills/knowledge-base/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/knowledge-base/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/knowledge-base/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/comprehension/SKILL.json",
+      "targetPath": "evals/skills/md-compress/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/md-compress/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/playwright-test-generator/comprehension/SKILL.json",
+      "targetPath": "evals/skills/playwright-test-generator/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/playwright-test-generator/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/playwright-test-generator/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/react/comprehension/SKILL.json",
+      "targetPath": "evals/skills/react/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/react/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/react/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/comprehension/SKILL.json",
+      "targetPath": "evals/skills/repo-search/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/repo-search/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/comprehension/references-binary-router.json",
+      "targetPath": "evals/skills/repo-search/comprehension/references-binary-router.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/comprehension/references-engine.json",
+      "targetPath": "evals/skills/repo-search/comprehension/references-engine.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/comprehension/references-usage-patterns.json",
+      "targetPath": "evals/skills/repo-search/comprehension/references-usage-patterns.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/review-changes/comprehension/SKILL.json",
+      "targetPath": "evals/skills/review-changes/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/review-changes/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/review-changes/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/SKILL.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/evals-rubric.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/evals-rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-agent-skills-guidance.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/references-agent-skills-guidance.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-index.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/references-index.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-skill-lifecycle.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-skill-template.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/references-skill-template.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/references-train-protocol.json",
+      "targetPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/trigger-queries.json",
+      "targetPath": "evals/skills/aidp/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/trigger-queries.json",
+      "targetPath": "evals/skills/aidx/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/biome-checker/trigger-queries.json",
+      "targetPath": "evals/skills/biome-checker/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/trigger-queries.json",
+      "targetPath": "evals/skills/bun-test-generator/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/content-writer/trigger-queries.json",
+      "targetPath": "evals/skills/content-writer/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/frontend-design/trigger-queries.json",
+      "targetPath": "evals/skills/frontend-design/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/knowledge-base/trigger-queries.json",
+      "targetPath": "evals/skills/knowledge-base/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/trigger-queries.json",
+      "targetPath": "evals/skills/md-compress/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/playwright-test-generator/trigger-queries.json",
+      "targetPath": "evals/skills/playwright-test-generator/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/react/trigger-queries.json",
+      "targetPath": "evals/skills/react/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/trigger-queries.json",
+      "targetPath": "evals/skills/repo-search/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/review-changes/trigger-queries.json",
+      "targetPath": "evals/skills/review-changes/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/trigger-queries.json",
+      "targetPath": "evals/skills/skill-manager/trigger-queries.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidp/cases.jsonl",
+      "targetPath": "evals/skills/aidp/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/aidx/cases.jsonl",
+      "targetPath": "evals/skills/aidx/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/biome-checker/cases.jsonl",
+      "targetPath": "evals/skills/biome-checker/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/bun-test-generator/cases.jsonl",
+      "targetPath": "evals/skills/bun-test-generator/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/content-writer/cases.jsonl",
+      "targetPath": "evals/skills/content-writer/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/frontend-design/cases.jsonl",
+      "targetPath": "evals/skills/frontend-design/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/knowledge-base/cases.jsonl",
+      "targetPath": "evals/skills/knowledge-base/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/cases.jsonl",
+      "targetPath": "evals/skills/md-compress/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/playwright-test-generator/cases.jsonl",
+      "targetPath": "evals/skills/playwright-test-generator/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/react/cases.jsonl",
+      "targetPath": "evals/skills/react/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/cases.jsonl",
+      "targetPath": "evals/skills/repo-search/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/review-changes/cases.jsonl",
+      "targetPath": "evals/skills/review-changes/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/skill-manager/cases.jsonl",
+      "targetPath": "evals/skills/skill-manager/cases.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/root-catalog-activation-receipt.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/cli-transaction.matrix.jsonl",
+      "targetPath": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidp/skills--aidp--evals--rubric.json",
+      "targetPath": "evals/skills/aidp/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidp/skills--aidp--references--engineering-planning-contract.json",
+      "targetPath": "evals/skills/aidp/receipts/references--engineering-planning-contract.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidp/skills--aidp--SKILL.json",
+      "targetPath": "evals/skills/aidp/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--evals--rubric.json",
+      "targetPath": "evals/skills/aidx/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--references--engineering-execution-contract.json",
+      "targetPath": "evals/skills/aidx/receipts/references--engineering-execution-contract.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--references--execution-contract.json",
+      "targetPath": "evals/skills/aidx/receipts/references--execution-contract.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/aidx/skills--aidx--SKILL.json",
+      "targetPath": "evals/skills/aidx/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/biome-checker/skills--biome-checker--evals--rubric.json",
+      "targetPath": "evals/skills/biome-checker/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/biome-checker/skills--biome-checker--SKILL.json",
+      "targetPath": "evals/skills/biome-checker/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/bun-test-generator/skills--bun-test-generator--evals--rubric.json",
+      "targetPath": "evals/skills/bun-test-generator/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/bun-test-generator/skills--bun-test-generator--references--lessons-learned.json",
+      "targetPath": "evals/skills/bun-test-generator/receipts/references--lessons-learned.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/bun-test-generator/skills--bun-test-generator--SKILL.json",
+      "targetPath": "evals/skills/bun-test-generator/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/content-writer/skills--content-writer--evals--rubric.json",
+      "targetPath": "evals/skills/content-writer/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/content-writer/skills--content-writer--SKILL.json",
+      "targetPath": "evals/skills/content-writer/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/frontend-design/skills--frontend-design--evals--rubric.json",
+      "targetPath": "evals/skills/frontend-design/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/frontend-design/skills--frontend-design--SKILL.json",
+      "targetPath": "evals/skills/frontend-design/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/knowledge-base/skills--knowledge-base--evals--rubric.json",
+      "targetPath": "evals/skills/knowledge-base/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/knowledge-base/skills--knowledge-base--SKILL.json",
+      "targetPath": "evals/skills/knowledge-base/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/md-compress/skills--md-compress--evals--rubric.json",
+      "targetPath": "evals/skills/md-compress/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/md-compress/skills--md-compress--SKILL.json",
+      "targetPath": "evals/skills/md-compress/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/playwright-test-generator/skills--playwright-test-generator--evals--rubric.json",
+      "targetPath": "evals/skills/playwright-test-generator/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/playwright-test-generator/skills--playwright-test-generator--SKILL.json",
+      "targetPath": "evals/skills/playwright-test-generator/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/react/skills--react--evals--rubric.json",
+      "targetPath": "evals/skills/react/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/react/skills--react--SKILL.json",
+      "targetPath": "evals/skills/react/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--evals--rubric.json",
+      "targetPath": "evals/skills/repo-search/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--references--binary-router.json",
+      "targetPath": "evals/skills/repo-search/receipts/references--binary-router.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--references--engine.json",
+      "targetPath": "evals/skills/repo-search/receipts/references--engine.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--references--usage-patterns.json",
+      "targetPath": "evals/skills/repo-search/receipts/references--usage-patterns.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/repo-search/skills--repo-search--SKILL.json",
+      "targetPath": "evals/skills/repo-search/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/review-changes/skills--review-changes--evals--rubric.json",
+      "targetPath": "evals/skills/review-changes/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/review-changes/skills--review-changes--SKILL.json",
+      "targetPath": "evals/skills/review-changes/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--evals--rubric.json",
+      "targetPath": "evals/skills/skill-manager/receipts/rubric.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--agent-skills-guidance.json",
+      "targetPath": "evals/skills/skill-manager/receipts/references--agent-skills-guidance.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--index.json",
+      "targetPath": "evals/skills/skill-manager/receipts/references--index.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--skill-lifecycle.json",
+      "targetPath": "evals/skills/skill-manager/receipts/references--skill-lifecycle.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--skill-template.json",
+      "targetPath": "evals/skills/skill-manager/receipts/references--skill-template.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--references--train-protocol.json",
+      "targetPath": "evals/skills/skill-manager/receipts/references--train-protocol.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/owner-receipts/skill-manager/skills--skill-manager--SKILL.json",
+      "targetPath": "evals/skills/skill-manager/receipts/SKILL.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/aidp.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/aidx.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/biome-checker.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/bun-test-generator.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/content-writer.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/frontend-design.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/knowledge-base.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/md-compress.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/playwright-test-generator.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/react.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/repo-search.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/review-changes.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/activation-receipts/skill-manager.json",
+      "targetPath": "evals/skills/_catalog/receipts/activation.json"
+    }
+  ],
+  "auxiliaryLanes": [
+    {
+      "ownerId": "skill:md-compress",
+      "lane": "transaction-contract",
+      "targetPath": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl",
+      "disposition": "Preserve as a separately named command-routing lane using the same schema contract case variant; its three ids are unique when merged with the four main cases."
+    }
+  ]
+}

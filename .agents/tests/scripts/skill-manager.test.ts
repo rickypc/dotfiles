@@ -1,7 +1,5 @@
 import { expect, mock, test } from 'bun:test';
 
-import { dirname, join } from 'node:path';
-
 import { run, runWhenMain, usage } from '../../scripts/skill-manager.js';
 
 interface BundleReceipt {
@@ -43,6 +41,7 @@ interface MeasureReceipt {
 
 interface SelectReceipt {
   readonly attempts: readonly unknown[];
+  readonly baseline: { readonly entryId: string };
   readonly decision: string;
   readonly liveEntry?: { readonly entryId: string; readonly status: string };
   readonly liveState: string;
@@ -51,6 +50,12 @@ interface SelectReceipt {
 }
 
 type World = ReturnType<typeof newWorld>;
+
+const expectTemporarySnapshot = (path: string, entryId: string): void => {
+  expect(path).toMatch(/\/agents-evaluation-snapshots\/[0-9a-f]{24}\/[0-9a-f]{24}\//u);
+  expect(path.endsWith(`${entryId}.snapshot.md`)).toBe(true);
+  expect(path).not.toContain(LEDGER_ROOT);
+};
 
 test('renders a deterministic action packet without executing it', async () => {
   const write = mock();
@@ -64,70 +69,6 @@ test('rejects invalid script input and covers the main boundary', async () => {
   void runWhenMain(true, ['packet', 'improve-skill', 'draft', '/skill.md'], runner);
   void runWhenMain(false, [], runner);
   expect(runner).toHaveBeenCalledTimes(1);
-});
-
-test('evaluates a matrix in one deterministic script phase', async () => {
-  const matrix = [
-    JSON.stringify({
-      assertions: [{ expected: 'required', kind: 'required-text' }],
-      failureMode: 'f',
-      id: 'a',
-      independentVerifier: 'source-structure',
-      repairBoundary: '/skill',
-      scenario: 's',
-      visibility: 'candidate',
-    }),
-    JSON.stringify({
-      assertions: [{ expected: 'required', kind: 'required-text' }],
-      failureMode: 'f',
-      id: 'b',
-      independentVerifier: 'source-structure',
-      repairBoundary: '/skill',
-      scenario: 's',
-      visibility: 'challenge',
-    }),
-  ].join('\n');
-  const read = mock(async (path: string) => (path === '/matrix' ? matrix : 'required'));
-  const write = mock();
-  await run(['evaluate', 'candidate', '/matrix', '/target'], read, write);
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('passed'));
-  await run(['evaluate', 'baseline', '/matrix', '/target'], read, write);
-  await run(['evaluate', 'challenge', '/matrix', '/target'], read, write);
-  await expect(run(['evaluate', 'candidate', '/matrix'])).rejects.toThrow(usage());
-  await expect(run(['evaluate', 'invalid', '/matrix', '/target'], read)).rejects.toThrow(usage());
-});
-
-test('batches independent matrix and skill-file pairs into one receipt', async () => {
-  const matrix = JSON.stringify({
-    assertions: [{ expected: 'required', kind: 'required-text' }],
-    failureMode: 'f',
-    id: 'a',
-    independentVerifier: 'source-structure',
-    repairBoundary: '/skill',
-    scenario: 's',
-    visibility: 'candidate',
-  });
-  const read = mock(async (path: string) => (path.endsWith('.jsonl') ? matrix : 'required'));
-  const write = mock();
-  await run(
-    [
-      'batch',
-      'intent',
-      'candidate',
-      '/matrix-a.jsonl',
-      '/skills/a/SKILL.md',
-      '/matrix-b.jsonl',
-      '/skills/b/SKILL.md',
-    ],
-    read,
-    write,
-  );
-  expect(read).toHaveBeenCalledTimes(4);
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"phase": "candidate"'));
-  await expect(
-    run(['batch', 'intent', 'baseline', '/matrix.jsonl', '/skills/a'], read),
-  ).rejects.toThrow('ending in /SKILL.md');
-  await expect(run(['batch', 'intent', 'baseline'], read)).rejects.toThrow(usage());
 });
 
 test('reviews absolute static roots through the Skill Manager integrity receipt', async () => {
@@ -453,8 +394,8 @@ test('records a blind-safe baseline with a source snapshot and no decision', asy
   expect(receipt.ledger).toMatchObject({
     entries: 1,
     entryId: 'skill-manager-baseline-1',
-    snapshot: `${LEDGER_ROOT}/skill-manager-baseline-1.snapshot.md`,
   });
+  expectTemporarySnapshot(receipt.ledger.snapshot, 'skill-manager-baseline-1');
   expect(world.files.get(receipt.ledger.snapshot)).toBe(skillSource());
   expect(receipt.measurement.train).toMatchObject({ passedQueries: 3, totalQueries: 4 });
   expect(receipt.measurement.validationFailures).toBe(1);
@@ -466,15 +407,9 @@ test('records a blind-safe baseline with a source snapshot and no decision', asy
 });
 
 test('records the default ledger root derived from the agents root', async () => {
-  const agentsRootFromTests = dirname(dirname(import.meta.dir));
+  const agentsRootFromTests = import.meta.dir.replace(/\/tests\/scripts$/u, '');
   const plansIndex = agentsRootFromTests.replace(/^\/+/u, '').replaceAll('/', '-');
-  const defaultLedgerPath = join(
-    agentsRootFromTests,
-    'plans',
-    plansIndex,
-    'quality',
-    'skill-manager.json',
-  );
+  const defaultLedgerPath = `${agentsRootFromTests}/plans/${plansIndex}/quality/skill-manager.json`;
   const world = newWorld();
   world.files.set(RESPONSES, answersFor(BASELINE_CORRECT));
   const receipt = await exec<MeasureReceipt>(world, [
@@ -520,7 +455,7 @@ test('requires a recorded baseline before an attempt and a clean baseline source
   expect(world.fileSystem.writeFile).not.toHaveBeenCalled();
 });
 
-test('accepts an attempt that gains a query without regressing any other', async () => {
+test('accepts an attempt that gains a query without regressing additional queries', async () => {
   const world = await withBaseline();
   world.files.set(skillFile, skillSource('Manage skills, packages, and instruction documents.'));
   const receipt = await measure(world, IMPROVED_CORRECT, '--attempt', '1');
@@ -572,7 +507,7 @@ test('selects the accepted winner and reports where the live source stands', asy
   const winner = await select();
   expect(winner).toMatchObject({ decision: 'apply', liveState: 'winner' });
   expect(winner.nextAction).toContain('winner is live');
-  expect(winner.winner?.snapshot).toBe(`${LEDGER_ROOT}/skill-manager-attempt-2.snapshot.md`);
+  expectTemporarySnapshot(winner.winner?.snapshot ?? '', 'skill-manager-attempt-2');
   expect(winner.attempts).toEqual([
     expect.objectContaining({
       attempt: 1,
@@ -705,45 +640,6 @@ test('rejects an unknown train mode and a responses path outside the JSONL contr
     await expect(run(args, undefined, write, world.fileSystem)).rejects.toThrow(usage());
   }
   expect(world.fileSystem.writeFile).not.toHaveBeenCalled();
-});
-
-test('ratchets a matrix or query set so frozen checks are never weakened', async () => {
-  const files = new Map<string, string>([
-    ['/prev.jsonl', matrixSource],
-    ['/same.jsonl', matrixSource],
-    ['/weak.jsonl', matrixSource.split('\n')[0] ?? ''],
-    ['/prev.json', triggerQueries()],
-    [
-      '/grown.json',
-      triggerQueries([{ id: 'x', query: 'extra', should_trigger: true, split: 'train' }]),
-    ],
-    [
-      '/shrunk.json',
-      JSON.stringify({
-        ...JSON.parse(triggerQueries()),
-        queries: JSON.parse(triggerQueries()).queries.slice(1),
-      }),
-    ],
-  ]);
-  const read = mock(async (path: string) => files.get(path) ?? '');
-  const write = mock();
-  await run(['ratchet', '/prev.jsonl', '/same.jsonl'], read, write);
-  await run(['ratchet', '/prev.json', '/grown.json'], read, write);
-  expect(JSON.parse(String(write.mock.calls.at(-1)?.[0]))).toMatchObject({ status: 'ratchet-ok' });
-  await expect(run(['ratchet', '/prev.jsonl', '/weak.jsonl'], read, write)).rejects.toThrow(
-    'Case challenge was removed.',
-  );
-  await expect(run(['ratchet', '/prev.json', '/shrunk.json'], read, write)).rejects.toThrow(
-    'was removed',
-  );
-  for (const args of [
-    ['ratchet', '/prev.jsonl'],
-    ['ratchet', 'prev.jsonl', '/same.jsonl'],
-    ['ratchet', '/prev.jsonl', '/same.json'],
-    ['ratchet', '/prev.json', 'same.json'],
-  ]) {
-    await expect(run(args, read, write)).rejects.toThrow(usage());
-  }
 });
 
 test('flags a measured non-baseline source when no attempt won', async () => {
@@ -995,9 +891,12 @@ test('records a contract baseline from the matrix with no responses file', async
     ['candidate:required-text:1', 'train'],
     ['challenge:forbidden-text:1', 'validation'],
   ]);
-  expect(world.files.has(`${LEDGER_ROOT}/skill-manager-contract-baseline-1.snapshot.md`)).toBe(
-    true,
+  const snapshots = [...world.files.entries()].filter(([path]) =>
+    path.endsWith('/skill-manager-contract-baseline-1.snapshot.md'),
   );
+  expect(snapshots).toHaveLength(1);
+  expectTemporarySnapshot(snapshots[0]?.[0] ?? '', 'skill-manager-contract-baseline-1');
+  expect(snapshots[0]?.[1]).toBe(skillSource().replace('contract', 'agreement'));
   expect(world.files.has(LEDGER)).toBe(false);
 });
 

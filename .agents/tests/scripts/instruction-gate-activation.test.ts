@@ -116,6 +116,7 @@ const makeDeps = (
       return directory.endsWith('empty') ? [] : [{ isDirectory: false, name: 'SKILL.md' }];
     }),
     makeTempDir: mock(async () => '/work'),
+    now: mock(() => new Date('2026-11-14T18:00:00.000Z')),
     readText: mock(async (file: string) => files.get(file)),
     sha256: hash,
     toolsRoot: ROOT,

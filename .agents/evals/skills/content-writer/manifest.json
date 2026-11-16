@@ -1,0 +1,139 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:content-writer",
+  "scope": "evals/skills/content-writer/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/content-writer/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/content-writer/SKILL.md",
+      "sha256": "954cc140f893ef0383dbe66af246965899602df867cba73fd052b675c2b4e2d7"
+    },
+    {
+      "sourcePath": "evals/skills/content-writer/rubric.md",
+      "sha256": "d4a0d71e9afdbe02b59e891548c68b766d9f4f33e28f6a075e9b154a0393455a"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/content-writer/cases.jsonl",
+      "canonicalPath": "evals/skills/content-writer/cases.jsonl",
+      "sha256": "8699fd2d291bb1e529721acad0bc55394e9d592a749643dc61bb38159ac3c10b",
+      "caseIds": [
+        "content-sources",
+        "content-quotes",
+        "content-writer-skill-contract-template",
+        "content-writer-skill-contract-no-robotic-persona"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/content-writer/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/content-writer/SKILL.md",
+        "setPath": "evals/skills/content-writer/comprehension/SKILL.json",
+        "queryCount": 40,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "validation-07",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "validation-13"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/content-writer/rubric.md",
+        "setPath": "evals/skills/content-writer/comprehension/evals-rubric.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/content-writer/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/content-writer/SKILL.md",
+        "setPath": "evals/skills/content-writer/comprehension/SKILL.json",
+        "path": "evals/skills/content-writer/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/content-writer/rubric.md",
+        "setPath": "evals/skills/content-writer/comprehension/evals-rubric.json",
+        "path": "evals/skills/content-writer/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/content-writer/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 4,
+    "activationQueries": 62,
+    "comprehensionQueries": 54,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "568c9bb1f9f1dd8c9757d7cbddbc7b6ada4452d935f31817ad0bb1f0dd186622",
+    "activationQueriesSha256": "4f53bdd27f4b0d008c1ecffc3a131542d6f24842fcfffab737237c5bb08afcb1",
+    "sourceRubricSha256": "d4a0d71e9afdbe02b59e891548c68b766d9f4f33e28f6a075e9b154a0393455a"
+  }
+}

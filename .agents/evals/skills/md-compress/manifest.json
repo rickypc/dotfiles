@@ -1,0 +1,148 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:md-compress",
+  "scope": "evals/skills/md-compress/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/md-compress/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/md-compress/SKILL.md",
+      "sha256": "d414981e82fed41a9c3b7e597dd7ab5723753eb1b03c355bb2566f2f6140582b"
+    },
+    {
+      "sourcePath": "evals/skills/md-compress/rubric.md",
+      "sha256": "1787410479065cefee80e1718ccff6e2bbee85b9a4e328d9a86e91b9ef20298b"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/cases.jsonl",
+      "canonicalPath": "evals/skills/md-compress/cases.jsonl",
+      "sha256": "5c2c48064d1df38326e79960e3da5ef6d167cae771731374e609acaff0c4b7e3",
+      "caseIds": [
+        "compress-protection",
+        "compress-private",
+        "md-compress-skill-contract-template",
+        "md-compress-skill-contract-no-robotic-persona"
+      ]
+    },
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/md-compress/cli-transaction.matrix.jsonl",
+      "canonicalPath": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl",
+      "sha256": "28a8a62f4d282751b4bf3c78bf30c2a6c50b16075479c1b0eca08bb4edf7d570",
+      "caseIds": [
+        "typed-transaction",
+        "temporary-backup",
+        "token-validation"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/md-compress/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/md-compress/SKILL.md",
+        "setPath": "evals/skills/md-compress/comprehension/SKILL.json",
+        "queryCount": 40,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "train-15",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "train-27",
+          "train-28"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/md-compress/rubric.md",
+        "setPath": "evals/skills/md-compress/comprehension/evals-rubric.json",
+        "queryCount": 13,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/md-compress/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/md-compress/SKILL.md",
+        "setPath": "evals/skills/md-compress/comprehension/SKILL.json",
+        "path": "evals/skills/md-compress/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/md-compress/rubric.md",
+        "setPath": "evals/skills/md-compress/comprehension/evals-rubric.json",
+        "path": "evals/skills/md-compress/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/md-compress/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 7,
+    "activationQueries": 62,
+    "comprehensionQueries": 51,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "fb4699ba3019643a7c04ee1a9bceb6d683a9db644d4a3b29dafa869259e03f39",
+    "activationQueriesSha256": "eaed3e25fd59d1d6cf4f0124cf5115caed2760fcf75b7ca8f667cf0e507a31c1",
+    "sourceRubricSha256": "1787410479065cefee80e1718ccff6e2bbee85b9a4e328d9a86e91b9ef20298b"
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:review-changes",
+  "scope": "evals/skills/review-changes/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/review-changes/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/review-changes/SKILL.md",
+      "sha256": "5e68ee4db36187032aa4f4aeb299aba762dc76e8c3daa82c578cdccfff4b5d7d"
+    },
+    {
+      "sourcePath": "evals/skills/review-changes/rubric.md",
+      "sha256": "e5393175000d02da70c3b734540681222b865762f3bc1ac2a144842cd21fadf6"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/review-changes/cases.jsonl",
+      "canonicalPath": "evals/skills/review-changes/cases.jsonl",
+      "sha256": "affd4668a4d31a375358a7bd0fb3dc9f0ef535fd3caf18863e438562d1ea33ea",
+      "caseIds": [
+        "review-read-only",
+        "review-isolated-session",
+        "review-requirements-source",
+        "review-git-read-only",
+        "review-language-agnostic",
+        "review-reuse-minimality",
+        "review-naming-order",
+        "review-two-lenses",
+        "review-static-only",
+        "review-actionable-findings",
+        "review-empty-diff",
+        "review-unavailable-source",
+        "review-no-source-bypass",
+        "review-hostile-input",
+        "review-default-project-scope",
+        "review-default-root-ambiguous",
+        "review-home-workspace-root",
+        "review-specific-requirements-question",
+        "review-changes-name",
+        "review-untracked-inventory-fallback",
+        "review-code-quality-dimensions",
+        "review-comprehensive-coverage",
+        "review-single-consolidated-report",
+        "review-no-index-diff-status",
+        "review-auditable-coverage-ledger",
+        "review-no-cap-no-early-stop",
+        "review-child-parent-handoff",
+        "review-cross-file-effects",
+        "review-global-neutrality",
+        "review-retain-user-corrections"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/review-changes/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/review-changes/SKILL.md",
+        "setPath": "evals/skills/review-changes/comprehension/SKILL.json",
+        "queryCount": 38,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "train-15",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/review-changes/rubric.md",
+        "setPath": "evals/skills/review-changes/comprehension/evals-rubric.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/review-changes/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/review-changes/SKILL.md",
+        "setPath": "evals/skills/review-changes/comprehension/SKILL.json",
+        "path": "evals/skills/review-changes/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/review-changes/rubric.md",
+        "setPath": "evals/skills/review-changes/comprehension/evals-rubric.json",
+        "path": "evals/skills/review-changes/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/review-changes/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 30,
+    "activationQueries": 63,
+    "comprehensionQueries": 52,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "510ccfe7285c8c59d04fc4551c7af716ae79b9aee37345c0ac9549b061461898",
+    "activationQueriesSha256": "7ac45c6f64ff70ae3e28ab03ae8aead1a27265f1f9e53cf819684a503c0bcd98",
+    "sourceRubricSha256": "e5393175000d02da70c3b734540681222b865762f3bc1ac2a144842cd21fadf6"
+  }
+}

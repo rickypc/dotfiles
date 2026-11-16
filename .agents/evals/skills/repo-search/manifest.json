@@ -1,0 +1,288 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:repo-search",
+  "scope": "evals/skills/repo-search/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/repo-search/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/repo-search/SKILL.md",
+      "sha256": "8090c313f7b7d81371d62f1793c10ae4dcf668e786e37841b4f407693839a9de"
+    },
+    {
+      "sourcePath": "evals/skills/repo-search/rubric.md",
+      "sha256": "911c3ce92dcecbcf117af1f241c5e490806363815bfa345cabb60f70bd7d4c52"
+    },
+    {
+      "sourcePath": "skills/repo-search/references/binary-router.md",
+      "sha256": "ee93f2df0561e82a8d9cb1c7e8ff4443f5c0ecb3cb828334163e6ea087cbfd46"
+    },
+    {
+      "sourcePath": "skills/repo-search/references/engine.md",
+      "sha256": "fb75fc95f35d90313d5d6bdb5c77b4fa35e2afea3dc18c0376a10f045b3325c9"
+    },
+    {
+      "sourcePath": "skills/repo-search/references/usage-patterns.md",
+      "sha256": "6b32a663384e426120a3367b3f73bbd05a9acd370f3b1ed78c39b9ce95b98f7e"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/repo-search/cases.jsonl",
+      "canonicalPath": "evals/skills/repo-search/cases.jsonl",
+      "sha256": "3f621dcd9264243e7770eeb59f7979ac36e7cbf3791c77745a635adea1e7808b",
+      "caseIds": [
+        "repo-search-three-verbs",
+        "repo-search-script-executes",
+        "repo-search-transport-owned-by-script",
+        "repo-search-no-transport-choice-for-llm",
+        "repo-search-mcp-not-banned",
+        "repo-search-unified-contract",
+        "repo-search-contract-same-every-route",
+        "repo-search-reliability-indicators",
+        "repo-search-backend-store-redaction",
+        "repo-search-denial-is-transport-failure",
+        "repo-search-search-never-indexes",
+        "repo-search-read-indexes-once",
+        "repo-search-identity-fields",
+        "repo-search-path-only",
+        "repo-search-staged-fallback",
+        "repo-search-mandatory-route",
+        "repo-search-no-ad-hoc-discovery",
+        "repo-search-approved-root",
+        "repo-search-wrapper-only",
+        "repo-search-binary-gate",
+        "repo-search-binary-router-coverage",
+        "repo-search-binary-decode-predicate",
+        "repo-search-binary-install",
+        "repo-search-binary-explicit-targets",
+        "repo-search-binary-copy-safety",
+        "repo-search-binary-receipt-strategies",
+        "repo-search-binary-unified-contract",
+        "repo-search-skill-contract-template",
+        "repo-search-report-fields",
+        "repo-search-transport-receipt",
+        "repo-search-read-classification",
+        "repo-search-no-cli-primary-wording",
+        "repo-search-no-cache-path",
+        "repo-search-no-guessing",
+        "repo-search-no-source-name",
+        "repo-search-no-robotic-persona",
+        "repo-search-usage-patterns",
+        "repo-search-fallback-scope-and-raw-escape",
+        "repo-search-multi-root-each-root",
+        "repo-search-dependency-artifact-scope",
+        "repo-search-missing-root-unverified",
+        "repo-search-cwd-pin",
+        "repo-search-condensed-attempts",
+        "repo-search-tokenized-fallback",
+        "repo-search-fallback-budgets"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/repo-search/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/repo-search/SKILL.md",
+        "setPath": "evals/skills/repo-search/comprehension/SKILL.json",
+        "queryCount": 42,
+        "queryIds": [
+          "train-28",
+          "train-29",
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "validation-07",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12",
+          "validation-13"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/repo-search/rubric.md",
+        "setPath": "evals/skills/repo-search/comprehension/evals-rubric.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05"
+        ]
+      },
+      {
+        "sourcePath": "skills/repo-search/references/binary-router.md",
+        "setPath": "evals/skills/repo-search/comprehension/references-binary-router.json",
+        "queryCount": 26,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "validation-04",
+          "validation-05",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "train-16",
+          "validation-06",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10"
+        ]
+      },
+      {
+        "sourcePath": "skills/repo-search/references/engine.md",
+        "setPath": "evals/skills/repo-search/comprehension/references-engine.json",
+        "queryCount": 18,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "validation-04",
+          "validation-06",
+          "validation-05"
+        ]
+      },
+      {
+        "sourcePath": "skills/repo-search/references/usage-patterns.md",
+        "setPath": "evals/skills/repo-search/comprehension/references-usage-patterns.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/repo-search/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/repo-search/SKILL.md",
+        "setPath": "evals/skills/repo-search/comprehension/SKILL.json",
+        "path": "evals/skills/repo-search/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/repo-search/rubric.md",
+        "setPath": "evals/skills/repo-search/comprehension/evals-rubric.json",
+        "path": "evals/skills/repo-search/receipts/rubric.json"
+      },
+      {
+        "sourcePath": "skills/repo-search/references/binary-router.md",
+        "setPath": "evals/skills/repo-search/comprehension/references-binary-router.json",
+        "path": "evals/skills/repo-search/receipts/references--binary-router.json"
+      },
+      {
+        "sourcePath": "skills/repo-search/references/engine.md",
+        "setPath": "evals/skills/repo-search/comprehension/references-engine.json",
+        "path": "evals/skills/repo-search/receipts/references--engine.json"
+      },
+      {
+        "sourcePath": "skills/repo-search/references/usage-patterns.md",
+        "setPath": "evals/skills/repo-search/comprehension/references-usage-patterns.json",
+        "path": "evals/skills/repo-search/receipts/references--usage-patterns.json"
+      }
+    ],
+    "ledger": "evals/skills/repo-search/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 47,
+    "activationQueries": 62,
+    "comprehensionQueries": 114,
+    "behaviorCases": 3
+  },
+  "fingerprints": {
+    "casesSha256": "97a066507b40529f32af451377ee5c5ff8c626e05f954df21eda717305cff3ec",
+    "activationQueriesSha256": "676797ccf1f57d6f452bfddd67a8c8a6f0883852d7037263071830abf35b7e1b",
+    "sourceRubricSha256": "911c3ce92dcecbcf117af1f241c5e490806363815bfa345cabb60f70bd7d4c52"
+  }
+}

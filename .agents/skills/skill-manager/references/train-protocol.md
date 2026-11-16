@@ -1,16 +1,17 @@
 # In-session training protocol
 
-This reference owns the training loop that `/skill-manager train` runs. The invocation grammar stays
-in the parent Usage section; the scripts own every number. The only LLM boundary is the executing
-agent and the fresh child agents it spawns. No provider endpoint, credential, or model identifier is
-configured, read, or embedded.
+Skill Manager owns this protocol for evaluation training and weak-reader execution across the
+global and supported project-local `.agents` scopes. This reference owns the training loop that
+`/skill-manager train` runs. The invocation grammar stays in the parent Usage section; the scripts
+own every number. The only LLM boundary is the executing agent and the fresh child agents it spawns.
+No provider endpoint, credential, or model identifier is configured, read, or embedded.
 
 ## 1. What is trained and what is measured
 
-| Track      | Edited surface              | Metric owner                 | Never-worse rule                               |
-| ---------- | --------------------------- | ---------------------------- | ---------------------------------------------- |
-| Activation | `description`, routing text | `evals/trigger-queries.json` | `train measure` gate returns `accepted`        |
-| Contract   | `SKILL.md` body, references | `evals/cases.jsonl` matrix   | `train measure --track contract` is `accepted` |
+| Track      | Edited surface              | Metric owner                                      | Never-worse rule                               |
+| ---------- | --------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| Activation | `description`, routing text | `evals/skills/<skill>/trigger-queries.json`       | `train measure` gate returns `accepted`        |
+| Contract   | `SKILL.md` body, references | `evals/skills/<skill>/cases.jsonl` matrix         | `train measure --track contract` is `accepted` |
 
 Both tracks share the hard checks, which block any candidate: `validate` frontmatter, candidate and
 challenge matrix receipts, a balanced query set named for the skill, at most 500 lines in
@@ -133,20 +134,21 @@ re-baseline to hide a loss.
 
 Each document has a comprehension set. Where the set lives depends on the document:
 
-- A Markdown file inside a skill package: `<skill>/evals/comprehension/<path-with-dashes>.json`.
-- An `AGENTS*`, `CLAUDE*`, or `GEMINI*` file in the agents root: `<agents-root>/evals/<name>.json`,
-  for example `<agents-root>/evals/CLAUDE.json` for `CLAUDE.md`. This path has no `comprehension`
-  folder and no dashed path.
-- An instruction file at a project root, including dotted names such as `AGENTS.override.md`:
-  `<project-agents-root>/evals/<name>.json`, where `<name>` is the file name without `.md`. The
-  `target` is the relative path from the set file to the document, for example
-  `../../AGENTS.override.md`, and `skill_name` is `instructions--<name lowercased>`.
+- A Markdown file in a global skill package: `<agents-root>/evals/skills/<skill>/comprehension/<source-key>.json`.
+- A Markdown file in a supported project-local skill package:
+  `<project-agents-root>/skills/<skill>/evals/comprehension/<source-key>.json`.
+- An `AGENTS*`, `CLAUDE*`, or `GEMINI*` root instruction file in the global agents scope:
+  `<agents-root>/evals/comprehension/<name>.json`, where `<name>` is the file name without `.md`.
+  For example, `CLAUDE.md` uses `CLAUDE.json` in the `comprehension` directory.
+- A project-root instruction file, including `AGENTS.override.md`:
+  `<project-agents-root>/evals/comprehension/<name>.json`, where `<name>` is the file name without
+  `.md`. Its `target` is relative to the set file; for example, use `../../../AGENTS.override.md`.
+  Its `skill_name` is `instructions--<name lowercased>`.
 
 The set holds lettered multiple-choice probes about the rules of one document.
 `train bundle <set.json>` prints the live document and the blind questions; the child answers each
 question with one option letter in an `answer` field.
 
-- Use a weak reader as the child (the smallest model available) so the result reflects a tiny model.
 - Run the built-in local reader to answer a document bundle with no human step:
   `bun <agents-root>/scripts/weak-reader.ts <bundle> <answers>`. Both arguments are absolute paths:
   the bundle is the saved output of `train bundle`, the answers file feeds `train measure`.
@@ -156,11 +158,14 @@ question with one option letter in an `answer` field.
   runs need no network; nothing is stored in the agents root. When the network re-signs connections
   the reader retries with the system trust store; set `NODE_EXTRA_CA_CERTS` only if that retry also
   fails.
+- The built-in reader is the pinned local Gemma reader. Child-agent answers do not replace it.
 - Exit codes: 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package,
   5 document too long.
-- When the process is sandboxed it finds no adapter and exits 2: run this one command outside the
-  sandbox through the executing agent's mechanism for that. When exit 2 persists, answer the bundle
-  with in-session child agents instead.
+- When the process is sandboxed it finds no adapter and exits 2. This does not cancel authorized
+  work. Finish the edit and available checks, then give the user the exact blocked GPU command in a
+  fenced block with its working directory and ask them to run it. Wait for them to paste the output
+  before closeout. The sandbox attempt writes no receipt and cannot pass the gate. Do not substitute
+  child-agent answers for the pinned reader.
 - An unparseable reply is written as `NONE` (a document) or `UNPARSEABLE` (a router) and scores as a
   miss.
 - The reader runs on macOS (Metal through Dawn); it is not meant for any other platform.
@@ -175,11 +180,12 @@ question with one option letter in an `answer` field.
   read once, then each question takes under a second. The reader logs load, warmup, first-token,
   per-query, and total times.
 - The gate makes this deterministic. `bun <agents-root>/scripts/instruction-gate.ts record` measures
-  each changed instruction document, compares it with its stored receipt, and writes
-  `evals/receipts/<document>.json` only for a never-worse result. `... instruction-gate.ts verify`
-  runs in the final gate with no GPU: it fails when a document or its comprehension set changed
-  after its receipt, when a receipt was edited, or when a recorded result is worse than its
-  baseline.
+  each changed instruction document and writes receipts only for a never-worse result. Root
+  instruction receipts stay at `evals/receipts/<document>.json`; global skill-document receipts are
+  at `evals/skills/<skill>/receipts/<source-key>.json`; and aggregate description routing is at
+  `evals/skills/_catalog/receipts/activation.json`. `... instruction-gate.ts verify` runs in the
+  final gate with no GPU: it fails when a document or its comprehension set changed after its
+  receipt, when a receipt was edited, or when a recorded result is worse than its baseline.
 - A receipt records the document hash, the set hash, and the reader (model revision, runtime hash,
   prompt version). Greedy decoding makes the same inputs give the same answers, so a receipt is
   reproducible. When the reader changes, every receipt needs `record --rebaseline <reason>`.
@@ -188,13 +194,14 @@ question with one option letter in an `answer` field.
   receipts live under that root. The global scripts still run from the package. Use the same flag
   with `verify`. Skill descriptions are not gated for a project root.
 - Skill descriptions are gated as one unit, because the router reads every description.
-  `record descriptions` has the reader route every query of every `evals/trigger-queries.json`
-  through the catalog of all descriptions and stores one receipt, `evals/receipts/activation.json`.
-  One edit moves other skills' probes, so routing compares score totals instead of single probes:
-  the train total and the held-out validation total must not fall, and a catalog that still has
-  failing queries must gain. The reader accepts a skill name in any case and with `-`, `_`, or a
-  space between words, so `review_changes` counts as review-changes. The retry loop below applies:
-  read the DIAGNOSIS, rewrite the descriptions it names, record again.
+  `record descriptions` has the reader route every query from each
+  `evals/skills/<skill>/trigger-queries.json` through the full catalog and stores one receipt at
+  `evals/skills/_catalog/receipts/activation.json`. One edit moves other skills' probes, so routing
+  compares score totals instead of single probes: the train total and the held-out validation total
+  must not fall, and a catalog that still has failing queries must gain. The reader accepts a skill
+  name in any case and with `-`, `_`, or a space between words, so `review_changes` counts as
+  review-changes. The retry loop below applies: read the DIAGNOSIS, rewrite the descriptions it
+  names, record again.
 
 - Run `record` where a GPU adapter exists. When it exits 2, run the same command through the
   executing agent's mechanism for commands outside its sandbox, or on a GPU host. A person only
@@ -241,7 +248,8 @@ Each attempt is one bounded edit. The script measures it against the baseline sn
 ## 10. Contract track
 
 - `train measure <skill-path> --track contract` takes no responses file. It checks `SKILL.md`
-  against `evals/cases.jsonl` deterministically, so no child agent runs.
+  against `<agents-root>/evals/skills/<skill>/cases.jsonl` deterministically, so no child agent
+  runs.
 - Each assertion is one record with the id `<case-id>:<kind>:<index>`. Candidate cases score the
   train split. Challenge cases score the validation split. One run is one pass or one failure.
 - The ledger is `<skill>-contract.json` under the ledger root, separate from the activation ledger.

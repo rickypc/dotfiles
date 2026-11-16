@@ -239,6 +239,9 @@ partial findings, or later addenda. Say when a lens has no findings and name any
 static review cannot resolve. If knowledge was retained, append a short `Retained knowledge` line
 with its concept path and validation receipt; otherwise omit that line.
 
+Within each lens, sort by file path in ascending A-to-Z order. Within one path, sort by ascending
+line number. Do not rerank across the two lenses.
+
 ```text
 ## Requirements
 - `path/to/file.ext:line` - [Bug] behavior and consequence; concrete correction.
@@ -251,9 +254,7 @@ Use `[Bug]` for incorrect behavior, `[Risk]` for a supported failure or security
 `[Maintainability]` for a material conflict with explicit project or user conventions. Each finding
 must cite a file path and changed line and state the problem, consequence, and concrete correction.
 Keep ordinary findings concise; include more explanation for security or architectural findings when
-needed. Within each lens, sort findings by file path, then by line number. Do not rerank across the
-two lenses. Say when a lens has no findings and name any limitation that static review cannot
-resolve.
+needed. Say when a lens has no findings and name any limitation that static review cannot resolve.
 
 ## 7. Evaluation Anchors
 
@@ -265,5 +266,6 @@ resolve.
   runtime, Git, or filesystem inventory can establish non-ignored untracked scope; no application,
   test, lint, format, build, or repair command is run; no programming-language-specific standard is
   imposed on another language.
-- **Independent verifier:** `evals/cases.jsonl` is the frozen matrix for source gates, clean-session
-  routing, read-only behavior, language fit, reuse/minimality, findings, and scope boundaries.
+- **Independent verifier:** `<agents-root>/evals/skills/review-changes/cases.jsonl` is the frozen
+  matrix for source gates, clean-session routing, read-only behavior, language fit,
+  reuse/minimality, findings, and scope boundaries.

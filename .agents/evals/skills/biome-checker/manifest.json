@@ -1,0 +1,141 @@
+{
+  "manifestVersion": 1,
+  "schemaVersion": 2,
+  "ownerId": "skill:biome-checker",
+  "scope": "evals/skills/biome-checker/",
+  "requiredLanes": [
+    "contract",
+    "behavior",
+    "comprehension",
+    "activation"
+  ],
+  "deferredLanes": {
+    "behavior": "Phase 6 adds distinct owner-specific behavior coverage; the incomplete lane blocks evaluation until then."
+  },
+  "sharedRubric": "evals/rubric.md",
+  "sourceRubric": "evals/skills/biome-checker/rubric.md",
+  "sources": [
+    {
+      "sourcePath": "skills/biome-checker/SKILL.md",
+      "sha256": "633b844e3a0d7869a124c0331c4a314e51f3cf698df60319f2e6857664106574"
+    },
+    {
+      "sourcePath": "evals/skills/biome-checker/rubric.md",
+      "sha256": "894ffb6a1547dd32fc64403b61f052a03df8e7ffbb69b83c9ef43e52076fa86c"
+    }
+  ],
+  "archivedMatrixSources": [
+    {
+      "archivePath": "evals/archive/phase-3-eval-retirement/biome-checker/cases.jsonl",
+      "canonicalPath": "evals/skills/biome-checker/cases.jsonl",
+      "sha256": "216d15e3e28a717c4c129f3665dc0cd11ce1092174a6d1ee3d496da5dbb4177a",
+      "caseIds": [
+        "btc-biome-js-ts",
+        "btc-bun-check-boundary",
+        "btc-cst-order",
+        "btc-order-safety",
+        "btc-root-lint-order",
+        "btc-root-lint-summary",
+        "btc-root-lint-complete",
+        "btc-skill-contract-template",
+        "btc-skill-contract-no-robotic-persona"
+      ]
+    }
+  ],
+  "artifacts": {
+    "cases": "evals/skills/biome-checker/cases.jsonl",
+    "comprehension": [
+      {
+        "sourcePath": "skills/biome-checker/SKILL.md",
+        "setPath": "evals/skills/biome-checker/comprehension/SKILL.json",
+        "queryCount": 39,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "train-09",
+          "train-10",
+          "train-11",
+          "train-12",
+          "train-13",
+          "train-14",
+          "train-15",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06",
+          "train-16",
+          "train-17",
+          "train-18",
+          "train-19",
+          "train-20",
+          "train-21",
+          "train-22",
+          "train-23",
+          "train-24",
+          "train-25",
+          "train-26",
+          "train-27",
+          "validation-07",
+          "validation-08",
+          "validation-09",
+          "validation-10",
+          "validation-11",
+          "validation-12"
+        ]
+      },
+      {
+        "sourcePath": "evals/skills/biome-checker/rubric.md",
+        "setPath": "evals/skills/biome-checker/comprehension/evals-rubric.json",
+        "queryCount": 13,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-04",
+          "validation-05"
+        ]
+      }
+    ],
+    "activationQueries": "evals/skills/biome-checker/trigger-queries.json",
+    "receipts": [
+      {
+        "sourcePath": "skills/biome-checker/SKILL.md",
+        "setPath": "evals/skills/biome-checker/comprehension/SKILL.json",
+        "path": "evals/skills/biome-checker/receipts/SKILL.json"
+      },
+      {
+        "sourcePath": "evals/skills/biome-checker/rubric.md",
+        "setPath": "evals/skills/biome-checker/comprehension/evals-rubric.json",
+        "path": "evals/skills/biome-checker/receipts/rubric.json"
+      }
+    ],
+    "ledger": "evals/skills/biome-checker/ledger.jsonl",
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+  },
+  "inventory": {
+    "contractCases": 9,
+    "activationQueries": 62,
+    "comprehensionQueries": 52
+  },
+  "fingerprints": {
+    "casesSha256": "f5d482ce4410ad1ab67c5e7bd521a1fd4c7b1082aa57f41466d898da91b34601",
+    "activationQueriesSha256": "f2c9cbe83c2855e6cd3d4057a3072063f69780c6782a804dc1c9c9d6b812f659",
+    "sourceRubricSha256": "894ffb6a1547dd32fc64403b61f052a03df8e7ffbb69b83c9ef43e52076fa86c"
+  }
+}

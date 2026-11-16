@@ -393,6 +393,12 @@ const kindFrom = (
   return { kind, target };
 };
 
+export const ledgerEntriesForSubject = (
+  entries: readonly LedgerEntry[],
+  skillName: string,
+): readonly LedgerEntry[] =>
+  entries.filter(({ measurement }) => measurement.skillName === skillName);
+
 export const ledgerPathFor = (ledgerRoot: string, skillName: string): string =>
   join(ledgerRoot, `${skillName}.json`);
 

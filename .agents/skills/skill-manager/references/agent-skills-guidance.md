@@ -1,8 +1,8 @@
 # Agent Skills creation guidance
 
-Load this reference when designing or reviewing a skill package, its description, evals, or scripts.
-It distills the Agent Skills specification and creation guidance into the checks Skill Manager
-applies; the linked sources are the authority for changes in the upstream guidance.
+Skill Manager owns this guidance for designing or reviewing a skill package, its description,
+evaluation assets, or scripts. It distills the Agent Skills specification and creation guidance
+into the checks Skill Manager applies; linked sources remain authoritative for upstream changes.
 
 ## Package and `SKILL.md` contract
 
@@ -32,9 +32,10 @@ applies; the linked sources are the authority for changes in the upstream guidan
   and useful keywords, define adjacent boundaries, and prefer concise trigger guidance over a
   feature inventory.
 - Evaluate descriptions with roughly 20 realistic prompts when practical, balanced between
-  should-trigger and should-not-trigger cases. Keep the maintained set in
-  `evals/trigger-queries.json`. Vary phrasing, explicitness, detail, complexity, paths, casual
-  language, and typos. Prefer near-miss negatives over obviously unrelated prompts.
+  should-trigger and should-not-trigger cases. Keep each global skill's maintained set at
+  `<agents-root>/evals/skills/<skill>/trigger-queries.json`. Vary phrasing, explicitness, detail,
+  complexity, paths, casual language, and typos. Prefer near-miss negatives over obviously unrelated
+  prompts.
 - A trigger eval passes when a should-trigger prompt loads the skill and a should-not-trigger prompt
   does not. Test through the actual registered agent client and its observable skill-load signal,
   not by keyword matching the description. Run each query three times where supported; compute the

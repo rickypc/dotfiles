@@ -220,7 +220,7 @@ test('search answers from the graph stage with located results and reliability',
     allowedRoots: ['/repo'],
     executor: executorFor(''),
     probe: probeAttempt,
-    query: 'needle',
+    query: 'needle thread',
     root: '/repo',
     transport,
   });
@@ -296,7 +296,7 @@ test('private KB local-only mode searches files without resolving a project inde
   expect(gateRunner).toHaveBeenCalledTimes(1);
 });
 
-test('search falls through to code results and clusters when graph has no identity match', async () => {
+test('search falls through to compact code results and clusters after a graph miss', async () => {
   const transport = fakeTransport((call) => {
     if (call.tool === 'list_projects') {
       return backendText(projectsTable);
@@ -315,7 +315,7 @@ test('search falls through to code results and clusters when graph has no identi
   const envelope = await repoSearchDiscover({
     allowedRoots: ['/repo'],
     executor: executorFor(''),
-    query: 'zebra',
+    query: 'zebra animal',
     root: '/repo',
     transport,
   });
@@ -327,6 +327,181 @@ test('search falls through to code results and clusters when graph has no identi
     location: 'src/',
     name: 'src/',
   });
+});
+
+test.each([
+  {
+    expectedCaveat: null,
+    expectedDetail: 'line 8|needle snippet',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: {
+      ...backendText('ignored text fallback'),
+      structuredContent: 'rows: 1\nsource: line 8|needle snippet',
+    },
+    title: 'string structured content',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: 'line 9|needle snippet',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: {
+      ...backendText('ignored text fallback'),
+      structuredContent: 'total_results: 1\nsource: line 9|needle snippet',
+    },
+    title: 'string structured total count',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: '"results":[{"file":"src/needle.ts"',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: {
+      ...backendText('ignored text fallback'),
+      structuredContent: {
+        results: [{ file: 'src/needle.ts', lines: '8-10', source: 'line 8|needle' }],
+      },
+    },
+    title: 'structured results array',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: '"total_results":1',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: {
+      ...backendText('ignored text fallback'),
+      structuredContent: { total_results: 1 },
+    },
+    title: 'structured result count',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: '"result":[{"file":"src/needle.ts"',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: {
+      ...backendText('ignored text fallback'),
+      structuredContent: {
+        data: { metadata: true },
+        result: [{ file: 'src/needle.ts', lines: '8-10' }],
+      },
+    },
+    title: 'nested structured result array',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: '"matches":[{}]',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: backendText('{"data":{"matches":[{}]}}'),
+    title: 'JSON text result',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: 'opaque full response',
+    expectedGateCalls: 0,
+    expectedSource: 'code',
+    result: backendText('opaque full response'),
+    title: 'non-JSON full response text',
+  },
+  {
+    expectedCaveat: null,
+    expectedDetail: 'needle from fallback',
+    expectedGateCalls: 1,
+    expectedSource: 'fallback',
+    result: {
+      ...backendText('ignored text fallback'),
+      structuredContent: { results: [] },
+    },
+    title: 'empty structured results',
+  },
+  {
+    expectedCaveat: 'Indexed discovery errored; answered from the local staged fallback.',
+    expectedDetail: 'needle from fallback',
+    expectedGateCalls: 1,
+    expectedSource: 'fallback',
+    result: backendError('full search failed'),
+    title: 'full search backend error',
+  },
+])('full code search preserves each response without a second lookup', async (scenario) => {
+  const { expectedCaveat, expectedDetail, expectedGateCalls, expectedSource, result, title } =
+    scenario;
+  const calls: RepoSearchBackendCall[] = [];
+  const transport = fakeTransport((call) => {
+    calls.push(call);
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_code') {
+      return result;
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const executor = executorFor(
+    expectedSource === 'code' ? '' : '/repo/fallback.ts:1:needle from fallback',
+  );
+  const gateRunner = mock(async () => ({ attempts: [], found: false, output: '' }));
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor,
+      query: 'needle',
+      root: '/repo',
+      transport,
+    },
+    gateRunner,
+  );
+
+  expect(envelope.source, title).toBe(expectedSource);
+  expect(
+    calls.filter((call) => call.tool === 'search_code'),
+    title,
+  ).toHaveLength(1);
+  expect(
+    calls.some((call) => call.tool === 'search_graph' || call.tool === 'get_code_snippet'),
+    title,
+  ).toBeFalse();
+  expect(envelope.results[0]?.detail, title).toContain(expectedDetail);
+  expect(gateRunner, title).toHaveBeenCalledTimes(expectedGateCalls);
+  expect(envelope.reliability.caveats.includes(expectedCaveat ?? ''), title).toBe(
+    expectedCaveat !== null,
+  );
+});
+
+test('indexed graph and code errors fall back with an error caveat', async () => {
+  const transport = fakeTransport((call) => {
+    if (call.tool === 'list_projects') {
+      return backendText(projectsTable);
+    }
+    if (call.tool === 'index_status') {
+      return backendText(readyStatus);
+    }
+    if (call.tool === 'search_graph' || call.tool === 'search_code') {
+      return backendError(`${call.tool} failed`);
+    }
+    return backendError(`unexpected tool: ${call.tool}`);
+  });
+  const envelope = await repoSearchDiscover(
+    {
+      allowedRoots: ['/repo'],
+      executor: executorFor('/repo/found.ts:3:needle located'),
+      query: 'needle thread',
+      root: '/repo',
+      transport,
+    },
+    async () => gateReceipt(false),
+  );
+
+  expect(envelope.source).toBe('fallback');
+  expect(envelope.reliability.caveats).toContain(
+    'Indexed discovery errored; answered from the local staged fallback.',
+  );
+  expect(envelope.results[0]?.detail).toBe('needle located');
 });
 
 test('search traces the connection between two named symbols', async () => {
@@ -493,7 +668,7 @@ test('search redacts backend storage paths from every envelope surface', async (
   const envelope = await repoSearchDiscover({
     allowedRoots: ['/repo'],
     executor: executorFor(''),
-    query: 'needle',
+    query: 'needle thread',
     root: '/repo',
     transport,
   });
@@ -722,7 +897,7 @@ test('search reports indexed errors and answers from the fallback', async () => 
     {
       allowedRoots: ['/repo'],
       executor: executorFor('/repo/found.ts:3:needle located'),
-      query: 'needle',
+      query: 'needle thread',
       root: '/repo',
       transport,
     },
@@ -764,7 +939,7 @@ test('search records truncation caveats from both indexed stages', async () => {
   const envelope = await repoSearchDiscover({
     allowedRoots: ['/repo'],
     executor: executorFor(''),
-    query: 'zebra',
+    query: 'zebra animal',
     root: '/repo',
     transport,
   });
@@ -816,7 +991,7 @@ test('search falls back locally when a ready index has zero hits', async () => {
     {
       allowedRoots: ['/repo'],
       executor: executorFor('/repo/needle.ts:2:needle here'),
-      query: 'needle',
+      query: 'needle thread',
       root: '/repo',
       transport,
     },

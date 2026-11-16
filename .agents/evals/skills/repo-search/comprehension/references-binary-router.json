@@ -1,0 +1,195 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "`fat` - `file(1)` disambiguates Mach-O universals from Java class files",
+      "expected": "A",
+      "id": "train-01",
+      "query": "A file starts with the bytes ca fe ba be. What does the router do to decide what it is?\nA) Classify it as fat and let file(1) tell a Mach-O universal from a Java class file\nB) Classify it as elf\nC) Classify it as a Java class file with no further check\nD) Classify it as wasm",
+      "split": "train"
+    },
+    {
+      "evidence": "brew formula `asar` is a SNES assembler, never a substitute",
+      "expected": "B",
+      "id": "train-02",
+      "query": "An agent needs to extract an Electron archive but npx is not a good fit and it thinks of brew install asar. What does the document say?\nA) Use brew install asar, it is the Electron tool\nB) Use npx -y @electron/asar; brew asar is a SNES assembler, never a substitute\nC) Use pip install asar\nD) Skip extraction and read the archive as text",
+      "split": "train"
+    },
+    {
+      "evidence": "Probe with `command -v <executable>`, install once with",
+      "expected": "C",
+      "id": "train-03",
+      "query": "A routed tool is missing. What is the check-then-install order?\nA) Install first, then probe, and retry the install until it works\nB) Probe once and stop the whole run if the tool is missing\nC) Probe with command -v, install once, re-probe once, then record a skipped stage and fall back within the row\nD) Install through any package manager three times, then guess the answer",
+      "split": "train"
+    },
+    {
+      "evidence": "Copy the `-wal` and `-shm` siblings together with the database file when present",
+      "expected": "D",
+      "id": "train-04",
+      "query": "A SQLite database has -wal and -shm files next to it. How should it be copied into the extraction directory?\nA) Copy only the database file\nB) Open the original file in place for writing\nC) Delete the -wal and -shm files first\nD) Copy the -wal and -shm siblings together with the database file",
+      "split": "train"
+    },
+    {
+      "evidence": "explicitly provided URL - never inferred",
+      "expected": "D",
+      "id": "train-05",
+      "query": "The user mentions a company but gives no URL. May the router use the website row?\nA) Yes, it infers the company site and fetches it\nB) Yes, but only for up to five script sources\nC) Yes, if the search finds nothing else\nD) No. The website row needs an explicitly provided URL and it is never inferred",
+      "split": "train"
+    },
+    {
+      "evidence": "a text file with `sourceMappingURL=` or lines longer than 500 characters routes as `text-bundle` through the explicit binary command",
+      "expected": "A",
+      "id": "train-06",
+      "query": "A text file contains sourceMappingURL= or lines longer than 500 characters. How does it route?\nA) As text-bundle through the explicit binary command\nB) It never enters the router, like every text file\nC) As generic-binary\nD) As hermes",
+      "split": "train"
+    },
+    {
+      "evidence": "need explicit user approval and are not wrapper stages",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "The user asks about a running process by name. A follow-on wants to run lldb -p on it. What is required?\nA) Nothing, lldb -p is a normal wrapper stage\nB) Explicit user approval, because it is not a wrapper stage\nC) Only a PID check with ps\nD) A fresh extraction directory",
+      "split": "validation"
+    },
+    {
+      "evidence": "source build only; same-row fallback is the snapshot hash plus strings",
+      "expected": "C",
+      "id": "validation-02",
+      "query": "The Dart AOT lifter blutter is not installed. What is the fallback?\nA) Install it with brew install blutter\nB) Install it with pip install blutter\nC) The snapshot hash plus strings, in the same row\nD) Move to the Rust row",
+      "split": "validation"
+    },
+    {
+      "evidence": "never create ephemeral project indexes for extraction directories",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "The router extracts a container. Where does it extract, and what must it never create?\nA) Under the operating-system temporary directory, and never ephemeral project indexes\nB) Inside the project root, and project indexes are created for speed\nC) Under the home directory, with a project index kept for later\nD) Next to the original file, and the original is modified",
+      "split": "validation"
+    },
+    {
+      "evidence": "`lib/*/libhermes.so` means React Native - route the Hermes bundle through row 3.",
+      "expected": "C",
+      "id": "train-07",
+      "query": "An APK listing contains classes.dex and lib/arm64-v8a/libhermes.so. Through which row does the document route the Hermes bundle?\nA) Row 11, Flutter snapshot\nB) Row 10 only, because jadx output already has the JavaScript\nC) Row 3, Hermes bytecode\nD) Row 2, Web bundle",
+      "split": "train"
+    },
+    {
+      "evidence": "`27 05 19 56` (uImage) | `firmware`",
+      "expected": "A",
+      "id": "train-08",
+      "query": "A file begins with bytes 1f 8b and has no other known magic. Which kind does the detection table assign?\nA) firmware\nB) zip\nC) generic-binary\nD) pcap",
+      "split": "train",
+      "retired": "The prompt asks about gzip magic, but its evidence quotes uImage magic; retire the mismatched evidence and replace it with a source-aligned uImage probe."
+    },
+    {
+      "evidence": "A `.jsc` produced by bytenode cannot be decompiled at all: use strings and runtime hooks.",
+      "expected": "D",
+      "id": "train-09",
+      "query": "A `.jsc` file was produced by bytenode. What does the document say about decompiling it?\nA) Decompile it with hermes-dec\nB) Decompile it with hbc-decompiler\nC) Route it through row 12 with wasm-decompile\nD) It cannot be decompiled at all; use strings and runtime hooks",
+      "split": "train"
+    },
+    {
+      "evidence": "`python3 -m pip install frida-tools` - approval-gated",
+      "expected": "B",
+      "id": "train-10",
+      "query": "The runtime-hooks tool `frida` is missing from the host. What does the install registry say?\nA) Install it with brew formula `frida`\nB) Install with `python3 -m pip install frida-tools`, which is approval-gated\nC) Run it through `npx -y frida`, no install needed\nD) Build it from source; there is no package manager",
+      "split": "train"
+    },
+    {
+      "evidence": "brew formula `ghidra`, executable `<prefix>/libexec/support/analyzeHeadless`",
+      "expected": "D",
+      "id": "validation-04",
+      "query": "After `brew install ghidra`, where does the registry say the analyzeHeadless executable is?\nA) On PATH directly, no prefix needed\nB) `<prefix>/bin/analyzeHeadless`\nC) `$HOME/.dotnet/tools/analyzeHeadless`\nD) `<prefix>/libexec/support/analyzeHeadless`",
+      "split": "validation"
+    },
+    {
+      "evidence": "A NativeAOT or IL2CPP assembly is a native binary, not a managed one: use rows 4-6, never row 9.",
+      "expected": "A",
+      "id": "validation-05",
+      "query": "A .NET assembly turns out to be NativeAOT. Which rows does the document say to use?\nA) Rows 4-6\nB) Row 9 with ilspycmd\nC) Row 10 with jadx\nD) Row 7, Go",
+      "split": "validation"
+    },
+    {
+      "evidence": "`27 05 19 56` (uImage) | `firmware`",
+      "expected": "A",
+      "id": "train-11",
+      "query": "A file begins with uImage bytes `27 05 19 56`. Which kind does the detection table assign?\nA) firmware\nB) zip\nC) pcap\nD) generic-binary",
+      "split": "train"
+    },
+    {
+      "evidence": "4. Mach-O | mach-o magic | `lipo -info`, `otool -L`, `nm -gU`",
+      "expected": "C",
+      "id": "train-12",
+      "query": "A located Mach-O needs its architecture slices and linked-library inventory. Which row owns that route?\nA) Row 7, Go\nB) Row 6, ELF / PE\nC) Row 4, Mach-O\nD) Row 14, plist / nib / car",
+      "split": "train"
+    },
+    {
+      "evidence": "5. Native code logic | deep stage of rows 4 and 6 | `otool -tV` or `llvm-objdump -d --no-show-raw-insn -C`",
+      "expected": "B",
+      "id": "train-13",
+      "query": "A Mach-O has already been inventoried; the task now needs disassembly and control-flow inspection. Which row owns this deeper pass?\nA) Row 4, Mach-O inventory\nB) Row 5, native code logic\nC) Row 16, firmware\nD) Row 8, Rust",
+      "split": "train"
+    },
+    {
+      "evidence": "7. Go | mach-o/elf plus a successful `go version -m` | `go version -m <T>`",
+      "expected": "D",
+      "id": "train-14",
+      "query": "A Mach-O or ELF binary is confirmed by `go version -m` to contain Go build information. Which row applies?\nA) Row 8, Rust\nB) Row 6, ELF / PE\nC) Row 5, native code logic\nD) Row 7, Go",
+      "split": "train"
+    },
+    {
+      "evidence": "8. Rust | strings match `/rustc/[0-9a-f]{40}` or crate paths `name-1.2.3/src` | strings markers; deep: `cargo audit bin <T>`",
+      "expected": "A",
+      "id": "train-15",
+      "query": "Strings in a binary contain a `/rustc/` hash and versioned crate paths. Which route handles Rust compiler and dependency evidence?\nA) Row 8, Rust\nB) Row 7, Go\nC) Row 6, ELF / PE\nD) Row 9, .NET",
+      "split": "train"
+    },
+    {
+      "evidence": "9. .NET | file(1) says Mono or .Net | `dotnet --version` boundary, `ilspycmd -p -o <extraction-dir> <T>`",
+      "expected": "C",
+      "id": "train-16",
+      "query": "A normal managed assembly is identified by `file(1)` as Mono or .NET and needs decompilation. Which row applies?\nA) Row 6, ELF / PE\nB) Row 7, Go\nC) Row 9, .NET\nD) Row 4, Mach-O",
+      "split": "train"
+    },
+    {
+      "evidence": "10. Android APK | zip listing with `classes.dex` or `AndroidManifest.xml` | `unzip -l`, `unzip -o -d <extraction-dir>`, deep: `jadx -d <extraction-dir> --show-bad-code <apk>`",
+      "expected": "B",
+      "id": "validation-06",
+      "query": "A ZIP listing contains `classes.dex`, and the task is to inspect the APK source. Which row and tool does the guide select?\nA) Row 13, SQLite with `sqlite3`\nB) Row 10, Android APK with `jadx`\nC) Row 3, Hermes bytecode with `hermes-dec`\nD) Row 16, firmware with `binwalk`",
+      "split": "validation"
+    },
+    {
+      "evidence": "11. Flutter snapshot | ELF `libapp.so` containing `f5 f5 dc dc` | snapshot-hash extraction plus strings",
+      "expected": "C",
+      "id": "validation-07",
+      "query": "An ELF `libapp.so` contains the Dart marker `f5 f5 dc dc`. Which route should inspect its Flutter snapshot?\nA) Row 3, Hermes bytecode\nB) Row 7, Go\nC) Row 11, Flutter snapshot\nD) Row 12, WASM",
+      "split": "validation"
+    },
+    {
+      "evidence": "12. WASM | `00 61 73 6d` | `wasm-objdump -x`; deep: `wasm2wat`",
+      "expected": "D",
+      "id": "validation-08",
+      "query": "A file begins with WebAssembly magic `00 61 73 6d`. Which first route stage should inspect its sections?\nA) Row 6, ELF / PE\nB) Row 11, Flutter snapshot\nC) Row 15, pcap / HAR\nD) Row 12, WASM with `wasm-objdump -x`",
+      "split": "validation"
+    },
+    {
+      "evidence": "Compiled asset catalogs: `assetutil --info Assets.car`.",
+      "expected": "A",
+      "id": "validation-09",
+      "query": "A compiled Apple asset catalog is named `Assets.car`. Which row and tool inspect its contents?\nA) Row 14, plist / nib / car with `assetutil --info`\nB) Row 13, SQLite with `.schema`\nC) Row 10, Android APK with `apktool`\nD) Row 17, website with `curl`",
+      "split": "validation"
+    },
+    {
+      "evidence": "HAR files are JSON text: `jq -r '.log.entries[].request \\| .method+\" \"+.url'` through the normal text flow.",
+      "expected": "B",
+      "id": "validation-10",
+      "query": "A pcap capture and a HAR are both supplied. Which handling matches the guide?\nA) Route both as binaries through `tshark`\nB) Use row 15 and `tshark` for pcap; handle HAR as JSON text with `jq`\nC) Route pcap through firmware extraction and HAR through WASM\nD) Use `plutil` for both",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "repo-search--references-binary-router",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../../../skills/repo-search/references/binary-router.md"
+}
