@@ -90,7 +90,8 @@
       "expected": "D",
       "id": "train-09",
       "query": "According to this contract, how many clarification questions does the planner ask at a time?\nA) All remaining questions in one batched round\nB) None, until the plan is already written\nC) Up to three, grouped by section\nD) One decision-relevant question at a time",
-      "split": "train"
+      "split": "train",
+      "retired": "The probe expected one question at a time, which contradicted the AIDP skill and its batched-round owner preference; the contract now states one batched round, so the old expected answer is unsupported by the current source."
     },
     {
       "evidence": "Concrete boundaries, controls, and proof; state inapplicability when evidence supports it.",
@@ -119,6 +120,13 @@
       "id": "validation-06",
       "query": "The repository evidence shows Go code. Which planning obligation does the Go profile name?\nA) Model ownership, borrowing, error variants, and unsafe scope explicitly\nB) Preserve small consumer-owned interfaces and propagate context and deadlines\nC) Treat navigation, permissions, and lifecycle as behavior\nD) Avoid blocking async paths and mutable defaults",
       "split": "validation"
+    },
+    {
+      "evidence": "Ask all remaining decision-relevant questions in one batched round.",
+      "expected": "A",
+      "id": "train-12",
+      "query": "According to this contract, how many clarification rounds does the planner use for its remaining decision-relevant questions?\nA) One batched round containing all remaining questions\nB) None, until the plan is already written\nC) Up to three, grouped by section\nD) One question per round",
+      "split": "train"
     }
   ],
   "runs_per_query": 3,

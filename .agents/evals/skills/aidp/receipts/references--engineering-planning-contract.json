@@ -1,8 +1,23 @@
 {
-  "baseline": null,
-  "decision": "baseline",
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10",
+      "train-11"
+    ],
+    "validationPassed": 6
+  },
+  "decision": "improved",
   "document": "skills/aidp/references/engineering-planning-contract.md",
-  "documentSha256": "f97f040fbc8bd555aaebd47cf7c380b9bc6e3bf4efcfbef9c86eccca77b0b018",
+  "documentSha256": "3b47615fcaa75f0bd0ce08ecef17e0744d50bca00effedc9d87db788bcb1c7f6",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -20,16 +35,16 @@
       "train-06",
       "train-07",
       "train-08",
-      "train-09",
       "train-10",
-      "train-11"
+      "train-11",
+      "train-12"
     ],
     "validationPassed": 6,
     "validationTotal": 6
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "0b35b8226fe82e1f621995357f571d5bf86f6c29a44a55dbc46ced597dbf7dce",
+  "selfSha256": "46ac3815f389668ca1422a52c54f4452592e3ee1e724315ed4f8c661d6297dad",
   "setPath": "evals/skills/aidp/comprehension/references-engineering-planning-contract.json",
-  "setSha256": "7ae6905d76808b08439336c140819237fd3fd2be52187908e43e11f362caacca"
+  "setSha256": "2f628b7d634b71c626844d59bfdaaa496dc1f358641338dbe521f359832923d3"
 }

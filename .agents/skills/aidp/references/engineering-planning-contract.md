@@ -35,10 +35,10 @@ is the shared state handed to `/aidx`; AIDP never marks a step complete.
 
 Before asking a clarification question, retrieve repository context through `/repo-search` and
 private context through `/knowledge-base`, then record both receipts and the resulting facts,
-limits, decisions, and unknowns. Ask one decision-relevant question at a time. If an answer changes
-a target, owner, scope, behavior, dependency, safety, architecture, or proof strategy, refresh the
-affected context and continue the clarification loop. Do not infer a default or write a plan while
-any material ambiguity remains.
+limits, decisions, and unknowns. Ask all remaining decision-relevant questions in one batched round.
+If an answer changes a target, owner, scope, behavior, dependency, safety, architecture, or proof
+strategy, refresh the affected context and continue the clarification loop. Do not infer a default
+or write a plan while any material ambiguity remains.
 
 The request may be only an incomplete sentence. Treat it as a hypothesis to expand, not as a
 complete specification. The command options and arguments for building the evidence set are owned by
@@ -53,7 +53,7 @@ canonical command strings remain
 and `bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"`; their
 caller-facing options table is maintained only in `SKILL.md`.
 
-Ask one focused question only when its answer changes scope, behavior, safety, ownership,
+Ask a focused question only when its answer changes scope, behavior, safety, ownership,
 architecture, or verification. State what decision it unlocks and the smallest consequence of each
 answer. Do not infer layout, framework, compliance, or preserved behavior from a screenshot or
 plausible convention.
@@ -121,6 +121,33 @@ owner, implementation implication, and proof. Do not invent numeric targets.
 For delivery, choose a proportionate unit count. Sequence by dependency, risk reduction, value, or
 test isolation; record the rationale. Every unit maps to acceptance and a completion proof. A
 changed owner, dependency, boundary, requirement, risk, or proof strategy requires re-planning.
+
+## Research procedure and required plan blocks
+
+Finish research before the first question and before the plan, in this order: (1) the `/repo-search`
+and `/knowledge-base` receipts; (2) verify every material claim about current behavior with a
+command or a file read, never from memory, a prior plan, or a summary; (3) read each external source
+the request names or the design depends on, recording its URL and the facts taken, and recording an
+unreachable source as an evidence limit; (4) list each alternative considered with the reason it was
+rejected; (5) list the unknowns. A tool failure, such as an unreachable search backend, is an
+evidence limit: record the failure, the fallback used, and what it could not show. It blocks the
+plan only when it hides material evidence.
+
+A request to analyze an existing plan, implementation, or system and then plan the change is in
+scope. The read-only audit is the evidence intake and the output is still one plan. An audit with no
+plan requested is out of scope.
+
+TARGET DIRECTIVES carries two required blocks so AIDX never rediscovers the research or loops:
+
+- `**Evidence record**` lists the retrieval receipts, each verified fact with the command or file
+  that verified it, external sources with what was taken from them, evidence limits, and unknowns.
+- `**Bounded execution rules**` lists a repair-attempt cap per step with a named escalation after
+  it, no re-measurement of an unchanged target, a cap on every expensive or external job, progress
+  checkpoints kept outside the plan body, a plan body that changes only by checkbox state, new
+  findings recorded as follow-ups instead of added steps, and a done condition tied to the output
+  schema.
+
+The plan validator rejects a plan whose TARGET DIRECTIVES omits either block.
 
 ## Source migration map
 

@@ -40,8 +40,8 @@ handoff command.
 ## 3. Immutable Operational Rules
 
 Load [the engineering planning contract](references/engineering-planning-contract.md) before
-decomposition. It supplies observed-language routing, role ownership, work-packet records, and
-UI/NFR/security/brownfield obligations without depending on another skill tree.
+decomposition. It supplies observed-language routing, role ownership, work-packet records, research
+and required-block rules, and UI/NFR/security/brownfield duties without another skill tree.
 
 The owner file must advertise these routes directly.
 
@@ -92,9 +92,9 @@ Use Product, Architect, Developer, Quality, Security, Design, and Delivery; and 
 record, Requirements record, Design record, Units record, and Delivery record before handoff. The
 linked contract contains the full obligations and migration map.
 
-The active package is self-contained. Runtime scripts and duplicated lifecycle machinery from the
-source material are not copied. See the Source migration map; reusable engineering contracts are
-retained in the owned reference above.
+Every plan opens TARGET DIRECTIVES with an `Evidence record` block and a `Bounded execution rules`
+block, as the contract defines. A request to analyze an existing plan or system and then plan the
+change is in scope; the audit is the evidence intake.
 
 Read the user's request and explicitly supplied material. Resolve the intended project root before
 choosing the plan path. Use `/repo-search` with the absolute project root and the request-derived

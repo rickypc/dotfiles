@@ -291,6 +291,19 @@ const validateSections = (body: string, issues: string[]) => {
     [['objective'], ['scope'], ['exclude', 'exclusion', 'exclusions'], ['owner']],
     issues,
   );
+  requireTerms(
+    target,
+    AIDP_PLAN_HEADINGS[0],
+    [
+      ['Evidence record'],
+      ['receipt', 'receipts'],
+      ['verified'],
+      ['Bounded execution rules'],
+      ['attempt', 'attempts'],
+      ['checkpoint', 'checkpoints'],
+    ],
+    issues,
+  );
   if (itemLines(variables).length < 1) {
     issues.push('VARIABLE DEFINITION MATRIX must contain at least one item or table row.');
   }

@@ -32,6 +32,10 @@ status: "pending"
 ## 1. TARGET DIRECTIVES
 Objective: deliver the approved change. Scope covers the named files; exclusions and one owner are explicit.
 
+**Evidence record**: retrieval receipts are cited, and each fact is verified by a command or file read.
+
+**Bounded execution rules**: two repair attempts per step, then escalate; checkpoints stay outside the plan body.
+
 ## 2. VARIABLE DEFINITION MATRIX
 - target_path - type: absolute path; required; source: repository evidence.
 - optional_note - type: string; optional; source: user decision.
@@ -102,6 +106,21 @@ test('rejects a workflow step that omits an independently testable proof field',
   expect(() =>
     validateAidpPlan(validPlan.replace('Proof and check: focused test; ', ''), planPath),
   ).toThrow(/step 2.*proof/u);
+});
+
+test('rejects a plan without an evidence record or bounded execution rules', () => {
+  expect(() =>
+    validateAidpPlan(validPlan.replace('**Evidence record**', '**Findings**'), planPath),
+  ).toThrow(/must state Evidence record/u);
+  expect(() =>
+    validateAidpPlan(validPlan.replace('**Bounded execution rules**', '**Limits**'), planPath),
+  ).toThrow(/must state Bounded execution rules/u);
+  expect(() =>
+    validateAidpPlan(
+      validPlan.replace('two repair attempts per step, then escalate; ', ''),
+      planPath,
+    ),
+  ).toThrow(/must state attempt or attempts/u);
 });
 
 test('rejects workflow steps without unchecked task markers', () => {

@@ -17,7 +17,7 @@
   "sources": [
     {
       "sourcePath": "skills/aidp/SKILL.md",
-      "sha256": "5b542eed77350a0ca1795ac1220068e03ae84975188ffe26e089b1fc7fe43bee"
+      "sha256": "662d9ac3f5c87466e8a65b06aaf980e6c588cf7ae9f50cc0369f7982239f004c"
     },
     {
       "sourcePath": "evals/skills/aidp/rubric.md",
@@ -25,7 +25,7 @@
     },
     {
       "sourcePath": "skills/aidp/references/engineering-planning-contract.md",
-      "sha256": "f97f040fbc8bd555aaebd47cf7c380b9bc6e3bf4efcfbef9c86eccca77b0b018"
+      "sha256": "3b47615fcaa75f0bd0ce08ecef17e0744d50bca00effedc9d87db788bcb1c7f6"
     }
   ],
   "archivedMatrixSources": [
@@ -111,7 +111,7 @@
       {
         "sourcePath": "skills/aidp/references/engineering-planning-contract.md",
         "setPath": "evals/skills/aidp/comprehension/references-engineering-planning-contract.json",
-        "queryCount": 17,
+        "queryCount": 18,
         "queryIds": [
           "train-01",
           "train-02",
@@ -129,7 +129,8 @@
           "train-10",
           "train-11",
           "validation-05",
-          "validation-06"
+          "validation-06",
+          "train-12"
         ]
       }
     ],
