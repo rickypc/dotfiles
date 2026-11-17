@@ -236,7 +236,7 @@
             "id": "root-discover-symbol-definition-train",
             "split": "train",
             "taskFamily": "instruction-source-discovery",
-            "sourceRule": "AGENTS.md §6 — use repo-search; distinguish the definition from re-exports.",
+            "sourceRule": "AGENTS.md §6 - use repo-search; distinguish the definition from re-exports.",
             "hardAssertions": [
               {
                 "id": "wrapper-used",
@@ -264,7 +264,7 @@
             "id": "root-discover-symbol-export-validation",
             "split": "validation",
             "taskFamily": "instruction-source-discovery",
-            "sourceRule": "AGENTS.md §6 — report wrapper evidence and distinguish implementation from public export.",
+            "sourceRule": "AGENTS.md §6 - report wrapper evidence and distinguish implementation from public export.",
             "hardAssertions": [
               {
                 "id": "wrapper-used",
@@ -292,7 +292,7 @@
             "id": "root-unknown-measurement-validation",
             "split": "validation",
             "taskFamily": "unknown-required-fact",
-            "sourceRule": "AGENTS.md §§2, 6 — use supplied evidence, name unknown facts, and stop.",
+            "sourceRule": "AGENTS.md §§2, 6 - use supplied evidence, name unknown facts, and stop.",
             "hardAssertions": [
               {
                 "id": "no-repository-tool",
@@ -310,7 +310,7 @@
             "id": "root-discovery-conflicting-user-method-definition-challenge",
             "split": "challenge",
             "taskFamily": "instruction-source-discovery",
-            "sourceRule": "AGENTS.md §6 — use the approved wrapper when a user requests a forbidden direct search method.",
+            "sourceRule": "AGENTS.md §6 - use the approved wrapper when a user requests a forbidden direct search method.",
             "hardAssertions": [
               {
                 "id": "wrapper-used",
@@ -669,7 +669,7 @@
             "id": "aidp-batched-material-questions-train",
             "split": "train",
             "taskFamily": "planning-clarification",
-            "sourceRule": "Ask one batch and stop. Source: <agents-root>/skills/aidp/SKILL.md §3, lines 193–200 and 437–453.",
+            "sourceRule": "Ask one batch and stop. Source: <agents-root>/skills/aidp/SKILL.md §3, lines 193-200 and 437-453.",
             "hardAssertions": [
               {
                 "id": "asks-engine",
@@ -697,7 +697,7 @@
             "id": "aidp-readiness-check-validation",
             "split": "validation",
             "taskFamily": "planning-readiness",
-            "sourceRule": "Assess readiness from supplied evidence. Source: <agents-root>/skills/aidp/SKILL.md §3, lines 197–200; §5, lines 457–465.",
+            "sourceRule": "Assess readiness from supplied evidence. Source: <agents-root>/skills/aidp/SKILL.md §3, lines 197-200; §5, lines 457-465.",
             "hardAssertions": [
               {
                 "id": "no-open-question",
@@ -715,7 +715,7 @@
             "id": "aidp-pressure-to-guess-challenge",
             "split": "challenge",
             "taskFamily": "planning-clarification",
-            "sourceRule": "Ask and stop at unresolved choices. Source: <agents-root>/skills/aidp/SKILL.md §3, lines 189–200 and 444–453.",
+            "sourceRule": "Ask and stop at unresolved choices. Source: <agents-root>/skills/aidp/SKILL.md §3, lines 189-200 and 444-453.",
             "hardAssertions": [
               {
                 "id": "clarification-stop",
@@ -1353,7 +1353,7 @@
             "id": "aidx-missing-plan-path-train",
             "split": "train",
             "taskFamily": "plan-path-preflight",
-            "sourceRule": "Stop before reading or mutating files. Source: <agents-root>/skills/aidx/SKILL.md §1–2, lines 14–36.",
+            "sourceRule": "Stop before reading or mutating files. Source: <agents-root>/skills/aidx/SKILL.md §1-2, lines 14-36.",
             "hardAssertions": [
               {
                 "id": "missing-path-stop",
@@ -1376,7 +1376,7 @@
             "id": "aidx-one-plan-only-validation",
             "split": "validation",
             "taskFamily": "plan-path-preflight",
-            "sourceRule": "Resolve the single accepted input before execution. Source: <agents-root>/skills/aidx/SKILL.md §1–2, lines 14–36.",
+            "sourceRule": "Resolve the single accepted input before execution. Source: <agents-root>/skills/aidx/SKILL.md §1-2, lines 14-36.",
             "hardAssertions": [
               {
                 "id": "multiple-path-stop",
@@ -1399,7 +1399,7 @@
             "id": "aidx-rejects-traversal-challenge",
             "split": "challenge",
             "taskFamily": "plan-path-preflight",
-            "sourceRule": "Reject before mutation. Source: <agents-root>/skills/aidx/SKILL.md §3, lines 97–100.",
+            "sourceRule": "Reject before mutation. Source: <agents-root>/skills/aidx/SKILL.md §3, lines 97-100.",
             "hardAssertions": [
               {
                 "id": "path-rejected",
@@ -2636,7 +2636,7 @@
             "id": "content-writer-cited-draft-train",
             "split": "train",
             "taskFamily": "source-grounded-writing",
-            "sourceRule": "Use only the supplied packet. Source: <agents-root>/skills/content-writer/SKILL.md §3, lines 37–45; §6, lines 135–138.",
+            "sourceRule": "Use only the supplied packet. Source: <agents-root>/skills/content-writer/SKILL.md §3, lines 37-45; §6, lines 135-138.",
             "hardAssertions": [
               {
                 "id": "source-url-retained",
@@ -2659,7 +2659,7 @@
             "id": "content-writer-blockquote-continuation-validation",
             "split": "validation",
             "taskFamily": "quotation-fidelity",
-            "sourceRule": "Preserve the complete fixture quotation. Source: <agents-root>/skills/content-writer/SKILL.md §3, lines 42–45.",
+            "sourceRule": "Preserve the complete fixture quotation. Source: <agents-root>/skills/content-writer/SKILL.md §3, lines 42-45.",
             "hardAssertions": [
               {
                 "id": "quote-first-line",
@@ -2677,7 +2677,7 @@
             "id": "content-writer-unresolved-quote-challenge",
             "split": "challenge",
             "taskFamily": "refresh-and-localization",
-            "sourceRule": "Preserve the quote and ask for the missing choice. Source: <agents-root>/skills/content-writer/SKILL.md §3, lines 42–45; §7, lines 165–167.",
+            "sourceRule": "Preserve the quote and ask for the missing choice. Source: <agents-root>/skills/content-writer/SKILL.md §3, lines 42-45; §7, lines 165-167.",
             "hardAssertions": [
               {
                 "id": "needs-input-status",
@@ -3097,7 +3097,7 @@
             "id": "frontend-design-criteria-mapped-direction-train",
             "split": "train",
             "taskFamily": "ui-direction-and-acceptance",
-            "sourceRule": "Define and critique only the design. Source: <agents-root>/skills/frontend-design/SKILL.md §5, lines 117–129.",
+            "sourceRule": "Define and critique only the design. Source: <agents-root>/skills/frontend-design/SKILL.md §5, lines 117-129.",
             "hardAssertions": [
               {
                 "id": "responsive-criterion-mapped",
@@ -3120,7 +3120,7 @@
             "id": "frontend-design-rendered-baseline-validation",
             "split": "validation",
             "taskFamily": "rendered-target-grounding",
-            "sourceRule": "Use the fixture’s active route and current-only baseline. Source: <agents-root>/skills/frontend-design/SKILL.md §5, lines 110–116.",
+            "sourceRule": "Use the fixture’s active route and current-only baseline. Source: <agents-root>/skills/frontend-design/SKILL.md §5, lines 110-116.",
             "hardAssertions": [
               {
                 "id": "uses-rendered-branch",
@@ -3138,7 +3138,7 @@
             "id": "frontend-design-waits-for-approval-challenge",
             "split": "challenge",
             "taskFamily": "approval-boundary",
-            "sourceRule": "Stop at approval. Source: <agents-root>/skills/frontend-design/SKILL.md §5, lines 126–132; §7, lines 166–172.",
+            "sourceRule": "Stop at approval. Source: <agents-root>/skills/frontend-design/SKILL.md §5, lines 126-132; §7, lines 166-172.",
             "hardAssertions": [
               {
                 "id": "approval-pending",
@@ -3498,7 +3498,7 @@
             "id": "kb-exact-identifier-and-negation",
             "split": "train",
             "taskFamily": "kb-exact-identifier-retrieval",
-            "sourceRule": "skills/knowledge-base/SKILL.md:48-55, 75-79, 88-105 — configured root, read-only retrieval, evidence, and stop boundaries.",
+            "sourceRule": "skills/knowledge-base/SKILL.md:48-55, 75-79, 88-105 - configured root, read-only retrieval, evidence, and stop boundaries.",
             "hardAssertions": [
               {
                 "id": "exact-id-cited",
@@ -3526,7 +3526,7 @@
             "id": "kb-cross-record-join-requires-link",
             "split": "validation",
             "taskFamily": "kb-cross-record-join",
-            "sourceRule": "skills/knowledge-base/SKILL.md:50-57, 90-98 — validated records, explicit relationship, and canonical ownership.",
+            "sourceRule": "skills/knowledge-base/SKILL.md:50-57, 90-98 - validated records, explicit relationship, and canonical ownership.",
             "hardAssertions": [
               {
                 "id": "incident-source",
@@ -3554,7 +3554,7 @@
             "id": "kb-lexical-mismatch-retrieval",
             "split": "train",
             "taskFamily": "kb-lexical-mismatch",
-            "sourceRule": "skills/knowledge-base/SKILL.md:88-92 — retrieve from validated concepts, combined search, or related concepts.",
+            "sourceRule": "skills/knowledge-base/SKILL.md:88-92 - retrieve from validated concepts, combined search, or related concepts.",
             "hardAssertions": [
               {
                 "id": "relevant-record-cited",
@@ -3577,7 +3577,7 @@
             "id": "kb-superseded-fact-resolution",
             "split": "validation",
             "taskFamily": "kb-current-versus-superseded",
-            "sourceRule": "skills/knowledge-base/SKILL.md:75-79, 88-105 — use evidence and stop when facts conflict or evidence is insufficient.",
+            "sourceRule": "skills/knowledge-base/SKILL.md:75-79, 88-105 - use evidence and stop when facts conflict or evidence is insufficient.",
             "hardAssertions": [
               {
                 "id": "current-value",
@@ -3605,7 +3605,7 @@
             "id": "kb-unlinked-identity-false-association",
             "split": "challenge",
             "taskFamily": "kb-false-association",
-            "sourceRule": "skills/knowledge-base/SKILL.md:15-23, 48-57 — do not infer semantic ownership or preserve speculation.",
+            "sourceRule": "skills/knowledge-base/SKILL.md:15-23, 48-57 - do not infer semantic ownership or preserve speculation.",
             "hardAssertions": [
               {
                 "id": "unsupported-association-rejected",
@@ -3628,7 +3628,7 @@
             "id": "kb-source-grounded-abstention",
             "split": "challenge",
             "taskFamily": "kb-source-grounded-abstention",
-            "sourceRule": "skills/knowledge-base/SKILL.md:48-49, 75-79, 103-105 — do not store speculation; stop when source evidence is unavailable.",
+            "sourceRule": "skills/knowledge-base/SKILL.md:48-49, 75-79, 103-105 - do not store speculation; stop when source evidence is unavailable.",
             "hardAssertions": [
               {
                 "id": "abstention",
@@ -4025,7 +4025,7 @@
             "id": "md-compress-requires-source-path-train",
             "split": "train",
             "taskFamily": "markdown-path-eligibility",
-            "sourceRule": "Request the required path and stop. Source: <agents-root>/skills/md-compress/SKILL.md §4, lines 60–66; §5, lines 75–89.",
+            "sourceRule": "Request the required path and stop. Source: <agents-root>/skills/md-compress/SKILL.md §4, lines 60-66; §5, lines 75-89.",
             "hardAssertions": [
               {
                 "id": "blocked-status",
@@ -4048,7 +4048,7 @@
             "id": "md-compress-rejects-non-markdown-validation",
             "split": "validation",
             "taskFamily": "markdown-path-eligibility",
-            "sourceRule": "Reject the non-Markdown path. Source: <agents-root>/skills/md-compress/SKILL.md §3, lines 52–56; §4, lines 60–66.",
+            "sourceRule": "Reject the non-Markdown path. Source: <agents-root>/skills/md-compress/SKILL.md §3, lines 52-56; §4, lines 60-66.",
             "hardAssertions": [
               {
                 "id": "ineligible-stop",
@@ -4071,7 +4071,7 @@
             "id": "md-compress-refuses-sensitive-path-challenge",
             "split": "challenge",
             "taskFamily": "markdown-path-eligibility",
-            "sourceRule": "Refuse sensitive paths. Source: <agents-root>/skills/md-compress/SKILL.md §1, lines 15–21; §3, lines 52–56.",
+            "sourceRule": "Refuse sensitive paths. Source: <agents-root>/skills/md-compress/SKILL.md §1, lines 15-21; §3, lines 52-56.",
             "hardAssertions": [
               {
                 "id": "sensitive-stop",
@@ -4797,7 +4797,7 @@
             "id": "react-stale-response-review-train",
             "split": "train",
             "taskFamily": "async-state-review",
-            "sourceRule": "Report the async race only. Source: <agents-root>/skills/react/SKILL.md §3, lines 39–47; §6, lines 126–128.",
+            "sourceRule": "Report the async race only. Source: <agents-root>/skills/react/SKILL.md §3, lines 39-47; §6, lines 126-128.",
             "hardAssertions": [
               {
                 "id": "identifies-race",
@@ -4815,7 +4815,7 @@
             "id": "react-untrusted-href-review-validation",
             "split": "validation",
             "taskFamily": "untrusted-navigation-input",
-            "sourceRule": "Report the boundary without implementation claims. Source: <agents-root>/skills/react/SKILL.md §3, lines 48–55; §6, lines 126–128.",
+            "sourceRule": "Report the boundary without implementation claims. Source: <agents-root>/skills/react/SKILL.md §3, lines 48-55; §6, lines 126-128.",
             "hardAssertions": [
               {
                 "id": "identifies-unsafe-href",
@@ -4833,7 +4833,7 @@
             "id": "react-unknown-platform-challenge",
             "split": "challenge",
             "taskFamily": "platform-clarification",
-            "sourceRule": "Ask before implementation. Source: <agents-root>/skills/react/SKILL.md §4, lines 61–69; §6, lines 126–128.",
+            "sourceRule": "Ask before implementation. Source: <agents-root>/skills/react/SKILL.md §4, lines 61-69; §6, lines 126-128.",
             "hardAssertions": [
               {
                 "id": "asks-platform",
@@ -5849,7 +5849,7 @@
             "id": "repo-search-standard-evidence-envelope",
             "split": "train",
             "taskFamily": "single-root-search-report",
-            "sourceRule": "skills/repo-search/SKILL.md:191-200 — return Finding, Evidence, Search status, and Uncertainty.",
+            "sourceRule": "skills/repo-search/SKILL.md:191-200 - return Finding, Evidence, Search status, and Uncertainty.",
             "hardAssertions": [
               {
                 "id": "setting-value",
@@ -5882,7 +5882,7 @@
             "id": "repo-search-report-each-root-status",
             "split": "validation",
             "taskFamily": "multi-root-search-status",
-            "sourceRule": "skills/repo-search/SKILL.md:125-142, 191-200 — report each expected root, its status, and uncertainty.",
+            "sourceRule": "skills/repo-search/SKILL.md:125-142, 191-200 - report each expected root, its status, and uncertainty.",
             "hardAssertions": [
               {
                 "id": "app-evidence",
@@ -5915,7 +5915,7 @@
             "id": "repo-search-classify-by-content",
             "split": "challenge",
             "taskFamily": "binary-content-classification",
-            "sourceRule": "skills/repo-search/SKILL.md:115-123 — classify by bytes, use MIME as corroboration, decode only as needed.",
+            "sourceRule": "skills/repo-search/SKILL.md:115-123 - classify by bytes, use MIME as corroboration, decode only as needed.",
             "hardAssertions": [
               {
                 "id": "content-type",
@@ -6692,7 +6692,7 @@
             "id": "review-order-findings-within-lens",
             "split": "train",
             "taskFamily": "review-report-ordering",
-            "sourceRule": "skills/review-changes/SKILL.md:233-255 — sort paths ascending within each lens, then line numbers within a path; preserve lens order.",
+            "sourceRule": "skills/review-changes/SKILL.md:233-255 - sort paths ascending within each lens, then line numbers within a path; preserve lens order.",
             "hardAssertions": [
               {
                 "id": "ordered-report-lines",
@@ -6710,7 +6710,7 @@
             "id": "review-static-finding-without-running-tests",
             "split": "validation",
             "taskFamily": "review-static-correctness",
-            "sourceRule": "skills/review-changes/SKILL.md:21-32, 110-113, 168-172 — review-only boundary, inspect tests as text, do not execute tests, report evidence-backed findings.",
+            "sourceRule": "skills/review-changes/SKILL.md:21-32, 110-113, 168-172 - review-only boundary, inspect tests as text, do not execute tests, report evidence-backed findings.",
             "hardAssertions": [
               {
                 "id": "finding-location",
@@ -6738,7 +6738,7 @@
             "id": "review-stops-without-requirements",
             "split": "challenge",
             "taskFamily": "review-requirements-boundary",
-            "sourceRule": "skills/review-changes/SKILL.md:40-48, 132-144 — a diff is scope, not requirements; ask for a readable source before review.",
+            "sourceRule": "skills/review-changes/SKILL.md:40-48, 132-144 - a diff is scope, not requirements; ask for a readable source before review.",
             "hardAssertions": [
               {
                 "id": "focused-question",
@@ -7921,7 +7921,7 @@
             "id": "skill-manager-complete-markdown-edit-transaction",
             "split": "train",
             "taskFamily": "skill-markdown-edit-lifecycle",
-            "sourceRule": "skills/skill-manager/SKILL.md:147-154, 185-187 — guarded begin/edit/finalize, preserve protected tokens, then apply reflow.",
+            "sourceRule": "skills/skill-manager/SKILL.md:147-154, 185-187 - guarded begin/edit/finalize, preserve protected tokens, then apply reflow.",
             "hardAssertions": [
               {
                 "id": "begin-called",
@@ -7954,7 +7954,7 @@
             "id": "skill-manager-guard-before-no-edit-markdown-read",
             "split": "validation",
             "taskFamily": "markdown-no-edit-guard",
-            "sourceRule": "skills/skill-manager/SKILL.md:144-146 — no-edit Markdown reads require `/md-compress guard` and a guarded receipt.",
+            "sourceRule": "skills/skill-manager/SKILL.md:144-146 - no-edit Markdown reads require `/md-compress guard` and a guarded receipt.",
             "hardAssertions": [
               {
                 "id": "guard-command",
@@ -7987,7 +7987,7 @@
             "id": "skill-manager-diagnose-placement-not-rewrite-order",
             "split": "challenge",
             "taskFamily": "instruction-gate-diagnosis-repair",
-            "sourceRule": "skills/skill-manager/SKILL.md:139-143, 196-217, 223-226 — freeze matrices, use gate results, inspect diagnosis, and treat reader failures as document clarity evidence.",
+            "sourceRule": "skills/skill-manager/SKILL.md:139-143, 196-217, 223-226 - freeze matrices, use gate results, inspect diagnosis, and treat reader failures as document clarity evidence.",
             "hardAssertions": [
               {
                 "id": "placement-repair",

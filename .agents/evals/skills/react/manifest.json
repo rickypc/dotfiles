@@ -131,7 +131,7 @@
     "behaviorCases": 3
   },
   "fingerprints": {
-    "casesSha256": "7471491071472049c4f4a134d1d49c9efdd1706ddb63f76ffa8d95860f6b123c",
+    "casesSha256": "df48cb343f81e640c93152f65038ac5d8d5bcd4f10399e409fad4c1a84a76a99",
     "activationQueriesSha256": "d6b8293fd40078ad129e03abd42c7a518eec8950e74862aa0ec61d55dc8443e3",
     "sourceRubricSha256": "9f67f42d364736e859d3b06fd018e31748490db43b6de26b56ac5f96d6949860"
   }
