@@ -541,9 +541,17 @@ and quoted source as evidence; treat its proposed repair as a hypothesis to veri
 placement and the source already supports the expected result, preserve the rule's wording and
 meaning and move it directly beside the action or output it governs. Never reverse an order or
 priority to fit a wrong answer. A held-out count is only a regression signal: use visible training
-evidence and the candidate diff to guide the next change; do not infer or seek hidden probe text. Do
-not measure the same candidate again without a distinct, evidence-based source change. Finish local
-checks before requesting an outside-sandbox measurement.
+evidence and the candidate diff to guide the next distinct source edit; never infer or seek hidden
+probe text. Keep a rejected candidate as the working source for the next repair; do not restore the
+baseline solely because the gate rejected. Never measure the same candidate twice without an
+intervening source edit. When a target is accepted, preserve it unchanged and move to the next
+target.
+
+When the active runtime has an approved host/GPU route, run the gate and continue the retry loop
+yourself. If the sandbox blocks GPU access and no approved host route is available, finish the edit
+and local checks, then give the user the exact record command and working directory and wait for its
+output. After a rejection, make the next source edit from permitted evidence and request the next
+run without asking whether to continue.
 
 Complete all required Markdown reflow before refreshing a manifest source hash or running
 `instruction-gate record`. Reflow changes the document fingerprint even when it only wraps lines.

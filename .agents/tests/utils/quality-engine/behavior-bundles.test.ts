@@ -128,6 +128,84 @@ test('target bundle hides labels and expected outcomes while preserving its task
   expect(() => behaviorTargetBundleFor(evaluationCase, '# instruction', 'bad-run-id')).toThrow(
     'UUIDv4',
   );
+  expect(() =>
+    behaviorTargetBundleFor(evaluationCase, '# instruction', metadata.runId, {
+      outputReferenceVersion: 1,
+      runIndex: metadata.runIndex,
+    } as never),
+  ).toThrow('Versioned target bundles require outputReferenceVersion 2');
+  expect(() =>
+    behaviorTargetBundleFor(evaluationCase, '# instruction', metadata.runId, {
+      outputReferenceVersion: 2,
+      runIndex: 0,
+    }),
+  ).toThrow('Versioned target bundles require outputReferenceVersion 2');
+});
+
+test('versioned target bundles bind the final output line to runIndex and the bare runId', () => {
+  const versionedMetadata: BehaviorRunMetadata = {
+    ...metadata,
+    outputReferenceVersion: 2,
+  };
+  const versionedExpected: BehaviorRunExpected = {
+    axes,
+    cases: [
+      {
+        hardAssertions: evaluationCase.hardAssertions,
+        id: evaluationCase.id,
+        split: evaluationCase.split,
+        taskFamily: evaluationCase.taskFamily,
+      },
+    ],
+    metadata: versionedMetadata,
+    sessions: [
+      {
+        caseId: evaluationCase.id,
+        graderSessionId: 'grader-session-1',
+        targetSessionId: 'target-session-1',
+      },
+    ],
+    split: 'train',
+  };
+  const bundle = behaviorTargetBundleFor(
+    evaluationCase,
+    '# Instruction under test',
+    metadata.runId,
+    { outputReferenceVersion: 2, runIndex: metadata.runIndex },
+  );
+  const output = `${target.output}\nrunId: \`run-${metadata.runIndex}-${metadata.runId}\``;
+  const seal = (capturedOutput: string) =>
+    behaviorRunReceiptFromResponses(
+      jsonl([
+        targetEnvelope(evaluationCase.id, 'target-session-1', {
+          ...target,
+          output: capturedOutput,
+        }),
+      ]),
+      jsonl([graderEnvelope(evaluationCase.id, 'grader-session-1')]),
+      versionedExpected,
+      [evaluationCase],
+      { sha256: hash },
+    );
+
+  expect(bundle).toMatchObject({
+    outputReferenceVersion: 2,
+    runId: metadata.runId,
+    runIndex: metadata.runIndex,
+    schemaVersion: 3,
+  });
+  expect(bundle.prompt).toContain(`runId: \`run-${metadata.runIndex}-${metadata.runId}\``);
+  expect(Object.keys(bundle.responseContract).sort()).toEqual([
+    'diff',
+    'output',
+    'runId',
+    'toolTrace',
+  ]);
+  expect(bundle.responseContract.output).toContain(
+    `runId: \`run-${metadata.runIndex}-${metadata.runId}\``,
+  );
+  expect(seal(output).schemaVersion).toBe(9);
+  expect(() => seal(target.output)).toThrow('runIndex-linked runId reference');
 });
 
 test('grader bundle has no candidate identity and receives the captured evidence', () => {

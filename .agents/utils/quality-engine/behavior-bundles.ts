@@ -1,4 +1,6 @@
 import {
+  assertBehaviorRunOutputReference,
+  BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION,
   BEHAVIOR_RUN_SCHEMA_VERSION,
   type BehaviorRunExpected,
   type BehaviorRunReceipt,
@@ -46,17 +48,19 @@ export interface BehaviorRunResponseDependencies {
 export interface BehaviorTargetBundle {
   readonly fixture: string;
   readonly instruction: string;
+  readonly outputReferenceVersion?: 2;
   readonly prompt: string;
   readonly repairBoundary: string;
   readonly responseContract: {
     readonly diff: 'captured final diff as a string';
-    readonly output: 'final response as a string';
+    readonly output: string;
     readonly runId: 'echo the runId from this request exactly';
     readonly toolTrace: 'ordered tool trace as a string';
   };
   readonly role: 'target';
   readonly runId: string;
-  readonly schemaVersion: 2;
+  readonly runIndex?: number;
+  readonly schemaVersion: 2 | 3;
   readonly task: string;
 }
 
@@ -120,37 +124,6 @@ export const behaviorGraderBundleFor = (
     runId,
     schemaVersion: 3,
     sharedRubric,
-    task: evaluationCase.task,
-  };
-};
-
-export const behaviorTargetBundleFor = (
-  evaluationCase: BehaviorEvaluationCase,
-  instruction: string,
-  runId: string,
-): BehaviorTargetBundle => {
-  if (!instruction.trim()) {
-    throw new Error('Behavior target bundle requires nonblank instruction text.');
-  }
-  if (!isBehaviorRunId(runId)) {
-    throw new Error('Behavior target bundle requires a UUIDv4 runId.');
-  }
-  return {
-    fixture: evaluationCase.fixture,
-    instruction,
-    prompt:
-      'Follow the supplied instruction and complete the task using only the supplied fixture and declared repair boundary. '
-      + 'Do not describe hidden evaluation criteria. Echo the request runId, then return the final response, complete tool trace, and final diff as strings.',
-    repairBoundary: evaluationCase.repairBoundary,
-    responseContract: {
-      diff: 'captured final diff as a string',
-      output: 'final response as a string',
-      runId: 'echo the runId from this request exactly',
-      toolTrace: 'ordered tool trace as a string',
-    },
-    role: 'target',
-    runId,
-    schemaVersion: 2,
     task: evaluationCase.task,
   };
 };
@@ -278,10 +251,75 @@ const responsesByCase = (
   return result;
 };
 
+const targetOutputReferenceLineFor = (
+  outputReference:
+    | Pick<BehaviorRunExpected['metadata'], 'outputReferenceVersion' | 'runIndex'>
+    | undefined,
+  runId: string,
+): string | undefined => {
+  if (outputReference === undefined) {
+    return undefined;
+  }
+  if (outputReference.outputReferenceVersion !== 2) {
+    throw new Error(
+      'Versioned target bundles require outputReferenceVersion 2 and a positive runIndex.',
+    );
+  }
+  if (!Number.isInteger(outputReference.runIndex) || Number(outputReference.runIndex) < 1) {
+    throw new Error(
+      'Versioned target bundles require outputReferenceVersion 2 and a positive runIndex.',
+    );
+  }
+  return `runId: \`run-${outputReference.runIndex}-${runId}\``;
+};
+
+export const behaviorTargetBundleFor = (
+  evaluationCase: BehaviorEvaluationCase,
+  instruction: string,
+  runId: string,
+  outputReference?: Pick<BehaviorRunExpected['metadata'], 'outputReferenceVersion' | 'runIndex'>,
+): BehaviorTargetBundle => {
+  if (!instruction.trim()) {
+    throw new Error('Behavior target bundle requires nonblank instruction text.');
+  }
+  if (!isBehaviorRunId(runId)) {
+    throw new Error('Behavior target bundle requires a UUIDv4 runId.');
+  }
+  const outputReferenceLine = targetOutputReferenceLineFor(outputReference, runId);
+  return {
+    fixture: evaluationCase.fixture,
+    instruction,
+    prompt:
+      'Follow the supplied instruction and complete the task using only the supplied fixture and declared repair boundary. '
+      + 'Do not describe hidden evaluation criteria. Echo the request runId, then return the final response, complete tool trace, and final diff as strings.'
+      + (outputReferenceLine
+        ? ` The response object's runId must remain the bare request UUID. Include this exact standalone line once in the output string: ${outputReferenceLine}.`
+        : ''),
+    repairBoundary: evaluationCase.repairBoundary,
+    responseContract: {
+      diff: 'captured final diff as a string',
+      output: outputReferenceLine
+        ? `final response as a string; include exactly one standalone line: ${outputReferenceLine}`
+        : 'final response as a string',
+      runId: 'echo the runId from this request exactly',
+      toolTrace: 'ordered tool trace as a string',
+    },
+    role: 'target',
+    runId,
+    ...(outputReference !== undefined
+      ? { outputReferenceVersion: 2 as const, runIndex: outputReference.runIndex }
+      : {}),
+    schemaVersion: outputReference !== undefined ? 3 : 2,
+    task: evaluationCase.task,
+  };
+};
+
 const targetResponseFor = (
   value: unknown,
   index: number,
   expectedRunId: string,
+  outputReferenceVersion?: 2,
+  runIndex?: number,
 ): CapturedTargetResponse => {
   if (!isRecord(value) || !exactKeys(value, ['diff', 'output', 'runId', 'toolTrace'])) {
     throw new Error(
@@ -291,9 +329,15 @@ const targetResponseFor = (
   if (value.runId !== expectedRunId) {
     throw new Error(`Target response runId does not match the expected run: ${index + 1}.`);
   }
+  const output = requireEvidence(value.output, `Target response ${index + 1} output`);
+  assertBehaviorRunOutputReference(output, {
+    outputReferenceVersion,
+    runId: expectedRunId,
+    runIndex: runIndex ?? 0,
+  });
   return {
     diff: requireEvidence(value.diff, `Target response ${index + 1} diff`),
-    output: requireEvidence(value.output, `Target response ${index + 1} output`),
+    output,
     runId: value.runId,
     toolTrace: requireEvidence(value.toolTrace, `Target response ${index + 1} toolTrace`),
   };
@@ -346,7 +390,13 @@ export const behaviorRunReceiptFromResponses = (
   const rows = selectedCases.map((evaluationCase, index) => {
     const targetEnvelope = targetByCase.get(evaluationCase.id);
     const graderEnvelope = graderByCase.get(evaluationCase.id);
-    const target = targetResponseFor(targetEnvelope?.response, index, expected.metadata.runId);
+    const target = targetResponseFor(
+      targetEnvelope?.response,
+      index,
+      expected.metadata.runId,
+      expected.metadata.outputReferenceVersion,
+      expected.metadata.runIndex,
+    );
     const grader = graderResponseFor(graderEnvelope?.response, index, expected.metadata.runId);
     const hardAssertions = evaluateHardAssertions(evaluationCase, target);
     const record = {
@@ -358,7 +408,10 @@ export const behaviorRunReceiptFromResponses = (
       output: target.output,
       outputDigest: dependencies.sha256(target.output),
       runId: expected.metadata.runId,
-      schemaVersion: BEHAVIOR_RUN_SCHEMA_VERSION,
+      schemaVersion:
+        expected.metadata.outputReferenceVersion === 2
+          ? BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION
+          : BEHAVIOR_RUN_SCHEMA_VERSION,
       score: {
         axisResults: grader.axisResults,
         caseId: evaluationCase.id,

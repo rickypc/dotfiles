@@ -232,6 +232,12 @@ user report unless requested.
 
 ## 6. Output & Completion Contract
 
+Within each lens, sort by file path in ascending A-to-Z order. Within one path, sort by ascending
+line number. Do not rerank across the two lenses. Emit a consecutive finding index before details.
+Each index line contains only its file path, line number, and category label; put the problem,
+consequence, and concrete correction in its matching numbered Details entry. Keep both lists in the
+same order. The index is a locator only; each item maps to one complete numbered Details entry.
+
 Review output: return only review feedback and any scope limitation. Do not claim that tests passed
 or approve a change. Return all supported findings from every applicable category together in one
 consolidated report, with no finding-count cap or top-N filter. Do not send progress findings,
@@ -239,15 +245,26 @@ partial findings, or later addenda. Say when a lens has no findings and name any
 static review cannot resolve. If knowledge was retained, append a short `Retained knowledge` line
 with its concept path and validation receipt; otherwise omit that line.
 
-Within each lens, sort by file path in ascending A-to-Z order. Within one path, sort by ascending
-line number. Do not rerank across the two lenses.
-
 ```text
 ## Requirements
-- `path/to/file.ext:line` - [Bug] behavior and consequence; concrete correction.
+
+Finding index (labels only):
+- `path/to/file.ext:line` - [Bug]
+- `path/to/file.ext:line` - [Risk]
+
+Details (same order):
+1. `path/to/file.ext:line` - [Bug] behavior and consequence; concrete correction.
+2. `path/to/file.ext:line` - [Risk] behavior and consequence; concrete correction.
 
 ## Repository and language standards
-- `path/to/file.ext:line` - [Risk] behavior and consequence; concrete correction.
+
+Finding index (labels only):
+- `path/to/file.ext:line` - [Risk]
+- `path/to/file.ext:line` - [Maintainability]
+
+Details (same order):
+1. `path/to/file.ext:line` - [Risk] behavior and consequence; concrete correction.
+2. `path/to/file.ext:line` - [Maintainability] behavior and consequence; concrete correction.
 ```
 
 Use `[Bug]` for incorrect behavior, `[Risk]` for a supported failure or security exposure, and

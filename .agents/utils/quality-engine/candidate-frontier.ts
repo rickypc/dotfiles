@@ -95,18 +95,6 @@ const hasNoRegression = (
     ),
   );
 
-const hasValidationGain = (
-  candidate: ParsedCandidateSnapshot,
-  baseline: ParsedCandidateSnapshot,
-): boolean =>
-  Object.entries(baseline.validationCases).some(([caseId, baselineResult]) =>
-    behaviorRubricAxes.some(
-      (axis) =>
-        baselineResult.axes[axis] === 'fail'
-        && candidate.validationCases[caseId].axes[axis] === 'pass',
-    ),
-  );
-
 const isBlank = (value: string): boolean => value.trim().length === 0;
 
 const isFingerprint = (value: unknown): value is string =>
@@ -300,8 +288,7 @@ export const selectValidationCandidate = (
     (candidate) =>
       Object.values(candidate.validationCases).every(({ hardAssertionsPass }) => hardAssertionsPass)
       && hasAllValidationAxesPass(candidate)
-      && hasNoRegression(candidate, baseline)
-      && hasValidationGain(candidate, baseline),
+      && hasNoRegression(candidate, baseline),
   );
   const selected = frontierForParsedSnapshots(eligible).sort(
     (left, right) =>

@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 
 import {
+  BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION,
   BEHAVIOR_RUN_SCHEMA_VERSION,
   type BehaviorRunCase,
   type BehaviorRunExpected,
@@ -214,14 +215,50 @@ const runIds = [
   '33333333-3333-4333-8333-333333333333',
 ];
 
+const failureEvidenceFor = (
+  failHardAssertion: boolean | undefined,
+  index: number,
+): EvidenceOptions | undefined => {
+  if (!failHardAssertion || index !== 0) {
+    return undefined;
+  }
+  return {
+    diff: '--- a/note.md\n+++ b/note.md\n+outside',
+    output: 'Saved the safe note.',
+    toolTrace: 'write note.md',
+  };
+};
+
+const scoreForRun = (
+  score: Record<string, unknown>,
+  failAxis: boolean | undefined,
+  index: number,
+): Record<string, unknown> => {
+  if (!failAxis || index !== 0) {
+    return score;
+  }
+  const axisResults = score.axisResults as Record<string, unknown>[];
+  return {
+    ...score,
+    axisResults: axisResults.map((item, axisIndex) =>
+      axisIndex === 0 ? { ...item, status: 'fail' } : item,
+    ),
+  };
+};
+
 const receiptForRun = (
   runIndex: number,
-  options: { readonly failAxis?: boolean; readonly failHardAssertion?: boolean } = {},
+  options: {
+    readonly failAxis?: boolean;
+    readonly failHardAssertion?: boolean;
+    readonly versionOutputReference?: boolean;
+  } = {},
 ): BehaviorRunReceipt => {
   const runMetadata = {
     ...metadata,
     runId: runIds[runIndex - 1] ?? metadata.runId,
     runIndex,
+    ...(options.versionOutputReference ? { outputReferenceVersion: 2 as const } : {}),
   };
   const selectedCases = cases.filter(({ split }) => split === 'train');
   const sessions = expected.sessions.map((session) => ({
@@ -231,32 +268,22 @@ const receiptForRun = (
   }));
   const content = jsonlFor(undefined, (_value, index) => {
     const evaluationCase = selectedCases[index] as BehaviorRunCase;
-    const evidence =
-      options.failHardAssertion && index === 0
-        ? {
-            diff: '--- a/note.md\n+++ b/note.md\n+outside',
-            output: 'Saved the safe note.',
-            toolTrace: 'write note.md',
-          }
-        : undefined;
-    const row = evidence ? recordFor(evaluationCase, evidence) : recordFor(evaluationCase);
+    const row = recordFor(evaluationCase, failureEvidenceFor(options.failHardAssertion, index));
     const session = sessions[index];
-    const score = row.score as Record<string, unknown>;
-    const axisResults = score.axisResults as Record<string, unknown>[];
+    const output = options.versionOutputReference
+      ? `${String(row.output)}\nrunId: \`run-${runIndex}-${runMetadata.runId}\``
+      : row.output;
     return {
       ...row,
       graderSessionId: session?.graderSessionId,
       metadata: runMetadata,
+      output,
+      outputDigest: hash(String(output)),
       runId: runMetadata.runId,
-      score: {
-        ...score,
-        axisResults:
-          options.failAxis && index === 0
-            ? axisResults.map((item, axisIndex) =>
-                axisIndex === 0 ? { ...item, status: 'fail' } : item,
-              )
-            : axisResults,
-      },
+      schemaVersion: options.versionOutputReference
+        ? BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION
+        : BEHAVIOR_RUN_SCHEMA_VERSION,
+      score: scoreForRun(row.score as Record<string, unknown>, options.failAxis, index),
       targetSessionId: session?.targetSessionId,
     };
   });
@@ -326,6 +353,18 @@ test('aggregates exactly three comparable runs and keeps per-case vectors and va
     expect(graderIds.size).toBe(1);
   }
   expect(receipt.aggregateDigest).toMatch(/^[a-f0-9]{64}$/u);
+});
+
+test('aggregates legacy and versioned output-reference receipts without changing the evidence', () => {
+  const receipt = aggregateBehaviorRunReceipts(
+    [receiptForRun(1), receiptForRun(2, { versionOutputReference: true }), receiptForRun(3)],
+    3,
+    hash,
+  );
+
+  expect(receipt.decision).toBe('provisional');
+  expect(receipt.runResults.map(({ runIndex }) => runIndex)).toEqual([1, 2, 3]);
+  expect(receipt.metadata).not.toHaveProperty('outputReferenceVersion');
 });
 
 test('rejects identical omissions and matrix fingerprints outside the frozen case matrix', () => {

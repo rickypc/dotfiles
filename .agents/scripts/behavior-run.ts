@@ -189,29 +189,6 @@ const expectedFrom = (value: unknown, split: BehaviorRunSplit): BehaviorRunExpec
   };
 };
 
-const runIdFromMetadata = async (
-  path: string | undefined,
-  dependencies: BehaviorRunCliDependencies,
-): Promise<string> => {
-  const metadata: unknown = JSON.parse(await dependencies.readText(path ?? ''));
-  if (!isRecord(metadata) || !isBehaviorRunId(metadata.runId)) {
-    throw new Error('Run metadata must contain a UUIDv4 runId.');
-  }
-  return metadata.runId;
-};
-
-const runTarget = async (
-  args: readonly string[],
-  dependencies: BehaviorRunCliDependencies,
-): Promise<void> => {
-  const [, casesPath, sourcePath, caseId, metadataPath] = args;
-  const allCases = behaviorCasesFrom(await dependencies.readText(casesPath ?? ''));
-  const source = await dependencies.readText(sourcePath ?? '');
-  const runId = await runIdFromMetadata(metadataPath, dependencies);
-  const bundle = behaviorTargetBundleFor(caseFor(allCases, caseId ?? ''), source, runId);
-  dependencies.write(JSON.stringify(bundle, null, 2));
-};
-
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');
 
 const assertMatrixFingerprint = (
@@ -405,6 +382,43 @@ const strictEvidenceFrom = (
   return { diff: value.diff, output: value.output, toolTrace: value.toolTrace };
 };
 
+const targetRunReferenceFromMetadata = async (
+  path: string | undefined,
+  dependencies: BehaviorRunCliDependencies,
+): Promise<{
+  readonly outputReference?: Pick<BehaviorRunMetadata, 'outputReferenceVersion' | 'runIndex'>;
+  readonly runId: string;
+}> => {
+  const metadata: unknown = JSON.parse(await dependencies.readText(path ?? ''));
+  if (!isRecord(metadata) || !isBehaviorRunId(metadata.runId)) {
+    throw new Error('Run metadata must contain a UUIDv4 runId.');
+  }
+  if (metadata.outputReferenceVersion === undefined) {
+    return { runId: metadata.runId };
+  }
+  if (
+    metadata.outputReferenceVersion !== 2
+    || !Number.isInteger(metadata.runIndex)
+    || Number(metadata.runIndex) < 1
+  ) {
+    throw new Error(
+      'Versioned target metadata requires outputReferenceVersion 2 and a positive runIndex.',
+    );
+  }
+  return {
+    outputReference: {
+      outputReferenceVersion: 2,
+      runIndex: Number(metadata.runIndex),
+    },
+    runId: metadata.runId,
+  };
+};
+
+const runIdFromMetadata = async (
+  path: string | undefined,
+  dependencies: BehaviorRunCliDependencies,
+): Promise<string> => (await targetRunReferenceFromMetadata(path, dependencies)).runId;
+
 const runGrader = async (
   args: readonly string[],
   dependencies: BehaviorRunCliDependencies,
@@ -419,6 +433,26 @@ const runGrader = async (
     strictEvidenceFrom(evidence, runId),
     rubric,
     runId,
+  );
+  dependencies.write(JSON.stringify(bundle, null, 2));
+};
+
+const runTarget = async (
+  args: readonly string[],
+  dependencies: BehaviorRunCliDependencies,
+): Promise<void> => {
+  const [, casesPath, sourcePath, caseId, metadataPath] = args;
+  const allCases = behaviorCasesFrom(await dependencies.readText(casesPath ?? ''));
+  const source = await dependencies.readText(sourcePath ?? '');
+  const { outputReference, runId } = await targetRunReferenceFromMetadata(
+    metadataPath,
+    dependencies,
+  );
+  const bundle = behaviorTargetBundleFor(
+    caseFor(allCases, caseId ?? ''),
+    source,
+    runId,
+    outputReference,
   );
   dependencies.write(JSON.stringify(bundle, null, 2));
 };

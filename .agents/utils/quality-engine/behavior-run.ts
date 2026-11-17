@@ -1,6 +1,7 @@
 import type { EvaluationCase } from './evaluation-cases.js';
 
 export const BEHAVIOR_RUN_SCHEMA_VERSION = 8 as const;
+export const BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION = 9 as const;
 export const BEHAVIOR_RUNS_PER_CASE = 3 as const;
 
 export interface BehaviorRunAggregateCaseReceipt {
@@ -31,7 +32,7 @@ export interface BehaviorRunAggregateReceipt {
   readonly caseResults: readonly BehaviorRunAggregateCaseReceipt[];
   readonly decision: 'provisional' | 'reject';
   readonly evaluationId: string;
-  readonly metadata: Omit<BehaviorRunMetadata, 'runId' | 'runIndex'>;
+  readonly metadata: Omit<BehaviorRunMetadata, 'outputReferenceVersion' | 'runId' | 'runIndex'>;
   readonly ownerId: string;
   readonly requiredRuns: number;
   readonly runResults: readonly {
@@ -118,6 +119,7 @@ export interface BehaviorRunMetadata {
   readonly manifestFingerprint: string;
   readonly matrixFingerprint: string;
   readonly modelId: string;
+  readonly outputReferenceVersion?: 2;
   readonly ownerId: string;
   readonly reflectionPromptVersion: string;
   readonly rubricFingerprint: string;
@@ -135,7 +137,9 @@ export interface BehaviorRunReceipt {
   readonly decision: 'provisional' | 'reject';
   readonly metadata: BehaviorRunMetadata;
   readonly resultsDigest: string;
-  readonly schemaVersion: typeof BEHAVIOR_RUN_SCHEMA_VERSION;
+  readonly schemaVersion:
+    | typeof BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION
+    | typeof BEHAVIOR_RUN_SCHEMA_VERSION;
   readonly split: BehaviorRunSplit;
 }
 
@@ -154,7 +158,7 @@ interface EvidencePayload {
   readonly toolTrace: string;
 }
 
-const metadataFields = [
+const legacyMetadataFields = [
   'candidateId',
   'evaluationId',
   'graderModelId',
@@ -173,6 +177,8 @@ const metadataFields = [
   'targetRuntimeId',
   'taskPromptVersion',
 ] as const;
+
+const metadataFields = [...legacyMetadataFields, 'outputReferenceVersion'] as const;
 
 const metadataFingerprintFields = [
   'manifestFingerprint',
@@ -222,6 +228,26 @@ const scoreFields = [
   'matrixFingerprint',
   'sourceFingerprint',
 ] as const;
+
+export const assertBehaviorRunOutputReference = (
+  output: string,
+  metadata: Pick<BehaviorRunMetadata, 'outputReferenceVersion' | 'runId' | 'runIndex'>,
+): void => {
+  if (metadata.outputReferenceVersion !== 2) {
+    return;
+  }
+  const lines = output.split(/\r?\n/u);
+  if (lines.at(-1) === '') {
+    lines.pop();
+  }
+  const runReference = `run-${metadata.runIndex}-${metadata.runId}`;
+  const acceptedReferences = new Set([`runId: ${runReference}`, `runId: \`${runReference}\``]);
+  if (lines.filter((line) => acceptedReferences.has(line)).length !== 1) {
+    throw new Error(
+      'Behavior run output must contain exactly one standalone runIndex-linked runId reference.',
+    );
+  }
+};
 
 const evidenceFor = (evidence: EvidencePayload, kind: BehaviorRunAssertion['kind']): string => {
   if (kind.startsWith('output-')) {
@@ -280,6 +306,22 @@ export const isBehaviorRunId = (value: unknown): value is string =>
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const assertMetadataShape = (value: unknown): Record<string, unknown> => {
+  if (!isRecord(value)) {
+    throw new Error(
+      'Behavior run metadata is missing required fields or contains unsupported fields.',
+    );
+  }
+  const expectedFields =
+    value.outputReferenceVersion === undefined ? legacyMetadataFields : metadataFields;
+  if (!hasExactKeys(value, expectedFields)) {
+    throw new Error(
+      'Behavior run metadata is missing required fields or contains unsupported fields.',
+    );
+  }
+  return value;
+};
 
 export const canonicalJson = (value: unknown): string => {
   if (Array.isArray(value)) {
@@ -359,11 +401,9 @@ const addExpectedCase = (byId: Map<string, BehaviorRunCase>, item: BehaviorRunCa
   byId.set(item.id, item);
 };
 
-const assertMetadata = (value: unknown): BehaviorRunMetadata => {
-  if (!isRecord(value) || !hasExactKeys(value, metadataFields)) {
-    throw new Error(
-      'Behavior run metadata is missing required fields or contains unsupported fields.',
-    );
+const assertMetadataValues = (value: Record<string, unknown>): void => {
+  if (value.outputReferenceVersion !== undefined && value.outputReferenceVersion !== 2) {
+    throw new Error('Behavior run metadata outputReferenceVersion must be 2 when present.');
   }
   if (!Number.isInteger(value.runIndex) || Number(value.runIndex) < 1) {
     throw new Error('Behavior run metadata runIndex must be a positive integer.');
@@ -380,7 +420,12 @@ const assertMetadata = (value: unknown): BehaviorRunMetadata => {
   if (!isBehaviorRunId(value.runId)) {
     throw new Error('Behavior run metadata runId must be a fresh UUIDv4.');
   }
-  return value as unknown as BehaviorRunMetadata;
+};
+
+const assertMetadata = (value: unknown): BehaviorRunMetadata => {
+  const metadata = assertMetadataShape(value);
+  assertMetadataValues(metadata);
+  return metadata as unknown as BehaviorRunMetadata;
 };
 
 const axisResultsFor = (
@@ -523,12 +568,16 @@ const behaviorRunResultRecordFrom = (
   value: unknown,
   split: BehaviorRunSplit,
 ): Record<string, unknown> => {
-  if (
-    !isRecord(value)
-    || !hasExactKeys(value, recordFields)
-    || value.schemaVersion !== BEHAVIOR_RUN_SCHEMA_VERSION
-  ) {
+  if (!isRecord(value) || !hasExactKeys(value, recordFields)) {
     throw new Error('Behavior run result is malformed or uses an unsupported schema.');
+  }
+  const metadata = assertMetadata(value.metadata);
+  const expectedSchemaVersion =
+    metadata.outputReferenceVersion === 2
+      ? BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION
+      : BEHAVIOR_RUN_SCHEMA_VERSION;
+  if (value.schemaVersion !== expectedSchemaVersion) {
+    throw new Error('Behavior run result schema does not match its output reference version.');
   }
   if (
     !nonblankString(value.caseId)
@@ -619,12 +668,13 @@ const behaviorRunCaseReceiptFrom = (
   caseIds: Set<string>,
   targetSessionIds: Set<string>,
   graderSessionIds: Set<string>,
-  expectedRunId: string,
+  expectedMetadata: BehaviorRunMetadata,
 ): BehaviorRunCaseReceipt => {
   assertBehaviorRunCaseReceiptShape(value);
-  if (value.runId !== expectedRunId) {
+  if (value.runId !== expectedMetadata.runId) {
     throw new Error('Behavior aggregation case runId does not match its run receipt.');
   }
+  assertBehaviorRunOutputReference(value.output as string, expectedMetadata);
   const evidence = evidenceFromBehaviorRunCaseReceipt(value, sha256);
   const hardAssertions = hardAssertionReceiptsFrom(
     value.hardAssertions as readonly unknown[],
@@ -664,9 +714,13 @@ export const behaviorRunReceiptForAggregation = (
     throw new Error('Behavior aggregation input is not a complete run receipt.');
   }
   const metadata = assertMetadata(value.metadata);
+  const expectedSchemaVersion =
+    metadata.outputReferenceVersion === 2
+      ? BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION
+      : BEHAVIOR_RUN_SCHEMA_VERSION;
   if (
     value.admission !== 'run-id-linked'
-    || value.schemaVersion !== BEHAVIOR_RUN_SCHEMA_VERSION
+    || value.schemaVersion !== expectedSchemaVersion
     || !['challenge', 'train', 'validation'].includes(String(value.split))
     || !isSha256(value.resultsDigest)
     || !Array.isArray(value.caseResults)
@@ -685,7 +739,7 @@ export const behaviorRunReceiptForAggregation = (
       caseIds,
       targetSessionIds,
       graderSessionIds,
-      metadata.runId,
+      metadata,
     ),
   );
   if (sha256(canonicalJson(caseResults)) !== value.resultsDigest) {
@@ -701,7 +755,7 @@ export const behaviorRunReceiptForAggregation = (
     decision,
     metadata,
     resultsDigest: value.resultsDigest,
-    schemaVersion: BEHAVIOR_RUN_SCHEMA_VERSION,
+    schemaVersion: expectedSchemaVersion,
     split: value.split as BehaviorRunSplit,
   };
 };
@@ -802,6 +856,7 @@ const resultFor = (
     output: row.output as string,
     toolTrace: row.toolTrace as string,
   };
+  assertBehaviorRunOutputReference(evidence.output, metadata);
   const expectedHashes = {
     diffDigest: sha256(row.diff as string),
     outputDigest: sha256(row.output as string),
@@ -907,7 +962,10 @@ export const buildBehaviorRunReceipt = (
     decision: allPassed ? 'provisional' : 'reject',
     metadata,
     resultsDigest,
-    schemaVersion: BEHAVIOR_RUN_SCHEMA_VERSION,
+    schemaVersion:
+      metadata.outputReferenceVersion === 2
+        ? BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION
+        : BEHAVIOR_RUN_SCHEMA_VERSION,
     split: expected.split,
   };
 };

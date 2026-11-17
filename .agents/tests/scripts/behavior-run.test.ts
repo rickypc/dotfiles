@@ -1,6 +1,8 @@
 import { afterAll, expect, mock, test } from 'bun:test';
 import * as realCrypto from 'node:crypto';
 import * as realFsPromises from 'node:fs/promises';
+import * as realPath from 'node:path';
+import * as realUrl from 'node:url';
 
 import {
   BEHAVIOR_RUN_SCHEMA_VERSION,
@@ -13,6 +15,12 @@ import {
   behaviorRubricAxes,
   type ContractEvaluationCase,
 } from '../../utils/quality-engine/evaluation-cases.js';
+
+interface BehaviorRunCliHarness {
+  readonly files: Map<string, string>;
+  readonly getOutput: () => string;
+  readonly run: (args: readonly string[]) => Promise<void>;
+}
 
 const canonicalJson = (value: unknown): string => {
   if (Array.isArray(value)) {
@@ -72,8 +80,12 @@ const createHash = mock((algorithm: string) => {
 });
 
 const readFile = mock(async (_path: string, _encoding: string) => '');
+const resolvePath = mock(realPath.resolve);
+const fileURLToPath = mock(realUrl.fileURLToPath);
 mock.module('node:crypto', () => ({ ...realCrypto, createHash }));
 mock.module('node:fs/promises', () => ({ ...realFsPromises, readFile }));
+mock.module('node:path', () => ({ ...realPath, resolve: resolvePath }));
+mock.module('node:url', () => ({ ...realUrl, fileURLToPath }));
 
 const {
   BEHAVIOR_RUN_AGENTS_ROOT_PATH,
@@ -159,7 +171,7 @@ const graderResponse = JSON.stringify({
   runId: metadata.runId,
 });
 
-test('CLI prepares blind bundles and seals supplied captures as provisional', async () => {
+const behaviorRunCliHarnessFor = (): BehaviorRunCliHarness => {
   const files = new Map<string, string>([
     ['/cases.jsonl', caseText],
     [BEHAVIOR_RUN_ROOT_MANIFEST_PATH, rootManifestText],
@@ -190,10 +202,17 @@ test('CLI prepares blind bundles and seals supplied captures as provisional', as
     },
     write,
   };
-  const run = (args: readonly string[]) => runBehaviorRunCli(Bun.argv(args), dependencies);
+  return {
+    files,
+    getOutput: () => output,
+    run: (args) => runBehaviorRunCli(Bun.argv(args), dependencies),
+  };
+};
 
+test('CLI binds expected cases to the root manifest', async () => {
+  const { files, getOutput, run } = behaviorRunCliHarnessFor();
   await run(['expected', '/cases.jsonl', '/metadata.json', 'train', '/sessions.jsonl']);
-  const expected = JSON.parse(output) as { cases: readonly unknown[]; split: string };
+  const expected = JSON.parse(getOutput()) as { cases: readonly unknown[]; split: string };
   expect(expected.split).toBe('train');
   expect(expected.cases).toHaveLength(1);
   files.set(
@@ -208,15 +227,43 @@ test('CLI prepares blind bundles and seals supplied captures as provisional', as
   await expect(
     run(['expected', '/cases.jsonl', '/metadata.json', 'train', '/sessions.jsonl']),
   ).rejects.toThrow('Root evaluation manifest must contain a nonblank evaluationId');
-  files.set(BEHAVIOR_RUN_ROOT_MANIFEST_PATH, rootManifestText);
-  files.set('/expected.json', output);
+});
 
+test('CLI prepares blind versioned target bundles', async () => {
+  const { files, getOutput, run } = behaviorRunCliHarnessFor();
   await run(['target', '/cases.jsonl', '/source.md', evaluationCase.id, '/metadata.json']);
-  const targetBundle = JSON.parse(output) as Record<string, unknown>;
+  const targetBundle = JSON.parse(getOutput()) as Record<string, unknown>;
   expect(targetBundle.role).toBe('target');
   expect(targetBundle.runId).toBe(metadata.runId);
   expect(JSON.stringify(targetBundle)).not.toContain(evaluationCase.id);
+  files.set('/metadata.json', JSON.stringify({ ...metadata, outputReferenceVersion: 2 }));
+  await run(['target', '/cases.jsonl', '/source.md', evaluationCase.id, '/metadata.json']);
+  const versionedTargetBundle = JSON.parse(getOutput()) as Record<string, unknown>;
+  expect(versionedTargetBundle).toMatchObject({
+    outputReferenceVersion: 2,
+    runId: metadata.runId,
+    runIndex: metadata.runIndex,
+    schemaVersion: 3,
+  });
+  expect(String(versionedTargetBundle.prompt)).toContain(
+    `runId: \`run-${metadata.runIndex}-${metadata.runId}\``,
+  );
+  files.set('/metadata.json', JSON.stringify({ ...metadata, outputReferenceVersion: 1 }));
+  await expect(
+    run(['target', '/cases.jsonl', '/source.md', evaluationCase.id, '/metadata.json']),
+  ).rejects.toThrow('Versioned target metadata requires outputReferenceVersion 2');
+  files.set(
+    '/metadata.json',
+    JSON.stringify({ ...metadata, outputReferenceVersion: 2, runIndex: 0 }),
+  );
+  await expect(
+    run(['target', '/cases.jsonl', '/source.md', evaluationCase.id, '/metadata.json']),
+  ).rejects.toThrow('Versioned target metadata requires outputReferenceVersion 2');
+  files.set('/metadata.json', JSON.stringify(metadata));
+});
 
+test('CLI prepares grader bundles without candidate identity', async () => {
+  const { getOutput, run } = behaviorRunCliHarnessFor();
   await run([
     'grader',
     '/cases.jsonl',
@@ -225,12 +272,17 @@ test('CLI prepares blind bundles and seals supplied captures as provisional', as
     '/target.json',
     '/metadata.json',
   ]);
-  const graderBundle = JSON.parse(output) as Record<string, unknown>;
+  const graderBundle = JSON.parse(getOutput()) as Record<string, unknown>;
   expect(graderBundle.role).toBe('grader');
   expect(graderBundle.runId).toBe(metadata.runId);
   expect(graderBundle.sharedRubric).toBe('# Shared four-axis rubric');
   expect(JSON.stringify(graderBundle)).not.toContain('candidate-1');
+});
 
+test('CLI seals runId-linked captures as provisional receipts', async () => {
+  const { files, getOutput, run } = behaviorRunCliHarnessFor();
+  await run(['expected', '/cases.jsonl', '/metadata.json', 'train', '/sessions.jsonl']);
+  files.set('/expected.json', getOutput());
   const targetEnvelope = {
     caseId: evaluationCase.id,
     response: JSON.parse(targetResponse) as unknown,
@@ -260,7 +312,7 @@ test('CLI prepares blind bundles and seals supplied captures as provisional', as
   ).rejects.toThrow('does not match evals/manifest.json');
   files.set('/expected.json', expectedText);
   await run(['seal', '/cases.jsonl', '/expected.json', '/target.jsonl', '/grader.jsonl']);
-  const receipt = JSON.parse(output) as {
+  const receipt = JSON.parse(getOutput()) as {
     admission: string;
     caseResults: readonly { runId: string; toolTraceEvidence: string }[];
     decision: string;

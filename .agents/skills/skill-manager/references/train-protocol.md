@@ -88,16 +88,29 @@ query text; it exists to catch overfitting, not to guide edits.
 
 ## 5. Loop for one skill
 
-1. Confirm `validate` passes and the query set has at least six queries per split with real
+1. Confirm `validate` passes and the frozen query set has at least six queries per split with real
    near-misses (neighbor skills, same verb different owner).
-2. Baseline: bundle, answer, `train measure --measure-only`.
-3. Reflect on train failures. Edit the description first: state the job, the trigger contexts, and
-   the neighbor boundary in general terms. Use a Markdown transaction for the edit.
-4. Bundle the candidate, answer blind, `train measure --attempt <n>`.
-5. `train select`. If `blocked`, copy the snapshot it names back before the next attempt. Stop after
-   three attempts or when no train failure remains.
-6. Apply the winner (copy its snapshot), `train measure --status applied`. With no winner, restore
-   the baseline snapshot and record `--status rollback`.
+2. Record one baseline with `train bundle`, blind answers, and `train measure --measure-only`. Keep
+   its source snapshot and matrix fingerprint fixed throughout this candidate search.
+3. Make at most three candidate attempts total, numbered 1 through 3. A blocked measurement counts
+   as an attempt. Before each edit, restore the snapshot named by the latest `train select` winner;
+   when there is no winner, restore the baseline. Make one bounded edit and use train failures only
+   to diagnose it. Never inspect validation query text.
+4. Bundle each candidate, collect blind answers, then run `train measure --attempt <n>`. A candidate
+   is accepted only when the gate says `accepted`. Any failed hard check or hard assertion rejects
+   the candidate even when other scores or axes pass. Keep the assertion and frozen matrix intact;
+   repair the source under those constraints or reject the candidate. Never waive, reinterpret,
+   remove, or bypass a failing assertion or guardrail.
+5. Run `train select` after each measurement. It chooses among accepted snapshots by validation
+   score, then train score, then earliest attempt. An accepted attempt is eligible for selection,
+   not automatically the winner. If train failures remain and fewer than three attempts were
+   measured, revise from train failures and try again. Do not repeat a change listed in
+   `doNotRetry`.
+6. When no train failures remain or the three-attempt limit is reached, select once more. If there
+   is a winner, copy that exact snapshot and record `train measure --status applied`, then record
+   the suite's `--status post-change`. If there is no winner, restore the baseline snapshot and
+   record `--status rollback`. Report remaining failures; a rollback or a rejected candidate is not
+   a pass.
 7. `ratchet` any changed matrix or query set against `git show HEAD:<path>` written to the OS temp
    directory, then run the project gate.
 
@@ -111,10 +124,13 @@ A description change can steal triggers from neighbors, so a single-skill pass i
 3. After the last edit, remeasure every skill with `--status post-change` against the final catalog.
 4. A `blocked` post-change skill lost a query that every run used to pass, so treat it as a real
    regression; never remeasure just to get a pass. Repair it by editing the blocked skill's
-   description from its train failure and remeasuring with `--status post-change` (the hold gate),
-   or restore the neighbor edit that caused it. A skill that cannot hold is restored to its baseline
-   snapshot (`rollback`).
-5. After the final description edit anywhere, repeat step 3 for the suite once more.
+   description from its train failure and remeasuring with `--status post-change` (the hold gate).
+   Keep the rejected candidate as the working source and make a diagnosis-based next edit; a
+   rejected measurement alone is not a reason to restore the baseline. Never inspect held-out query
+   text or tune an edit to a hidden probe. Do not record `rollback` solely because a run rejected.
+5. After the final description edit anywhere, including a repair, repeat step 3 for every skill in
+   the suite against the final catalog. A suite run performed before the latest repair is not final.
+   If that suite run leads to another repair, repeat the suite after that edit as well.
 
 Expect saturation. With a small, well-separated catalog most skills pass every query at baseline;
 write near-miss queries from the neighbor pairs that actually collide (instruction files versus
@@ -202,12 +218,17 @@ question with one option letter in an `answer` field.
   name in any case and with `-`, `_`, or a space between words, so `review_changes` counts as
   review-changes. The retry loop below applies: read the DIAGNOSIS, rewrite the descriptions it
   names, record again.
-
-- Run `record` where a GPU adapter exists. When it exits 2, run the same command through the
-  executing agent's mechanism for commands outside its sandbox, or on a GPU host. A person only
-  approves the run.
-- Retry loop for a rejected record or a document that still has failing probes. No person waits or
-  retries; the agent loops by itself:
+- Run `record` where a GPU adapter exists. When the executing agent has an approved host command
+  route, use it and continue the retry loop without a user handoff. When the sandbox has no adapter
+  and no approved host route is available, finish the edit and local checks, then give the user the
+  exact command and working directory and wait for its output. After a rejection, use the permitted
+  diagnosis and train evidence to make the next source edit, then give the exact command for the
+  next run. Do not ask whether to continue, and do not restore the baseline solely because a run
+  rejected.
+- Separate retry loop for an `instruction-gate.ts record` rejection or a document that still has
+  failing weak-reader probes. This is not the three-attempt `train measure` candidate loop in §5.
+  The agent owns each diagnosis, edit, and retry; whether it runs the gate itself or hands the exact
+  gate command to the user depends on GPU access:
   1. Read the DIAGNOSIS block: each failing probe, its source rule, and the weak reader's own view.
   2. Treat the reader's suggested wording as the first candidate. A small model is the audience, so
      what confuses it is the signal; but it can misquote the source or invent text, so check each
@@ -218,11 +239,13 @@ question with one option letter in an `answer` field.
      near the end of the document.
   3. Rewrite the source passage as short, direct sentences and run `record` again. Record every
      changed document in one batch.
-  4. After 5 attempts without a new pass, run
+  4. After 5 rewrites without a new pass, run
      `record --allow-equal "<reason naming the remaining probes>"`. The never-worse rule still
      holds. Report the remaining probes in the closeout.
-- `--allow-equal <reason>` also accepts an edit that cannot improve a document with failing probes,
-  for example a typo fix, and keeps the reason in the receipt.
+- `--allow-equal <reason>` belongs only to the instruction-gate receipt loop. It can record a
+  never-worse equal result while probes remain failing, but it does not make those probes pass. It
+  never turns a blocked `train measure` candidate into an accepted candidate or overrides a failed
+  hard assertion.
 - Audit every probe label first with a strong reader. A probe the strong reader answers differently
   is wrong or ambiguous: fix it before the first baseline, or retire it afterwards.
 - Write fixes for failing probes as short sentences, one rule per sentence, with numbered lists for

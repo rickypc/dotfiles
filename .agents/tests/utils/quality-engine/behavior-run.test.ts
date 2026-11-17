@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 
 import {
+  BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION,
   BEHAVIOR_RUN_SCHEMA_VERSION,
   type BehaviorRunCase,
   type BehaviorRunExpected,
@@ -256,6 +257,75 @@ test('scores passing runs as provisional with case results linked to their runId
   expect(receipt.caseResults[0]?.toolTraceEvidence).toBe('reported-in-session');
 });
 
+test('validates versioned output references and preserves the legacy schema path', () => {
+  const versionedMetadata: BehaviorRunMetadata = {
+    ...metadata,
+    outputReferenceVersion: 2,
+  };
+  const versionedExpected = { ...expected, metadata: versionedMetadata };
+  const versionedRows = cases
+    .filter(({ split }) => split === 'train')
+    .map((evaluationCase, index) => {
+      const runReference = `run-${metadata.runIndex}-${metadata.runId}`;
+      const output =
+        index === 0
+          ? `runId: ${runReference}\n${outputFor(evaluationCase)}`
+          : `${outputFor(evaluationCase)}\nrunId: \`${runReference}\``;
+      return {
+        ...recordFor(evaluationCase, { output }),
+        metadata: versionedMetadata,
+        output,
+        schemaVersion: BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION,
+      };
+    });
+  const receipt = buildBehaviorRunReceipt(
+    versionedRows.map((row) => JSON.stringify(row)).join('\n'),
+    versionedExpected,
+    hash,
+  );
+  const receiptWithTrailingOutputNewline = buildBehaviorRunReceipt(
+    versionedRows
+      .map((row, index) => {
+        if (index !== 0) {
+          return JSON.stringify(row);
+        }
+        const output = `${row.output}\n`;
+        return JSON.stringify({ ...row, output, outputDigest: hash(output) });
+      })
+      .join('\n'),
+    versionedExpected,
+    hash,
+  );
+
+  expect(receipt.schemaVersion).toBe(BEHAVIOR_RUN_OUTPUT_REFERENCE_SCHEMA_VERSION);
+  expect(receiptWithTrailingOutputNewline.decision).toBe('provisional');
+  expect(receipt.metadata.outputReferenceVersion).toBe(2);
+  expect(() =>
+    buildBehaviorRunReceipt(
+      versionedRows
+        .map((row, index) =>
+          JSON.stringify(
+            index === 0 ? { ...row, schemaVersion: BEHAVIOR_RUN_SCHEMA_VERSION } : row,
+          ),
+        )
+        .join('\n'),
+      versionedExpected,
+      hash,
+    ),
+  ).toThrow('schema does not match');
+  expect(() =>
+    buildBehaviorRunReceipt(
+      versionedRows
+        .map((row, index) =>
+          JSON.stringify(index === 0 ? { ...row, output: 'Saved the safe note.' } : row),
+        )
+        .join('\n'),
+      versionedExpected,
+      hash,
+    ),
+  ).toThrow('runIndex-linked runId reference');
+});
+
 test('rejects complete runs when a hard assertion or rubric axis fails', () => {
   const hardFailure = buildBehaviorRunReceipt(
     jsonlFor(undefined, (item, index) => {
@@ -305,7 +375,8 @@ test('rejects complete runs when a hard assertion or rubric axis fails', () => {
 });
 
 test('requires valid metadata formats', () => {
-  const badMetadata = [
+  const badMetadata: readonly { readonly label: string; readonly value: unknown }[] = [
+    { label: 'non-object metadata', value: null },
     { label: 'missing metadata field', value: { ...metadata, runnerVersion: undefined } },
     { label: 'blank metadata', value: { ...metadata, runnerVersion: ' ' } },
     { label: 'invalid evaluation id', value: { ...metadata, evaluationId: 'evaluation-1' } },
@@ -314,6 +385,10 @@ test('requires valid metadata formats', () => {
       value: { ...metadata, evaluationId: '11111111-1111-1111-8111-111111111111' },
     },
     { label: 'invalid fingerprint', value: { ...metadata, matrixFingerprint: 'bad' } },
+    {
+      label: 'unsupported output reference version',
+      value: { ...metadata, outputReferenceVersion: 1 },
+    },
     { label: 'invalid run index', value: { ...metadata, runIndex: 0 } },
     { label: 'invalid run id', value: { ...metadata, runId: 'run-1' } },
     {

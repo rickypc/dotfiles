@@ -26,13 +26,13 @@ const assertionDefinitions = (assertions: readonly BehaviorRunHardAssertionResul
 
 const comparableMetadataFor = (
   metadata: BehaviorRunMetadata,
-): Omit<BehaviorRunMetadata, 'runId' | 'runIndex'> => {
+): Omit<BehaviorRunMetadata, 'outputReferenceVersion' | 'runId' | 'runIndex'> => {
   const comparable = Object.fromEntries(
     Object.entries(metadata)
-      .filter(([key]) => key !== 'runId' && key !== 'runIndex')
+      .filter(([key]) => key !== 'outputReferenceVersion' && key !== 'runId' && key !== 'runIndex')
       .sort(([left], [right]) => left.localeCompare(right, 'en')),
   );
-  return comparable as Omit<BehaviorRunMetadata, 'runId' | 'runIndex'>;
+  return comparable as Omit<BehaviorRunMetadata, 'outputReferenceVersion' | 'runId' | 'runIndex'>;
 };
 
 const assertComparableRunMetadata = (receipts: readonly BehaviorRunReceipt[]): void => {

@@ -169,14 +169,14 @@ test('selects only fully passing validation candidates and uses a stable id tie-
   expect(sut.selectValidationCandidate([fewerGains], baseline)).toBeNull();
 });
 
-test('does not select an unchanged validation vector without a gain', () => {
+test('selects a no-regression candidate when validation baseline already passes', () => {
   const baseline = candidateSnapshot('baseline', {
     'case-a': validationCaseResult('bounded-file-edit', statuses('pass')),
   });
   const unchanged = candidateSnapshot('candidate-a', {
     'case-a': validationCaseResult('bounded-file-edit', statuses('pass')),
   });
-  expect(sut.selectValidationCandidate([unchanged], baseline)).toBeNull();
+  expect(sut.selectValidationCandidate([unchanged], baseline)).toEqual(unchanged);
 });
 
 const incomparableSnapshots = [
