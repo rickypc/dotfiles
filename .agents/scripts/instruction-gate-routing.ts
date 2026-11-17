@@ -18,6 +18,7 @@ import {
 } from './instruction-gate-paths.js';
 import type {
   CatalogManifest,
+  PortableCatalogRunEvidence,
   ReaderGeneration,
   ReaderGenerationSummary,
 } from './instruction-gate-routing-evidence.js';
@@ -171,6 +172,8 @@ const canonicalize = (value: unknown): unknown => {
 const appendCatalogLedger = async (
   inputs: CentralRoutingInputs,
   run: {
+    readonly portableRunEvidence: PortableCatalogRunEvidence;
+    readonly portableRunEvidenceSha256: string;
     readonly readerGenerationSummary: ReaderGenerationSummary;
     readonly recordedAt: string;
     readonly runId: string;
@@ -203,12 +206,13 @@ const appendCatalogLedger = async (
       validationTotal: measurement.validationTotal,
     },
     ownerId: CATALOG_OWNER_ID,
+    portableRunEvidence: run.portableRunEvidence,
+    portableRunEvidenceSha256: run.portableRunEvidenceSha256,
     readerGenerationSummary: run.readerGenerationSummary,
     receiptPath,
     receiptSha256: deps.sha256(receiptText),
     recordedAt: run.recordedAt,
     runId: run.runId,
-    runReferencePath: path.relative(deps.agentsRoot, run.runPath),
     runReferenceSha256: run.runSha256,
     schema: 1,
   });
@@ -318,7 +322,7 @@ const catalogReceiptProblems = (
   }
   return problems.length > 0
     ? Promise.resolve(problems)
-    : catalogActivationStabilityProblems(inputs, deps, runtime);
+    : catalogActivationStabilityProblems(inputs, runtime);
 };
 
 const objectFromJson = (text: string): Record<string, unknown> | undefined => {

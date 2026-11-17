@@ -38,6 +38,8 @@ export interface CatalogManifest {
 }
 
 export interface CatalogRunArtifacts {
+  readonly portableRunEvidence: PortableCatalogRunEvidence;
+  readonly portableRunEvidenceSha256: string;
   readonly readerGenerationSummary: ReaderGenerationSummary;
   readonly recordedAt: string;
   readonly runId: string;
@@ -82,6 +84,21 @@ export interface CatalogStabilityInputs {
   readonly skills: readonly string[];
 }
 
+export type PortableCatalogRunEvidence = Pick<
+  CatalogRunReference,
+  | 'activationRuns'
+  | 'fingerprint'
+  | 'manifestPath'
+  | 'manifestSha256'
+  | 'ownerId'
+  | 'readerGenerations'
+  | 'receiptPath'
+  | 'runId'
+  | 'schema'
+  | 'setFingerprint'
+  | 'sourceFingerprint'
+>;
+
 export interface ReaderGeneration {
   readonly answerRows: number;
   readonly answersSha256: string;
@@ -125,7 +142,8 @@ const catalogLedgerEntryProblem = (
     || typeof runId !== 'string'
     || !/^[a-z0-9][a-z0-9-]{0,79}$/u.test(runId)
     || seen.has(runId)
-    || typeof entry.kind !== 'string'
+    || (entry.kind !== 'activation-run' && entry.kind !== 'migrated-baseline')
+    || Object.hasOwn(entry, 'runReferencePath')
     || typeof entry.receiptPath !== 'string'
     || entry.receiptPath !== manifest.artifacts.activationReceipt
     || typeof entry.receiptSha256 !== 'string'
@@ -442,6 +460,26 @@ const readerGenerationIdentityMatches = (
   )
   && requiredRuns >= 3;
 
+const activationRunFor = (
+  entry: Record<string, unknown>,
+  inputs: CatalogStabilityInputs,
+  requiredRuns: number,
+  fingerprint: Fingerprint,
+  runtime: CatalogEvidenceRuntime,
+): Record<string, unknown> | string => {
+  const runId = typeof entry.runId === 'string' ? entry.runId : '';
+  const run = isRecord(entry.portableRunEvidence) ? entry.portableRunEvidence : undefined;
+  if (run === undefined || run.schema !== 2) {
+    return `The latest ${requiredRuns} catalog activation entries must all have portable schema-2 run evidence.`;
+  }
+  if (!activationRunFingerprintMatches(entry, run, inputs, requiredRuns, fingerprint, runtime)) {
+    return `The latest ${requiredRuns} catalog activation runs must match the current source, sets, manifest, and model fingerprint.`;
+  }
+  return readerGenerationIdentityMatches(run, fingerprint, requiredRuns)
+    ? run
+    : `One of the latest ${requiredRuns} catalog activation runs (${runId}) contains stale reader identity evidence.`;
+};
+
 const readerGenerationProblem = (
   candidate: Record<string, unknown>,
   skills: readonly string[],
@@ -601,45 +639,6 @@ const runReferenceMatchesLedger = (
   && run.manifestPath === CATALOG_MANIFEST_PATH
   && run.manifestSha256 === entry.manifestSha256;
 
-const runReferenceSealMatches = (
-  entry: Record<string, unknown>,
-  run: Record<string, unknown>,
-  text: string,
-  deps: GateDependencies,
-): boolean => {
-  const unsigned = { ...run };
-  const selfSha256 = unsigned.selfSha256;
-  delete unsigned.selfSha256;
-  return (
-    typeof entry.runReferenceSha256 === 'string'
-    && deps.sha256(text) === entry.runReferenceSha256
-    && typeof selfSha256 === 'string'
-    && deps.sha256(JSON.stringify(canonicalize(unsigned))) === selfSha256
-  );
-};
-
-const runReferenceSealProblem = (
-  entry: Record<string, unknown>,
-  run: Record<string, unknown>,
-  runText: string,
-  runId: string,
-  deps: GateDependencies,
-): string | undefined => {
-  if (typeof entry.runReferenceSha256 !== 'string') {
-    return entry.kind === 'migrated-baseline' && run.receiptSha256 === entry.receiptSha256
-      ? undefined
-      : `Catalog ledger run ${runId} has no sealed run-reference hash.`;
-  }
-  const unsigned = { ...run };
-  const selfSha256 = unsigned.selfSha256;
-  delete unsigned.selfSha256;
-  return deps.sha256(runText) === entry.runReferenceSha256
-    && typeof selfSha256 === 'string'
-    && deps.sha256(JSON.stringify(canonicalize(unsigned))) === selfSha256
-    ? undefined
-    : `Catalog run reference ${runId} has a mismatched hash or seal.`;
-};
-
 export const runReferenceTextFor = (
   agentsRoot: string,
   manifest: CatalogManifest,
@@ -651,33 +650,6 @@ export const runReferenceTextFor = (
     .replace('{ownerId}', manifest.ownerId)
     .replace('{runId}', runId);
   return path.join(tmpdir(), relativeRunDirectory, 'run.json');
-};
-
-const activationRunFor = async (
-  entry: Record<string, unknown>,
-  inputs: CatalogStabilityInputs,
-  requiredRuns: number,
-  fingerprint: Fingerprint,
-  deps: GateDependencies,
-  runtime: CatalogEvidenceRuntime,
-): Promise<Record<string, unknown> | string> => {
-  const runId = typeof entry.runId === 'string' ? entry.runId : '';
-  const runText = await deps.readText(
-    runReferenceTextFor(deps.agentsRoot, inputs.catalogManifest, runId),
-  );
-  const run = runText === undefined ? undefined : objectFromJson(runText);
-  if (run === undefined || run.schema !== 2) {
-    return `The latest ${requiredRuns} catalog activation entries must all use fresh schema-2 run references.`;
-  }
-  if (!runReferenceSealMatches(entry, run, runText ?? '', deps)) {
-    return `Catalog run reference ${runId} changed after its ledger entry was verified.`;
-  }
-  if (!activationRunFingerprintMatches(entry, run, inputs, requiredRuns, fingerprint, runtime)) {
-    return `The latest ${requiredRuns} catalog activation runs must match the current source, sets, manifest, and model fingerprint.`;
-  }
-  return readerGenerationIdentityMatches(run, fingerprint, requiredRuns)
-    ? run
-    : `One of the latest ${requiredRuns} catalog activation runs (${runId}) contains stale reader identity evidence.`;
 };
 
 export const catalogRunArtifacts = (
@@ -718,7 +690,22 @@ export const catalogRunArtifacts = (
   });
   const runText = `${JSON.stringify(run, null, 2)}\n`;
   const runPath = runReferenceTextFor(deps.agentsRoot, manifest, runId);
+  const portableRunEvidence: PortableCatalogRunEvidence = {
+    activationRuns: unsigned.activationRuns,
+    fingerprint: unsigned.fingerprint,
+    manifestPath: unsigned.manifestPath,
+    manifestSha256: unsigned.manifestSha256,
+    ownerId: unsigned.ownerId,
+    readerGenerations: unsigned.readerGenerations,
+    receiptPath: unsigned.receiptPath,
+    runId: unsigned.runId,
+    schema: unsigned.schema,
+    setFingerprint: unsigned.setFingerprint,
+    sourceFingerprint: unsigned.sourceFingerprint,
+  };
   return {
+    portableRunEvidence,
+    portableRunEvidenceSha256: deps.sha256(JSON.stringify(canonicalize(portableRunEvidence))),
     readerGenerationSummary: readerGenerationSummaryFor(readerGenerations, deps.sha256),
     recordedAt,
     runId,
@@ -791,7 +778,6 @@ const skillStabilityProblems = (
 
 export const catalogActivationStabilityProblems = async (
   inputs: CatalogStabilityInputs,
-  deps: GateDependencies,
   runtime: CatalogEvidenceRuntime,
 ): Promise<string[]> => {
   const requiredRuns = inputs.catalogManifest.activationRuns ?? 5;
@@ -804,14 +790,7 @@ export const catalogActivationStabilityProblems = async (
   const fingerprint = runtime.currentFingerprint(true);
   const runs: Record<string, unknown>[] = [];
   for (const entry of latest) {
-    const verified = await activationRunFor(
-      entry,
-      inputs,
-      requiredRuns,
-      fingerprint,
-      deps,
-      runtime,
-    );
+    const verified = activationRunFor(entry, inputs, requiredRuns, fingerprint, runtime);
     if (typeof verified === 'string') {
       return [verified];
     }
@@ -849,20 +828,30 @@ const validateSchemaTwoRun = (
     : `Catalog run reference ${runId} does not match its ledger generation summary.`;
 };
 
-const catalogRunReferenceProblem = async (
+const catalogPortableRunEvidenceProblem = (
   entry: Record<string, unknown>,
   manifest: CatalogManifest,
   deps: GateDependencies,
-): Promise<string | undefined> => {
-  const runId = entry.runId as string;
-  const runText = await deps.readText(runReferenceTextFor(deps.agentsRoot, manifest, runId));
-  const run = runText === undefined ? undefined : objectFromJson(runText);
-  if (!runReferenceMatchesLedger(entry, run, runId)) {
-    return `Catalog ledger run ${runId} has no matching readable run reference.`;
+): string | undefined => {
+  if (entry.kind === 'migrated-baseline') {
+    return undefined;
   }
-  const sealProblem = runReferenceSealProblem(entry, run, runText ?? '', runId, deps);
-  if (sealProblem !== undefined) {
-    return sealProblem;
+  const hasEvidence =
+    entry.portableRunEvidence !== undefined || entry.portableRunEvidenceSha256 !== undefined;
+  if (!hasEvidence) {
+    return undefined;
+  }
+  const runId = entry.runId as string;
+  const run = isRecord(entry.portableRunEvidence) ? entry.portableRunEvidence : undefined;
+  if (
+    run === undefined
+    || typeof entry.portableRunEvidenceSha256 !== 'string'
+    || deps.sha256(JSON.stringify(canonicalize(run))) !== entry.portableRunEvidenceSha256
+  ) {
+    return `Catalog ledger run ${runId} has invalid portable run evidence.`;
+  }
+  if (!runReferenceMatchesLedger(entry, run, runId)) {
+    return `Catalog ledger run ${runId} portable evidence does not match its ledger entry.`;
   }
   return validateSchemaTwoRun(entry, run, manifest, runId, deps);
 };
@@ -882,9 +871,9 @@ export const catalogLedgerEntriesOf = async (
     if (malformed !== undefined || entry === undefined) {
       return malformed ?? `Catalog ledger line ${index + 1} is malformed.`;
     }
-    const referenceProblem = await catalogRunReferenceProblem(entry, manifest, deps);
-    if (referenceProblem !== undefined) {
-      return referenceProblem;
+    const evidenceProblem = catalogPortableRunEvidenceProblem(entry, manifest, deps);
+    if (evidenceProblem !== undefined) {
+      return evidenceProblem;
     }
     runIds.add(entry.runId as string);
     entries.push(entry);

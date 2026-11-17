@@ -94,6 +94,9 @@ const registerCatalogGenerationCreationTests = (context: CentralTestContext): vo
       evidenceSha256: hash(JSON.stringify(canonicalizeForTest(generations))),
       freshCount: 1,
     });
+    expect(ledger?.runReferencePath).toBeUndefined();
+    expect(ledger?.portableRunEvidence).toMatchObject({ runId: ledger?.runId, schema: 2 });
+    expect(typeof ledger?.portableRunEvidenceSha256).toBe('string');
     expect((await verifyRouting(harness.deps)).join('\n')).toContain(
       'Catalog activation stability needs 5 fresh runs; found 1/5.',
     );
@@ -268,10 +271,7 @@ const registerCatalogGenerationLedgerIntegrityTests = (context: CentralTestConte
     },
   );
 
-  test('verification rejects a run reference swapped after its first integrity read', async () => {
-    let tamperOnSecondRead = false;
-    let latestRunPath = '';
-    let targetReads = 0;
+  test('verification rejects portable evidence changed without updating its checksum', async () => {
     const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH), {
       measure: EQUAL_WITH_FAILURE_MEASUREMENT,
       tempDirs: [
@@ -281,34 +281,49 @@ const registerCatalogGenerationLedgerIntegrityTests = (context: CentralTestConte
         '/work/reader-four',
         '/work/reader-five',
       ],
-      transformRead: (file, text) => {
-        if (!tamperOnSecondRead || file !== latestRunPath || text === undefined) {
-          return text;
-        }
-        targetReads += 1;
-        if (targetReads !== 2) {
-          return text;
-        }
-        const run = JSON.parse(text) as Record<string, unknown>;
-        run.measurement = {
-          trainFailed: 0,
-          trainPassed: 99,
-          trainTotal: 99,
-          validationPassed: 1,
-          validationTotal: 1,
-        };
-        return JSON.stringify(run);
-      },
     });
     for (let index = 0; index < 5; index += 1) {
       expect(await recordFreshCatalogRun(context, harness)).toBe(0);
     }
-    const latestRunId = String(catalogLedgerRows(context, harness).at(-1)?.runId);
-    latestRunPath = catalogRunPathFor(join, latestRunId);
-    tamperOnSecondRead = true;
+    const ledgerPath = join(globalRoot, CATALOG_LEDGER_PATH);
+    const rows = catalogLedgerRows(context, harness);
+    const latest = rows.at(-1);
+    const evidence = latest?.portableRunEvidence;
+    if (latest !== undefined && typeof evidence === 'object' && evidence !== null) {
+      latest.portableRunEvidence = {
+        ...(evidence as Record<string, unknown>),
+        runId: 'tampered-run',
+      };
+    }
+    harness.files.set(ledgerPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
 
     expect((await verifyRouting(harness.deps)).join('\n')).toContain(
-      'changed after its ledger entry was verified',
+      'has invalid portable run evidence',
+    );
+  });
+
+  test('verification rejects portable evidence bound to a different ledger run id', async () => {
+    const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH), {
+      measure: EQUAL_WITH_FAILURE_MEASUREMENT,
+      tempDirs: ['/work/reader-one'],
+    });
+    expect(await recordFreshCatalogRun(context, harness)).toBe(0);
+    const ledgerPath = join(globalRoot, CATALOG_LEDGER_PATH);
+    const rows = catalogLedgerRows(context, harness);
+    const latest = rows.at(-1);
+    const evidence = latest?.portableRunEvidence;
+    if (latest !== undefined && typeof evidence === 'object' && evidence !== null) {
+      const altered = {
+        ...(evidence as Record<string, unknown>),
+        runId: 'different-run-id',
+      };
+      latest.portableRunEvidence = altered;
+      latest.portableRunEvidenceSha256 = hash(JSON.stringify(canonicalizeForTest(altered)));
+    }
+    harness.files.set(ledgerPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    expect((await verifyRouting(harness.deps)).join('\n')).toContain(
+      'portable evidence does not match its ledger entry',
     );
   });
 };
@@ -373,7 +388,7 @@ const registerCatalogGenerationReaderIdentityTests = (context: CentralTestContex
 };
 
 const registerCatalogGenerationRunCountTests = (context: CentralTestContext): void => {
-  const { verifyRouting } = context;
+  const { join, verifyRouting } = context;
   test.each([3, 4])('default stability threshold rejects %i of 5 fresh runs', async (count) => {
     const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH), {
       measure: EQUAL_WITH_FAILURE_MEASUREMENT,
@@ -405,6 +420,34 @@ const registerCatalogGenerationRunCountTests = (context: CentralTestContext): vo
 
     expect(catalogLedgerRows(context, harness)).toHaveLength(5);
     expect(await verifyRouting(harness.deps)).toEqual([]);
+  });
+
+  test('verification rejects a latest activation entry without portable evidence', async () => {
+    const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH), {
+      measure: EQUAL_WITH_FAILURE_MEASUREMENT,
+      tempDirs: [
+        '/work/reader-one',
+        '/work/reader-two',
+        '/work/reader-three',
+        '/work/reader-four',
+        '/work/reader-five',
+      ],
+    });
+    for (let index = 0; index < 5; index += 1) {
+      expect(await recordFreshCatalogRun(context, harness)).toBe(0);
+    }
+    const ledgerPath = join(context.globalRoot, CATALOG_LEDGER_PATH);
+    const rows = catalogLedgerRows(context, harness);
+    const latest = rows.at(-1);
+    if (latest !== undefined) {
+      delete latest.portableRunEvidence;
+      delete latest.portableRunEvidenceSha256;
+    }
+    harness.files.set(ledgerPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    expect((await verifyRouting(harness.deps)).join('\n')).toContain(
+      'must all have portable schema-2 run evidence',
+    );
   });
 
   test('explicit activationRuns 3 accepts three matching fresh runs', async () => {
@@ -656,42 +699,42 @@ const registerCatalogReceiptIntegrityTests = (context: CentralTestContext): void
     );
   });
 
-  test.each([
-    [
-      'run hash changed',
-      (runPath: string, files: Map<string, string>) => {
-        files.set(runPath, `${files.get(runPath)} `);
-      },
-      'mismatched hash or seal',
-    ],
-    [
-      'ledger hash removed',
-      (_runPath: string, files: Map<string, string>) => {
-        const rows = (files.get(join(globalRoot, CATALOG_LEDGER_PATH)) ?? '')
-          .trim()
-          .split('\n')
-          .map((line) => JSON.parse(line) as Record<string, unknown>);
-        const row = rows[0];
-        if (row) {
-          delete row.runReferenceSha256;
-        }
-        files.set(
-          join(globalRoot, CATALOG_LEDGER_PATH),
-          `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`,
-        );
-      },
-      'no sealed run-reference hash',
-    ],
-  ] as const)('verification rejects when a catalog %s', async (_label, edit, expected) => {
+  test('verification ignores a changed machine-local raw run payload', async () => {
+    const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH), {
+      tempDirs: [
+        '/work/reader-one',
+        '/work/reader-two',
+        '/work/reader-three',
+        '/work/reader-four',
+        '/work/reader-five',
+      ],
+    });
+    for (let index = 0; index < 5; index += 1) {
+      expect(await recordFreshCatalogRun(context, harness)).toBe(0);
+    }
+    const latestRunId = String(catalogLedgerRows(context, harness).at(-1)?.runId);
+    const runPath = catalogRunPathFor(join, latestRunId);
+    harness.files.set(runPath, `${harness.files.get(runPath) ?? ''} `);
+
+    expect(await verifyRouting(harness.deps)).toEqual([]);
+  });
+
+  test('verification rejects when the ledger omits the receipt-bound run hash', async () => {
     const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH));
     expect(await record(['descriptions'], {}, harness.deps)).toBe(0);
-    const receipt = JSON.parse(
-      harness.files.get(join(globalRoot, CATALOG_RECEIPT_PATH)) ?? '{}',
-    ) as { runId?: string };
-    const runPath = catalogRunPathFor(join, receipt.runId ?? 'missing-run-id');
-    edit(runPath, harness.files);
+    const rows = catalogLedgerRows(context, harness);
+    const row = rows[0];
+    if (row !== undefined) {
+      delete row.runReferenceSha256;
+    }
+    harness.files.set(
+      join(globalRoot, CATALOG_LEDGER_PATH),
+      `${rows.map((entry) => JSON.stringify(entry)).join('\n')}\n`,
+    );
 
-    expect((await verifyRouting(harness.deps)).join('\n')).toContain(expected);
+    expect((await verifyRouting(harness.deps)).join('\n')).toContain(
+      'no matching latest ledger and run-reference entry',
+    );
   });
 };
 

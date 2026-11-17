@@ -154,6 +154,22 @@ export const rewriteCatalogRun = (
     throw new Error(`No catalog ledger row for ${runId}`);
   }
   row.runReferenceSha256 = hash(runText);
+  row.portableRunEvidence = canonicalizeForTest({
+    activationRuns: parsed.activationRuns,
+    fingerprint: parsed.fingerprint,
+    manifestPath: parsed.manifestPath,
+    manifestSha256: parsed.manifestSha256,
+    ownerId: parsed.ownerId,
+    readerGenerations: parsed.readerGenerations,
+    receiptPath: parsed.receiptPath,
+    runId: parsed.runId,
+    schema: parsed.schema,
+    setFingerprint: parsed.setFingerprint,
+    sourceFingerprint: parsed.sourceFingerprint,
+  });
+  row.portableRunEvidenceSha256 = hash(
+    JSON.stringify(canonicalizeForTest(row.portableRunEvidence)),
+  );
   if (options.refreshSummary) {
     const generations = parsed.readerGenerations as readonly Record<string, unknown>[];
     row.readerGenerationSummary = {

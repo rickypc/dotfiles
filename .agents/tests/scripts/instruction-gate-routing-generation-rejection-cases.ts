@@ -12,14 +12,12 @@ import {
   catalogManifestJson,
   catalogRunPathFor,
   EQUAL_WITH_FAILURE_MEASUREMENT,
-  globalTreeFor,
   migratedCatalogStateFor,
   ROUTING_ANSWERS,
   ROUTING_BUNDLE,
   readerLogFor,
   recordFreshCatalogRun,
   rewriteCatalogRun,
-  SUCCESSFUL_MEASUREMENT,
 } from './instruction-gate-central-cases.js';
 
 const registerInvalidReaderGenerationReferences = (context: CentralTestContext): void => {
@@ -134,7 +132,7 @@ const registerInvalidReaderGenerationReferences = (context: CentralTestContext):
     });
 
     expect((await verifyRouting(harness.deps)).join('\n')).toContain(
-      'must all use fresh schema-2 run references',
+      'must all have portable schema-2 run evidence',
     );
   });
 };
@@ -203,7 +201,6 @@ const registerMigratedBaselineTests = (context: CentralTestContext): void => {
     const harness = catalogHarness(context, migrated.manifestText);
     harness.files.set(join(globalRoot, CATALOG_LEDGER_PATH), migrated.ledgerText);
     harness.files.set(join(globalRoot, CATALOG_RECEIPT_PATH), migrated.receiptText);
-    harness.files.set(catalogRunPathFor(join, migrated.runId), migrated.runText);
 
     expect((await verifyRouting(harness.deps)).join('\n')).toContain(
       'migrated baseline is historical only',
@@ -231,7 +228,6 @@ const registerMigratedBaselineTests = (context: CentralTestContext): void => {
     const migrated = migratedCatalogStateFor(context);
     const harness = catalogHarness(context, migrated.manifestText);
     harness.files.set(join(globalRoot, CATALOG_LEDGER_PATH), migrated.ledgerText);
-    harness.files.set(catalogRunPathFor(join, migrated.runId), migrated.runText);
 
     expect(await record(['descriptions'], {}, harness.deps)).toBe(1);
     expect(harness.output.join('')).toContain(
@@ -242,31 +238,28 @@ const registerMigratedBaselineTests = (context: CentralTestContext): void => {
 };
 
 const registerMissingRunReferenceTest = (context: CentralTestContext): void => {
-  const { globalRoot, join, makeHarness, record, triggerSet, verifyRouting } = context;
-  test('verification rejects a missing run reference before executing a reader', async () => {
-    const harness = makeHarness({
-      agentsRoot: globalRoot,
-      measure: SUCCESSFUL_MEASUREMENT,
-      toolsRoot: globalRoot,
-      tree: globalTreeFor(globalRoot, join),
+  const { join, verifyRouting } = context;
+  test('verification passes with all five catalog run payloads absent from machine temp', async () => {
+    const harness = catalogHarness(context, catalogManifestJson(CATALOG_TRIGGER_PATH), {
+      measure: EQUAL_WITH_FAILURE_MEASUREMENT,
+      tempDirs: [
+        '/work/reader-one',
+        '/work/reader-two',
+        '/work/reader-three',
+        '/work/reader-four',
+        '/work/reader-five',
+      ],
     });
-    harness.files.set(join(globalRoot, CATALOG_TRIGGER_PATH), triggerSet);
-    harness.files.set(
-      join(globalRoot, CATALOG_MANIFEST_PATH),
-      catalogManifestJson(CATALOG_TRIGGER_PATH),
-    );
-    harness.files.set(join(globalRoot, CATALOG_LEDGER_PATH), '');
-    expect(await record(['descriptions'], {}, harness.deps)).toBe(0);
-    const receipt = JSON.parse(
-      harness.files.get(join(globalRoot, CATALOG_RECEIPT_PATH)) ?? '{}',
-    ) as { runId?: string };
-    harness.files.delete(catalogRunPathFor(join, receipt.runId ?? 'missing-run-id'));
-    const callCount = harness.executorCalls();
+    for (let index = 0; index < 5; index += 1) {
+      expect(await recordFreshCatalogRun(context, harness)).toBe(0);
+    }
+    for (const row of catalogLedgerRows(context, harness)) {
+      if (typeof row.runId === 'string') {
+        harness.files.delete(catalogRunPathFor(join, row.runId));
+      }
+    }
 
-    const problems = await verifyRouting(harness.deps);
-
-    expect(problems.join('\n')).toContain('matching readable run reference');
-    expect(harness.executorCalls()).toBe(callCount);
+    expect(await verifyRouting(harness.deps)).toEqual([]);
   });
 };
 
