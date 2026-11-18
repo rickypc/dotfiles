@@ -6,17 +6,21 @@ export interface BehaviorTagging {
   readonly mapped: readonly string[];
 }
 
-export interface RuleRange {
-  readonly caseId: string;
-  readonly end: number;
-  readonly path: string;
-  readonly start: number;
-}
+// A case cites a rule by atom id, which survives edits, or by source lines, which drift.
+export type RuleRange =
+  | { readonly atomId: string; readonly caseId: string; readonly path: string }
+  | {
+      readonly caseId: string;
+      readonly end: number;
+      readonly path: string;
+      readonly start: number;
+    };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const PATH_PATTERN = /([\w./-]+\.md)/u;
+const ATOM_PATTERN = /\batom:(r-[0-9a-f]{10})/gu;
 
 const casesOf = (coverage: Record<string, unknown>): readonly unknown[] => {
   const groups = [coverage.root, ...(Array.isArray(coverage.skills) ? coverage.skills : [])];
@@ -40,7 +44,9 @@ const hitsOf = (
     const start = lineAt(source, span.start);
     const end = lineAt(source, span.end);
     return own
-      .filter((range) => range.start <= end && range.end >= start)
+      .filter((range) =>
+        'atomId' in range ? range.atomId === span.id : range.start <= end && range.end >= start,
+      )
       .map((range) => ({ caseId: range.caseId, id: span.id }));
   });
 };
@@ -64,13 +70,20 @@ const rangesOfRule = (caseId: string, rule: string): readonly RuleRange[] => {
   if (path === undefined) {
     return [];
   }
-  const text = rule.slice(rule.indexOf(path) + path.length).replace(/§[\d-]+/gu, ' ');
-  return [...text.matchAll(/(\d+)-(\d+)/gu)].map((found) => ({
+  const tail = rule.slice(rule.indexOf(path) + path.length);
+  const atoms = [...tail.matchAll(ATOM_PATTERN)].map((found) => ({
+    atomId: String(found[1]),
+    caseId,
+    path,
+  }));
+  const text = tail.replace(ATOM_PATTERN, ' ').replace(/§[\d-]+/gu, ' ');
+  const lines = [...text.matchAll(/(\d+)-(\d+)/gu)].map((found) => ({
     caseId,
     end: Number(found[2]),
     path,
     start: Number(found[1]),
   }));
+  return [...atoms, ...lines];
 };
 
 // Every behavior case names the source lines of the rule it exercises. This reads those ranges.

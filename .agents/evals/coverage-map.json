@@ -5849,7 +5849,7 @@
             "id": "repo-search-standard-evidence-envelope",
             "split": "train",
             "taskFamily": "single-root-search-report",
-            "sourceRule": "skills/repo-search/SKILL.md:191-200 - return Finding, Evidence, Search status, and Uncertainty.",
+            "sourceRule": "skills/repo-search/SKILL.md atom:r-9300262545 - return Finding, Evidence, Search status, and Uncertainty.",
             "hardAssertions": [
               {
                 "id": "setting-value",
@@ -7931,7 +7931,7 @@
             "id": "skill-manager-complete-markdown-edit-transaction",
             "split": "train",
             "taskFamily": "skill-markdown-edit-lifecycle",
-            "sourceRule": "skills/skill-manager/SKILL.md:147-154, 185-187 - guarded begin/edit/finalize, preserve protected tokens, then apply reflow.",
+            "sourceRule": "skills/skill-manager/SKILL.md atom:r-814c624d2a atom:r-89ef3203b8 - guarded begin/edit/finalize, preserve protected tokens, then apply reflow.",
             "hardAssertions": [
               {
                 "id": "begin-called",
@@ -7964,7 +7964,7 @@
             "id": "skill-manager-guard-before-no-edit-markdown-read",
             "split": "validation",
             "taskFamily": "markdown-no-edit-guard",
-            "sourceRule": "skills/skill-manager/SKILL.md:144-146 - no-edit Markdown reads require `/md-compress guard` and a guarded receipt.",
+            "sourceRule": "skills/skill-manager/SKILL.md atom:r-c8b33dccd5 atom:r-585c96c0eb atom:r-b9d8d240fc - no-edit Markdown reads require `/md-compress guard` and a guarded receipt.",
             "hardAssertions": [
               {
                 "id": "guard-command",
@@ -10550,5 +10550,5 @@
     "logInventorySha256": "b2315c9a8346f4b18aab886d3b38b8c037d97087f05ff16c4761db217b465e92"
   },
   "coverageMapSha256Rule": "SHA-256 of UTF-8 JSON.stringify(this object with coverageMapSha256 omitted, two-space indentation, and a terminal newline).",
-  "coverageMapSha256": "be13bcd150d35b8b20e8deeb9a27b9c4e237c88cc8f437197a74e2204333ffa2"
+  "coverageMapSha256": "7be0e5d8f995fd2c415688986ef4305d5b8164f78c663784145de6e9290f73c0"
 }

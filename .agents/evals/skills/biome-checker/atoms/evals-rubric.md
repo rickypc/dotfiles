@@ -194,6 +194,31 @@ description: >-
   Rule atoms placed in evals/skills/biome-checker/rubric.md; derived from
   comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-01
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-02
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-04
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-05
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-06
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-08
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-02
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-05
 source: evals/skills/biome-checker/rubric.md
 tags:
   - atoms

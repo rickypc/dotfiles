@@ -207,6 +207,31 @@ description: >-
   Rule atoms placed in skills/skill-manager/references/librarian.md; derived
   from comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-01
+  - mutantsFlipped: 1
+    mutantsTried: 2
+    probeId: train-02
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-04
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-05
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-06
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-08
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: validation-02
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: validation-04
 source: skills/skill-manager/references/librarian.md
 tags:
   - atoms

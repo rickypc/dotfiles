@@ -38,18 +38,15 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-cfd6d9ab3a
+    id: r-5351e59dcb
     placements:
       - headingPath: *ref_0
     precedence: 0
     probeIds:
       - validation-09
     status: active
-    tags:
-      - combined_pressure
-      - precedence_order
-      - rule_meaning
-    textSha256: cfd6d9ab3ae8735609a6027cc1f7ed0437051dbada1cdf8c49bec91f546bc66a
+    tags: []
+    textSha256: 5351e59dcb3aee740aa282d1f80b66790276d285fc80b175c0cdfe81f586b770
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -201,7 +198,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-d8fceb13eb
+    id: r-332998cb9f
     placements:
       - headingPath: &ref_3
           - AIDP - Architect of Execution
@@ -211,10 +208,8 @@ atoms:
     probeIds:
       - train-03
     status: active
-    tags:
-      - exception_failure
-      - rule_meaning
-    textSha256: d8fceb13ebd9a36d77b4a713d55821f93e8f60a787e289989610d141ec7e38e0
+    tags: []
+    textSha256: 332998cb9f14622356ed206e9ff0b2a80cf95d70e9900ba6deabbd9d30b16410
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -246,8 +241,8 @@ atoms:
     textSha256: 4f00f90e6ccb1b2e206b41a3de6eafbf794dbb7e205624c930e2df13605cfc6d
   - behavioral: false
     harmful: 0
-    helpful: 0
-    id: r-f8b35e04cd
+    helpful: 1
+    id: r-7c0544e754
     placements:
       - headingPath:
           - AIDP - Architect of Execution
@@ -257,12 +252,8 @@ atoms:
     probeIds:
       - train-13
     status: active
-    tags:
-      - boundary
-      - combined_pressure
-      - exception_failure
-      - rule_meaning
-    textSha256: f8b35e04cd66ae82f3b98edb2d94f149f72fdbfafc7ab2289522d5e9136516d6
+    tags: []
+    textSha256: 7c0544e7542c1487c4b1031f52117e41b463a5a0e793b450bfeab1dc0211fea7
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -392,7 +383,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-3bd721f73f
+    id: r-c0953c8841
     placements:
       - headingPath:
           - AIDP - Architect of Execution
@@ -403,9 +394,8 @@ atoms:
       - train-11
       - train-17
     status: active
-    tags:
-      - rule_meaning
-    textSha256: 3bd721f73fb6949c8fa9613d0d1361ea5946e7e26d630f5479636cb53ae33333
+    tags: []
+    textSha256: c0953c88419dba1966f2bd61e0725692e32aff2b4fd1a92ba97a9cefacb3287c
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -427,7 +417,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-9099cf52a0
+    id: r-3111019843
     placements:
       - headingPath:
           - AIDP - Architect of Execution
@@ -437,15 +427,12 @@ atoms:
     probeIds:
       - train-08
     status: active
-    tags:
-      - boundary
-      - precedence_order
-      - rule_meaning
-    textSha256: 9099cf52a0dd243384edcd979600a8076592bca17046b63d9988cffe152f2f1d
+    tags: []
+    textSha256: 3111019843644331b51677804fbb0aeeefda75d3f5a0b117ef00d57c4c6c53a0
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-1f58a13754
+    id: r-0b6a9890db
     placements:
       - headingPath: &ref_5
           - AIDP - Architect of Execution
@@ -455,11 +442,8 @@ atoms:
     probeIds:
       - train-20
     status: active
-    tags:
-      - boundary
-      - precedence_order
-      - rule_meaning
-    textSha256: 1f58a1375483d4d127ca1d0ddaf38425e2f2a1bb7274481e90042bb2c4b37cef
+    tags: []
+    textSha256: 0b6a9890dbbc06ba5b0a423339501375179bb0a2fa60490550ea2793314695ca
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -476,7 +460,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-8189953530
+    id: r-693f3ee108
     placements:
       - headingPath: &ref_6
           - AIDP - Architect of Execution
@@ -486,23 +470,20 @@ atoms:
     probeIds:
       - train-10
     status: active
-    tags:
-      - rule_meaning
-    textSha256: 8189953530fcbb187b1b14e53274d93fb37eb89c0d25b0c9704b15bb4ac1f113
+    tags: []
+    textSha256: 693f3ee108bc6d6492dca655dfd65f2da89e9939d4eeb4a899e9302c7ee7cd6a
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-897547a124
+    id: r-71dbfa11aa
     placements:
       - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-19
     status: active
-    tags:
-      - boundary
-      - rule_meaning
-    textSha256: 897547a124b78549552bd166669325cd2a438d252f874fe15047d0c839347d3d
+    tags: []
+    textSha256: 71dbfa11aa790409c9e60929e787d9732e5faf5180eff003129ac33e6f65dab5
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -523,7 +504,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-eec5483b2d
+    id: r-f753647730
     placements:
       - headingPath:
           - AIDP - Architect of Execution
@@ -533,10 +514,8 @@ atoms:
     probeIds:
       - train-21
     status: active
-    tags:
-      - precedence_order
-      - rule_meaning
-    textSha256: eec5483b2dd7217eee18bcdf81eb4c0c3f14ecbc177d24a0e2e9d5c9f5e1f834
+    tags: []
+    textSha256: f7536477305082d3a4af085d61ba6ccda4b5e0cf338d01927f02635d3f9bb237
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -732,6 +711,150 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: ae557aa9c16a41f6cb9c5e0dd436d0f866fd43b08769dde5f587a5f3b3586209
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-cfd6d9ab3a
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 3. Immutable Operational Rules
+          - Minimal-plan discipline
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - combined_pressure
+      - precedence_order
+      - rule_meaning
+    textSha256: cfd6d9ab3ae8735609a6027cc1f7ed0437051dbada1cdf8c49bec91f546bc66a
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-d8fceb13eb
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 3. Immutable Operational Rules
+          - Context retrieval command options
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - exception_failure
+      - rule_meaning
+    textSha256: d8fceb13ebd9a36d77b4a713d55821f93e8f60a787e289989610d141ec7e38e0
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f8b35e04cd
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 3. Immutable Operational Rules
+          - The only allowed fill-ins
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - combined_pressure
+      - exception_failure
+      - rule_meaning
+    textSha256: f8b35e04cd66ae82f3b98edb2d94f149f72fdbfafc7ab2289522d5e9136516d6
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-3bd721f73f
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 4. Input & Context Schema
+          - 1. TARGET DIRECTIVES
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: 3bd721f73fb6949c8fa9613d0d1361ea5946e7e26d630f5479636cb53ae33333
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-9099cf52a0
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 4. Input & Context Schema
+          - 3. CHRONOLOGICAL WORKFLOW
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - precedence_order
+      - rule_meaning
+    textSha256: 9099cf52a0dd243384edcd979600a8076592bca17046b63d9988cffe152f2f1d
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-1f58a13754
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 4. Input & Context Schema
+          - 3. CHRONOLOGICAL WORKFLOW
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - precedence_order
+      - rule_meaning
+    textSha256: 1f58a1375483d4d127ca1d0ddaf38425e2f2a1bb7274481e90042bb2c4b37cef
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-8189953530
+    placements:
+      - headingPath: &ref_10
+          - AIDP - Architect of Execution
+          - 4. Input & Context Schema
+          - 3. CHRONOLOGICAL WORKFLOW
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: 8189953530fcbb187b1b14e53274d93fb37eb89c0d25b0c9704b15bb4ac1f113
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-897547a124
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - rule_meaning
+    textSha256: 897547a124b78549552bd166669325cd2a438d252f874fe15047d0c839347d3d
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-eec5483b2d
+    placements:
+      - headingPath:
+          - AIDP - Architect of Execution
+          - 4. Input & Context Schema
+          - Plan authoring skeleton
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - precedence_order
+      - rule_meaning
+    textSha256: eec5483b2dd7217eee18bcdf81eb4c0c3f14ecbc177d24a0e2e9d5c9f5e1f834
 description: >-
   Rule atoms placed in skills/aidp/SKILL.md; derived from comprehension probe
   evidence.
@@ -773,7 +896,7 @@ Atoms for `skills/aidp/SKILL.md`.
 | --- | --- | --- |
 | `r-bc0040d161` | AIDP - Architect of Execution > 1. Role & Scope > Trigger and accepted input | 1 |
 | `r-2c9563a86f` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Minimal-plan discipline | 1 |
-| `r-cfd6d9ab3a` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Minimal-plan discipline | 1 |
+| `r-5351e59dcb` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Minimal-plan discipline | 1 |
 | `r-ca5378de10` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Conditional decision-quality pass | 1 |
 | `r-733cdbf156` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Conditional decision-quality pass | 1 |
 | `r-035df2c807` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Role routing | 1 |
@@ -783,10 +906,10 @@ Atoms for `skills/aidp/SKILL.md`.
 | `r-f082ebb73d` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Context retrieval command options | 1 |
 | `r-08c42e14f6` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Context retrieval command options | 1 |
 | `r-7a6799f765` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Context retrieval command options | 1 |
-| `r-d8fceb13eb` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Context retrieval command options | 1 |
+| `r-332998cb9f` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Context retrieval command options | 1 |
 | `r-afee915d6a` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Context retrieval command options | 1 |
 | `r-4f00f90e6c` | AIDP - Architect of Execution > 3. Immutable Operational Rules > The only allowed fill-ins | 1 |
-| `r-f8b35e04cd` | AIDP - Architect of Execution > 3. Immutable Operational Rules > The only allowed fill-ins | 1 |
+| `r-7c0544e754` | AIDP - Architect of Execution > 3. Immutable Operational Rules > The only allowed fill-ins | 1 |
 | `r-b8599a09e6` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Mechanical enforcement | 1 |
 | `r-6147a004c5` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Mechanical enforcement | 1 |
 | `r-fc3e1d35d7` | AIDP - Architect of Execution > 3. Immutable Operational Rules > Ask order | 1 |
@@ -795,15 +918,15 @@ Atoms for `skills/aidp/SKILL.md`.
 | `r-d5ebdc6aab` | AIDP - Architect of Execution > 4. Input & Context Schema | 1 |
 | `r-cd48329577` | AIDP - Architect of Execution > 4. Input & Context Schema | 1 |
 | `r-05fc238a6b` | AIDP - Architect of Execution > 4. Input & Context Schema | 1 |
-| `r-3bd721f73f` | AIDP - Architect of Execution > 4. Input & Context Schema > 1. TARGET DIRECTIVES | 2 |
+| `r-c0953c8841` | AIDP - Architect of Execution > 4. Input & Context Schema > 1. TARGET DIRECTIVES | 2 |
 | `r-6210b3d8e8` | AIDP - Architect of Execution > 4. Input & Context Schema > 1. TARGET DIRECTIVES | 1 |
-| `r-9099cf52a0` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
-| `r-1f58a13754` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
+| `r-3111019843` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
+| `r-0b6a9890db` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
 | `r-d07a7b66c2` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
-| `r-8189953530` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
-| `r-897547a124` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
+| `r-693f3ee108` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
+| `r-71dbfa11aa` | AIDP - Architect of Execution > 4. Input & Context Schema > 3. CHRONOLOGICAL WORKFLOW | 1 |
 | `r-016163b439` | AIDP - Architect of Execution > 4. Input & Context Schema > Plan authoring skeleton | 1 |
-| `r-eec5483b2d` | AIDP - Architect of Execution > 4. Input & Context Schema > Plan authoring skeleton | 1 |
+| `r-f753647730` | AIDP - Architect of Execution > 4. Input & Context Schema > Plan authoring skeleton | 1 |
 | `r-5e3fa43fd5` | AIDP - Architect of Execution > 5. Ordered Execution Chain > Hardening rules | 1 |
 | `r-b48e33004d` | AIDP - Architect of Execution > 5. Ordered Execution Chain > Hardening rules | 1 |
 | `r-f7b134022d` | AIDP - Architect of Execution > 5. Ordered Execution Chain > Hardening rules | 1 |

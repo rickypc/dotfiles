@@ -2,6 +2,7 @@ import { expect, mock, test } from 'bun:test';
 import * as realFs from 'node:fs/promises';
 import * as realPath from 'node:path';
 import realMatter from 'gray-matter';
+import * as realConsistency from '../../scripts/aidp-plan-consistency.js';
 import * as realCli from '../../utils/cli.js';
 
 // Importing the SUT as a module keeps its Bun.argv CLI dispatch inert; the run() tests inject
@@ -12,6 +13,7 @@ mock.module('node:fs/promises', () => realFs);
 mock.module('node:path', () => realPath);
 mock.module('gray-matter', () => ({ default: realMatter }));
 mock.module('../utils/cli.js', () => realCli);
+mock.module('./aidp-plan-consistency.js', () => realConsistency);
 
 const { AidpPlanValidationError, run, usage, validateAidpPlan } = await import(
   '../../scripts/aidp-plan-validator.js'
@@ -323,4 +325,19 @@ test('rejects plan frontmatter that is not valid YAML', () => {
   expect(() =>
     validateAidpPlan('---\ntitle: [unclosed, extra\n---\n\n# Broken aidp plan\n'),
   ).toThrow(/valid YAML/u);
+});
+
+test('blocks the handoff with a consistency finding alongside the structural findings', () => {
+  const contradictory = validPlan
+    .replace(
+      '## 2. VARIABLE DEFINITION MATRIX',
+      'Cap: 2 x 3 = 7.\n\n## 2. VARIABLE DEFINITION MATRIX',
+    )
+    .replace(
+      ' Resume point: checkpoint records completed steps, receipts, and the next action.',
+      '',
+    );
+  expect(() => validateAidpPlan(contradictory, planPath)).toThrow(
+    /phase 1 must state resume[\s\S]*Cap arithmetic 2 x 3 = 7 is wrong/u,
+  );
 });

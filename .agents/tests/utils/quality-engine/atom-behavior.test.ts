@@ -106,6 +106,28 @@ test('casesForAtoms lists the cases that cite the lines of the named atoms', () 
   expect(casesForAtoms(SOURCE, 'doc.md', [], ranges)).toEqual([]);
 });
 
+test('a case cites a rule by atom id and the id survives line drift', () => {
+  const second = realDelta.atomIdOf('Second rule here.');
+  const ranges = ruleRangesOf({
+    root: {
+      cases: [{ id: 'by-id', sourceRule: `doc.md atom:${second} atom:r-0123456789 - rule 7-8` }],
+    },
+  });
+  expect(ranges).toEqual([
+    { atomId: second, caseId: 'by-id', path: 'doc.md' },
+    { atomId: 'r-0123456789', caseId: 'by-id', path: 'doc.md' },
+    { caseId: 'by-id', end: 8, path: 'doc.md', start: 7 },
+  ]);
+  const tagging = tagBehavioral(
+    SOURCE,
+    'doc.md',
+    [atom('First rule here.'), atom('Second rule here.')],
+    ranges,
+  );
+  expect(tagging.atoms.map((entry) => entry.behavioral)).toEqual([false, true]);
+  expect(tagging.mapped).toEqual(['by-id']);
+});
+
 test('a root document path is read as a source path', () => {
   expect(
     ruleRangesOf({ root: { cases: [{ id: 'r', sourceRule: 'AGENTS.md:3-4 - rule' }] } }),

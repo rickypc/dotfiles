@@ -588,6 +588,31 @@ description: >-
   Rule atoms placed in skills/bun-test-generator/SKILL.md; derived from
   comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-04
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-07
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-09
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-17
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: validation-03
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: validation-07
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-09
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: validation-11
 source: skills/bun-test-generator/SKILL.md
 tags:
   - atoms

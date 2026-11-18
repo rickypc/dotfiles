@@ -116,7 +116,13 @@ reduced-motion support.
 
 For NFR work, name only evidenced categories: performance, security, scalability, reliability,
 observability, privacy, maintainability, or operability. Each material category needs a constraint,
-owner, implementation implication, and proof. Do not invent numeric targets.
+owner, implementation implication, and proof. Do not invent numeric targets. The consistency checks
+read these forms: `Exclusion E-n | covers: <tokens> |` rows, `Count C-n: <noun> = <number>` rows,
+`<base> x <multiplier> = <cap>` arithmetic, `PD-n` rows of a Predicted deviations table with
+trigger, response, and budget cells, and an `**Evidence record**` whose every bullet carries a
+verified, receipt, or evidence stamp. A workflow step whose Target field names a token that an
+exclusion covers is rejected unless the step only proposes a diff or keeps the target unchanged. A
+cap quoted in the execution sections must equal a registered cap.
 
 For delivery, choose a proportionate unit count. Sequence by dependency, risk reduction, value, or
 test isolation; record the rationale. Every unit maps to acceptance and a completion proof. A

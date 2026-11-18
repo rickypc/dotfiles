@@ -513,7 +513,7 @@ sensitivity:
   - mutantsFlipped: 1
     mutantsTried: 1
     probeId: validation-05
-  - mutantsFlipped: 1
+  - mutantsFlipped: 0
     mutantsTried: 1
     probeId: validation-07
   - mutantsFlipped: 0

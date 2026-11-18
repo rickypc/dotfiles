@@ -16,7 +16,7 @@
       "split": "train"
     },
     {
-      "evidence": "If the skill location,\ncontaining `.agents` directory, or destination relationship cannot be established, stop instead of\nderiving a project path from the index or writing a partial plan.",
+      "evidence": "If the skill location,\n`.agents` directory, or destination relationship cannot be established, stop instead of deriving a\nproject path from the index or writing a partial plan.",
       "expected": "C",
       "id": "train-03",
       "query": "AIDP cannot establish where the containing .agents directory is, so the destination cannot be proven to sit below the plans directory. What must it do?\nA) Derive a project path from the index and write there\nB) Write a partial plan to the current directory\nC) Stop instead of deriving a path or writing a partial plan\nD) Write the plan and ask the validator to fix the path",
@@ -51,7 +51,7 @@
       "split": "train"
     },
     {
-      "evidence": "Write each step as ONE line beginning\n`- [ ]` - the plan validator reads only that first line",
+      "evidence": "Write each step as ONE line beginning\n`- [ ]`: the validator reads only that line, so every required field (target, responsibility,\ndependency, reason, expected result, preserved behavior, failure case, proof) and any\n`decision:`/`clarified:` marker must sit on it; the assumption-smell scan matches literal words\n(`assume`, `likely`, `presumably`, `standard`, `typical`, `usually`, `default to`, `I will`,\n`we will`, `by convention`) in any section.",
       "expected": "A",
       "id": "train-08",
       "query": "The plan validator reads workflow steps. Where must all per-step fields such as target, dependency, expected result, and proof appear?\nA) On the single first line of the `- [ ]` item\nB) In indented paragraphs under the item\nC) In a table at the end of the section\nD) In the phase heading",
@@ -65,14 +65,14 @@
       "split": "train"
     },
     {
-      "evidence": "Do not paste `(owner: AIDX)` (or any other executor attribution)\non every step - that is noise",
+      "evidence": "Do not paste `(owner: AIDX)` or any other executor attribution on\nevery step - it is noise and blurs the plan-author / executor / human-owner split.",
       "expected": "D",
       "id": "train-10",
       "query": "A plan author wants to add `(owner: AIDX)` to every workflow step. What does the skill say?\nA) Do it, so each step shows who executes it\nB) Do it only for steps that edit files\nC) Do it only for the first step of each phase\nD) Do not; the responsibility field is written only when the executor deviates from the default AIDX executor",
       "split": "train"
     },
     {
-      "evidence": "the gate is `bun run test` (the agents-root\ndefault) when no project override exists",
+      "evidence": "- **Configured Final Gate.** Verify the gate against the project's `package.json` or `aidx.json`\n  BEFORE writing the plan: `bun run test` (the agents-root default) when no override exists,\n  otherwise `aidx.json`'s `finalGate`, otherwise the configured project gate.",
       "expected": "A",
       "id": "train-11",
       "query": "A project has no override in package.json or aidx.json. What final-gate command should the plan name?\nA) `bun run test`, the agents-root default, verified before writing the plan\nB) `npm run test:lint && npm run test:unit && npm run test:e2e && npm run build`\nC) Whatever gate the planner thinks is typical\nD) No gate, because the sanitizer step is enough",
@@ -163,7 +163,7 @@
       "split": "validation"
     },
     {
-      "evidence": "the gate is `bun run test` (the agents-root\ndefault) when no project override exists, otherwise it is `aidx.json`'s `finalGate`",
+      "evidence": "- **Configured Final Gate.** Verify the gate against the project's `package.json` or `aidx.json`\n  BEFORE writing the plan: `bun run test` (the agents-root default) when no override exists,\n  otherwise `aidx.json`'s `finalGate`, otherwise the configured project gate.",
       "expected": "B",
       "id": "train-17",
       "query": "A project's package.json has a test script, and the project also has an aidx.json whose finalGate is `bun run check:all`. Which gate does the plan name?\nA) `bun run test`, because it is the agents-root default\nB) `bun run check:all`, from aidx.json finalGate\nC) `npm run test && npm run test:e2e`\nD) `bun run check:all && bun run test`",
@@ -177,21 +177,21 @@
       "split": "train"
     },
     {
-      "evidence": "responsibility field only when the executor for a step deviates from the default AIDX executor",
+      "evidence": "Write the\nresponsibility field only when a step's executor deviates from the default AIDX executor (for\nexample, an escalation to the human owner or a delegation to another skill).",
       "expected": "A",
       "id": "train-19",
       "query": "One workflow step must be carried out by a different skill than the default AIDX executor. What does the plan do on that step?\nA) Writes the responsibility field naming that executor\nB) Omits the responsibility field, as it is never written\nC) Writes `(owner: AIDX)` on that step and on every other step\nD) Moves the human owner into that step",
       "split": "train"
     },
     {
-      "evidence": "**Resume point:** what the execution checkpoint records at the boundary (completed work,\nvalidation receipts, next action)",
+      "evidence": "Write each phase as an H3 `### Phase N - <name>` heading\n(numbered from 1), then one prose paragraph declaring three enforced fields - **Phase inputs:** what\nit consumes; **Completion criteria:** the observable end state and its proof; **Resume point:** what\nthe checkpoint records at the boundary (completed work, validation receipts, next action) - then its\n`- [ ]` steps.",
       "expected": "C",
       "id": "train-20",
       "query": "In a phase block, what does the Resume point declare?\nA) What the phase consumes\nB) The observable end state of the phase and its proof\nC) What the execution checkpoint records at the boundary: completed work, validation receipts, next action\nD) The command that restarts the whole plan from Phase 1",
       "split": "train"
     },
     {
-      "evidence": "The workflow checklist is mandatory: AIDP writes every executable step as `- [ ]`; AIDX owns the later transition to `- [x]` for completed work or `- [-]` with a factual inapplicability reason.",
+      "evidence": "The workflow checklist is mandatory: AIDP writes every executable step as `- [ ]`; AIDX later sets\n`- [x]` for completed work or `- [-]` with a factual inapplicability reason.",
       "expected": "B",
       "id": "train-21",
       "query": "One workflow step was intentionally skipped as inapplicable. Who records it, and how?\nA) AIDP marks it `- [x]` before handoff\nB) AIDX marks it `- [-]` with a factual reason\nC) AIDX deletes the step line\nD) AIDP marks it `- [-]` before handoff",
@@ -254,7 +254,7 @@
       "split": "validation"
     },
     {
-      "evidence": "then the standard library, native platform capability, or an already-installed dependency before\nproposing custom code",
+      "evidence": "For remaining work, prefer the smallest compatible change and an existing extension point,\nthen the standard library, a native platform capability, or an installed dependency before custom\ncode.",
       "expected": "A",
       "id": "validation-09",
       "query": "A needed feature has no existing extension point, but the standard library already does the job. What does the skill prefer?\nA) Use the standard library before proposing custom code\nB) Write a custom helper because it is neater\nC) Add a new abstraction for later reuse\nD) Add configuration for later variants",

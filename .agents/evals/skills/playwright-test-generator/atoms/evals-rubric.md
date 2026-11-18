@@ -147,6 +147,40 @@ description: >-
   Rule atoms placed in evals/skills/playwright-test-generator/rubric.md; derived
   from comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-01
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-03
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-04
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-05
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-06
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-07
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-08
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-09
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-01
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-02
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-04
 source: evals/skills/playwright-test-generator/rubric.md
 tags:
   - atoms

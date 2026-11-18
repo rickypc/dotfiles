@@ -1,0 +1,41 @@
+{
+  "retirements": [
+    {
+      "caseId": "atom:r-9099cf52a0",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-1f58a13754",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-3bd721f73f",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-897547a124",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-cfd6d9ab3a",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-f8b35e04cd",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-eec5483b2d",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-8189953530",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    },
+    {
+      "caseId": "atom:r-d8fceb13eb",
+      "reason": "Compress wording to keep the skill body within the 500-line source budget."
+    }
+  ],
+  "schemaVersion": 1
+}

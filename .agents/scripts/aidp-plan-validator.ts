@@ -2,6 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
 import matter from 'gray-matter';
 import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import { consistencyIssues } from './aidp-plan-consistency.js';
 
 export interface AidpPlanValidationReceipt {
   readonly headings: readonly string[];
@@ -407,6 +408,7 @@ export const validateAidpPlan = (content: string, planPath?: string): AidpPlanVa
   const { headings, sections } = validateSections(parsed.content.trim(), issues);
   validateH1MatchesTitle(parsed.content.trim(), title, issues);
   scanForUnflaggedAssumptions(sections, issues);
+  issues.push(...consistencyIssues(parsed.content.trim(), sections));
 
   if (issues.length > 0) {
     throw new AidpPlanValidationError(issues);

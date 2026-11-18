@@ -2,6 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
 import matter from 'gray-matter';
 import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import { deltaPathFor, parseDeltaRecord } from './aidx-plan-delta.js';
 
 export interface AidxCompletedPlanValidationReceipt {
   readonly completedSteps: number;
@@ -277,6 +278,15 @@ export const run = async (
     throw new Error(`Plan path is not a regular file: ${planPath}`);
   }
   const receipt = validateAidxCompletedPlan(await read(planPath, 'utf8'), planPath);
+  const deltaPath = deltaPathFor(planPath);
+  try {
+    parseDeltaRecord(await read(deltaPath, 'utf8'));
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new AidxCompletedPlanValidationError([
+      `Completed plan requires a valid delta record at ${deltaPath}: ${reason}`,
+    ]);
+  }
   write(JSON.stringify(receipt, null, 2));
   return receipt;
 };

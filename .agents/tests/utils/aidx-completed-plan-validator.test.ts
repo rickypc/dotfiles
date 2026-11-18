@@ -2,6 +2,7 @@ import { expect, mock, test } from 'bun:test';
 import * as realFs from 'node:fs/promises';
 import * as realPath from 'node:path';
 import realMatter from 'gray-matter';
+import * as realDelta from '../../scripts/aidx-plan-delta.js';
 import * as realCli from '../../utils/cli.js';
 
 // Importing the SUT as a module keeps its Bun.argv CLI dispatch inert; the run() tests inject
@@ -12,6 +13,7 @@ mock.module('node:fs/promises', () => realFs);
 mock.module('node:path', () => realPath);
 mock.module('gray-matter', () => ({ default: realMatter }));
 mock.module('../utils/cli.js', () => realCli);
+mock.module('./aidx-plan-delta.js', () => realDelta);
 
 const { AidxCompletedPlanValidationError, run, usage, validateAidxCompletedPlan } = await import(
   '../../scripts/aidx-completed-plan-validator.js'
@@ -125,9 +127,25 @@ test('rejects invalid frontmatter and heading drift', () => {
   ).toThrow(AidxCompletedPlanValidationError);
 });
 
+const deltaPath = '/workspace/.agents/plans/Users-demo/completed-plan.delta.json';
+const deltaRecord = JSON.stringify({
+  caps: [],
+  deviations: [],
+  plan: 'completed-plan.md',
+  schemaVersion: 1,
+  score: 0,
+  steps: { completed: 1, planned: 2, skipped: 1 },
+  unforeseen: 0,
+});
+const statFile = (async () => ({ isFile: () => true })) as unknown as Parameters<typeof run>[2];
+const readWith = (delta: () => Promise<string>) =>
+  (async (path: string) => (path === deltaPath ? delta() : completedPlan)) as unknown as Parameters<
+    typeof run
+  >[1];
+
 test('runs the validator through its absolute-file command boundary', async () => {
   const write = mock();
-  const read = (async () => completedPlan) as unknown as Parameters<typeof run>[1];
+  const read = readWith(async () => deltaRecord);
   const checkStat = (async () => ({
     isFile: () => true,
   })) as unknown as Parameters<typeof run>[2];
@@ -248,4 +266,25 @@ test('accepts schema placeholder tokens in the RIGID OUTPUT SCHEMA section', () 
       planPath,
     ),
   ).not.toThrow();
+});
+
+test('rejects a completed plan whose sibling delta record is missing', async () => {
+  const read = readWith(async () => {
+    throw new Error('ENOENT');
+  });
+  await expect(run([planPath], read, statFile, mock())).rejects.toThrow(
+    /requires a valid delta record at \/workspace\/\.agents\/plans\/Users-demo\/completed-plan\.delta\.json: ENOENT/u,
+  );
+});
+
+test('rejects a completed plan whose delta record is malformed', async () => {
+  const read = readWith(async () => '{oops');
+  await expect(run([planPath], read, statFile, mock())).rejects.toThrow(
+    /requires a valid delta record.*valid JSON/su,
+  );
+});
+
+test('reports a non-Error delta read failure', async () => {
+  const read = readWith(() => Promise.reject('denied'));
+  await expect(run([planPath], read, statFile, mock())).rejects.toThrow(/: denied/u);
 });

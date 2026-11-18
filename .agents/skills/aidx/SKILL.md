@@ -169,7 +169,12 @@ Do not criticize, negotiate, or pass the plan back merely because execution is i
 add an unlisted fallback or change the plan's objective. If a required input is null, ambiguous,
 unavailable, or unverifiable, stop before mutation and report the exact failure; do not guess. If a
 proof fails, preserve the plan and work, report the target and observed result, and do not claim
-success.
+success. At preflight AIDX runs
+`bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>` on the pending plan and
+stops on any finding. Every phase checkpoint carries a deviation log: each deviation has a class of
+contradiction, env-fact, scope-change, cap-exceeded, unplanned-step, noise-retry, or stale-evidence,
+and a `registerId` equal to a Predicted deviations id when the plan foresaw it. A contradiction
+inside the plan stops execution with one question to the human owner.
 
 If discovered evidence invalidates a requirement, boundary, owner, dependency, risk assumption,
 architecture, or proof strategy, stop at the named re-plan trigger. Preserve unaffected work and
@@ -210,7 +215,11 @@ enforce completion for the flag (that is AIDX's job), so AIDX must verify the cl
 Never remove a plan selected for distillation before the KB receipt succeeds; the importer moves the
 source only after its own write+receipt succeeds. The closeout output MUST name the exact
 `retiredTo` path returned by the importer (or the `~/.Trash/` destination for the remove-only case);
-a missing `retiredTo` in the closeout is an unfinished retirement, not a soft option.
+a missing `retiredTo` in the closeout is an unfinished retirement, not a soft option. Before the
+completed-plan validator, run
+`bun <agents-root>/scripts/aidx-plan-delta.ts record <absolute-plan-path> <absolute-observations-path>`
+so the sibling `.delta.json` exists; the validator fails without it, and `import-plan` carries the
+delta into the knowledge base before retirement.
 
 ## 6. Output & Completion Contract
 

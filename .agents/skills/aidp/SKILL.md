@@ -49,11 +49,10 @@ The owner file must advertise these routes directly.
 
 Before decomposing work, question whether the requested change needs to exist or is already covered
 by the current project. When the need is speculative, surface that decision and do not manufacture a
-plan. For work that remains, prefer the smallest compatible change and an existing extension point,
-then the standard library, native platform capability, or an already-installed dependency before
-proposing custom code. Do not add abstractions, boilerplate, scaffolding, or configuration for
-later. Record a deliberate simplification, its known ceiling, and the condition that would justify
-expanding it.
+plan. For remaining work, prefer the smallest compatible change and an existing extension point,
+then the standard library, a native platform capability, or an installed dependency before custom
+code. Do not add abstractions, boilerplate, scaffolding, or configuration for later. Record a
+deliberate simplification, its known ceiling, and the condition that would justify expanding it.
 
 This complete discipline is always active; AIDP has no mode selector. Never plan away explicitly
 required validation, error handling, security, accessibility, compatibility, or other safety and
@@ -139,11 +138,10 @@ replace or refine `<agents-root>`.
 
 Before writing, verify that the absolute destination is below the resolved `<agents-root>/plans/`
 directory and that its index directory is exactly `<repo-search-index>`. If the skill location,
-containing `.agents` directory, or destination relationship cannot be established, stop instead of
-deriving a project path from the index or writing a partial plan. The slug is stable, descriptive,
-and no longer than 160 characters. If a requirement could change scope, ownership, safety,
-architecture, or acceptance, stop for a focused clarification; do not guess and do not write a
-partial plan.
+`.agents` directory, or destination relationship cannot be established, stop instead of deriving a
+project path from the index or writing a partial plan. The slug is stable, descriptive, and no
+longer than 160 characters. If a requirement could change scope, ownership, safety, architecture, or
+acceptance, stop for a focused clarification; do not guess and do not write a partial plan.
 
 ### No-Assumption Covenant
 
@@ -171,8 +169,8 @@ The only values AIDP may write without a user decision are:
 
 - Values returned by `/repo-search` or `/knowledge-base` receipts, cited with the receipt path.
 - Values the user typed in this turn or a prior turn of this session, quoted.
-- A labelled, explicit `assumption:` marker used only to _flag_ an assumption for the user - but a
-  flagged assumption never satisfies a requirement; it is a clarification stop, not a resolution.
+- A labelled `assumption:` marker used only to _flag_ an assumption for the user - a flagged
+  assumption never satisfies a requirement; it is a clarification stop, not a resolution.
 
 ### Mechanical enforcement
 
@@ -246,12 +244,11 @@ brownfield, or cross-cutting boundary:
   no clear correction; a new citation that cannot be verified; a long page that cannot be cleanly
   split; a strict-mode build failure whose fix requires a scope decision; any banned word or factual
   claim the canonical patterns do not cover.
-- **Configured Final Gate.** Verify the final-gate command string against the project's
-  `package.json` or `aidx.json` BEFORE writing the plan; the gate is `bun run test` (the agents-root
-  default) when no project override exists, otherwise it is `aidx.json`'s `finalGate`, otherwise the
-  configured project gate. For npm-based projects the equivalent is
-  `npm run test && npm run test:e2e` (or whichever string the project's `test` and `test:e2e`
-  scripts compose). Do NOT invent a plausible-looking chain such as
+- **Configured Final Gate.** Verify the gate against the project's `package.json` or `aidx.json`
+  BEFORE writing the plan: `bun run test` (the agents-root default) when no override exists,
+  otherwise `aidx.json`'s `finalGate`, otherwise the configured project gate. For npm-based projects
+  the equivalent is `npm run test && npm run test:e2e` (or whichever string the project's `test` and
+  `test:e2e` scripts compose). Do NOT invent a plausible-looking chain such as
   `npm run test:lint && npm run test:unit && npm run test:e2e && npm run build` - that string is
   wrong on most projects; verify first, then name the gate.
 - **Pre-gate sanitizer step (mandatory).** The CHRONOLOGICAL WORKFLOW must end with one executable
@@ -284,29 +281,28 @@ target, responsibility, dependency, reason, expected result, preserved behavior,
 case, and focused proof. Each step is independently testable and MUST be written as an unchecked
 Markdown task item beginning `- [ ]`. These `[ ]` items are the execution checklist that AIDX must
 update; do not use prose-only steps or pre-mark them complete. Write each step as ONE line beginning
-`- [ ]` - the plan validator reads only that first line, so every required per-step field (target,
-responsibility, dependency, reason, expected result, preserved behavior, failure case, proof) and
-any `decision:`/`clarified:` marker must appear on it; the assumption-smell scan matches literal
-words (`assume`, `likely`, `presumably`, `standard`, `typical`, `usually`, `default to`, `I will`,
-`we will`, `by convention`) anywhere in a section. For material work, decompose only after the
-requirements and design decisions are explicit; identify the smallest units, their dependency order,
-and the fact that would require re-planning.
+`- [ ]`: the validator reads only that line, so every required field (target, responsibility,
+dependency, reason, expected result, preserved behavior, failure case, proof) and any
+`decision:`/`clarified:` marker must sit on it; the assumption-smell scan matches literal words
+(`assume`, `likely`, `presumably`, `standard`, `typical`, `usually`, `default to`, `I will`,
+`we will`, `by convention`) in any section. For material work, decompose only after the requirements
+and design decisions are explicit; identify the smallest units, their dependency order, and the fact
+that would require re-planning.
 
 Group the steps into explicit phase blocks. Write each phase as an H3 `### Phase N - <name>` heading
-(numbered ascending from 1), followed by one prose paragraph declaring the three enforced fields -
-**Phase inputs:** what the phase consumes; **Completion criteria:** the observable end state and its
-proof; **Resume point:** what the execution checkpoint records at the boundary (completed work,
-validation receipts, next action) - then that phase's `- [ ]` steps. Decompose long work into audit,
-implementation, validation, and delivery phases as applicable; a small plan may carry one phase.
-Every task item sits inside a phase block, each phase block carries at least one step, and the
-validator rejects a workflow without phase blocks.
+(numbered from 1), then one prose paragraph declaring three enforced fields - **Phase inputs:** what
+it consumes; **Completion criteria:** the observable end state and its proof; **Resume point:** what
+the checkpoint records at the boundary (completed work, validation receipts, next action) - then its
+`- [ ]` steps. Decompose long work into audit, implementation, validation, and delivery phases as
+applicable; a small plan may carry one phase. Every task item sits inside a phase block, each phase
+block carries at least one step, and the validator rejects a workflow without phase blocks.
 
 The per-step responsibility field names the executor role that will carry out the step (typically
 the AIDX execution skill or a delegated router). It is NOT a re-statement of the singular owner
-established in TARGET DIRECTIVES. Do not paste `(owner: AIDX)` (or any other executor attribution)
-on every step - that is noise and confuses the plan-author / executor / human-owner split. Write the
-responsibility field only when the executor for a step deviates from the default AIDX executor (for
-example, when a step escalates to the human owner or delegates to a different skill).
+established in TARGET DIRECTIVES. Do not paste `(owner: AIDX)` or any other executor attribution on
+every step - it is noise and blurs the plan-author / executor / human-owner split. Write the
+responsibility field only when a step's executor deviates from the default AIDX executor (for
+example, an escalation to the human owner or a delegation to another skill).
 
 ### 4. TOOL STRATEGY & FALLBACKS
 
@@ -391,8 +387,8 @@ Author each section with these minimum contents:
 - **RIGID OUTPUT SCHEMA:** exact final labels, order, delimiters, required values, and omission
   rules.
 
-The workflow checklist is mandatory: AIDP writes every executable step as `- [ ]`; AIDX owns the
-later transition to `- [x]` for completed work or `- [-]` with a factual inapplicability reason.
+The workflow checklist is mandatory: AIDP writes every executable step as `- [ ]`; AIDX later sets
+`- [x]` for completed work or `- [-]` with a factual inapplicability reason.
 
 Keep facts, decisions, assumptions, and unknowns visibly separate: a complete plan is the resolved
 evidence, decisions, ownership, dependency order, acceptance proof, fallbacks, and final output
@@ -477,7 +473,11 @@ The link must open the materialized plan, and the fenced block must contain only
 command. AIDX canonicalizes either path form - the absolute form `/aidx <absolute-plan-path>` is
 valid - so the handoff keeps the relative-or-absolute form shown above. Then stop. If validation
 fails, report every finding and preserve the prior plan when one exists; do not hand off an invalid
-candidate.
+candidate. The validator also runs eight consistency checks, and any finding blocks the handoff. A
+plan with two or more phases makes Phase 1 a Preflight phase and declares a Predicted deviations
+table of `PD-n` rows. Every cap states `base x multiplier = cap`, with the multiplier taken before
+planning from `bun <agents-root>/scripts/aidx-plan-delta.ts history <agents-root>`. A stop reason
+never completes a deliverable.
 
 ### Standalone plan validation
 

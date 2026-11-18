@@ -170,6 +170,34 @@ description: >-
   Rule atoms placed in evals/skills/bun-test-generator/rubric.md; derived from
   comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 1
+    mutantsTried: 3
+    probeId: train-01
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-03
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-04
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-05
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-07
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-09
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: validation-04
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: validation-05
+  - mutantsFlipped: 1
+    mutantsTried: 2
+    probeId: validation-06
 source: evals/skills/bun-test-generator/rubric.md
 tags:
   - atoms

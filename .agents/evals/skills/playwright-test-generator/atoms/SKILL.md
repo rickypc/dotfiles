@@ -493,6 +493,34 @@ description: >-
   Rule atoms placed in skills/playwright-test-generator/SKILL.md; derived from
   comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-07
+  - mutantsFlipped: 1
+    mutantsTried: 2
+    probeId: train-08
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-10
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-13
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-14
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-25
+  - mutantsFlipped: 1
+    mutantsTried: 2
+    probeId: train-26
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-02
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-10
 source: skills/playwright-test-generator/SKILL.md
 tags:
   - atoms

@@ -246,7 +246,7 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: 0a282f4a014d61909a947c6836f3992e57e7371e95153a6478f5032e670cd33f
-  - behavioral: true
+  - behavioral: false
     harmful: 0
     helpful: 0
     id: r-87797fcf9a

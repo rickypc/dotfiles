@@ -300,6 +300,31 @@ test('rebuild refreshes the source hashes of a skill manifest together with the 
   expect(again.manifests).toEqual([]);
 });
 
+test('rebuild derives the case and activation fingerprints from their files', async () => {
+  const cases = '{"id":"c1"}\n';
+  const { fileSystem, files } = world({
+    '/r/evals/skills/demo/cases.jsonl': cases,
+    '/r/evals/skills/demo/manifest.json': json({
+      artifacts: { activationQueries: 5, atoms: [], cases: 'evals/skills/demo/cases.jsonl' },
+      fingerprints: {
+        activationQueriesSha256: 'kept',
+        caseRetirementsSha256: 'manual',
+        casesSha256: 'stale',
+      },
+      sources: [],
+    }),
+  });
+  await rebuildAtomMaps(fileSystem, '/r', { ownerId: 'skill:demo', write: true });
+  const written = JSON.parse(files.get('/r/evals/skills/demo/manifest.json') ?? '{}') as {
+    fingerprints: Record<string, string>;
+  };
+  expect(written.fingerprints).toEqual({
+    activationQueriesSha256: 'kept',
+    caseRetirementsSha256: 'manual',
+    casesSha256: hashOf(cases),
+  });
+});
+
 test('rebuild tags behavioral atoms from the coverage map and lists unmapped cases', async () => {
   const coverage = json({
     root: { cases: [] },

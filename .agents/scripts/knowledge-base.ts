@@ -10,6 +10,12 @@ import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import { type BatchTask, runBatched } from '../utils/quality-engine/batch.js';
 import { type RepoSearchEnvelope, repoSearchDiscover } from '../utils/repo-search.js';
+import {
+  DEVIATION_CLASSES,
+  type DeltaRecord,
+  deltaPathFor,
+  parseDeltaRecord,
+} from './aidx-plan-delta.js';
 import { defaultMoveSourceToTrash } from './trash.js';
 
 export { parseOkfConcept, renderOkfConcept, validateOkfMetadata };
@@ -145,9 +151,6 @@ export const conceptIndexPath = (path: string): string => {
   return `${scope}/${subject}/index.md`;
 };
 
-const importBody = (document: PlanImportDocument): string =>
-  document.headings.map((heading) => `## ${heading}\n\n${document.sections[heading]}`).join('\n\n');
-
 const indexChildren = (content: string): readonly DirectoryIndexEntry[] =>
   [...content.matchAll(/^- \[([^\]]+)\]\(([^)]+)\)(?:\s+-\s(.*))?$/gmu)].map((match) => ({
     description: match[3]?.trim() || undefined,
@@ -260,6 +263,28 @@ export const renderCapturedConcept = (
   }
   return renderOkfConcept(metadata, `${body.trim()}\n\n## Evidence\n\n${evidence.trim()}`);
 };
+
+const renderDeltaSection = (delta: DeltaRecord): string => {
+  const classes = DEVIATION_CLASSES.map((name) => ({
+    count: delta.deviations.filter((deviation) => deviation.class === name).length,
+    name,
+  })).filter((entry) => entry.count > 0);
+  return [
+    '## Plan delta',
+    '',
+    `- Plan: ${delta.plan}`,
+    `- Steps: ${delta.steps.planned} planned, ${delta.steps.completed} completed, ${delta.steps.skipped} skipped`,
+    `- Unforeseen deviations: ${delta.unforeseen} (score ${delta.score})`,
+    ...delta.caps.map((cap) => `- Cap ${cap.id}: ${cap.used} used of ${cap.planned}`),
+    ...classes.map((entry) => `- Deviations ${entry.name}: ${entry.count}`),
+  ].join('\n');
+};
+
+const importBody = (document: PlanImportDocument, delta?: DeltaRecord): string =>
+  [
+    ...document.headings.map((heading) => `## ${heading}\n\n${document.sections[heading]}`),
+    ...(delta ? [renderDeltaSection(delta)] : []),
+  ].join('\n\n');
 
 export const renderDirectoryIndex = (
   title: string,
@@ -556,6 +581,10 @@ export const importPlan = async (
     throw new Error(`KB plan import produced an invalid concept path: ${conceptPath}`);
   }
   const description = document.objective.split(/\r?\n/u)[0].trim().slice(0, 240);
+  const deltaPath = deltaPathFor(planPath);
+  const delta = (await fileSystem.exists(deltaPath))
+    ? parseDeltaRecord(await readText(fileSystem, deltaPath))
+    : undefined;
   const sourceLabel = planPath.startsWith('/') ? basename(planPath) : planPath;
   const concept = await captureConcept(
     fileSystem,
@@ -567,7 +596,7 @@ export const importPlan = async (
       title: document.title,
       type: 'plan',
     },
-    importBody(document),
+    importBody(document, delta),
     `Source plan: ${sourceLabel}. Verification: imported by the knowledge-base plan importer.`,
   );
   return {

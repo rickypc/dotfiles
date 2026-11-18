@@ -251,6 +251,31 @@ description: >-
   Rule atoms placed in skills/bun-test-generator/references/lessons-learned.md;
   derived from comprehension probe evidence.
 schemaVersion: 1
+sensitivity:
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-01
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-02
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-05
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-06
+  - mutantsFlipped: 0
+    mutantsTried: 2
+    probeId: train-07
+  - mutantsFlipped: 1
+    mutantsTried: 1
+    probeId: train-10
+  - mutantsFlipped: 2
+    mutantsTried: 2
+    probeId: train-11
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: train-12
 source: skills/bun-test-generator/references/lessons-learned.md
 tags:
   - atoms

@@ -100,6 +100,31 @@ const editSourceHashes =
     return changed;
   };
 
+const FINGERPRINTED_ARTIFACTS = ['cases', 'activationQueries'] as const;
+
+// The case matrix and activation queries are gated by a recorded SHA-256. Refreshing it here keeps
+// the value derived from the file instead of hand-edited. The retirement fingerprint stays manual
+// because it guards the ratchet's own evidence.
+const editFingerprints =
+  (fileSystem: BuildSystem, root: string) =>
+  async (manifest: Record<string, unknown>): Promise<boolean> => {
+    const { artifacts, fingerprints } = manifest;
+    if (!isRecord(artifacts) || !isRecord(fingerprints)) {
+      return false;
+    }
+    let changed = false;
+    for (const artifact of FINGERPRINTED_ARTIFACTS) {
+      const key = `${artifact}Sha256`;
+      const path = artifacts[artifact];
+      if (typeof path === 'string' && typeof fingerprints[key] === 'string') {
+        const digest = sha256Hex(await fileSystem.readFile(`${root}/${path}`, 'utf8'));
+        changed ||= fingerprints[key] !== digest;
+        fingerprints[key] = digest;
+      }
+    }
+    return changed;
+  };
+
 const indexesOf = (haystack: string, needle: string): readonly number[] => {
   const hits: number[] = [];
   for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, at + 1)) {
@@ -341,6 +366,7 @@ const syncManifests = async (
       : ([
           [skillPath, editAtomList(skillPicker, maps, skillPath)],
           [skillPath, editSourceHashes(fileSystem, root)],
+          [skillPath, editFingerprints(fileSystem, root)],
         ] as const)),
   ];
   const changed: string[] = [];
