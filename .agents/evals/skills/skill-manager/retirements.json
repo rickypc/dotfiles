@@ -52,6 +52,14 @@
     {
       "caseId": "atom:r-c67b9d2b10",
       "reason": "The train read rule named the weak reader by its old script path; the reader moved to scripts/weak-reader/index.ts and the rebuilt map holds the renamed text as a new atom."
+    },
+    {
+      "caseId": "skill-manager-weak-reader-exit-codes",
+      "reason": "The weak reader now reports every failure as exit 1 with the kind in the envelope data.reason, so the per-code exit table is obsolete; retire the old case id and keep the scenario under a new id that asserts the reason list."
+    },
+    {
+      "caseId": "atom:r-3dc1108574",
+      "reason": "The train read route sentence now states exit 0 or 1 with the failure kind in data.reason, so its text and hash changed; the rebuilt map holds the current sentence."
     }
   ]
 }

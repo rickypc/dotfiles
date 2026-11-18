@@ -176,10 +176,10 @@ question with one option letter in an `answer` field.
   the reader retries with the system trust store; set `NODE_EXTRA_CA_CERTS` only if that retry also
   fails.
 - The built-in reader is the pinned local Gemma reader. Child-agent answers do not replace it.
-- Exit codes: 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package,
-  5 document too long.
-- When the process is sandboxed it finds no adapter and exits 2. This does not cancel authorized
-  work. Finish the edit and available checks, then give the user the exact blocked GPU command in a
+- Exit codes: 0 answered, 1 failure; the failure envelope `data.reason` is `failure`, `integrity`,
+  `missing-dependency`, `no-adapter`, or `too-long`.
+- When the process is sandboxed it finds no adapter and fails with reason `no-adapter`. This does
+  not cancel authorized work. Finish the edit and available checks, then give the user the exact blocked GPU command in a
   fenced block with its working directory and ask them to run it. Wait for them to paste the output
   before closeout. The sandbox attempt writes no receipt and cannot pass the gate. Do not substitute
   child-agent answers for the pinned reader.

@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/skill-manager/SKILL.md",
-      "sha256": "312e22e31649cd8b4db629350960734f6af54ba0820c8a9c9af0e1efbb6e7c41"
+      "sha256": "a54a6d8d23f45151d57ea63c4d8cfe848ed95e9866ed29e2c55dec7b9cc98923"
     },
     {
       "sourcePath": "evals/skills/skill-manager/rubric.md",
@@ -46,7 +46,7 @@
     },
     {
       "sourcePath": "skills/skill-manager/references/train-protocol.md",
-      "sha256": "e55d46480ab409aeabdd8d97600741b8016f9c1cddf3170694df68b909b4c386"
+      "sha256": "071e4d7ebd030008aa1fd8ca1690c9eff2c15fd8dac496765d8d718476d9742c"
     }
   ],
   "archivedMatrixSources": [
@@ -96,7 +96,7 @@
         "skill-manager-train-do-not-retry",
         "skill-manager-contract-challenge-counts",
         "skill-manager-weak-reader-route",
-        "skill-manager-weak-reader-exit-codes",
+        "skill-manager-weak-reader-exit-reasons",
         "skill-manager-weak-reader-sandbox-remedy",
         "skill-manager-reflow-edited-markdown",
         "skill-manager-weak-reader-suggest-route",
@@ -113,7 +113,7 @@
       {
         "sourcePath": "skills/skill-manager/SKILL.md",
         "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
-        "queryCount": 71,
+        "queryCount": 75,
         "queryIds": [
           "train-37",
           "train-01",
@@ -185,7 +185,11 @@
           "validation-26",
           "validation-27",
           "validation-28",
-          "validation-29"
+          "validation-29",
+          "validation-30",
+          "validation-31",
+          "validation-32",
+          "validation-33"
         ]
       },
       {
@@ -434,7 +438,7 @@
     "behaviorCases": 3
   },
   "fingerprints": {
-    "casesSha256": "9813dcf53c441eba083803998a6c2eecaba8c28fb8003668d660fe7bcde49ac8",
+    "casesSha256": "2e6fe90fc4df576966ce260e5733393fa8240e8bf5677b2dd44e4c753f4c66fc",
     "activationQueriesSha256": "3a30ed9841b5f71973f0feb73eb8912ffbe666875f478688efce8be7dddbca7d",
     "sourceRubricSha256": "6c799c445d5cbc74d428bea5a1c1ca06a4bf2d63dba09a9eceaf53af9c320913",
     "caseRetirementsSha256": "1a812cb03675b32d4554e533382e35c3447e3a34a9dbbad97a767b373957c85c"

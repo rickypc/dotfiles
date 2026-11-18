@@ -5,7 +5,7 @@
       "evidence": "When the sandbox has no adapter and no approved host route is available, finish the edit and local checks, then give the user the exact command and working directory and wait for its output.",
       "expected": "C",
       "id": "train-20",
-      "query": "A sandboxed weak-reader run exits 2 because no GPU adapter is available. How should the agent proceed?\nA) Stop all authorized work and ask the user whether to continue.\nB) Replace the weak reader with an in-session child agent.\nC) Finish the authorized work, ask the user to run the exact GPU gate command with its working directory, and wait for pasted output; do not claim a receipt from the sandbox.\nD) Write a receipt manually from the current measurement.",
+      "query": "A sandboxed weak-reader run fails with reason `no-adapter` because no GPU adapter is available. How should the agent proceed?\nA) Stop all authorized work and ask the user whether to continue.\nB) Replace the weak reader with an in-session child agent.\nC) Finish the authorized work, ask the user to run the exact GPU gate command with its working directory, and wait for pasted output; do not claim a receipt from the sandbox.\nD) Write a receipt manually from the current measurement.",
       "split": "train"
     },
     {

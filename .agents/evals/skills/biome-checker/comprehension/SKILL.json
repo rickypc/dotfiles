@@ -273,6 +273,41 @@
       "id": "validation-12",
       "query": "A selected file has a function whose inner body contains a side-effecting call, nested inside the function. How much of the syntax tree does the declaration-order check inspect?\nA) The whole tree, recursively\nB) Only exported declarations\nC) Only the comments\nD) Only direct program children",
       "split": "validation"
+    },
+    {
+      "evidence": "Example: `app.jsx` uses TSX grammar, and its type check is `not-applicable` because it is JavaScript.",
+      "expected": "B",
+      "id": "validation-13",
+      "query": "For a selected file named app.jsx, which grammar is used for inspection and what is its type check result?\nA) TypeScript grammar; bun check runs\nB) TSX grammar; type check is not-applicable\nC) TypeScript grammar; type check is not-applicable\nD) TSX grammar; bun check runs",
+      "split": "validation"
+    },
+    {
+      "evidence": "Resolve every selected path to its nearest `package.json` and use the shared `<agents-root>/biome.jsonc`; do not change target configuration or dependencies to obtain a green result.",
+      "expected": "D",
+      "id": "validation-14",
+      "query": "Biome reports errors on a selected file that a stricter target-project config would avoid. What is the permitted way to get a green result?\nA) Relax the target project's Biome configuration for that path\nB) Add or upgrade dependencies in the target package\nC) Switch to the target project's own config instead of the shared one\nD) None of those; use the shared config unchanged and do not alter target configuration or dependencies",
+      "split": "validation"
+    },
+    {
+      "evidence": "Treat imports, unrecognized or side-effecting top-level statements, duplicate providers, shadowed names, syntax errors, and dependency cycles as barriers.",
+      "expected": "A",
+      "id": "validation-15",
+      "query": "How must the declaration-order inspection treat import statements among top-level children?\nA) As barriers that are not crossed or repaired\nB) As movable declarations sorted alphabetically with the rest\nC) As ignorable statements that can be reordered across freely\nD) As barriers only when they are side-effect imports",
+      "split": "validation"
+    },
+    {
+      "evidence": "`--apply` is allowed only after reviewing a failed packet and applies its CST-proven whole-declaration moves.",
+      "expected": "A",
+      "id": "validation-16",
+      "query": "When is the apply flag of the declaration-order command permitted?\nA) Only after a failed packet has been reviewed; it applies whole-declaration moves\nB) Whenever the user selects a TypeScript path, before any inspection\nC) After a blocked result, to break the cycle or shadowing\nD) Any time, since it only moves comments and section markers",
+      "split": "validation"
+    },
+    {
+      "evidence": "A healthy run emits one checked-file summary; failure output retains only failed or blocked paths and their action packets.",
+      "expected": "C",
+      "id": "validation-17",
+      "query": "What does the global lint gate output look like for a healthy run versus a failing one?\nA) Healthy run lists every path's full receipt; failure lists only counts\nB) Both emit the complete per-path JSON for every file\nC) Healthy run emits one checked-file summary; failure retains only failed or blocked paths and their action packets\nD) Healthy run is silent; failure lists every checked path",
+      "split": "validation"
     }
   ],
   "runs_per_query": 3,

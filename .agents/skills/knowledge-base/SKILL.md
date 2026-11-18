@@ -277,9 +277,10 @@ One command shape returns one receipt with one validated concept list:
 bun <agents-root>/scripts/knowledge-base.ts search "<private-kb-root>" "<query>"
 ```
 
-The receipt carries `concepts`, `discovery`, and `kbInfo`. The `concepts` list is the answer; it is
-matched against validated local OKF files across the private KB. The `discovery` envelope records
-the local repo-search attempt. Results are deduplicated and ordered by title/description coverage.
+The receipt is the `data` of the shared CLI envelope and carries `concepts`, `discovery`, and
+`kbInfo`. The `concepts` list is the answer; it is matched against validated local OKF files across
+the private KB. The `discovery` envelope records the local repo-search attempt. Results are
+deduplicated and ordered by title/description coverage.
 
 For several independent terms use `search-batch` with the private-KB root and one to four distinct
 queries. A missing scope folder yields no local concepts.

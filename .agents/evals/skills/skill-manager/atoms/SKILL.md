@@ -139,15 +139,15 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-3dc1108574
+    id: r-7b6819638c
     placements:
       - headingPath: *ref_0
     precedence: 0
     probeIds:
-      - validation-17
+      - validation-30
     status: active
     tags: []
-    textSha256: 3dc11085748a87900d96e86f42453106eca4b7e2df214c2107652222e5775547
+    textSha256: 7b6819638c16837483d5a79873ede62b1dfbfcf903d4536811969c7f3f25ffb3
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -830,6 +830,36 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-b33728cee0
+    placements:
+      - headingPath:
+          - Skill Manager - Govern Agent Skills and Instructions
+          - 5. Ordered Execution Chain
+          - Evaluation contract
+    precedence: 0
+    probeIds:
+      - validation-33
+    status: active
+    tags: []
+    textSha256: b33728cee0ccaa19e153a28606c4be88b6c8f44e09846caaa5fc6d30c459d69f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-fae5b29620
+    placements:
+      - headingPath:
+          - Skill Manager - Govern Agent Skills and Instructions
+          - 5. Ordered Execution Chain
+          - Evaluation contract
+    precedence: 0
+    probeIds:
+      - validation-32
+    status: active
+    tags: []
+    textSha256: fae5b29620b6b17445038b2ca06cd3aef77912ca7293adeb3512cc6f5487e9a9
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-8454a4e5a4
     placements:
       - headingPath:
@@ -939,6 +969,33 @@ atoms:
       - combined_pressure
       - rule_meaning
     textSha256: 002a2e5ed71ee99f89a26cb7d9020a05b411aeb5259ea068ef72732910f34682
+  - behavioral: true
+    harmful: 0
+    helpful: 0
+    id: r-b9d8d240fc
+    placements:
+      - headingPath:
+          - Skill Manager - Govern Agent Skills and Instructions
+          - 7. Evaluation Anchors
+    precedence: 0
+    probeIds:
+      - validation-31
+    status: active
+    tags: []
+    textSha256: b9d8d240fcfad03d92380f3edd924af51c09000e9feb767f6f645b8f5171d449
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-3dc1108574
+    placements:
+      - headingPath:
+          - Skill Manager - Govern Agent Skills and Instructions
+          - 2. Usage
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 3dc11085748a87900d96e86f42453106eca4b7e2df214c2107652222e5775547
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -1116,7 +1173,7 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | `r-d23d86baa0` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 2 |
 | `r-d5e0a50446` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-52681f7ccb` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
-| `r-3dc1108574` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
+| `r-7b6819638c` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-6957d7b224` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-d154eaf1bb` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-d0b015593c` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
@@ -1161,6 +1218,8 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | `r-f2fba40171` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Review scope, prose, and link integrity | 1 |
 | `r-ec9a0f328a` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Evaluation contract | 1 |
 | `r-22f1a7ebd8` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Evaluation contract | 1 |
+| `r-b33728cee0` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Evaluation contract | 1 |
+| `r-fae5b29620` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Evaluation contract | 1 |
 | `r-8454a4e5a4` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Evaluation contract | 1 |
 | `r-b67ca97420` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
 | `r-aa9d5e38c3` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
@@ -1168,3 +1227,4 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | `r-be03a04501` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
 | `r-09258bda46` | Skill Manager - Govern Agent Skills and Instructions > 6. Output & Completion Contract | 1 |
 | `r-002a2e5ed7` | Skill Manager - Govern Agent Skills and Instructions > 6. Output & Completion Contract | 1 |
+| `r-b9d8d240fc` | Skill Manager - Govern Agent Skills and Instructions > 7. Evaluation Anchors | 1 |

@@ -1,0 +1,9 @@
+{
+  "retirements": [
+    {
+      "caseId": "atom:r-2464156b27",
+      "reason": "The declaration-order sentence now says the result is the envelope data.checks, so its text and hash changed; the rebuilt map holds the current sentence."
+    }
+  ],
+  "schemaVersion": 1
+}

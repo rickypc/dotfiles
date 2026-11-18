@@ -3,7 +3,8 @@
 Documented scenario patterns for the three-verb wrapper in [SKILL.md](../SKILL.md). Every row gives
 the command shape, the envelope fields the scenario answers through, and how the scenario is tested.
 The wrapper is `bun <agents-root>/scripts/repo-search.ts`; every route prints the one unified JSON
-envelope, so the response contract never changes between scenarios.
+envelope in the `data` of the shared CLI envelope, so the response contract never changes between
+scenarios.
 
 ## Scenario patterns
 

@@ -7117,7 +7117,7 @@
           "skill-manager-train-do-not-retry",
           "skill-manager-contract-challenge-counts",
           "skill-manager-weak-reader-route",
-          "skill-manager-weak-reader-exit-codes",
+          "skill-manager-weak-reader-exit-reasons",
           "skill-manager-weak-reader-sandbox-remedy",
           "skill-manager-reflow-edited-markdown",
           "skill-manager-weak-reader-suggest-route",
@@ -7621,13 +7621,13 @@
             "repairBoundary": "SKILL.md"
           },
           {
-            "id": "skill-manager-weak-reader-exit-codes",
+            "id": "skill-manager-weak-reader-exit-reasons",
             "visibility": "candidate",
             "assertionKinds": [
               "required-text"
             ],
-            "scenario": "The reader exit codes are documented.",
-            "failureMode": "A reader failure is misread because the exit codes are unknown.",
+            "scenario": "The reader failure reasons are documented.",
+            "failureMode": "A reader failure is misread because the failure reasons are unknown.",
             "repairBoundary": "SKILL.md and references/train-protocol.md"
           },
           {
@@ -7714,6 +7714,12 @@
             "caseId": "skill-manager-trigger-query-set",
             "replacementCaseId": "skill-manager-central-trigger-query-set",
             "reason": "The pre-centralization contract pointed to evals/trigger-queries.json. Centralization moved the active input to evals/skills/<skill>/trigger-queries.json; retire the obsolete case id and retain this scenario under a new id with the canonical path assertion.",
+            "path": "evals/skills/skill-manager/retirements.json"
+          },
+          {
+            "caseId": "skill-manager-weak-reader-exit-codes",
+            "replacementCaseId": "skill-manager-weak-reader-exit-reasons",
+            "reason": "The weak reader now reports every failure as exit 1 with the kind in the envelope data.reason, so the per-code exit table is obsolete; retire the old case id and keep the scenario under a new id that asserts the reason list.",
             "path": "evals/skills/skill-manager/retirements.json"
           }
         ]
@@ -7862,7 +7868,7 @@
           "skill-manager-train-do-not-retry",
           "skill-manager-contract-challenge-counts",
           "skill-manager-weak-reader-route",
-          "skill-manager-weak-reader-exit-codes",
+          "skill-manager-weak-reader-exit-reasons",
           "skill-manager-weak-reader-sandbox-remedy",
           "skill-manager-reflow-edited-markdown",
           "skill-manager-weak-reader-suggest-route",

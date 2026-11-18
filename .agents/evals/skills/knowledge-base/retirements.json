@@ -1,0 +1,13 @@
+{
+  "retirements": [
+    {
+      "caseId": "atom:r-360a8d2560",
+      "reason": "The search receipt sentence now names the shared CLI envelope data that carries concepts, discovery, and kbInfo, so its text and hash changed; the rebuilt map holds the current sentence."
+    },
+    {
+      "caseId": "atom:r-426b9aca90",
+      "reason": "The search receipt paragraph was re-split when it named the shared CLI envelope data, so this unit text and hash changed; the rebuilt map holds the current unit."
+    }
+  ],
+  "schemaVersion": 1
+}

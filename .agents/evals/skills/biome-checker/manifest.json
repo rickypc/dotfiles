@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/biome-checker/SKILL.md",
-      "sha256": "633b844e3a0d7869a124c0331c4a314e51f3cf698df60319f2e6857664106574"
+      "sha256": "d3ec90703e73d6d9ba38ab83f230fdbcd931f90be1ed9c8061ee4c4a31dcda71"
     },
     {
       "sourcePath": "evals/skills/biome-checker/rubric.md",
@@ -49,7 +49,7 @@
       {
         "sourcePath": "skills/biome-checker/SKILL.md",
         "setPath": "evals/skills/biome-checker/comprehension/SKILL.json",
-        "queryCount": 39,
+        "queryCount": 44,
         "queryIds": [
           "train-01",
           "train-02",
@@ -89,7 +89,12 @@
           "validation-09",
           "validation-10",
           "validation-11",
-          "validation-12"
+          "validation-12",
+          "validation-13",
+          "validation-14",
+          "validation-15",
+          "validation-16",
+          "validation-17"
         ]
       },
       {

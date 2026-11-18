@@ -95,10 +95,10 @@ bun <agents-root>/scripts/declaration-order.ts --summary <path>
 ```
 
 Without `--apply`, declaration-order inspection never edits a source file and returns one JSON
-object whose checks contain `path`, `status`, `detail`, and `actionPacket`. `--apply` is allowed
-only after reviewing a failed packet and applies its CST-proven whole-declaration moves. Repeat the
-complete command for another selected path; do not invent shorthand arguments or section-marker
-comments.
+envelope whose `data.checks` contain `path`, `status`, `detail`, and `actionPacket`. `--apply` is
+allowed only after reviewing a failed packet and applies its CST-proven whole-declaration moves.
+Repeat the complete command for another selected path; do not invent shorthand arguments or
+section-marker comments.
 
 The explicit `--apply` route is mandatory after a safe failed packet has been reviewed; the packet
 must be executed and the identical checker rerun. It is not report-only output.

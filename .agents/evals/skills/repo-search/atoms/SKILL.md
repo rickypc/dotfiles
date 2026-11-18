@@ -390,7 +390,7 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: 1ea95914302d1abd84d227a3037e0b1befb5cc59156ec41d184d1ce4d4d39b5b
-  - behavioral: false
+  - behavioral: true
     harmful: 0
     helpful: 0
     id: r-fe5882ef74
@@ -405,7 +405,7 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: fe5882ef74aaa0c15ac3517113ca3fcb5d32114365039c69b13bc2214eee28ec
-  - behavioral: true
+  - behavioral: false
     harmful: 0
     helpful: 0
     id: r-1f049a21cd

@@ -417,6 +417,7 @@
       "expected": "B",
       "id": "validation-17",
       "query": "The `train read` route runs the weak reader in a sandbox with no GPU adapter. Which exit code does it return?\nA) 1\nB) 2\nC) 3\nD) 5",
+      "retired": "The weak reader now exits 1 on every failure and names the kind in the envelope data.reason, so the old per-code answer is obsolete.",
       "split": "validation"
     },
     {
@@ -501,6 +502,34 @@
       "expected": "D",
       "id": "validation-29",
       "query": "A Markdown finalization fails midway. What do you do with its backup and lock?\nA) Discard both and start a replacement transaction\nB) Edit the backup by hand to match the source\nC) Remove only the lock and retry\nD) Preserve both, and search recovery knowledge for the exact error",
+      "split": "validation"
+    },
+    {
+      "evidence": "A sandboxed process fails with reason `no-adapter` when no GPU adapter is available.",
+      "expected": "B",
+      "id": "validation-30",
+      "query": "The `train read` route runs the weak reader in a sandbox with no GPU adapter. Which `data.reason` does its failure envelope carry?\nA) `failure`\nB) `no-adapter`\nC) `integrity`\nD) `too-long`",
+      "split": "validation"
+    },
+    {
+      "evidence": "No-edit does not mean no command.",
+      "expected": "A",
+      "id": "validation-31",
+      "query": "A pass only reads a Markdown file and edits nothing. What is required?\nA) The md-compress guard command and its guarded receipt\nB) Nothing, because the pass is read-only\nC) The md-compress begin command, then finalize\nD) A frozen matrix and a ratchet check",
+      "split": "validation"
+    },
+    {
+      "evidence": "A should-trigger query passes when the skill loads in all runs (5 of 5).",
+      "expected": "D",
+      "id": "validation-32",
+      "query": "With 5 runs, when does a should-trigger query pass?\nA) When the skill loads in at least 3 of 5 runs\nB) When the skill loads in at least 4 of 5 runs\nC) When the skill loads in no run\nD) When the skill loads in all 5 runs",
+      "split": "validation"
+    },
+    {
+      "evidence": "Run every query repeatedly: five runs by default, three at minimum.",
+      "expected": "B",
+      "id": "validation-33",
+      "query": "How many repeated runs per trigger query are required at minimum?\nA) One\nB) Three\nC) Five\nD) Ten",
       "split": "validation"
     }
   ],

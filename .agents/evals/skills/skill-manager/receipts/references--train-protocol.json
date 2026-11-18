@@ -21,11 +21,11 @@
       "train-18",
       "train-19"
     ],
-    "validationPassed": 9
+    "validationPassed": 16
   },
-  "decision": "improved",
+  "decision": "perfect",
   "document": "skills/skill-manager/references/train-protocol.md",
-  "documentSha256": "e55d46480ab409aeabdd8d97600741b8016f9c1cddf3170694df68b909b4c386",
+  "documentSha256": "071e4d7ebd030008aa1fd8ca1690c9eff2c15fd8dac496765d8d718476d9742c",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -60,7 +60,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "fe9a317e2c64091a8c35362b5b3e1675951bb830687c1fe376ea5d2e3aee99de",
+  "selfSha256": "7541baecd363126566df3a5b03e517c0bcdb190f859ee0780914c7e5d10d8d9e",
   "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
-  "setSha256": "db156897744300e746e9371b445ef3be86f429e9bc93d71e78a42ff7c823504f"
+  "setSha256": "a0f78a6315c80a0e0318e86d0757507d8e3483a03edb4272a4f631e8c5f0027b"
 }

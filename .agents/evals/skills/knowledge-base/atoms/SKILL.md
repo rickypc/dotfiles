@@ -621,7 +621,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-360a8d2560
+    id: r-6f5677ddf5
     placements:
       - headingPath: &ref_11
           - Knowledge Base
@@ -631,9 +631,8 @@ atoms:
     probeIds:
       - validation-01
     status: active
-    tags:
-      - rule_meaning
-    textSha256: 360a8d25609a55673526cfc1f2a4ad59b6faa5f9e7d45a16d4f3d4a1328fa73a
+    tags: []
+    textSha256: 6f5677ddf587cc1a492933811703d2a1e98f9f34916550194534abebfca70f3e
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -727,6 +726,21 @@ atoms:
     tags:
       - rule_meaning
     textSha256: d73f9e818a0341f1fda80bf22fe73699667476cbde598e8d8823f4114ecfa151
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-360a8d2560
+    placements:
+      - headingPath:
+          - Knowledge Base
+          - 5. Ordered Execution Chain
+          - Search and batch retrieval
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: 360a8d25609a55673526cfc1f2a4ad59b6faa5f9e7d45a16d4f3d4a1328fa73a
 description: >-
   Rule atoms placed in skills/knowledge-base/SKILL.md; derived from
   comprehension probe evidence.
@@ -808,7 +822,7 @@ Atoms for `skills/knowledge-base/SKILL.md`.
 | `r-c89f34f5de` | Knowledge Base > 5. Ordered Execution Chain > Reconciliation schema and dispositions | 2 |
 | `r-7e0d1999f2` | Knowledge Base > 5. Ordered Execution Chain > Reconciliation schema and dispositions | 1 |
 | `r-f3f3677a72` | Knowledge Base > 5. Ordered Execution Chain > Reconciliation schema and dispositions | 1 |
-| `r-360a8d2560` | Knowledge Base > 5. Ordered Execution Chain > Search and batch retrieval | 1 |
+| `r-6f5677ddf5` | Knowledge Base > 5. Ordered Execution Chain > Search and batch retrieval | 1 |
 | `r-426b9aca90` | Knowledge Base > 5. Ordered Execution Chain > Search and batch retrieval | 1 |
 | `r-1bdfe34023` | Knowledge Base > 5. Ordered Execution Chain > Search and batch retrieval | 1 |
 | `r-85ee9540e8` | Knowledge Base > 5. Ordered Execution Chain > Search and batch retrieval | 1 |

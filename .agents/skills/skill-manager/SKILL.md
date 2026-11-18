@@ -88,36 +88,36 @@ directory (activation track) or an absolute comprehension set `.json` path (docu
 `<bundle>` is the absolute document bundle `.json` that `train bundle` printed, saved by the caller,
 and `<answers>` is the absolute `.jsonl` path the reader writes for `train measure`. The
 `train read` route runs `bun <agents-root>/scripts/weak-reader/index.ts <bundle> <answers>`; the
-exit codes are 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing
-package, 5 document too long. A sandboxed process exits 2 when no GPU adapter is available. If an
-approved host GPU runner is available, run this one command outside the sandbox. Without a host GPU
-run, the gate blocks the run and writes no receipt. This does not cancel an authorized instruction
-edit. Do not stop the edit. Finish it and all available checks, then ask the user to run the exact
-GPU command on a GPU host. Put the command in a fenced block with its working directory and wait for
-them to paste its output. Do not claim a receipt from the sandbox attempt. Do not use in-session
-child agents as a Gemma substitute; child-agent answers do not replace the Gemma reader.
-`<failures>` is an absolute JSON array of train misses, and `<suggestions>` is the absolute `.jsonl`
-path the reader writes for them. `gate record` needs a GPU. Use an approved outside-sandbox runner
-when available. If none is available, give the user the exact command and working directory for a
-GPU host. State that no receipt was recorded; do not claim acceptance without a passing receipt. For
-one document, run `bun scripts/instruction-gate/index.ts record <doc-path>` from `<agents-root>`.
-Its flags are `--allow-equal <reason>`, `--rebaseline <reason>`, and `--allow-swap <reason>`, each
-requiring a written reason, and `--rotate-pool <pool-file>`. For a global document with calibrated
-atoms, `record` protects its core probes (the ones a calibration run saw flip): losing a core train
-probe always rejects. Losing any other train probe is a swap, accepted only with `--allow-swap` and
-only when the edit gains at least as many probes as it loses; held-out validation may never lose a
-pass. Each distinct text of a document scored against its held-out probes is a look, and a third
-look in one epoch is blocked until `--rotate-pool` names a sealed pool file; the train protocol
-section on atom maps has the rules. The `gate` routes also take `--agents-root <absolute-path>`,
-placed before the document paths. `<doc-path>` is an instruction document path relative to the
-agents root, or `descriptions` for the routing of every skill description; run
-`gate record descriptions` for that. For a project-local document, pass
-`--agents-root <absolute-path>` with the absolute path of the project `.agents` directory. That root
-holds the document, its comprehension set, and its receipt. The scripts still run from the global
-package. `descriptions` is gated only for the global root. See the weak reader section of the train
-protocol. `[flags]` are `--measure-only`, `--attempt <n>`, `--status <ledger-status>`, `--runs <n>`,
-`--ledger-root <path>`, and `--skills-root <path>`; ledger statuses are `baseline`, `attempt`,
-`applied`, `post-change`, and `rollback`.
+exit code is 0 when answered and 1 on any failure, and the failure envelope `data.reason` is
+`failure`, `integrity`, `missing-dependency`, `no-adapter`, or `too-long`. A sandboxed process fails
+with reason `no-adapter` when no GPU adapter is available. If an approved host GPU runner is
+available, run this one command outside the sandbox. Without a host GPU run, the gate blocks the run
+and writes no receipt. This does not cancel an authorized instruction edit. Do not stop the edit.
+Finish it and all available checks, then ask the user to run the exact GPU command on a GPU host.
+Put the command in a fenced block with its working directory and wait for them to paste its output.
+Do not claim a receipt from the sandbox attempt. Do not use in-session child agents as a Gemma
+substitute; child-agent answers do not replace the Gemma reader. `<failures>` is an absolute JSON
+array of train misses, and `<suggestions>` is the absolute `.jsonl` path the reader writes for them.
+`gate record` needs a GPU. Use an approved outside-sandbox runner when available. If none is
+available, give the user the exact command and working directory for a GPU host. State that no
+receipt was recorded; do not claim acceptance without a passing receipt. For one document, run
+`bun scripts/instruction-gate/index.ts record <doc-path>` from `<agents-root>`. Its flags are
+`--allow-equal <reason>`, `--rebaseline <reason>`, and `--allow-swap <reason>`, each requiring a
+written reason, and `--rotate-pool <pool-file>`. For a global document with calibrated atoms,
+`record` protects its core probes (the ones a calibration run saw flip): losing a core train probe
+always rejects. Losing any other train probe is a swap, accepted only with `--allow-swap` and only
+when the edit gains at least as many probes as it loses; held-out validation may never lose a pass.
+Each distinct text of a document scored against its held-out probes is a look, and a third look in
+one epoch is blocked until `--rotate-pool` names a sealed pool file; the train protocol section on
+atom maps has the rules. The `gate` routes also take `--agents-root <absolute-path>`, placed before
+the document paths. `<doc-path>` is an instruction document path relative to the agents root, or
+`descriptions` for the routing of every skill description; run `gate record descriptions` for that.
+For a project-local document, pass `--agents-root <absolute-path>` with the absolute path of the
+project `.agents` directory. That root holds the document, its comprehension set, and its receipt.
+The scripts still run from the global package. `descriptions` is gated only for the global root. See
+the weak reader section of the train protocol. `[flags]` are `--measure-only`, `--attempt <n>`,
+`--status <ledger-status>`, `--runs <n>`, `--ledger-root <path>`, and `--skills-root <path>`; ledger
+statuses are `baseline`, `attempt`, `applied`, `post-change`, and `rollback`.
 
 `gate evaluate-batch` runs
 `bun <agents-root>/scripts/instruction-gate/index.ts evaluate-batch <request> [<output>]`.

@@ -31,9 +31,9 @@
     ],
     "validationPassed": 12
   },
-  "decision": "perfect",
+  "decision": "improved",
   "document": "skills/biome-checker/SKILL.md",
-  "documentSha256": "633b844e3a0d7869a124c0331c4a314e51f3cf698df60319f2e6857664106574",
+  "documentSha256": "d3ec90703e73d6d9ba38ab83f230fdbcd931f90be1ed9c8061ee4c4a31dcda71",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -71,12 +71,12 @@
       "train-26",
       "train-27"
     ],
-    "validationPassed": 12,
-    "validationTotal": 12
+    "validationPassed": 16,
+    "validationTotal": 17
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "0d4993b0c1935fa3bee4a79ed93c7ec3815ce09d2d8a1ae3ee4271354e33adcf",
+  "selfSha256": "dfa7e0d5e7d2065e6ed83a645eab9988862f844e27f6e25d3a420c0aca60f51b",
   "setPath": "evals/skills/biome-checker/comprehension/SKILL.json",
-  "setSha256": "f2828672a2defdd4fc48cd8de0975f138472a2c91a35d25e84101d39b0025aeb"
+  "setSha256": "c5dc1b345adbeb0c277113e1056aea5ae150f24422734186bb76ed84acd687ca"
 }

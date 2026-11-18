@@ -12,6 +12,7 @@ atoms:
     probeIds:
       - train-02
       - train-21
+      - validation-14
     status: active
     tags: []
     textSha256: d480376cab17d6b9e684bec2cd809b3854d644b310c91ad7e55adfda282f98d8
@@ -50,6 +51,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-17
+      - validation-13
     status: active
     tags: []
     textSha256: 2e070fd0b5b548de4ee37c85479a5cdf89a36305735e89ffb23f96351af82017
@@ -64,6 +66,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-20
+      - validation-15
     status: active
     tags: []
     textSha256: eb88b9f40988b15dec2ae879d2ea3a44816d0d2e844aadb02b605d459ed49a89
@@ -257,7 +260,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-2464156b27
+    id: r-d06969f20b
     placements:
       - headingPath: &ref_6
           - Biome Checker
@@ -268,7 +271,7 @@ atoms:
       - train-10
     status: active
     tags: []
-    textSha256: 2464156b27384afee28e00d202c0cba3dc0eaae21e3bfe958ff272d1d6ba5561
+    textSha256: d06969f20b609b98fd15303ef3b89e024741fe9e51c7873f6022d4990185fb52
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -278,6 +281,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-16
+      - validation-16
     status: active
     tags: []
     textSha256: bc510bb54d0770fc9e9cc96af01cd0b0c95eb2303a76744aab6d046b3f478ac3
@@ -384,6 +388,7 @@ atoms:
     probeIds:
       - validation-03
       - validation-11
+      - validation-17
     status: active
     tags: []
     textSha256: 12138380d4da3b3d11d8849367bf8163b6c9c072fd5d19cf22d327c446d4e193
@@ -456,6 +461,20 @@ atoms:
     status: active
     tags: []
     textSha256: 2ce2970592fe7f1a83717009965faa8da5cab74f93efd755410fdc663075243f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-2464156b27
+    placements:
+      - headingPath:
+          - Biome Checker
+          - 5. Ordered Execution Chain
+          - Commands owned by this skill
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 2464156b27384afee28e00d202c0cba3dc0eaae21e3bfe958ff272d1d6ba5561
 description: >-
   Rule atoms placed in skills/biome-checker/SKILL.md; derived from comprehension
   probe evidence.
@@ -501,11 +520,11 @@ Atoms for `skills/biome-checker/SKILL.md`.
 
 | Atom | Placements | Probes |
 | --- | --- | --- |
-| `r-d480376cab` | Biome Checker > 3. Immutable Operational Rules | 2 |
+| `r-d480376cab` | Biome Checker > 3. Immutable Operational Rules | 3 |
 | `r-c22355c23e` | Biome Checker > 3. Immutable Operational Rules | 1 |
 | `r-b5b9ab5763` | Biome Checker > 3. Immutable Operational Rules | 1 |
-| `r-2e070fd0b5` | Biome Checker > 3. Immutable Operational Rules | 1 |
-| `r-eb88b9f409` | Biome Checker > 3. Immutable Operational Rules | 1 |
+| `r-2e070fd0b5` | Biome Checker > 3. Immutable Operational Rules | 2 |
+| `r-eb88b9f409` | Biome Checker > 3. Immutable Operational Rules | 2 |
 | `r-58e915827b` | Biome Checker > 3. Immutable Operational Rules | 1 |
 | `r-503a1fd6c5` | Biome Checker > 3. Immutable Operational Rules | 1 |
 | `r-ff81deba2f` | Biome Checker > 3. Immutable Operational Rules | 1 |
@@ -520,8 +539,8 @@ Atoms for `skills/biome-checker/SKILL.md`.
 | `r-f0a5d94c38` | Biome Checker > 5. Ordered Execution Chain | 1 |
 | `r-002457134b` | Biome Checker > 5. Ordered Execution Chain | 1 |
 | `r-8bb05ebd00` | Biome Checker > 5. Ordered Execution Chain | 1 |
-| `r-2464156b27` | Biome Checker > 5. Ordered Execution Chain > Commands owned by this skill | 1 |
-| `r-bc510bb54d` | Biome Checker > 5. Ordered Execution Chain > Commands owned by this skill | 1 |
+| `r-d06969f20b` | Biome Checker > 5. Ordered Execution Chain > Commands owned by this skill | 1 |
+| `r-bc510bb54d` | Biome Checker > 5. Ordered Execution Chain > Commands owned by this skill | 2 |
 | `r-f9125e12a7` | Biome Checker > 5. Ordered Execution Chain > Commands owned by this skill | 1 |
 | `r-376273a6cc` | Biome Checker > 5. Ordered Execution Chain > Commands owned by this skill | 1 |
 | `r-76dd4ae5d7` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 2 |
@@ -529,7 +548,7 @@ Atoms for `skills/biome-checker/SKILL.md`.
 | `r-c6422091bf` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 1 |
 | `r-a70a9f2d54` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 2 |
 | `r-4c21fb0fe1` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 1 |
-| `r-12138380d4` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 2 |
+| `r-12138380d4` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 3 |
 | `r-8f4120eb95` | Biome Checker > 5. Ordered Execution Chain > Declaration-order contract | 1 |
 | `r-e0488ade67` | Biome Checker > 6. Output & Completion Contract | 1 |
 | `r-6d2c3093f6` | Biome Checker > 6. Output & Completion Contract | 1 |

@@ -107,7 +107,7 @@
       "split": "train"
     },
     {
-      "evidence": "The receipt carries `concepts`, `discovery`, and `kbInfo`. The `concepts` list is the answer; it is",
+      "evidence": "carries `concepts`, `discovery`, and `kbInfo`. The `concepts` list is the answer; it is",
       "expected": "C",
       "id": "validation-01",
       "query": "The search command returns a receipt with concepts, discovery, and kbInfo. Which part is the answer?\nA) The discovery envelope\nB) The kbInfo block\nC) The concepts list\nD) The raw repo-search output",

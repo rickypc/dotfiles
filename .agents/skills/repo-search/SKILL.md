@@ -53,7 +53,8 @@ The wrapper is `bun <agents-root>/scripts/repo-search.ts` with the same three ve
 two-argument form is an alias for `search`; the script executes every backend operation itself and
 prints exactly one JSON envelope - the caller never runs a backend command, decodes a raw backend
 table, or repeats a backend call. `inspect` request files must live under the operating-system
-temporary directory.
+temporary directory. The unified response is the `data` of the shared CLI envelope (`ok`, `command`,
+`data`, `diagnostics`, `exitCode`); read `status` and `results` from `data`.
 
 Scenario request/response patterns - the supported discovery scenarios with the exact wrapper
 command, the envelope fields each scenario answers through, and how each scenario is tested - live

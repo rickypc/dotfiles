@@ -38,7 +38,8 @@ wrapper where the root is writable or keep a standing `codebase-memory-mcp daemo
 
 ## Response envelope
 
-Every route prints exactly one JSON envelope with identical keys:
+Every route prints exactly one JSON envelope with identical keys. The shared CLI envelope (`ok`,
+`command`, `data`, `diagnostics`, `exitCode`) wraps it, so the object below is its `data`:
 
 ```json
 {

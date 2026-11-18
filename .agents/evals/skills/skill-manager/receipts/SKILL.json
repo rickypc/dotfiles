@@ -37,11 +37,11 @@
       "train-39",
       "train-40"
     ],
-    "validationPassed": 23
+    "validationPassed": 29
   },
   "decision": "improved",
   "document": "skills/skill-manager/SKILL.md",
-  "documentSha256": "312e22e31649cd8b4db629350960734f6af54ba0820c8a9c9af0e1efbb6e7c41",
+  "documentSha256": "a54a6d8d23f45151d57ea63c4d8cfe848ed95e9866ed29e2c55dec7b9cc98923",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -87,12 +87,12 @@
       "train-39",
       "train-40"
     ],
-    "validationPassed": 29,
-    "validationTotal": 29
+    "validationPassed": 31,
+    "validationTotal": 32
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "a9adfe635ae32f1e0c1e2ba8686336841ea82bede293160b8bbad163290960b7",
+  "selfSha256": "ebc854e830bf104dd509b09099fd8cb4a23d6d7de6451e2c7b4447fc8595b4bb",
   "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
-  "setSha256": "3d288e94de04fbf2e146dd93d86656bdc0357b7ed3a3aa50282a497a1e73f959"
+  "setSha256": "562f0120bf419001d43703fc45650fee83b9a55f96dc38bc7062a2791bc9390d"
 }
