@@ -15,8 +15,9 @@
 import { spawnSync } from 'node:child_process';
 import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
-import { cpLen } from '../utils/reflow.js';
+import type { CommandDeclaration } from '../utils/cli/declaration.js';
+import { CliError } from '../utils/cli/errors.js';
+import { runMain } from '../utils/cli/index.js';
 import {
   classifyFile,
   DEFAULT_OPTIONS,
@@ -24,7 +25,8 @@ import {
   reflowText,
   residualOverLimitLines,
   verifyInvariants,
-} from '../utils/reflow-file.js';
+} from '../utils/reflow/file.js';
+import { cpLen } from '../utils/reflow/index.js';
 
 export interface CliArgs {
   band: boolean;
@@ -40,26 +42,12 @@ export interface ReflowDeps {
   write: (path: string, text: string) => Promise<unknown>;
 }
 
-const parseArgs = (args: readonly string[]): CliArgs | null => {
-  const paths: string[] = [];
-  let band = false;
-  let report = false;
-  let write = false;
-  for (const arg of args) {
-    if (arg === '--band') {
-      band = true;
-    } else if (arg === '--write') {
-      write = true;
-    } else if (arg === '--report') {
-      report = true;
-    } else if (arg.startsWith('--')) {
-      return null;
-    } else {
-      paths.push(arg);
-    }
-  }
-  return { band, paths, report, write };
-};
+export interface ReflowOutput {
+  readonly aborted: number;
+  readonly changed: readonly string[];
+  readonly files: number;
+  readonly lines: readonly string[];
+}
 
 // Deterministic directory walk: sorted entries, .md/.mdx files only, junk
 // directories skipped. A path that cannot be stat-ed falls through so
@@ -191,40 +179,73 @@ const processFile = async (
   return { changed: result.changed, ok: true };
 };
 
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/reflow.ts <file-or-dir>... [--band] [--write] [--report]\n'
-  + '  <file-or-dir>...  Markdown/MDX files, or directories walked for .md/.mdx\n'
-  + '  --band     reflow every block to greedy max-fill; default is over-limit blocks only\n'
-  + '  --write    apply refills in place\n'
-  + '  --report   print residual violations with class and reason\n'
-  + '  --help, -h print this usage and exit';
-
-export const run = async (args: readonly string[], deps?: ReflowDeps): Promise<number> => {
-  const parsed = parseArgs(args);
-  const dep = deps ?? defaultReflowDeps(parsed?.band === true);
-  if (!parsed || parsed.paths.length === 0) {
-    dep.log(usage());
-    return 2;
-  }
+export const reflowPaths = async (
+  parsed: CliArgs,
+  deps: ReflowDeps,
+): Promise<Omit<ReflowOutput, 'lines'>> => {
   const files = await expandPaths(parsed.paths);
-  let failures = 0;
+  let aborted = 0;
   const changed: string[] = [];
   for (const file of files) {
-    const outcome = await processFile(file, parsed, dep);
+    const outcome = await processFile(file, parsed, deps);
     if (outcome.changed) {
       changed.push(file);
     }
     if (!outcome.ok) {
-      failures++;
+      aborted++;
     }
   }
-  dep.log(`[reflow] files=${files.length} changed=${changed.length} aborted=${failures}`);
+  deps.log(`[reflow] files=${files.length} changed=${changed.length} aborted=${aborted}`);
   for (const file of changed) {
-    dep.log(`  ${file}`);
+    deps.log(`  ${file}`);
   }
-  return failures > 0 ? 1 : 0;
+  return { aborted, changed, files: files.length };
 };
 
-export const runWhenMain = runCliWhenMain;
+export const createCommand = (
+  overrides: Partial<ReflowDeps> = {},
+): CommandDeclaration<ReflowOutput> => ({
+  arity: [1, Number.POSITIVE_INFINITY],
+  options: {
+    band: {
+      description: 'Reflow every block to greedy max-fill; default is over-limit blocks only.',
+      type: 'boolean',
+    },
+    report: {
+      description: 'Print residual violations with class and reason.',
+      type: 'boolean',
+    },
+    write: { description: 'Apply refills in place.', type: 'boolean' },
+  },
+  positionals: '<file-or-dir>...',
+  renderText: (data) => data.lines.join('\n'),
+  run: async (input) => {
+    const parsed: CliArgs = {
+      band: input.values.band === true,
+      paths: [...input.positionals],
+      report: input.values.report === true,
+      write: input.values.write === true,
+    };
+    const lines: string[] = [];
+    const deps: ReflowDeps = {
+      ...defaultReflowDeps(parsed.band),
+      ...overrides,
+      log: (message) => {
+        lines.push(message);
+        overrides.log?.(message);
+      },
+    };
+    const summary = await reflowPaths(parsed, deps);
+    const output = { ...summary, lines };
+    if (summary.aborted > 0) {
+      throw new CliError(`Reflow aborted for ${summary.aborted} file(s).`, 1, output);
+    }
+    return output;
+  },
+  script: 'scripts/reflow.ts',
+  summary: 'Deterministic 100-column Markdown/MDX reflow; a dry run unless --write is given.',
+});
 
-await runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+export const command = createCommand();
+
+void runMain(command, import.meta.main);

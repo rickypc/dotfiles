@@ -93,10 +93,10 @@
       "split": "train"
     },
     {
-      "evidence": "never reuse `aidp-plan-validator.ts`, which requires an unchecked pending plan and rejects a completed closeout.",
+      "evidence": "never reuse `aidp-validator.ts`, which requires an unchecked pending plan and rejects a completed closeout.",
       "expected": "A",
       "id": "train-14",
-      "query": "Which command validates the completed plan during closeout?\nA) `bun <agents-root>/scripts/aidx-completed-plan-validator.ts <absolute-plan-path>`\nB) `bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>`\nC) `bun <agents-root>/scripts/sanitize-hidden.ts .`\nD) `bun run test`",
+      "query": "Which command validates the completed plan during closeout?\nA) `bun <agents-root>/scripts/plans/aidx-completed-validator.ts <absolute-plan-path>`\nB) `bun <agents-root>/scripts/plans/aidp-validator.ts <absolute-plan-path>`\nC) `bun <agents-root>/scripts/sanitize-hidden.ts .`\nD) `bun run test`",
       "split": "train"
     },
     {
@@ -286,6 +286,34 @@
       "expected": "A",
       "id": "validation-13",
       "query": "A plan's frontmatter still says `status: pending`. What proves the terminal state?\nA) The current checklist, receipts, acceptance mapping, and final gate together\nB) The frontmatter `status` field alone\nC) The `status` field plus the checklist\nD) A green final gate alone",
+      "split": "validation"
+    },
+    {
+      "evidence": "reject a plan with prose-only workflow steps",
+      "expected": "B",
+      "id": "validation-14",
+      "query": "A plan's CHRONOLOGICAL WORKFLOW lists its steps as prose paragraphs with no checkbox markers. What does AIDX do?\nA) Convert the steps into checkboxes itself and proceed\nB) Reject the plan because there is no shared completion state\nC) Keep a separate private checklist and execute the prose\nD) Execute the steps and tick boxes only at closeout",
+      "split": "validation"
+    },
+    {
+      "evidence": "re-derive or silently repeat a step whose checkpoint receipt already proves it",
+      "expected": "D",
+      "id": "validation-15",
+      "query": "A turn aborted after phase 2 wrote its checkpoint, and a fresh session resumes the plan. What happens?\nA) Re-derive phases 1 and 2 from the plan to confirm them\nB) Re-run phase 2 steps to double-check the receipts\nC) Restart at phase 1 and skip steps already ticked\nD) Continue from the next action recorded in the last checkpoint",
+      "split": "validation"
+    },
+    {
+      "evidence": "A plan that failed validation stays where it is; moving it to `~/.Trash/` is also forbidden.",
+      "expected": "A",
+      "id": "validation-16",
+      "query": "After closeout, the completed-plan validator fails. What happens to the plan file?\nA) It stays in place and AIDX stops to fix the closeout\nB) It is moved to the trash as obsolete\nC) It is imported into the knowledge base, then trashed\nD) It is left pending and the pending-plan validator is used",
+      "split": "validation"
+    },
+    {
+      "evidence": "Never remove a plan selected for distillation before the KB receipt succeeds",
+      "expected": "B",
+      "id": "validation-17",
+      "query": "A completed plan holds verified reusable lessons and is chosen for distillation. When may its source file leave the plans directory?\nA) Immediately, before the import, to avoid duplicates\nB) Only after the KB write and receipt succeed\nC) Only after the user manually approves the trash move\nD) Never, distilled plans are kept permanently",
       "split": "validation"
     }
   ],

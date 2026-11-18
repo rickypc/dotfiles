@@ -228,6 +228,69 @@
       "id": "validation-12",
       "query": "A neighboring description edit leaves a skill blocked after its first post-change measurement. What does the protocol require?\nA) Remeasure repeatedly until the skill passes.\nB) Treat it as a real regression; repair from its train failure and remeasure post-change, or restore the neighbor edit.\nC) Re-baseline the blocked skill.\nD) Ignore the result because that skill's own source did not change.",
       "split": "validation"
+    },
+    {
+      "evidence": "it is never a pass, and the reply lists it so the author can fix the",
+      "expected": "A",
+      "id": "validation-13",
+      "query": "A routing query runs five times. Four runs name the skill under test and one run names another skill. How is the query scored?\nA) Unstable: never a pass, and the reply lists it for the author\nB) Pass, because most runs agree with the label\nC) Regression against the baseline\nD) Gain, because four of five runs were correct",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not report a saturated skill as optimal.",
+      "expected": "B",
+      "id": "validation-14",
+      "query": "A skill's baseline passes every query in its set. What should the agent do next?\nA) Report the skill as optimal and stop\nB) Append harder near-miss queries, ratchet them, and record a new baseline\nC) Delete the easiest queries to rebalance the set\nD) Edit the description anyway to force a gain",
+      "split": "validation"
+    },
+    {
+      "evidence": "A blocked measurement counts as an attempt.",
+      "expected": "D",
+      "id": "validation-15",
+      "query": "Candidate attempt 1 was measured and came back blocked. How many of the three allowed attempts remain?\nA) Three, because a blocked run is not recorded\nB) Three, but the baseline is restored first\nC) None, because a blocked run ends the search\nD) Two, because the blocked run used one attempt",
+      "split": "validation"
+    },
+    {
+      "evidence": "An attempt changes the description or the body, never both.",
+      "expected": "A",
+      "id": "validation-16",
+      "query": "An editor wants one attempt to rewrite the description and also a body paragraph. What does the edit-cap rule say?\nA) Not allowed: one attempt changes only the description or only the body\nB) Allowed if the total change stays under 40 lines\nC) Allowed if the description change stays under 25 percent\nD) Allowed once per generation",
+      "split": "validation"
+    },
+    {
+      "evidence": "Before the first baseline a wrong label may be corrected in place.",
+      "expected": "B",
+      "id": "validation-17",
+      "query": "A trainer finds a mislabeled query before any baseline has been recorded. What is allowed?\nA) Add a retired reason and keep the old line\nB) Correct the label in place\nC) Delete the query and re-record the set\nD) Leave it and extend the set instead",
+      "split": "validation"
+    },
+    {
+      "evidence": "The only hard check is the structural `validate` check, so a failing assertion is a measured failure and not a hard failure.",
+      "expected": "C",
+      "id": "validation-18",
+      "query": "On the contract track, `validate` passes but one case assertion fails. How is that failure classed?\nA) A hard failure that rejects the candidate\nB) A hard failure that blocks the ledger write\nC) A measured failure, not a hard failure\nD) Ignored until the challenge cases run",
+      "split": "validation"
+    },
+    {
+      "evidence": "A shared session kept the previous document's cached prefix and flipped one probe in a parity check.",
+      "expected": "D",
+      "id": "validation-19",
+      "query": "Why does batch mode load a fresh model for each document?\nA) To save GPU memory between documents\nB) To avoid downloading the weights again\nC) To let humans review each answer\nD) A shared session kept the earlier document's cached prefix and flipped a probe",
+      "split": "validation"
+    },
+    {
+      "evidence": "Held-out validation may never lose a pass",
+      "expected": "A",
+      "id": "validation-20",
+      "query": "A document edit gains two train probes but loses one held-out validation pass. What does the acceptance policy do?\nA) Rejects it, since held-out validation may never lose a pass\nB) Accepts it as a swap because it gains more than it loses\nC) Accepts it if the lost probe was not in the core\nD) Accepts it with an allow-swap reason",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not substitute child-agent answers for the pinned reader.",
+      "expected": "B",
+      "id": "validation-21",
+      "query": "The sandbox shows no GPU adapter, so the reader cannot run. May child-agent answers stand in so the gate can pass?\nA) Yes, if three child agents agree\nB) No; give the user the exact command and wait for the output\nC) Yes, but only for held-out probes\nD) No; restore the baseline and close the work",
+      "split": "validation"
     }
   ],
   "runs_per_query": 3,

@@ -1,4 +1,6 @@
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import type { CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
+import { UsageError } from '../utils/cli/usage-error.js';
 
 export type CodingAssistant = 'claude-code' | 'codex' | 'kiro-ide' | 'opencode' | 'vscode';
 
@@ -32,20 +34,19 @@ export const renderAdapterHandoff = (assistant: CodingAssistant, agentsRoot: str
     'Run deterministic scripts before claiming a workflow state or validation result.',
   ].join('\n');
 
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/adapter.ts <claude-code|codex|kiro-ide|opencode|vscode> <agents-root>';
-
-export const run = (
-  args: readonly string[],
-  write: (message: string) => void = console.log,
-): void => {
-  const [assistant, agentsRoot] = args;
-  if (!assistant || !agentsRoot || args.length !== 2 || !isCodingAssistant(assistant)) {
-    throw new Error(usage());
-  }
-  write(renderAdapterHandoff(assistant, agentsRoot));
+export const command: CommandDeclaration<string> = {
+  arity: [2, 2],
+  positionals: '<claude-code|codex|kiro-ide|opencode|vscode> <agents-root>',
+  renderText: (handoff) => handoff,
+  run: (input) => {
+    const [assistant = '', agentsRoot = ''] = input.positionals;
+    if (!isCodingAssistant(assistant)) {
+      throw new UsageError(`Unknown coding assistant "${assistant}".`);
+    }
+    return renderAdapterHandoff(assistant, agentsRoot);
+  },
+  script: 'scripts/adapter.ts',
+  summary: 'Print the manual adapter handoff for one coding assistant.',
 };
 
-export const runWhenMain = runCliWhenMain;
-
-void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runMain(command, import.meta.main);

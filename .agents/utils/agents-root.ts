@@ -2,9 +2,20 @@ import path from 'node:path';
 
 export const AGENTS_ROOT_FLAG = '--agents-root';
 
+// The agents root is the parent of the `scripts` folder, however deep a family folder nests.
+
 type ListDirectory = (
   directory: string,
 ) => Promise<readonly { readonly isDirectory: boolean; readonly name: string }[]>;
+
+export const agentsRootOf = (scriptDirectory: string): string => {
+  const parts = scriptDirectory.split(path.sep);
+  const index = parts.lastIndexOf('scripts');
+  if (index <= 0) {
+    throw new Error(`Not inside an agents scripts folder: ${scriptDirectory}`);
+  }
+  return parts.slice(0, index).join(path.sep) || path.sep;
+};
 
 const rootProblem = async (root: string, listDirectory: ListDirectory): Promise<string> => {
   if (!path.isAbsolute(root) || root.split(/[\\/]/u).includes('..')) {

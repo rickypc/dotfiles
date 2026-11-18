@@ -3,13 +3,15 @@ import * as realCrypto from 'node:crypto';
 import * as realFsPromises from 'node:fs/promises';
 import * as realPath from 'node:path';
 import * as realUrl from 'node:url';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 
 import {
   BEHAVIOR_RUN_SCHEMA_VERSION,
   BEHAVIOR_RUNS_PER_CASE,
   type BehaviorRunMetadata,
   evaluationMatrixFingerprintFor,
-} from '../../utils/quality-engine/behavior-run.js';
+} from '../../utils/quality-engine/behavior/run.js';
 import {
   type BehaviorEvaluationCase,
   behaviorRubricAxes,
@@ -90,11 +92,34 @@ mock.module('node:url', () => ({ ...realUrl, fileURLToPath }));
 const {
   BEHAVIOR_RUN_AGENTS_ROOT_PATH,
   BEHAVIOR_RUN_ROOT_MANIFEST_PATH,
-  behaviorRunUsage,
-  runBehaviorRunCli,
+  command,
+  createCommand,
   runBehaviorRunCommand,
-  runBehaviorRunMain,
 } = await import('../../scripts/behavior-run.js');
+
+const makeContext = (out: string[]): CliContext => ({
+  listDirectory: async () => [],
+  readStdin: async () => '',
+  setExitCode: () => undefined,
+  write: (message) => out.push(message),
+  writeError: (message) => out.push(message),
+});
+
+const runBehaviorRunCli = async (
+  args: readonly string[],
+  dependencies: Parameters<typeof createCommand>[0],
+): Promise<void> => {
+  const out: string[] = [];
+  const code = await runCommand(
+    createCommand(dependencies),
+    [...args, '--format', 'text'],
+    makeContext(out),
+  );
+  if (code !== 0) {
+    throw new Error(out.join('\n'));
+  }
+  dependencies?.write(out[0] ?? '');
+};
 
 const Bun = { argv: mock((args: readonly string[]) => args) };
 const console = mock((message: string) => message);
@@ -579,11 +604,20 @@ test('CLI rejects relative or wrongly suffixed artifact paths before reading', a
   };
   const write = () => undefined;
   await expect(
-    runBehaviorRunCli(['expected', 'cases.jsonl', '/metadata.json', 'train'], { readText, write }),
-  ).rejects.toThrow('Usage:');
+    runBehaviorRunCli(['expected', 'cases.jsonl', '/metadata.json', 'train', '/sessions.jsonl'], {
+      readText,
+      write,
+    }),
+  ).rejects.toThrow('Invalid arguments');
   await expect(
-    runBehaviorRunCli(['target', '/cases.jsonl', '/source.txt', 'case'], { readText, write }),
-  ).rejects.toThrow('Usage:');
+    runBehaviorRunCli(['target', '/cases.jsonl', '/source.txt', 'case', '/metadata.json'], {
+      readText,
+      write,
+    }),
+  ).rejects.toThrow('Invalid arguments');
+  await expect(
+    runBehaviorRunCli(['expected', 'cases.jsonl', '/metadata.json', 'train'], { readText, write }),
+  ).rejects.toThrow('Expected positional arguments');
 });
 
 test('CLI rejects missing cases, malformed sessions, and incomplete run metadata', async () => {
@@ -681,8 +715,10 @@ test('CLI rejects missing cases, malformed sessions, and incomplete run metadata
       ['expected', '/cases.jsonl', '/metadata.json', 'unknown', '/sessions.jsonl'],
       dependencies,
     ),
-  ).rejects.toThrow('Usage:');
-  await expect(runBehaviorRunCommand(['unknown'], dependencies)).rejects.toThrow('Usage:');
+  ).rejects.toThrow('Split must be');
+  await expect(runBehaviorRunCommand(['unknown'], dependencies)).rejects.toThrow(
+    'Unknown behavior-run command',
+  );
 });
 
 test('grader input must contain exactly the captured evidence strings', async () => {
@@ -722,30 +758,30 @@ test('grader input must contain exactly the captured evidence strings', async ()
   ).rejects.toThrow('runId does not match run metadata');
 });
 
-test('CLI main uses the filesystem and reports usage through its public helper', async () => {
-  expect(behaviorRunUsage()).toContain('provisional local scores');
+test('CLI main uses the filesystem and reports usage through the help route', async () => {
+  const help: string[] = [];
+  expect(await runCommand(command, ['--help'], makeContext(help))).toBe(0);
+  expect(help[0]).toContain('provisional local scores');
   const files = new Map<string, string>([
     ['/cases.jsonl', caseText],
     ['/metadata.json', JSON.stringify(metadata)],
     ['/source.md', '# Instruction under test'],
   ]);
   readFile.mockImplementation(async (path: string) => files.get(path) ?? '');
-  const originalLog = globalThis.console.log;
-  let output = '';
-  globalThis.console.log = (message: string) => {
-    output = message;
-  };
-  try {
-    await runBehaviorRunMain([
+  const out: string[] = [];
+  const code = await runCommand(
+    command,
+    [
       'target',
       '/cases.jsonl',
       '/source.md',
       evaluationCase.id,
       '/metadata.json',
-    ]);
-  } finally {
-    globalThis.console.log = originalLog;
-  }
-  expect(JSON.parse(output)).toMatchObject({ role: 'target', task: evaluationCase.task });
-  expect(behaviorRunUsage()).toContain('Usage:');
+      '--format',
+      'text',
+    ],
+    makeContext(out),
+  );
+  expect(code).toBe(0);
+  expect(JSON.parse(out[0] ?? '')).toMatchObject({ role: 'target', task: evaluationCase.task });
 });

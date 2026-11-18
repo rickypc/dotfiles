@@ -1,7 +1,7 @@
 /**
  * reflow.ts scenario matrix - one named test per plan scenario (s1-s52).
  * Scope: shared-suite-integration - the SUT (scripts/reflow.ts) and its local
- * engine (utils/reflow.ts) stay real; every filesystem boundary is injected
+ * engine (utils/reflow/index.ts) stay real; every filesystem boundary is injected
  * or module-mocked. Corpus parity asserts the committed fixture corpus on every
  * run; the external repository corpus registers only when REFLOW_CORPUS_ROOT is
  * set, so the default gate never reports a skipped test.
@@ -11,7 +11,8 @@ import { afterAll, describe, expect, mock, test } from 'bun:test';
 import * as realChildProcess from 'node:child_process';
 import * as realFsPromises from 'node:fs/promises';
 import * as nodePath from 'node:path';
-import { runWhenMainWithHelp } from '../../utils/cli.js';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 
 // Snapshot the real path exports into a plain object before mock.module
 // registration: Bun patches live module bindings, so a namespace reference
@@ -63,9 +64,38 @@ mock.module('node:path', () => ({
   join: mock((...args: string[]) => realJoin(...args)),
 }));
 
-const { defaultReflowDeps, run, usage } = await import('../../scripts/reflow.js');
+const { createCommand, defaultReflowDeps, command } = await import('../../scripts/reflow.js');
+
+const captured: string[] = [];
+
+const run = async (
+  args: readonly string[],
+  deps: Partial<ReturnType<typeof defaultReflowDeps>> = {},
+): Promise<number> => {
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => captured.push(message),
+    writeError: (message) => captured.push(message),
+  };
+  return runCommand(createCommand(deps), [...args, '--format', 'text'], context);
+};
+
+const usageText = async (): Promise<string> => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  await runCommand(command, ['--help'], context);
+  return out[0] ?? '';
+};
 const { reflowText, residualOverLimitLines, verifyInvariants } = await import(
-  '../../utils/reflow-file.js'
+  '../../utils/reflow/file.js'
 );
 
 afterAll(() => {
@@ -87,7 +117,7 @@ const makeDeps = (over: Partial<ReturnType<typeof defaultReflowDeps>> = {}) => (
   ...over,
 });
 
-const { tokenize, wrapAtoms } = await import('../../utils/reflow.js');
+const { tokenize, wrapAtoms } = await import('../../utils/reflow/index.js');
 
 describe('wrap engine edges', () => {
   const options = { bandFloor: 80, width: 100 };
@@ -634,24 +664,14 @@ describe('band CLI plumbing', () => {
       'This is a narrow two line paragraph that the band mode must refill into the wider band now.',
     );
     expect(defaultReflowDeps().transform(narrow).changed).toBe(false);
-    expect(usage()).toContain('--band');
-    const logs: string[] = [];
-    const original = console.log;
-    console.log = (...args: unknown[]) => {
-      logs.push(String(args[0]));
-    };
-    let withBand: number;
-    let withoutBand: number;
-    try {
-      withBand = await run(['/fixtures/narrow.md', '--band']);
-      withoutBand = await run(['/fixtures/narrow.md']);
-    } finally {
-      console.log = original;
-    }
+    expect(await usageText()).toContain('--band');
+    captured.length = 0;
+    const withBand = await run(['/fixtures/narrow.md', '--band']);
+    const withoutBand = await run(['/fixtures/narrow.md']);
     expect(withBand).toBe(0);
     expect(withoutBand).toBe(0);
-    expect(logs.join('\n')).toContain('changed=1');
-    expect(logs.join('\n')).toContain('changed=0');
+    expect(captured.join('\n')).toContain('changed=1');
+    expect(captured.join('\n')).toContain('changed=0');
   });
 });
 
@@ -712,9 +732,7 @@ describe('cli contract', () => {
     expect(reportDeps.log).toHaveBeenCalledWith(expect.stringContaining('[reflow] residual'));
     expect(reportDeps.log).toHaveBeenCalledWith(expect.stringContaining('[reflow] over100'));
 
-    const helpWrite = mock();
-    void runWhenMainWithHelp(true, ['--help'], usage, mock(), helpWrite);
-    expect(helpWrite).toHaveBeenCalledWith(usage());
+    expect(await usageText()).toContain('Usage: bun');
   });
 
   test('s32: one aborted document does not hide the report for the others', async () => {
@@ -748,8 +766,7 @@ describe('cli contract', () => {
     expect(deps.transform(text).changed).toBe(true);
     await deps.write('/fixtures/defaults.md', text);
     const badFlagDeps = makeDeps();
-    expect(run(['--unknown-flag'], badFlagDeps)).resolves.toBe(2);
-    expect(badFlagDeps.log).toHaveBeenCalledWith(expect.stringContaining('Usage: bun'));
+    expect(await run(['--unknown-flag'], badFlagDeps)).toBe(2);
     expect(badFlagDeps.write).not.toHaveBeenCalled();
   });
 

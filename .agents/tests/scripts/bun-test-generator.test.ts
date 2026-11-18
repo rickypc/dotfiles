@@ -1,18 +1,34 @@
 import { expect, mock, test } from 'bun:test';
 
-import {
-  run,
-  runWhenMain,
-  usage,
-  validateExternalDependencyMocks,
-} from '../../scripts/bun-test-generator.js';
+import { command, validateExternalDependencyMocks } from '../../scripts/bun-test-generator.js';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 
-test('renders canonical test paths and validates Bun test sources', () => {
+const run = async (
+  args: readonly string[],
+  write: (message: string) => void = () => undefined,
+): Promise<void> => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  const code = await runCommand(command, [...args, '--format', 'text'], context);
+  if (code !== 0) {
+    throw new Error(out.join('\n'));
+  }
+  write(out[0] ?? '');
+};
+
+test('renders canonical test paths and validates Bun test sources', async () => {
   const write = mock();
-  run(['test-path', '/repo', '/repo/source.ts'], write);
-  run(['canonical-path', '/repo/source.ts', '/repo/package.json'], write);
-  run(['validate-source', 'import { test } from "bun:test"; test("x", () => {});'], write);
-  run(
+  await run(['test-path', '/repo', '/repo/source.ts'], write);
+  await run(['canonical-path', '/repo/source.ts', '/repo/package.json'], write);
+  await run(['validate-source', 'import { test } from "bun:test"; test("x", () => {});'], write);
+  await run(
     [
       'validate-boundaries',
       JSON.stringify({
@@ -25,7 +41,7 @@ test('renders canonical test paths and validates Bun test sources', () => {
     ],
     write,
   );
-  run(
+  await run(
     [
       'template',
       JSON.stringify({
@@ -38,7 +54,7 @@ test('renders canonical test paths and validates Bun test sources', () => {
     ],
     write,
   );
-  run(
+  await run(
     ['convert-jest', "import { jest, test } from '@jest/globals'; test('x', () => jest.fn());"],
     write,
   );
@@ -64,36 +80,35 @@ test.each([
   ).not.toThrow();
 });
 
-test('rejects invalid input and guards the main boundary', async () => {
-  expect(() => run(['validate-source', 'jest.fn()'])).toThrow('bun:test');
-  expect(() => run(['validate-boundaries', '{}'])).toThrow(
+test('rejects invalid input with a failure exit and the validator message', async () => {
+  await expect(run(['validate-source', 'jest.fn()'])).rejects.toThrow('bun:test');
+  await expect(run(['validate-boundaries', '{}'])).rejects.toThrow(
     'sutSource, testSource, and sutModuleSpecifier',
   );
-  expect(() =>
-    run([
-      'validate-boundaries',
-      JSON.stringify({
-        scope: 'unsupported',
-        sutModuleSpecifier: './sut.js',
-        sutSource: 'export const load = () => true;',
-        testSource: "import { test } from 'bun:test';",
-      }),
-    ]),
-  ).toThrow('scope must be');
-  expect(() =>
-    run([
-      'validate-boundaries',
-      JSON.stringify({
-        preloadSource: 42,
-        sutModuleSpecifier: './sut.js',
-        sutSource: 'export const load = () => true;',
-        testSource: "import { test } from 'bun:test';",
-      }),
-    ]),
-  ).toThrow('preloadSource must be a string');
-  expect(() => run([])).toThrow(usage());
-  const runner = mock();
-  await runWhenMain(true, ['test-path', '/repo', '/repo/source.ts'], runner);
-  await runWhenMain(false, [], runner);
-  expect(runner).toHaveBeenCalledTimes(1);
+  const base = {
+    sutModuleSpecifier: './sut.js',
+    sutSource: 'export const load = () => true;',
+    testSource: "import { test } from 'bun:test';",
+  };
+  await expect(
+    run(['validate-boundaries', JSON.stringify({ ...base, scope: 'unsupported' })]),
+  ).rejects.toThrow('scope must be');
+  await expect(
+    run(['validate-boundaries', JSON.stringify({ ...base, preloadSource: 42 })]),
+  ).rejects.toThrow('preloadSource must be a string');
+});
+
+test('rejects an unknown subcommand and a wrong argument count with usage exit 2', async () => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  expect(await runCommand(command, [], context)).toBe(2);
+  expect(await runCommand(command, ['test-path', '/repo'], context)).toBe(2);
+  expect(await runCommand(command, ['--help'], context)).toBe(0);
+  expect(out.at(-1)).toContain('validate-boundaries');
 });

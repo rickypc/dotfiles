@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import type { CommandBody, CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
 import {
   type FileSystem,
   nodeFileSystem,
@@ -18,6 +19,17 @@ export interface CompressionGuard {
   readonly backupPath: string;
   readonly lockPath: string;
   readonly original: string;
+}
+
+export interface CompressionReceipt {
+  readonly backupPath?: string;
+  readonly lockPath?: string;
+  readonly next: {
+    readonly action: string;
+    readonly args?: readonly string[];
+    readonly status?: string;
+  };
+  readonly sourcePath: string;
 }
 
 export interface Digest {
@@ -211,6 +223,26 @@ export const finalizeCompression = async (
 const sha256Digest = digestFor(createHash);
 const systemClock = clockFor(Date.now);
 
+const beginCompression = async (
+  sourcePath: string,
+  dependencies: MdCompressDependencies,
+): Promise<CompressionReceipt> => {
+  const backupRoot = temporaryBackupRootFor(dependencies.temporaryRoot);
+  const guard = await guardCompression(
+    dependencies.fileSystem,
+    backupRoot,
+    sourcePath,
+    dependencies.digest,
+  );
+  await claimCompressionLock(dependencies.fileSystem, guard, dependencies.clock, 60_000);
+  return {
+    backupPath: guard.backupPath,
+    lockPath: guard.lockPath,
+    next: { action: 'edit-markdown-then-finalize', args: ['finalize', sourcePath] },
+    sourcePath,
+  };
+};
+
 export const defaultDependencies = (
   temporaryRoot: string = tmpdir(),
   fileSystem: FileSystem = nodeFileSystem,
@@ -218,15 +250,42 @@ export const defaultDependencies = (
   clock: Clock = systemClock,
 ): MdCompressDependencies => ({ clock, digest, fileSystem, temporaryRoot });
 
+const guardOnly = async (
+  sourcePath: string,
+  dependencies: MdCompressDependencies,
+): Promise<CompressionReceipt> => {
+  const backupRoot = temporaryBackupRootFor(dependencies.temporaryRoot);
+  const guard = await guardCompression(
+    dependencies.fileSystem,
+    backupRoot,
+    sourcePath,
+    dependencies.digest,
+  );
+  await finalizeCompression(dependencies.fileSystem, sourcePath, guard);
+  return { next: { action: 'done', status: 'guarded' }, sourcePath };
+};
+
+const receiptBody = (
+  summary: string,
+  positionals: string,
+  arity: readonly [number, number],
+  run: (paths: readonly string[]) => Promise<CompressionReceipt>,
+): CommandBody<CompressionReceipt> => ({
+  arity,
+  positionals,
+  renderText: (receipt) => JSON.stringify(receipt),
+  run: (input) => run(input.positionals),
+  summary,
+});
+
 const removalAuthorizationFor = async (
   fileSystem: FileSystem,
-  args: readonly string[],
+  authorizationPath: string | undefined,
   sourcePath: string,
 ): Promise<RemovalAuthorization | undefined> => {
-  if (args.length === 2) {
+  if (authorizationPath === undefined) {
     return undefined;
   }
-  const authorizationPath = args[2] as string;
   let parsed: unknown;
   try {
     parsed = JSON.parse(await readText(fileSystem, authorizationPath));
@@ -248,101 +307,62 @@ const removalAuthorizationFor = async (
   return authorization as RemovalAuthorization;
 };
 
-const sourcePathFor = (args: readonly string[]): string | undefined => {
-  const [command, sourcePath, authorizationPath] = args;
-  if ((command !== 'begin' && command !== 'finalize' && command !== 'guard') || !sourcePath) {
-    return undefined;
-  }
-  if (command === 'begin') {
-    return args.length === 2 ? sourcePath : undefined;
-  }
-  return args.length === 2 || (args.length === 3 && authorizationPath) ? sourcePath : undefined;
-};
-
-export const usage = (): string =>
-  [
-    'Usage: bun <agents-root>/scripts/md-compress.ts begin <markdown-path> | finalize <markdown-path> [removal-authorization-json] | guard <markdown-path>',
-    'begin writes a guarded backup and lock under tmpdir()/md-compress, then returns the exact finalize action.',
-    'After editing, finalize validates protected Markdown tokens and removes the temporary backup and lock.',
-    'guard runs begin then finalize in one shot for no-edit validation passes (e.g. after KB reconcile).',
-    'Intentional protected-token removal requires a JSON authorization manifest naming each exact token and its justification.',
-  ].join('\n');
-
-export async function run(
-  args: readonly string[],
-  write: (message: string) => void = console.log,
-  dependencies?: MdCompressDependencies,
-): Promise<void> {
-  const sourcePath = sourcePathFor(args);
-  if (!sourcePath) {
-    throw new Error(usage());
-  }
-  const resolvedDependencies = dependencies ?? defaultDependencies();
-  const backupRoot = temporaryBackupRootFor(resolvedDependencies.temporaryRoot);
-  if (args[0] === 'begin') {
-    const guard = await guardCompression(
-      resolvedDependencies.fileSystem,
-      backupRoot,
-      sourcePath,
-      resolvedDependencies.digest,
-    );
-    await claimCompressionLock(
-      resolvedDependencies.fileSystem,
-      guard,
-      resolvedDependencies.clock,
-      60_000,
-    );
-    write(
-      JSON.stringify({
-        backupPath: guard.backupPath,
-        lockPath: guard.lockPath,
-        next: {
-          action: 'edit-markdown-then-finalize',
-          args: ['finalize', sourcePath],
-        },
-        sourcePath,
-      }),
-    );
-    return;
-  }
-  if (args[0] === 'guard') {
-    const guard = await guardCompression(
-      resolvedDependencies.fileSystem,
-      backupRoot,
-      sourcePath,
-      resolvedDependencies.digest,
-    );
-    await finalizeCompression(resolvedDependencies.fileSystem, sourcePath, guard);
-    write(
-      JSON.stringify({
-        next: { action: 'done', status: 'guarded' },
-        sourcePath,
-      }),
-    );
-    return;
-  }
+const finalizeOnly = async (
+  sourcePath: string,
+  authorizationPath: string | undefined,
+  dependencies: MdCompressDependencies,
+): Promise<CompressionReceipt> => {
+  const backupRoot = temporaryBackupRootFor(dependencies.temporaryRoot);
   const guard = await resumeCompressionGuard(
-    resolvedDependencies.fileSystem,
+    dependencies.fileSystem,
     backupRoot,
     sourcePath,
-    resolvedDependencies.digest,
+    dependencies.digest,
   );
   const authorization = await removalAuthorizationFor(
-    resolvedDependencies.fileSystem,
-    args,
+    dependencies.fileSystem,
+    authorizationPath,
     sourcePath,
   );
-  await finalizeCompression(resolvedDependencies.fileSystem, sourcePath, guard, authorization);
-  write(
-    JSON.stringify({
-      backupPath: guard.backupPath,
-      lockPath: guard.lockPath,
-      next: { action: 'done', status: 'compressed' },
-      sourcePath,
-    }),
-  );
-}
+  await finalizeCompression(dependencies.fileSystem, sourcePath, guard, authorization);
+  return {
+    backupPath: guard.backupPath,
+    lockPath: guard.lockPath,
+    next: { action: 'done', status: 'compressed' },
+    sourcePath,
+  };
+};
 
-export const runWhenMain = runCliWhenMain;
+export const createCommand = (
+  injected?: MdCompressDependencies,
+): CommandDeclaration<CompressionReceipt> => {
+  const dependencies = injected ?? defaultDependencies();
+  return {
+    commands: {
+      begin: receiptBody(
+        'Write a guarded backup and lock under tmpdir()/md-compress, then return the exact finalize action.',
+        '<markdown-path>',
+        [1, 1],
+        ([path = '']) => beginCompression(path, dependencies),
+      ),
+      finalize: receiptBody(
+        'Validate protected Markdown tokens after editing, then remove the temporary backup and lock; intentional token removal needs a JSON authorization manifest.',
+        '<markdown-path> [removal-authorization-json]',
+        [1, 2],
+        ([path = '', authorizationPath]) => finalizeOnly(path, authorizationPath, dependencies),
+      ),
+      guard: receiptBody(
+        'Run begin then finalize in one shot for no-edit validation passes.',
+        '<markdown-path>',
+        [1, 1],
+        ([path = '']) => guardOnly(path, dependencies),
+      ),
+    },
+    script: 'scripts/md-compress.ts',
+    summary: 'Lossless Markdown compression with a verified temporary backup.',
+  };
+};
 
-void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+export const command = createCommand();
+
+void runMain(command, import.meta.main);

@@ -167,8 +167,8 @@ The set holds lettered multiple-choice probes about the rules of one document.
 question with one option letter in an `answer` field.
 
 - Run the built-in local reader to answer a document bundle with no human step:
-  `bun <agents-root>/scripts/weak-reader.ts <bundle> <answers>`. Both arguments are absolute paths:
-  the bundle is the saved output of `train bundle`, the answers file feeds `train measure`.
+  `bun <agents-root>/scripts/weak-reader/index.ts <bundle> <answers>`. Both arguments are absolute
+  paths: the bundle is the saved output of `train bundle`, the answers file feeds `train measure`.
 - The reader needs the `webgpu` package (`bun add webgpu` in the agents root) and a GPU adapter. Its
   first run downloads only Google's Gemma 4 E2B weights, once, into the standard Hugging Face cache
   (`HF_HOME`, else `~/.cache/huggingface`), verifies every file, and records the revision so later
@@ -187,34 +187,35 @@ question with one option letter in an `answer` field.
   miss.
 - The reader runs on macOS (Metal through Dawn); it is not meant for any other platform.
 - To learn what the weak reader finds hard, run
-  `bun <agents-root>/scripts/weak-reader.ts suggest <bundle> <failures> <suggestions>`. `<failures>`
-  is a JSON array of train misses, each with `id`, `query`, `expected`, and `given`. For every miss
-  the reader quotes the sentence it relied on, says what was hard to read, and proposes a clearer
-  replacement. Treat the output as a lead: check each proposal against the document before editing.
-- `bun <agents-root>/scripts/weak-reader.ts batch <batch-json>` answers many bundles in one process,
-  loading a fresh model for each document, so every answer matches the single-document run. A shared
-  session kept the previous document's cached prefix and flipped one probe in a parity check. Do not
-  call it by hand: `instruction-gate evaluate-batch` builds the batch file and scores the answers
-  (§12).
+  `bun <agents-root>/scripts/weak-reader/index.ts suggest <bundle> <failures> <suggestions>`.
+  `<failures>` is a JSON array of train misses, each with `id`, `query`, `expected`, and `given`.
+  For every miss the reader quotes the sentence it relied on, says what was hard to read, and
+  proposes a clearer replacement. Treat the output as a lead: check each proposal against the
+  document before editing.
+- `bun <agents-root>/scripts/weak-reader/index.ts batch <batch-json>` answers many bundles in one
+  process, loading a fresh model for each document, so every answer matches the single-document run.
+  A shared session kept the previous document's cached prefix and flipped one probe in a parity
+  check. Do not call it by hand: `instruction-gate evaluate-batch` builds the batch file and scores
+  the answers (§12).
 - The runtime bundle is vendored in `vendor/gemma-4-e2b/` with its origin, license status, and two
   edits recorded there. The edits let the reader keep the cached document prefix between questions
   and size the context from the document (up to the model limit of 131072 tokens). The document is
   read once, then each question takes under a second. The reader logs load, warmup, first-token,
   per-query, and total times.
-- The gate makes this deterministic. `bun <agents-root>/scripts/instruction-gate.ts record` measures
-  each changed instruction document and writes receipts only for a never-worse result. Root
+- The gate makes this deterministic. `bun <agents-root>/scripts/instruction-gate/index.ts record`
+  measures each changed instruction document and writes receipts only for a never-worse result. Root
   instruction receipts stay at `evals/receipts/<document>.json`; global skill-document receipts are
   at `evals/skills/<skill>/receipts/<source-key>.json`; and aggregate description routing is at
-  `evals/skills/_catalog/receipts/activation.json`. `... instruction-gate.ts verify` runs in the
-  final gate with no GPU: it fails when a document or its comprehension set changed after its
+  `evals/skills/_catalog/receipts/activation.json`. `... instruction-gate/index.ts verify` runs in
+  the final gate with no GPU: it fails when a document or its comprehension set changed after its
   receipt, when a receipt was edited, or when a recorded result is worse than its baseline.
 - A receipt records the document hash, the set hash, and the reader (model revision, runtime hash,
   prompt version). Greedy decoding makes the same inputs give the same answers, so a receipt is
   reproducible. When the reader changes, every receipt needs `record --rebaseline <reason>`.
 - A project-local skill is gated with `--agents-root <project>/.agents`, as in
-  `instruction-gate.ts record --agents-root <project>/.agents skills/<name>/SKILL.md`. Its sets and
-  receipts live under that root. The global scripts still run from the package. Use the same flag
-  with `verify`. Skill descriptions are not gated for a project root.
+  `instruction-gate/index.ts record --agents-root <project>/.agents skills/<name>/SKILL.md`. Its
+  sets and receipts live under that root. The global scripts still run from the package. Use the
+  same flag with `verify`. Skill descriptions are not gated for a project root.
 - Skill descriptions are gated as one unit, because the router reads every description.
   `record descriptions` has the reader route every query from each
   `evals/skills/<skill>/trigger-queries.json` through the full catalog and stores one receipt at
@@ -231,10 +232,10 @@ question with one option letter in an `answer` field.
   diagnosis and train evidence to make the next source edit, then give the exact command for the
   next run. Do not ask whether to continue, and do not restore the baseline solely because a run
   rejected.
-- Separate retry loop for an `instruction-gate.ts record` rejection or a document that still has
-  failing weak-reader probes. This is not the three-attempt `train measure` candidate loop in §5.
-  The agent owns each diagnosis, edit, and retry; whether it runs the gate itself or hands the exact
-  gate command to the user depends on GPU access:
+- Separate retry loop for an `instruction-gate/index.ts record` rejection or a document that still
+  has failing weak-reader probes. This is not the three-attempt `train measure` candidate loop in
+  §5. The agent owns each diagnosis, edit, and retry; whether it runs the gate itself or hands the
+  exact gate command to the user depends on GPU access:
   1. Read the DIAGNOSIS block: each failing probe, its source rule, and the weak reader's own view.
   2. Treat the reader's suggested wording as the first candidate. A small model is the audience, so
      what confuses it is the signal; but it can misquote the source or invent text, so check each

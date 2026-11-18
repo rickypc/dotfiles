@@ -1,3 +1,4 @@
+import { errorMessage } from '../cli/errors.js';
 export type BoundaryAnswer = (prompt: RouterPrompt) => Promise<string>;
 
 export interface ResponderProblem {
@@ -96,7 +97,7 @@ export const askRouter = async (
     return parseRouterAnswer(await answer(prompt), prompt.catalog);
   } catch (error) {
     return unavailableBoundary(
-      `In-session boundary call failed: ${error instanceof Error ? error.message : String(error)}`,
+      `In-session boundary call failed: ${errorMessage(error)}`,
       'one router prompt answered by the in-session model or an inherited child session',
       'retry through the same in-session boundary; stop the training run on a repeated failure',
     );

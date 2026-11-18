@@ -1,0 +1,9 @@
+{
+  "retirements": [
+    {
+      "caseId": "atom:r-d852c3a186",
+      "reason": "The completed-plan validator rule named the pending-plan validator by its old file name; the validators moved to scripts/plans/ and the rebuilt map holds the renamed text as a new atom."
+    }
+  ],
+  "schemaVersion": 1
+}

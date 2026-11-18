@@ -1,3 +1,4 @@
+import { errorMessage } from './cli/errors.js';
 import type { CommandResult, CommandSpec } from './contracts.js';
 import type { CommandExecutor } from './process.js';
 
@@ -110,7 +111,7 @@ const attempt = async (
     return {
       attempt: {
         command: commandText(spec),
-        detail: error instanceof Error ? error.message : String(error),
+        detail: errorMessage(error),
         status: 'error',
         strategy,
       },

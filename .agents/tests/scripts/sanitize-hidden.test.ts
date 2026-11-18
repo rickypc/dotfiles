@@ -1,5 +1,8 @@
 import { afterAll, expect, mock, test } from 'bun:test';
 
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
+
 type SpawnMode = 'broken' | 'normal' | 'throw';
 
 const realFileSystem = await import('node:fs/promises');
@@ -128,10 +131,6 @@ afterAll(() => {
 const clearFiles = (): void => {
   fileContents.clear();
   fileStats.clear();
-};
-
-const setArgv = (...values: string[]): void => {
-  cliArgv.splice(0, cliArgv.length, ...values);
 };
 
 const setBinaryFile = (file: string, bytes: Uint8Array): void => {
@@ -273,61 +272,70 @@ test.each([
   expect(sut.isBinaryBuffer(bytes)).toBe(expected);
 });
 
-test('parseArgs uses safe dry-run defaults', () => {
-  setArgv('bun', 'sanitize-hidden.ts');
+const runCommandWith = async (args: readonly string[], scan?: typeof sut.sanitizeTree) => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [{ isDirectory: true, name: 'skills' }],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  const code = await runCommand(sut.createCommand(scan ? { scan } : {}), args, context);
+  return { code, out };
+};
 
-  expect(sut.parseArgs()).toEqual({
-    concurrency: 16,
-    dryRun: true,
-    help: false,
-    root: '/workspace',
-  });
+const emptyReport = {
+  changed: 0,
+  concurrency: 16,
+  dryRun: true,
+  files: [],
+  root: '/workspace',
+  totalBytes: 0,
+};
+
+test('command uses safe dry-run defaults over the working directory', async () => {
+  const scan = mock(async (_root: string, _dryRun: boolean, _workers: number) => emptyReport);
+  expect((await runCommandWith([], scan)).code).toBe(0);
+  expect(scan).toHaveBeenCalledWith('/workspace', true, 16);
 });
 
-test('parseArgs requires --write to leave dry-run mode', () => {
-  setArgv('bun', 'sanitize-hidden.ts', '--write');
-
-  expect(sut.parseArgs()).toEqual({
-    concurrency: 16,
-    dryRun: false,
-    help: false,
-    root: '/workspace',
-  });
+test('command requires --write to leave dry-run mode', async () => {
+  const scan = mock(async (_root: string, _dryRun: boolean, _workers: number) => emptyReport);
+  await runCommandWith(['--write'], scan);
+  expect(scan).toHaveBeenCalledWith('/workspace', false, 16);
 });
 
-test('parseArgs honors the last dry-run/write flag and help flags', () => {
-  setArgv('bun', 'sanitize-hidden.ts', '--write', '--dry-run', '--concurrency=4');
-  expect(sut.parseArgs()).toEqual({
-    concurrency: 4,
-    dryRun: true,
-    help: false,
-    root: '/workspace',
-  });
-
-  setArgv('bun', 'sanitize-hidden.ts', '--help');
-  expect(sut.parseArgs()).toMatchObject({ help: true });
-  setArgv('bun', 'sanitize-hidden.ts', '-h');
-  expect(sut.parseArgs()).toMatchObject({ help: true });
+test('command rejects combining --write with --dry-run', async () => {
+  const scan = mock(async (_root: string, _dryRun: boolean, _workers: number) => emptyReport);
+  expect((await runCommandWith(['--write', '--dry-run'], scan)).code).toBe(2);
+  expect(scan).not.toHaveBeenCalled();
 });
 
-test('parseArgs covers flags and positional argument precedence', () => {
-  setArgv(
-    'bun',
-    'sanitize-hidden.ts',
-    '--dry-run',
-    '--concurrency=8',
-    '--unknown-flag',
-    '/first/path',
-    '/second/path',
-  );
+test('command parses concurrency in both spellings and clamps it to one', async () => {
+  const scan = mock(async (_root: string, _dryRun: boolean, _workers: number) => emptyReport);
+  await runCommandWith(['--concurrency=4'], scan);
+  await runCommandWith(['--concurrency', '8'], scan);
+  await runCommandWith(['--concurrency=0'], scan);
+  expect(scan.mock.calls.map((call) => call[2])).toEqual([4, 8, 1]);
+  expect((await runCommandWith(['--concurrency=many'], scan)).code).toBe(2);
+});
 
-  expect(sut.parseArgs()).toEqual({
-    concurrency: 8,
-    dryRun: true,
-    help: false,
-    root: '/first/path',
-  });
-  setArgv('bun', 'sanitize-hidden.ts');
+test('command scans the first positional as the root and rejects a second', async () => {
+  const scan = mock(async (_root: string, _dryRun: boolean, _workers: number) => emptyReport);
+  await runCommandWith(['--dry-run', '/first/path'], scan);
+  expect(scan).toHaveBeenCalledWith('/first/path', true, 16);
+  expect((await runCommandWith(['/first', '/second'], scan)).code).toBe(2);
+});
+
+test('command prints usage for --help without scanning', async () => {
+  const scan = mock(async (_root: string, _dryRun: boolean, _workers: number) => emptyReport);
+  for (const flag of ['--help', '-h', '--usage']) {
+    const { code, out } = await runCommandWith([flag], scan);
+    expect(code).toBe(0);
+    expect(out[0]).toContain('--write');
+  }
+  expect(scan).not.toHaveBeenCalled();
 });
 
 test.each(['/tmp/test.jpg', '/tmp/test.HTML', '/tmp/test.avif', '/tmp/test.WOFF2'])(
@@ -479,66 +487,46 @@ test('runPool propagates worker failures', async () => {
   );
 });
 
-test('main requires --write to modify files and warns in write mode', async () => {
+test('a write run modifies files and reports them in the text view', async () => {
   clearFiles();
   spawnOutput = `${virtualRoot}/changed.txt\n`;
   setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
-  setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--write', '--concurrency=1');
-  log.mockClear();
   writeFile.mockClear();
-
-  await sut.main();
-
-  expect(log).toHaveBeenCalledWith('[sanitize] WRITE mode - files will be modified in place');
-  expect(log).toHaveBeenCalledWith(expect.stringContaining('[sanitize] 1 file(s) changed'));
-  expect(log).toHaveBeenCalledWith('  changed.txt  (-1 bytes)');
+  const { code, out } = await runCommandWith([
+    virtualRoot,
+    '--write',
+    '--concurrency=1',
+    '--format',
+    'text',
+  ]);
+  expect(code).toBe(0);
+  expect(out[0]).toContain('[sanitize] WRITE mode - files will be modified in place');
+  expect(out[0]).toContain('[sanitize] 1 file(s) changed');
+  expect(out[0]).toContain('  changed.txt  (-1 bytes)');
   expect(writeFile).toHaveBeenCalled();
 });
 
-test('main defaults to dry-run and never writes without --write', async () => {
+test('a default run is a dry run and never writes', async () => {
   clearFiles();
   spawnOutput = `${virtualRoot}/changed.txt\n`;
   setFile(`${virtualRoot}/changed.txt`, 'hello\u200Bworld');
-  setArgv('bun', 'sanitize-hidden.ts', virtualRoot, '--concurrency=1');
-  log.mockClear();
   writeFile.mockClear();
-
-  await sut.main();
-
-  expect(log).toHaveBeenCalledWith(
-    expect.stringContaining('[sanitize] dry-run - 1 file(s) would change'),
-  );
+  const { out } = await runCommandWith([virtualRoot, '--concurrency=1']);
+  expect(JSON.parse(out[0] ?? '').data).toMatchObject({ changed: 1, dryRun: true });
   expect(writeFile).not.toHaveBeenCalled();
-  setArgv('bun', 'sanitize-hidden.ts');
 });
 
-test('main prints usage for --help without scanning', async () => {
-  clearFiles();
-  setArgv('bun', 'sanitize-hidden.ts', '--help');
-  log.mockClear();
-  spawn.mockClear();
-
-  await sut.main();
-
-  expect(log).toHaveBeenCalledWith(expect.stringContaining('--write'));
-  expect(spawn).not.toHaveBeenCalled();
-  setArgv('bun', 'sanitize-hidden.ts');
-});
-
-test('main reports when no files need changes', async () => {
+test('a clean tree reports that no files need changes', async () => {
   clearFiles();
   spawnOutput = '';
-  setArgv('bun', 'sanitize-hidden.ts', virtualRoot);
-  log.mockClear();
-
-  await sut.main();
-
-  expect(log).toHaveBeenCalledWith('  (no changes needed - all clean)');
-  setArgv('bun', 'sanitize-hidden.ts');
+  const { out } = await runCommandWith([virtualRoot, '--format', 'text']);
+  expect(out[0]).toContain('  (no changes needed - all clean)');
 });
 
-test('main rejects fatal walk errors after the CLI catch boundary is covered', async () => {
+test('a fatal walk error becomes exit 1 with the reader message', async () => {
   spawnMode = 'broken';
-  await expect(sut.main()).rejects.toThrow('reader failed');
+  const { code, out } = await runCommandWith([virtualRoot]);
+  expect(code).toBe(1);
+  expect(JSON.parse(out[0] ?? '').diagnostics[0]).toContain('reader failed');
   spawnMode = 'normal';
 });

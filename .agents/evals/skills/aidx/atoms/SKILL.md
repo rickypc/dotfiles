@@ -343,6 +343,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-05
+      - validation-14
     status: active
     tags:
       - boundary
@@ -388,6 +389,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-10
+      - validation-15
     status: active
     tags:
       - boundary
@@ -508,7 +510,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-d852c3a186
+    id: r-d93da1a58b
     placements:
       - headingPath: &ref_9
           - AIDX - Deterministic Execution Engine
@@ -518,10 +520,8 @@ atoms:
     probeIds:
       - train-14
     status: active
-    tags:
-      - boundary
-      - rule_meaning
-    textSha256: d852c3a18661497cbebaf5598097aa12cdee34624e8a51c91c80b50ba9334dc0
+    tags: []
+    textSha256: d93da1a58bcc7d2de4b1c1a6833b912dd499d699c898c2c565f75832f2d17706
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -580,6 +580,18 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: 3306609aa004abe5ba5718496810c678f402b42d47a5d12d79c6d66ba9140a73
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-82504fe480
+    placements:
+      - headingPath: *ref_9
+    precedence: 0
+    probeIds:
+      - validation-16
+    status: active
+    tags: []
+    textSha256: 82504fe48055e5c957b80c97423bdf6496777f5c0a68d0b5805df3f31742b6d8
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -644,6 +656,18 @@ atoms:
       - boundary
       - rule_meaning
     textSha256: 00c0742a8b9249c012c2bd49cd25166f5542bdfd2e381a9540a06f3cbe509641
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f28723efc0
+    placements:
+      - headingPath: *ref_11
+    precedence: 0
+    probeIds:
+      - validation-17
+    status: active
+    tags: []
+    textSha256: f28723efc07599d787c396c6fd88283931fced8e24d40dfc2a34fdf52a641951
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -769,6 +793,22 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: 98aae0f2f15e10ad731d2ec651bd5c47ed6ceb109da76a3afcee47295d48784a
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-d852c3a186
+    placements:
+      - headingPath:
+          - AIDX - Deterministic Execution Engine
+          - 5. Ordered Execution Chain
+          - Completed-plan retirement
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - rule_meaning
+    textSha256: d852c3a18661497cbebaf5598097aa12cdee34624e8a51c91c80b50ba9334dc0
 description: >-
   Rule atoms placed in skills/aidx/SKILL.md; derived from comprehension probe
   evidence.
@@ -826,10 +866,10 @@ Atoms for `skills/aidx/SKILL.md`.
 | `r-fefdf0e8da` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Role routing during execution | 1 |
 | `r-24003092f2` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Role routing during execution | 1 |
 | `r-b533bf426d` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Role routing during execution | 1 |
-| `r-2f042b3b98` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Role routing during execution | 1 |
+| `r-2f042b3b98` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Role routing during execution | 2 |
 | `r-5d4577495c` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Role routing during execution | 1 |
 | `r-748efa4c23` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Phase checkpoints and resume | 1 |
-| `r-d6ac57a2a7` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Phase checkpoints and resume | 1 |
+| `r-d6ac57a2a7` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Phase checkpoints and resume | 2 |
 | `r-4d776a64b5` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Phase checkpoints and resume | 1 |
 | `r-451dd00b21` | AIDX - Deterministic Execution Engine > 3. Immutable Operational Rules > Phase checkpoints and resume | 1 |
 | `r-a683cc134b` | AIDX - Deterministic Execution Engine > 4. Input & Context Schema | 1 |
@@ -837,15 +877,17 @@ Atoms for `skills/aidx/SKILL.md`.
 | `r-36ba82026c` | AIDX - Deterministic Execution Engine > 4. Input & Context Schema | 1 |
 | `r-4dd6bf7887` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain | 1 |
 | `r-10efbc59b8` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain | 1 |
-| `r-d852c3a186` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
+| `r-d93da1a58b` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-acd340f3b2` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-1843977fc8` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-4e4ce49a29` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-3306609aa0` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
+| `r-82504fe480` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-4f1c4361ef` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-5e700cc586` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-c3e21b4802` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-00c0742a8b` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
+| `r-f28723efc0` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-9d04b66c47` | AIDX - Deterministic Execution Engine > 5. Ordered Execution Chain > Completed-plan retirement | 1 |
 | `r-51967b2482` | AIDX - Deterministic Execution Engine > 6. Output & Completion Contract | 1 |
 | `r-dffa5d87a5` | AIDX - Deterministic Execution Engine > 6. Output & Completion Contract | 1 |

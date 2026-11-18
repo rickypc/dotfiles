@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, expect, mock, test } from 'bun:test';
-
 import {
   BENCH_COLUMNS,
   benchmarkModel,
@@ -7,6 +6,7 @@ import {
   cliBoundaries,
   consumeChunk,
   consumeLines,
+  createCommand,
   errorDetail,
   errorMessageFrom,
   failureFor,
@@ -18,20 +18,19 @@ import {
   parsedMessage,
   payloadFor,
   pendingResultFor,
-  processExitCode,
   promptFrom,
   readDrain,
   readEnv,
   readLog,
   recordChunk,
-  run,
+  renderBenchTable,
   runBenchmark,
-  runCli,
   splitList,
   thinkingModelsFrom,
   uniqueList,
-  usage,
 } from '../../scripts/model-check.js';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 
 const ENV: ModelCheckEnv = {
   API_KEY: 'test-key',
@@ -43,6 +42,18 @@ const ENV: ModelCheckEnv = {
 
 const NO_ENV: ModelCheckEnv = {};
 
+const exec = async (args: readonly string[], command = createCommand()) => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  return { code: await runCommand(command, args, context), out };
+};
+
 let clock = 0;
 const boundaries = (
   overrides: Partial<ModelCheckBoundaries> = {},
@@ -50,22 +61,17 @@ const boundaries = (
   readonly boundaries: ModelCheckBoundaries;
   readonly log: ReturnType<typeof mock>;
   readonly error: ReturnType<typeof mock>;
-  readonly exit: ReturnType<typeof mock>;
-  readonly table: ReturnType<typeof mock>;
   readonly clearTimeout: ReturnType<typeof mock>;
   readonly setTimeout: ReturnType<typeof mock>;
   readonly fetch: ReturnType<typeof mock>;
 } => {
   const log = mock((_message: string) => undefined);
   const error = mock((_message: string) => undefined);
-  const exit = mock((_code: number) => undefined);
-  const table = mock((_rows: readonly unknown[]) => undefined);
   const clearTimeout = mock((_timer: unknown) => undefined);
   const setTimeout = mock((_handler: () => void, _ms: number) => 1 as never);
   const made: ModelCheckBoundaries = {
     clearTimeout,
     error,
-    exit,
     fetch: mock((_url: string, _init: RequestInit) =>
       Promise.resolve(new Response('unused', { status: 200 })),
     ),
@@ -73,18 +79,15 @@ const boundaries = (
     now,
     random: () => 0,
     setTimeout,
-    table,
     ...overrides,
   };
   return {
     boundaries: made,
     clearTimeout,
     error,
-    exit,
     fetch: made.fetch as ReturnType<typeof mock>,
     log,
     setTimeout,
-    table,
   };
 };
 
@@ -162,8 +165,8 @@ afterEach(() => {
   mock.restore();
 });
 
-test('exposes a generic usage contract that names no vendor or product', () => {
-  const text = usage();
+test('exposes a generic usage contract that names no vendor or product', async () => {
+  const text = (await exec(['--help'])).out[0] ?? '';
   expect(text).toContain('scripts/model-check.ts');
   expect(text).not.toContain('NIM');
   expect(text).not.toContain('nim');
@@ -524,86 +527,73 @@ test('benchmarks every configured model and reports one row per model', async ()
       Promise.resolve(streamResponse('data: {"choices":[{"delta":{"content":"Pong"}}]}\n')),
     ),
   });
-  await expect(runBenchmark(ENV, made.boundaries)).resolves.toBe(0);
+  const rows = await runBenchmark(ENV, made.boundaries);
   expect(made.fetch).toHaveBeenCalledTimes(2);
-  const rows = made.table.mock.calls[0]?.[0] as unknown as readonly Record<string, unknown>[];
   expect(rows).toHaveLength(2);
   expect(rows.map((row) => row['Model Name']).sort()).toEqual(['model-a', 'model-b']);
-  expect(made.log).toHaveBeenCalledWith('\n🚀 Initializing benchmark across 2 endpoint targets...');
-  expect(made.log).toHaveBeenCalledWith('📝 Using prompt: "Say hi."\n');
+  expect(made.log).toHaveBeenCalledWith('\nInitializing benchmark across 2 endpoint targets...');
+  expect(made.log).toHaveBeenCalledWith('Using prompt: "Say hi."\n');
 });
 
 test('fails the benchmark before making a request when configuration is missing', async () => {
   const made = boundaries();
-  await expect(runBenchmark(NO_ENV, made.boundaries)).resolves.toBe(1);
-  expect(made.fetch).not.toHaveBeenCalled();
-  expect(made.table).not.toHaveBeenCalled();
-  expect(made.error).toHaveBeenCalledWith(
-    '❌ Error: MODELS, API_URL, API_KEY is missing. Missing endpoint configuration; check the .env file for this project.',
+  await expect(runBenchmark(NO_ENV, made.boundaries)).rejects.toThrow(
+    'Error: MODELS, API_URL, API_KEY is missing. Missing endpoint configuration; check the .env file for this project.',
   );
-});
-
-test('routes a benchmark failure through the CLI exit boundary only when main', async () => {
-  const made = boundaries();
-  await runCli(false, made.boundaries, ENV);
-  expect(made.exit).not.toHaveBeenCalled();
   expect(made.fetch).not.toHaveBeenCalled();
-
-  const ok = boundaries({
-    fetch: mock(() =>
-      Promise.resolve(streamResponse('data: {"choices":[{"delta":{"content":"Pong"}}]}\n')),
-    ),
-  });
-  await runCli(true, ok.boundaries, ENV);
-  expect(ok.exit).toHaveBeenCalledWith(0);
-
-  const bad = boundaries();
-  await runCli(true, bad.boundaries, NO_ENV);
-  expect(bad.exit).toHaveBeenCalledWith(1);
 });
 
-test('routes the run entrypoint through the help route and the benchmark route', async () => {
-  const helped = boundaries();
-  await run(['--help'], helped.boundaries, ENV);
-  expect(helped.log).toHaveBeenCalledWith(usage());
-  expect(helped.exit).not.toHaveBeenCalled();
-  expect(helped.fetch).not.toHaveBeenCalled();
-
-  const short = boundaries();
-  await run(['-h'], short.boundaries, ENV);
-  expect(short.log).toHaveBeenCalledWith(usage());
-  expect(short.fetch).not.toHaveBeenCalled();
-
+test('runs the benchmark command, printing the rows as the envelope data', async () => {
   const ran = boundaries({
     fetch: mock(() =>
       Promise.resolve(streamResponse('data: {"choices":[{"delta":{"content":"Pong"}}]}\n')),
     ),
   });
-  await expect(run([], ran.boundaries, ENV)).resolves.toBe(0);
+  const { code, out } = await exec([], createCommand({ boundaries: ran.boundaries, env: ENV }));
+  expect(code).toBe(0);
   expect(ran.fetch).toHaveBeenCalledTimes(2);
-  expect(ran.exit).toHaveBeenCalledWith(0);
+  expect(JSON.parse(out[0] ?? '').data).toHaveLength(2);
+});
+
+test('renders the rows as a text table', async () => {
+  const ran = boundaries({
+    fetch: mock(() =>
+      Promise.resolve(streamResponse('data: {"choices":[{"delta":{"content":"Pong"}}]}\n')),
+    ),
+  });
+  const { out } = await exec(
+    ['--format', 'text'],
+    createCommand({ boundaries: ran.boundaries, env: ENV }),
+  );
+  expect(out[0]?.split('\n')[0]).toBe(BENCH_COLUMNS.join(' | '));
+  expect(out[0]).toContain('model-a');
+  expect(renderBenchTable([])).toBe(BENCH_COLUMNS.join(' | '));
+});
+
+test('maps missing configuration to exit 1 without a request', async () => {
+  const made = boundaries();
+  const { code, out } = await exec([], createCommand({ boundaries: made.boundaries, env: NO_ENV }));
+  expect(code).toBe(1);
+  expect(made.fetch).not.toHaveBeenCalled();
+  expect(JSON.parse(out[0] ?? '').diagnostics[0]).toContain('MODELS, API_URL, API_KEY is missing');
+});
+
+test('rejects arguments with usage exit 2 and answers --help without a request', async () => {
+  const made = boundaries();
+  const command = createCommand({ boundaries: made.boundaries, env: ENV });
+  expect((await exec(['unexpected'], command)).code).toBe(2);
+  expect((await exec(['-h'], command)).code).toBe(0);
+  expect(made.fetch).not.toHaveBeenCalled();
 });
 
 test('falls back to the default boundaries and environment when none are supplied', async () => {
-  const logged = mock((_message: string) => undefined);
-  const originalLog = console.log;
-  console.log = logged as unknown as typeof console.log;
-  try {
-    await expect(run(['--help'])).resolves.toBe(0);
-    expect(logged).toHaveBeenCalledWith(usage());
-  } finally {
-    console.log = originalLog;
-  }
+  expect((await exec(['--help'], createCommand())).code).toBe(0);
 });
 
 test('writes a diagnostic through the injected writer and exposes default boundaries', () => {
   const writer = mock((_message: string) => undefined);
   expect(readLog('hello', writer)).toBeUndefined();
   expect(writer).toHaveBeenCalledWith('hello');
-
-  const target: { exitCode?: number | string | null } = {};
-  processExitCode(3, target);
-  expect(target.exitCode).toBe(3);
 
   const sent = mock((_url: string, _init: RequestInit) =>
     Promise.resolve(new Response('ok', { status: 200 })),
@@ -619,10 +609,8 @@ test('writes a diagnostic through the injected writer and exposes default bounda
   expect(out.error).toHaveBeenCalledWith('bad');
   expect(made.now()).toBeGreaterThanOrEqual(0);
   expect(made.random()).toBeLessThan(1);
-  expect(made.exit).toBe(processExitCode);
   expect(made.setTimeout).toBe(setTimeout);
   expect(made.clearTimeout).toBe(clearTimeout);
-  expect(made.table).toBe(console.table);
   expect(made.random).toBe(Math.random);
 });
 

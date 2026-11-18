@@ -1,5 +1,7 @@
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import type { CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
 import type { FileSystem } from '../utils/filesystem.js';
 import { nodeFileSystem, writeText } from '../utils/filesystem.js';
 
@@ -9,10 +11,6 @@ export interface JsonPathApi {
   readonly resolve: (...paths: readonly string[]) => string;
 }
 
-export interface WriteJsonCliDependencies extends WriteJsonDependencies {
-  readonly readInput: () => Promise<string>;
-}
-
 export interface WriteJsonDependencies {
   readonly fileSystem: FileSystem;
   readonly pathApi: JsonPathApi;
@@ -20,18 +18,10 @@ export interface WriteJsonDependencies {
   readonly writeText: (fileSystem: FileSystem, path: string, content: string) => Promise<void>;
 }
 
-type WriteJsonRunner = typeof run;
-
 const isWithinRoot = (pathApi: JsonPathApi, root: string, candidate: string): boolean => {
   const relative = pathApi.relative(root, candidate);
   return relative === '' || (!relative.startsWith('..') && !pathApi.isAbsolute(relative));
 };
-
-export const readStdin = async (input: BodyInit = Bun.stdin): Promise<string> =>
-  new Response(input).text();
-
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>';
 
 export const writeJson = async (
   outputPath: string,
@@ -63,45 +53,29 @@ export const writeJson = async (
   );
 };
 
-const defaultDependencies: WriteJsonCliDependencies = {
+const defaultDependencies: WriteJsonDependencies = {
   fileSystem: nodeFileSystem,
   pathApi: path,
-  readInput: () => readStdin(),
   temporaryRoot: tmpdir(),
   writeText,
 };
 
-export const run = async (
-  args: readonly string[],
-  dependencies: WriteJsonCliDependencies = defaultDependencies,
-): Promise<void> => {
-  if (args.length !== 1) {
-    throw new Error(usage());
-  }
-  await writeJson(args[0], await dependencies.readInput(), dependencies);
-};
-
-const defaultWriteJsonRunner: WriteJsonRunner = run;
-
-export const processExit = {
-  setExitCode: (code: number, target: { exitCode?: number | string | null } = process): void => {
-    target.exitCode = code;
+export const createCommand = (
+  dependencies: WriteJsonDependencies = defaultDependencies,
+): CommandDeclaration<{ readonly path: string }> => ({
+  arity: [1, 1],
+  positionals: '<absolute-json-output-path>',
+  renderText: (data) => data.path,
+  run: async (input, context) => {
+    const outputPath = input.positionals[0] ?? '';
+    await writeJson(outputPath, await context.readStdin(), dependencies);
+    return { path: dependencies.pathApi.resolve(outputPath) };
   },
-};
+  script: 'scripts/write-json.ts',
+  summary:
+    'Validate JSON read from stdin and write it pretty-printed inside the operating-system temporary directory.',
+});
 
-export const runCli = async (
-  args: readonly string[],
-  runner: WriteJsonRunner = defaultWriteJsonRunner,
-  setExitCode: (code: number) => void = (code) => processExit.setExitCode(code),
-): Promise<void> => {
-  if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')) {
-    console.log(usage());
-    return;
-  }
-  await runner(args).catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : String(error));
-    setExitCode(1);
-  });
-};
+export const command = createCommand();
 
-void (import.meta.main ? runCli(Bun.argv.slice(2)) : undefined);
+void runMain(command, import.meta.main);

@@ -2,13 +2,14 @@ import { expect, mock, test } from 'bun:test';
 
 import {
   clockFor,
+  command,
+  createCommand,
   defaultDependencies,
   digestFor,
-  run,
-  runWhenMain,
-  usage,
   validateCompression,
 } from '../../scripts/md-compress.js';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 
 const dependencies = (source = 'Original `token`.') => {
   const writes = new Map<string, string>();
@@ -43,6 +44,28 @@ const dependencies = (source = 'Original `token`.') => {
     removed,
     writes,
   };
+};
+
+const run = async (
+  args: readonly string[],
+  write: (message: string) => void = () => undefined,
+  injected?: Parameters<typeof createCommand>[0],
+): Promise<number> => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  const code = await runCommand(createCommand(injected), args, context);
+  const envelope = JSON.parse(out[0] ?? '{}');
+  if (code !== 0) {
+    throw new Error(envelope.diagnostics[0]);
+  }
+  write(JSON.stringify(envelope.data));
+  return code;
 };
 
 test('begins a temporary guarded transaction and returns its finalize action', async () => {
@@ -92,7 +115,8 @@ test('builds default dependencies from injected external boundaries', async () =
 });
 
 test('rejects invalid command shapes and lost protected tokens', async () => {
-  await expect(run([])).rejects.toThrow(usage());
+  await expect(run([])).rejects.toThrow('Expected one of: begin, finalize, guard');
+  await expect(run(['begin'])).rejects.toThrow('<markdown-path>');
   const { dependencies: injected, writes } = dependencies('Candidate text.');
   writes.set('/tmp/md-compress/hash/plan.md.original', 'Original `token`.');
   await expect(run(['finalize', '/docs/plan.md'], mock(), injected)).rejects.toThrow(
@@ -195,11 +219,35 @@ test('rejects a non-object removal authorization', async () => {
   ).rejects.toThrow('JSON object');
 });
 
-test.each([
-  [false, 0],
-  [true, 1],
-])('runs CLI work only when the script is main', (isMain, calls) => {
-  const runner = mock(async () => undefined);
-  void runWhenMain(isMain, ['begin', '/docs/plan.md'], runner);
-  expect(runner).toHaveBeenCalledTimes(calls);
+test('answers --help with every subcommand', async () => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  expect(await runCommand(command, ['--help'], context)).toBe(0);
+  expect(out[0]).toContain('md-compress.ts finalize');
+});
+
+test('renders the receipt as one JSON line with --format text', async () => {
+  const { dependencies: injected } = dependencies();
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  expect(
+    await runCommand(
+      createCommand(injected),
+      ['begin', '/docs/plan.md', '--format', 'text'],
+      context,
+    ),
+  ).toBe(0);
+  expect(JSON.parse(out[0] ?? '').next.action).toBe('edit-markdown-then-finalize');
 });

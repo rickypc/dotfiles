@@ -1,4 +1,6 @@
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import type { CommandBody, CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
+import { UsageError } from '../utils/cli/usage-error.js';
 
 export interface ClaimSource {
   readonly author: string;
@@ -73,6 +75,22 @@ export const canSupportClaim = (source: ClaimSource): boolean =>
   && Boolean(source.publisher.trim())
   && Boolean(source.date.trim());
 
+const parseJson = (text: string): unknown => {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new UsageError('Claim source must be valid JSON.');
+  }
+};
+
+const jsonBody = (summary: string, run: (value: unknown) => string): CommandBody<string> => ({
+  arity: [1, 1],
+  positionals: '<json>',
+  renderText: (text) => text,
+  run: (input) => run(parseJson(input.positionals[0] ?? '')),
+  summary,
+});
+
 export const renderQuotation = (quotation: Quotation): string => {
   if (!quotation.original) {
     throw new Error('A quotation must preserve the original text.');
@@ -91,9 +109,6 @@ export const requiresQuotationClarification = (
   quotation: Quotation,
   audienceNeedsTransliteration: boolean | undefined,
 ): boolean => Boolean(quotation.translation) && audienceNeedsTransliteration === undefined;
-
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/content-writer.ts <outline|validate-draft|validate-source> <json>';
 
 export const validateClaimSources = (sources: readonly ClaimSource[]): void => {
   if (sources.length === 0 || sources.some((source) => !canSupportClaim(source))) {
@@ -163,35 +178,24 @@ export const validateContentPackage = (content: ContentPackage): void => {
   }
 };
 
-export const run = (
-  args: readonly string[],
-  write: (message: string) => void = console.log,
-): void => {
-  const [command, sourceJson] = args;
-  if (!sourceJson || args.length !== 2) {
-    throw new Error(usage());
-  }
-  let value: unknown;
-  try {
-    value = JSON.parse(sourceJson) as unknown;
-  } catch {
-    throw new Error('Claim source must be valid JSON.');
-  }
-  if (command === 'outline') {
-    write(renderContentOutline(value as ContentBrief));
-    return;
-  }
-  if (command === 'validate-draft') {
-    validateContentPackage(value as ContentPackage);
-    write(`content-draft: ${(value as ContentPackage).result}`);
-    return;
-  }
-  if (command !== 'validate-source' || !canSupportClaim(value as ClaimSource)) {
-    throw new Error('Claim source is not admissible.');
-  }
-  write('claim-source: passed');
+export const command: CommandDeclaration<string> = {
+  commands: {
+    outline: jsonBody('Render a content outline from a brief.', (value) =>
+      renderContentOutline(value as ContentBrief),
+    ),
+    'validate-draft': jsonBody('Validate a complete content package.', (value) => {
+      validateContentPackage(value as ContentPackage);
+      return `content-draft: ${(value as ContentPackage).result}`;
+    }),
+    'validate-source': jsonBody('Check that a claim source is admissible.', (value) => {
+      if (!canSupportClaim(value as ClaimSource)) {
+        throw new Error('Claim source is not admissible.');
+      }
+      return 'claim-source: passed';
+    }),
+  },
+  script: 'scripts/content-writer.ts',
+  summary: 'Outline and validate research-backed content with admissible sources.',
 };
 
-export const runWhenMain = runCliWhenMain;
-
-void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runMain(command, import.meta.main);

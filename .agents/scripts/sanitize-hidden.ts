@@ -69,13 +69,23 @@
 
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { argv, cwd, exit } from 'node:process';
+import { cwd } from 'node:process';
+import type { CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
+import { UsageError } from '../utils/cli/usage-error.js';
 
-interface ArgState {
-  concurrency: number;
-  dryRun: boolean;
-  help: boolean;
-  rootArg?: string;
+export interface SanitizeDependencies {
+  readonly cwd: () => string;
+  readonly scan: typeof sanitizeTree;
+}
+
+export interface SanitizeReport {
+  readonly changed: number;
+  readonly concurrency: number;
+  readonly dryRun: boolean;
+  readonly files: readonly { readonly bytes: number; readonly file: string }[];
+  readonly root: string;
+  readonly totalBytes: number;
 }
 
 const BINARY_EXTS = new Set([
@@ -132,25 +142,8 @@ const BINARY_EXTS = new Set([
   '.zip',
 ]);
 
-const CONCURRENCY_REGEX = /^--concurrency=(\d+)$/;
-
 // biome-ignore lint/suspicious/noControlCharactersInRegex: Unicode escapes in regex are intentional for control character matching
 const CONTROL_RE = /[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
-
-const FLAG_ACTIONS: Record<string, (state: ArgState) => void> = {
-  '--dry-run': (state) => {
-    state.dryRun = true;
-  },
-  '--help': (state) => {
-    state.help = true;
-  },
-  '--write': (state) => {
-    state.dryRun = false;
-  },
-  '-h': (state) => {
-    state.help = true;
-  },
-};
 
 const MAX_FILE_BYTES = 16 * 1024 * 1024; // 16 MB
 
@@ -184,32 +177,6 @@ const REPLACE_MAP = {
 
 const SINHALA_RE = /[\u0D80-\u0DFF]/;
 
-const USAGE = `sanitize-hidden.ts [directory] [--dry-run] [--write] [--concurrency=16]
-
-  directory        root to scan (default: current working directory)
-  --dry-run        preview changes without writing (default)
-  --write          apply changes in place (required to modify files)
-  --concurrency=N  parallel workers (default: 16)
-  --help, -h       print this usage and exit`;
-
-function applyArg(state: ArgState, arg: string): void {
-  const action = FLAG_ACTIONS[arg];
-  if (action) {
-    action(state);
-    return;
-  }
-  if (arg.startsWith('--concurrency=')) {
-    const match = arg.match(CONCURRENCY_REGEX);
-    if (match) {
-      state.concurrency = Math.max(1, parseInt(match[1], 10));
-    }
-    return;
-  }
-  if (state.rootArg === undefined && !arg.startsWith('-')) {
-    state.rootArg = arg;
-  }
-}
-
 /**
  * Content-level binary guard. A file is treated as binary when it contains a NUL byte or when
  * decoding it as UTF-8 does not round-trip byte-for-byte (invalid UTF-8). This catches images,
@@ -221,24 +188,6 @@ export function isBinaryBuffer(buf: Uint8Array): boolean {
   }
   const decoded = Buffer.from(buf).toString('utf8');
   return !Buffer.from(decoded, 'utf8').equals(Buffer.from(buf));
-}
-
-export function parseArgs(): {
-  concurrency: number;
-  dryRun: boolean;
-  help: boolean;
-  root: string;
-} {
-  const state: { concurrency: number; dryRun: boolean; help: boolean; rootArg?: string } = {
-    concurrency: 16,
-    dryRun: true,
-    help: false,
-  };
-  for (const arg of argv.slice(2)) {
-    applyArg(state, arg);
-  }
-  const root = state.rootArg === undefined ? resolve(cwd()) : resolve(state.rootArg);
-  return { concurrency: state.concurrency, dryRun: state.dryRun, help: state.help, root };
 }
 
 export function sanitizeText(input: string): string {
@@ -403,6 +352,27 @@ export async function* walk(dir: string): AsyncGenerator<string> {
   await proc.exited;
 }
 
+const concurrencyOf = (value: unknown): number => {
+  if (value === undefined) {
+    return 16;
+  }
+  if (typeof value !== 'string' || !/^\d+$/u.test(value)) {
+    throw new UsageError('--concurrency must be a whole number.');
+  }
+  return Math.max(1, Number.parseInt(value, 10));
+};
+
+export const renderReport = (report: SanitizeReport): string =>
+  [
+    `[sanitize] root=${report.root} dry-run=${report.dryRun} concurrency=${report.concurrency}`,
+    ...(report.dryRun ? [] : ['[sanitize] WRITE mode - files will be modified in place']),
+    report.dryRun
+      ? `\n[sanitize] dry-run - ${report.changed} file(s) would change, ~${report.totalBytes} bytes removed:`
+      : `\n[sanitize] ${report.changed} file(s) changed, ~${report.totalBytes} bytes removed:`,
+    ...report.files.map(({ bytes, file }) => `  ${file}  (-${bytes} bytes)`),
+    ...(report.changed === 0 ? ['  (no changes needed - all clean)'] : []),
+  ].join('\n');
+
 export async function runPool<T>(
   gen: AsyncGenerator<string>,
   concurrency: number,
@@ -434,42 +404,57 @@ export async function runPool<T>(
   return results;
 }
 
-export async function main(): Promise<void> {
-  const { root, dryRun, concurrency, help } = parseArgs();
-  if (help) {
-    console.log(USAGE);
-    return;
-  }
-  console.log(`[sanitize] root=${root} dry-run=${dryRun} concurrency=${concurrency}`);
-  if (!dryRun) {
-    console.log('[sanitize] WRITE mode - files will be modified in place');
-  }
+export const sanitizeTree = async (
+  root: string,
+  dryRun: boolean,
+  concurrency: number,
+): Promise<SanitizeReport> => {
+  const all = await runPool(walk(root), concurrency, (file) => sanitizeFile(file, dryRun));
+  const results = all.filter((result) => result.changed);
+  const prefix = `${root}/`;
+  return {
+    changed: results.length,
+    concurrency,
+    dryRun,
+    files: results.map((result) => ({
+      bytes: result.bytes,
+      file: result.file.startsWith(prefix) ? result.file.slice(prefix.length) : result.file,
+    })),
+    root,
+    totalBytes: results.reduce((sum, result) => sum + result.bytes, 0),
+  };
+};
 
-  const gen = walk(root);
-  const all = await runPool(gen, concurrency, (f) => sanitizeFile(f, dryRun));
-  const results = all.filter((r) => r.changed);
+export const createCommand = (
+  overrides: Partial<SanitizeDependencies> = {},
+): CommandDeclaration<SanitizeReport> => {
+  const dependencies = { cwd, scan: sanitizeTree, ...overrides };
+  return {
+    arity: [0, 1],
+    options: {
+      concurrency: { description: 'Parallel workers (default 16).', type: 'string', value: 'n' },
+      'dry-run': { description: 'Preview changes without writing (default).', type: 'boolean' },
+      write: { description: 'Apply changes in place (required to modify files).', type: 'boolean' },
+    },
+    positionals: '[directory]',
+    renderText: renderReport,
+    run: (input) => {
+      if (input.values.write === true && input.values['dry-run'] === true) {
+        throw new UsageError('Pass either --write or --dry-run, not both.');
+      }
+      const root = resolve(input.positionals[0] ?? dependencies.cwd());
+      return dependencies.scan(
+        root,
+        input.values.write !== true,
+        concurrencyOf(input.values.concurrency),
+      );
+    },
+    script: 'scripts/sanitize-hidden.ts',
+    summary:
+      'Strip zero-width, soft-hyphen, BOM, odd-dash, and stale control characters; a dry run unless --write is given.',
+  };
+};
 
-  const changed = results.length;
-  const totalBytes = results.reduce((s, r) => s + r.bytes, 0);
-  const rootLen = root.length + 1;
+export const command = createCommand();
 
-  if (dryRun) {
-    console.log(
-      `\n[sanitize] dry-run - ${changed} file(s) would change, ~${totalBytes} bytes removed:`,
-    );
-  } else {
-    console.log(`\n[sanitize] ${changed} file(s) changed, ~${totalBytes} bytes removed:`);
-  }
-  for (const r of results) {
-    const rel = r.file.startsWith(`${root}/`) ? r.file.slice(rootLen) : r.file;
-    console.log(`  ${rel}  (-${r.bytes} bytes)`);
-  }
-  if (changed === 0) {
-    console.log('  (no changes needed - all clean)');
-  }
-}
-
-main().catch((err) => {
-  console.error('[sanitize] fatal:', err);
-  exit(1);
-});
+void runMain(command, import.meta.main);

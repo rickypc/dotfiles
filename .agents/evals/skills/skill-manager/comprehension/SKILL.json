@@ -460,6 +460,48 @@
       "id": "validation-23",
       "query": "For a global document with calibrated atoms, an edit loses a train probe that is not a core probe. When is the edit accepted?\nA) Never; any lost train probe always rejects\nB) Always, because it is not a core probe\nC) Only with `--rebaseline` and a written reason\nD) Only with `--allow-swap` and when the edit gains at least as many probes as it loses",
       "split": "validation"
+    },
+    {
+      "evidence": "`challenge` is not allowed for `batch`.",
+      "expected": "A",
+      "id": "validation-24",
+      "query": "You want to evaluate several skill targets at once with the batch route and run the challenge phase. What happens?\nA) Not allowed; batch accepts only baseline or candidate\nB) Allowed, since batch accepts all three phases\nC) Allowed only when a review id is supplied\nD) Allowed only for instruction documents",
+      "split": "validation"
+    },
+    {
+      "evidence": "Otherwise restore the baseline snapshot.",
+      "expected": "B",
+      "id": "validation-25",
+      "query": "After editing a skill, the train measure gate does not return accepted. What must you do with the edit?\nA) Keep it and hand-edit the ledger to mark it accepted\nB) Restore the baseline snapshot\nC) Keep it if one query newly passes\nD) Rerun the same measurement until it passes",
+      "split": "validation"
+    },
+    {
+      "evidence": "The `description` field owns activation; `argument-hint` does not control activation.",
+      "expected": "B",
+      "id": "validation-26",
+      "query": "Which skill frontmatter field decides whether the skill activates?\nA) `argument-hint`\nB) `description`\nC) A separate `trigger` field\nD) The skill's directory name",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not use in-session child agents as a Gemma substitute; child-agent answers do not replace the Gemma reader.",
+      "expected": "D",
+      "id": "validation-27",
+      "query": "No GPU is available in the sandbox for the weak reader. May you have fresh child agents answer the probes in its place?\nA) Yes, if they answer blind\nB) Yes, if three of them agree\nC) Yes, but only for held-out probes\nD) No; child-agent answers do not replace the Gemma reader",
+      "split": "validation"
+    },
+    {
+      "evidence": "Require that receipt before continuing; never skip the guard because the pass is read-only.",
+      "expected": "C",
+      "id": "validation-28",
+      "query": "You only need to read a Markdown file in the review set and will not edit it. What is required?\nA) Nothing, since it is read-only\nB) A begin and finalize transaction\nC) The guard command and its guarded receipt\nD) A comprehension set for the file",
+      "split": "validation"
+    },
+    {
+      "evidence": "If a Markdown guard or finalization fails, preserve the backup and lock.",
+      "expected": "D",
+      "id": "validation-29",
+      "query": "A Markdown finalization fails midway. What do you do with its backup and lock?\nA) Discard both and start a replacement transaction\nB) Edit the backup by hand to match the source\nC) Remove only the lock and retry\nD) Preserve both, and search recovery knowledge for the exact error",
+      "split": "validation"
     }
   ],
   "runs_per_query": 3,

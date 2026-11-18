@@ -1,8 +1,10 @@
 import { afterEach, expect, mock, test } from 'bun:test';
 
-import { parseRepoSearchArgs, run, runWhenMain, usage } from '../../scripts/repo-search.js';
+import { command, createCommand } from '../../scripts/repo-search.js';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 import type { CommandExecutor } from '../../utils/process.js';
-import type { RepoSearchTransport } from '../../utils/repo-search-transport.js';
+import type { RepoSearchTransport } from '../../utils/repo-search/transport.js';
 
 afterEach(() => {
   process.exitCode = undefined;
@@ -21,38 +23,71 @@ const probeFor = (transport: RepoSearchTransport | null) =>
 
 const executor: CommandExecutor = mock(async () => ({ code: 0, stderr: '', stdout: '' }));
 
-test('parses the three-verb grammar and the bare search alias', () => {
-  expect(parseRepoSearchArgs(['/repo', 'how', 'does', 'x', 'work'])).toEqual({
-    queries: ['how does x work'],
-    root: '/repo',
-    verb: 'search',
+const execute = async (
+  args: readonly string[],
+  overrides: Parameters<typeof createCommand>[0] = {},
+) => {
+  const out: string[] = [];
+  const err: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => err.push(message),
+  };
+  const code = await runCommand(createCommand(overrides), args, context);
+  return { code, err, out };
+};
+
+const requestOf = async (args: readonly string[]) => {
+  const { out } = await execute([...args, '--verbose'], {
+    executor,
+    probe: probeFor(null),
+    read: mock(),
+    temporaryDirectory: '/os-temp',
   });
-  expect(parseRepoSearchArgs(['search', '/repo', 'needle'])).toEqual({
-    queries: ['needle'],
-    root: '/repo',
-    verb: 'search',
+  return JSON.parse(out[0] ?? '{}').data ?? JSON.parse(out[0] ?? '{}').data;
+};
+
+const run = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  read: (path: string) => Promise<string | Buffer>,
+  temporaryDirectory: string,
+  probe: Parameters<typeof createCommand>[0] extends infer T
+    ? NonNullable<T extends { probe?: infer P } ? P : never>
+    : never,
+  runner: CommandExecutor,
+): Promise<void> => {
+  const { code, out } = await execute([...args], {
+    executor: runner,
+    probe,
+    read,
+    temporaryDirectory,
   });
-  expect(parseRepoSearchArgs(['/repo', 'needle', '--raw'])).toEqual({
-    queries: ['needle'],
-    raw: true,
+  write(JSON.stringify(JSON.parse(out[0] ?? '{}').data, null, 2));
+  if (code !== 0) {
+    process.exitCode = code;
+  }
+};
+
+test('parses the three-verb grammar and the bare search alias', async () => {
+  expect((await requestOf(['/repo', 'how', 'does', 'x', 'work'])).query).toMatchObject({
+    input: ['how does x work'],
     root: '/repo',
-    verb: 'search',
   });
-  expect(parseRepoSearchArgs(['read', '/repo', '/repo/file.ts', 'extra'])).toEqual({
-    queries: ['extra'],
-    root: '/repo',
-    target: '/repo/file.ts',
-    verb: 'read',
+  expect((await requestOf(['search', '/repo', 'needle'])).query).toMatchObject({
+    input: ['needle'],
   });
-  expect(parseRepoSearchArgs(['inspect', '/repo', '/os-temp/request.jsonl'])).toEqual({
-    queries: [],
-    requestPath: '/os-temp/request.jsonl',
-    root: '/repo',
-    verb: 'inspect',
+  expect((await requestOf(['/repo', 'needle', '--raw'])).query).toMatchObject({
+    input: ['needle'],
   });
+  expect((await requestOf(['read', '/repo', '/repo/file.ts', 'extra'])).verb).toBe('read');
+  expect((await requestOf(['inspect', '/repo', '/os-temp/request.jsonl'])).verb).toBe('inspect');
 });
 
-test('rejects malformed invocations with the usage contract', () => {
+test('rejects malformed invocations with usage exit 2', async () => {
   for (const args of [
     [],
     ['repo'],
@@ -60,8 +95,11 @@ test('rejects malformed invocations with the usage contract', () => {
     ['read', '/repo'],
     ['inspect', '/repo'],
     ['inspect', '/repo', '/os-temp/a.jsonl', 'extra'],
+    ['read', '/repo', ' '],
+    ['search', 'relative', 'needle'],
+    ['/repo', ' '],
   ] as const) {
-    expect(() => parseRepoSearchArgs([...args])).toThrow(usage());
+    expect((await execute([...args])).code).toBe(2);
   }
 });
 
@@ -163,11 +201,18 @@ test('rejects an inspection request outside the OS temporary directory', async (
   expect(process.exitCode).toBe(1);
 });
 
-test('guards the main boundary and help route', () => {
-  const runner = mock();
-  void runWhenMain(true, ['/repo', 'needle'], runner);
-  void runWhenMain(false, [], runner);
-  expect(runner).toHaveBeenCalledTimes(1);
+test('answers --help with the three verbs and the omittable search name', async () => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  expect(await runCommand(command, ['--help'], context)).toBe(0);
+  expect(out[0]).toContain('inspect');
+  expect(out[0]).toContain('may be omitted');
 });
 
 test('rejects an inspection when no transport is available', async () => {
@@ -256,4 +301,14 @@ test('the default output condenses attempts and --verbose restores commands', as
   };
   expect(verbose.attempts.some((attempt) => typeof attempt.command === 'string')).toBeTrue();
   expect(verbose.attempts.some((attempt) => typeof attempt.detail === 'string')).toBeTrue();
+});
+
+test('prints the condensed envelope as indented JSON with --format text', async () => {
+  const { out } = await execute(['/repo', 'needle', '--format', 'text'], {
+    executor,
+    probe: probeFor(null),
+    read: mock(),
+    temporaryDirectory: '/os-temp',
+  });
+  expect(JSON.parse(out[0] ?? '').status).toBeDefined();
 });

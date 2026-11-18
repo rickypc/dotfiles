@@ -1,7 +1,9 @@
 import { homedir } from 'node:os';
 import { basename, resolve } from 'node:path';
 import matter from 'gray-matter';
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import type { CommandBody, CommandDeclaration, ParsedInput } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
+import { UsageError } from '../utils/cli/usage-error.js';
 import type { DirectoryEntry, FileSystem } from '../utils/filesystem.js';
 import { nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
 import type { OkfMetadata } from '../utils/okf.js';
@@ -9,16 +11,14 @@ import { parseOkfConcept, renderOkfConcept, validateOkfMetadata } from '../utils
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import { type BatchTask, runBatched } from '../utils/quality-engine/batch.js';
-import { type RepoSearchEnvelope, repoSearchDiscover } from '../utils/repo-search.js';
+import { type RepoSearchEnvelope, repoSearchDiscover } from '../utils/repo-search/index.js';
 import {
   DEVIATION_CLASSES,
   type DeltaRecord,
   deltaPathFor,
   parseDeltaRecord,
-} from './aidx-plan-delta.js';
+} from './plans/aidx-delta.js';
 import { defaultMoveSourceToTrash } from './trash.js';
-
-export { parseOkfConcept, renderOkfConcept, validateOkfMetadata };
 
 type BatchSearchDependency = typeof searchKnowledgeBaseBatch;
 
@@ -49,6 +49,16 @@ export interface KbInfo {
 export interface KnowledgeBaseBatchSearchResult {
   readonly query: string;
   readonly receipt: KnowledgeBaseSearchReceipt;
+}
+
+export interface KnowledgeBaseDependencies {
+  readonly batchSearch: BatchSearchDependency;
+  readonly capture: CaptureDependency;
+  readonly discover: DiscoverDependency;
+  readonly importer: ImportDependency;
+  readonly moveSourceToTrash: MoveSourceToTrashDependency;
+  readonly reconcile: ReconcileDependency;
+  readonly search: SearchDependency;
 }
 
 export interface KnowledgeBaseSearchReceipt {
@@ -118,6 +128,8 @@ export interface ReconciliationReceipt {
 }
 
 type SearchDependency = typeof searchKnowledgeBase;
+
+export { parseOkfConcept, renderOkfConcept, validateOkfMetadata };
 
 export const maxKnowledgeBaseBatchSize = 4;
 
@@ -352,154 +364,6 @@ export const parsePlanForImport = (content: string): PlanImportDocument => {
     sections,
     title: requiredPlanField(metadata, 'title'),
   };
-};
-
-const runBatchSearchCommand = async (
-  args: readonly string[],
-  batchSearch: typeof searchKnowledgeBaseBatch,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, kbRoot, ...queries] = args;
-  if (command !== 'search-batch' || !kbRoot || queries.length === 0) {
-    return false;
-  }
-  write(JSON.stringify(await batchSearch(nodeFileSystem, bunExecutor, kbRoot, queries), null, 2));
-  return true;
-};
-
-const runCapture = async (
-  args: readonly string[],
-  capture: typeof captureConcept,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, kbRoot, relativePath, metadataJson, body, evidence] = args;
-  if (
-    command !== 'capture'
-    || !kbRoot
-    || !relativePath
-    || !metadataJson
-    || !body
-    || !evidence
-    || args.length !== 6
-  ) {
-    return false;
-  }
-  let metadata: OkfMetadata;
-  try {
-    metadata = JSON.parse(metadataJson) as OkfMetadata;
-  } catch {
-    throw new Error('KB capture metadata must be valid JSON.');
-  }
-  write(
-    JSON.stringify(await capture(nodeFileSystem, kbRoot, relativePath, metadata, body, evidence)),
-  );
-  return true;
-};
-
-const runConceptIndex = (args: readonly string[], write: (message: string) => void): boolean => {
-  const [command, value] = args;
-  if (command !== 'concept-index' || !value || args.length !== 2 || !isKbConceptPath(value)) {
-    return false;
-  }
-  write(conceptIndexPath(value));
-  return true;
-};
-
-const runImportPlan = async (
-  args: readonly string[],
-  importer: typeof importPlan,
-  write: (message: string) => void,
-  moveSourceToTrash: (sourcePath: string) => Promise<string>,
-): Promise<boolean> => {
-  const [command, planPath, ...rest] = args;
-  const removeSource = rest.includes('--remove-source');
-  if (
-    command !== 'import-plan'
-    || !planPath
-    || rest.length > 1
-    || (rest.length === 1 && !removeSource)
-  ) {
-    return false;
-  }
-  const absolutePlanPath = resolve(process.cwd(), planPath);
-  const receipt = await importer(nodeFileSystem, privateKnowledgeBaseRoot(), absolutePlanPath);
-  const retiredTo = removeSource ? await moveSourceToTrash(absolutePlanPath) : undefined;
-  write(JSON.stringify({ ...receipt, retiredTo }, null, 2));
-  return true;
-};
-
-const runReconcile = async (
-  args: readonly string[],
-  reconcile: typeof reconcileConcepts,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, kbRoot, requestPath] = args;
-  if (
-    command !== 'reconcile'
-    || !kbRoot
-    || !requestPath
-    || !requestPath.startsWith('/')
-    || args.length !== 3
-  ) {
-    return false;
-  }
-  let plan: ReconciliationPlan;
-  try {
-    plan = JSON.parse(await readText(nodeFileSystem, requestPath)) as ReconciliationPlan;
-  } catch {
-    throw new Error('KB reconciliation request must be valid JSON.');
-  }
-  write(JSON.stringify(await reconcile(nodeFileSystem, kbRoot, plan)));
-  return true;
-};
-
-const runSearchCommand = async (
-  args: readonly string[],
-  search: typeof searchKnowledgeBase,
-  discover: typeof searchKnowledgeBaseWithFallback,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, kbRoot, ...queryParts] = args;
-  if ((command !== 'search' && command !== 'related') || !kbRoot || queryParts.length === 0) {
-    return false;
-  }
-  const query = queryParts.join(' ').trim();
-  if (!query) {
-    return false;
-  }
-  if (command === 'related') {
-    const [concepts, kbInfo] = await Promise.all([
-      search(nodeFileSystem, kbRoot, query),
-      buildKbInfo(nodeFileSystem, kbRoot),
-    ]);
-    write(JSON.stringify({ concepts, kbInfo }, null, 2));
-    return true;
-  }
-  write(JSON.stringify(await discover(nodeFileSystem, bunExecutor, kbRoot, query), null, 2));
-  return true;
-};
-
-const runReadCommand = async (
-  args: readonly string[],
-  search: typeof searchKnowledgeBase,
-  discover: typeof searchKnowledgeBaseWithFallback,
-  batchSearch: typeof searchKnowledgeBaseBatch,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, value, ...rest] = args;
-  if (command === 'validate' && value && args.length === 2) {
-    parseOkfConcept(await readText(nodeFileSystem, value));
-    write('okf: passed');
-    return true;
-  }
-  if (command === 'render-index' && value && args.length >= 2) {
-    write(renderDirectoryIndex(value, rest));
-    return true;
-  }
-  if (command === 'search' || command === 'related') {
-    return runSearchCommand(args, search, discover, write);
-  }
-  return runBatchSearchCommand(args, batchSearch, write);
 };
 
 export const scopeIndexPath = (path: string): string => {
@@ -737,9 +601,6 @@ export const searchKnowledgeBaseBatch = async (
   }));
 };
 
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search takes one KB root and a query; search-batch takes one KB root and 1-4 unique queries.';
-
 export const validateLesson = (lesson: Lesson): void => {
   for (const [name, value] of Object.entries(lesson)) {
     if (!value.trim()) {
@@ -863,39 +724,190 @@ const defaultReconcileDependency: ReconcileDependency = reconcileConcepts;
 const defaultBatchSearchDependency: BatchSearchDependency = searchKnowledgeBaseBatch;
 const defaultImportDependency: ImportDependency = importPlan;
 
-export const run = async (
-  args: readonly string[],
-  write: (message: string) => void = console.log,
-  captureFn: CaptureDependency = defaultCaptureDependency,
-  searchFn: SearchDependency = defaultSearchDependency,
-  discoverFn: DiscoverDependency = defaultDiscoverDependency,
-  reconcileFn: ReconcileDependency = defaultReconcileDependency,
-  batchSearchFn: BatchSearchDependency = defaultBatchSearchDependency,
-  importerFn: ImportDependency = defaultImportDependency,
-  moveSourceToTrashFn: MoveSourceToTrashDependency = defaultMoveSourceToTrash,
-): Promise<void> => {
-  if (await runImportPlan(args, importerFn, write, moveSourceToTrashFn)) {
-    return;
-  }
-  if (await runCapture(args, captureFn, write)) {
-    return;
-  }
-  if (await runReconcile(args, reconcileFn, write)) {
-    return;
-  }
-  if (runConceptIndex(args, write)) {
-    return;
-  }
-  if (await runReadCommand(args, searchFn, discoverFn, batchSearchFn, write)) {
-    return;
-  }
-  throw new Error(usage());
+const defaultDependencies: KnowledgeBaseDependencies = {
+  batchSearch: defaultBatchSearchDependency,
+  capture: defaultCaptureDependency,
+  discover: defaultDiscoverDependency,
+  importer: defaultImportDependency,
+  moveSourceToTrash: defaultMoveSourceToTrash,
+  reconcile: defaultReconcileDependency,
+  search: defaultSearchDependency,
 };
 
-export const runWhenMain = (
-  isMain: boolean,
-  args: readonly string[],
-  runner: typeof run,
-): unknown => runCliWhenMain(isMain, args, runner);
+const compactJson = (data: unknown): string => JSON.stringify(data);
 
-void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+const kbBody = <Data>(
+  summary: string,
+  positionals: string,
+  arity: readonly [number, number],
+  render: (data: Data) => string,
+  run: (values: readonly string[], input: ParsedInput) => Data | Promise<Data>,
+  options?: CommandBody<unknown>['options'],
+): CommandBody<unknown> => ({
+  arity,
+  ...(options ? { options } : {}),
+  positionals,
+  renderText: render as (data: unknown) => string,
+  run: (input) => run(input.positionals, input),
+  summary,
+});
+
+const parseJsonInput = (text: string, label: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new UsageError(`${label} must be valid JSON.`);
+  }
+};
+
+const plainText = (data: unknown): string => String(data);
+
+const prettyJson = (data: unknown): string => JSON.stringify(data, null, 2);
+
+const queryOf = (words: readonly string[]): string => {
+  const query = words.join(' ').trim();
+  if (!query) {
+    throw new UsageError('A non-empty query is required.');
+  }
+  return query;
+};
+
+const searchBody = (
+  dependencies: KnowledgeBaseDependencies,
+  related: boolean,
+): CommandBody<unknown> =>
+  kbBody(
+    related
+      ? 'Return the concepts related to a query together with the KB info.'
+      : 'Search the private KB, falling back to repository discovery.',
+    '<kb-root> <query...>',
+    [2, Number.POSITIVE_INFINITY],
+    prettyJson,
+    async ([kbRoot = '', ...words]) => {
+      const query = queryOf(words);
+      if (related) {
+        const [concepts, kbInfo] = await Promise.all([
+          dependencies.search(nodeFileSystem, kbRoot, query),
+          buildKbInfo(nodeFileSystem, kbRoot),
+        ]);
+        return { concepts, kbInfo };
+      }
+      return dependencies.discover(nodeFileSystem, bunExecutor, kbRoot, query);
+    },
+  );
+
+export const createCommand = (
+  overrides: Partial<KnowledgeBaseDependencies> = {},
+): CommandDeclaration<unknown> => {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  return {
+    commands: {
+      capture: kbBody(
+        'Capture one OKF concept with its evidence and refresh the indexes.',
+        '<kb-root> <relative-path> <metadata-json> <body> <evidence>',
+        [5, 5],
+        compactJson,
+        ([kbRoot = '', relativePath = '', metadataJson = '', body = '', evidence = '']) => {
+          if (![kbRoot, relativePath, metadataJson, body, evidence].every(Boolean)) {
+            throw new UsageError('Every capture argument must be non-empty.');
+          }
+          const metadata = parseJsonInput(metadataJson, 'KB capture metadata') as OkfMetadata;
+          return dependencies.capture(
+            nodeFileSystem,
+            kbRoot,
+            relativePath,
+            metadata,
+            body,
+            evidence,
+          );
+        },
+      ),
+      'concept-index': kbBody(
+        'Print the index path of one KB concept path.',
+        '<concept-path>',
+        [1, 1],
+        plainText,
+        ([value = '']) => {
+          if (!isKbConceptPath(value)) {
+            throw new UsageError(`Invalid KB concept path: ${value}`);
+          }
+          return conceptIndexPath(value);
+        },
+      ),
+      'import-plan': kbBody(
+        'Import one completed plan; --remove-source moves the source plan to ~/.Trash/ after a successful import.',
+        '<plan-path>',
+        [1, 1],
+        prettyJson,
+        async ([planPath = ''], input) => {
+          const absolutePlanPath = resolve(process.cwd(), planPath);
+          const receipt = await dependencies.importer(
+            nodeFileSystem,
+            privateKnowledgeBaseRoot(),
+            absolutePlanPath,
+          );
+          const retiredTo =
+            input.values['remove-source'] === true
+              ? await dependencies.moveSourceToTrash(absolutePlanPath)
+              : undefined;
+          return { ...receipt, retiredTo };
+        },
+        {
+          'remove-source': {
+            description: 'Move the source plan to ~/.Trash/ after a successful import.',
+            type: 'boolean',
+          },
+        },
+      ),
+      reconcile: kbBody(
+        'Reconcile a planned set of concepts from a JSON request file.',
+        '<kb-root> <absolute-request-json-path>',
+        [2, 2],
+        compactJson,
+        async ([kbRoot = '', requestPath = '']) => {
+          if (!requestPath.startsWith('/')) {
+            throw new UsageError('The reconciliation request path must be absolute.');
+          }
+          const plan = parseJsonInput(
+            await readText(nodeFileSystem, requestPath),
+            'KB reconciliation request',
+          ) as ReconciliationPlan;
+          return dependencies.reconcile(nodeFileSystem, kbRoot, plan);
+        },
+      ),
+      related: searchBody(dependencies, true),
+      'render-index': kbBody(
+        'Render a directory index for a title and its items.',
+        '<title> [item...]',
+        [1, Number.POSITIVE_INFINITY],
+        plainText,
+        ([title = '', ...items]) => renderDirectoryIndex(title, items),
+      ),
+      search: searchBody(dependencies, false),
+      'search-batch': kbBody(
+        'Search the private KB for 1-4 unique queries in one run.',
+        '<kb-root> <query...>',
+        [2, Number.POSITIVE_INFINITY],
+        prettyJson,
+        ([kbRoot = '', ...queries]) =>
+          dependencies.batchSearch(nodeFileSystem, bunExecutor, kbRoot, queries),
+      ),
+      validate: kbBody(
+        'Validate one OKF concept file.',
+        '<concept-path>',
+        [1, 1],
+        plainText,
+        async ([value = '']) => {
+          parseOkfConcept(await readText(nodeFileSystem, value));
+          return 'okf: passed';
+        },
+      ),
+    },
+    script: 'scripts/knowledge-base.ts',
+    summary: 'Private knowledge-base lookup, capture, reconciliation, and plan import.',
+  };
+};
+
+export const command = createCommand();
+
+void runMain(command, import.meta.main);

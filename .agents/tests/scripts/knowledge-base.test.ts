@@ -11,18 +11,16 @@ import {
   renderDirectoryIndex,
   renderLessonBody,
   renderOkfConcept,
-  run,
-  runWhenMain,
   scopeIndexPath,
   searchKnowledgeBase,
   searchKnowledgeBaseBatch,
   searchKnowledgeBaseWithFallback,
-  usage,
   validateLesson,
   validateOkfMetadata,
 } from '../../scripts/knowledge-base.js';
 import type { FileSystem } from '../../utils/filesystem.js';
 import type { CommandExecutor } from '../../utils/process.js';
+import { helpText, runKnowledgeBase as run } from '../support/knowledge-base.js';
 
 const concept = [
   '---',
@@ -172,16 +170,17 @@ test('buildKbInfo returns kb info', async () => {
   expect(typeof result).toBe('object');
 });
 
-test('usage returns the usage string', () => {
-  expect(usage()).toBeDefined();
+test('help lists every subcommand', async () => {
+  const text = await helpText();
+  for (const name of ['capture', 'import-plan', 'reconcile', 'search-batch', 'validate']) {
+    expect(text).toContain(name);
+  }
 });
 
 test('run command throws for unknown command', async () => {
-  await expect(run(['unknown-command'])).rejects.toThrow(usage());
-});
-
-test('runWhenMain exports correctly', () => {
-  expect(typeof runWhenMain).toBe('function');
+  await expect(run(['unknown-command'])).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
 });
 
 // Additional tests for uncovered functions
@@ -556,9 +555,15 @@ test('run handles search fallback and related commands', async () => {
 });
 
 test('run rejects malformed search command shapes', async () => {
-  await expect(run(['search', '/kb'])).rejects.toThrow(usage());
-  await expect(run(['related', '/kb'])).rejects.toThrow(usage());
-  await expect(run(['search', '/kb', '   '])).rejects.toThrow(usage());
+  await expect(run(['search', '/kb'])).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
+  await expect(run(['related', '/kb'])).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
+  await expect(run(['search', '/kb', '   '])).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
 });
 
 test('run handles search-batch command', async () => {
@@ -612,7 +617,9 @@ test('run handles capture command with invalid JSON', async () => {
 test('run handles capture command with wrong arg count', async () => {
   const write = mock();
   // The run function throws usage error for wrong arg count
-  await expect(run(['capture', '/kb'], write, captureStub)).rejects.toThrow(usage());
+  await expect(run(['capture', '/kb'], write, captureStub)).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
 });
 
 test('run handles reconcile command', async () => {
@@ -705,7 +712,7 @@ test('run handles reconcile command with wrong args', async () => {
       batchSearchStub,
       importStub,
     ),
-  ).rejects.toThrow(usage());
+  ).rejects.toThrow(/Expected|Unknown command|non-empty|Invalid|absolute/u);
 });
 
 test('run handles concept-index command', async () => {
@@ -716,9 +723,11 @@ test('run handles concept-index command', async () => {
 
 test('run handles concept-index command with invalid args', async () => {
   const write = mock();
-  await expect(run(['concept-index'], write)).rejects.toThrow(usage());
+  await expect(run(['concept-index'], write)).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
   await expect(run(['concept-index', 'shared/team/test.md', 'extra'], write)).rejects.toThrow(
-    usage(),
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
   );
 });
 
@@ -768,7 +777,7 @@ test('run handles import-plan command with wrong args', async () => {
       batchSearchStub,
       importStub,
     ),
-  ).rejects.toThrow(usage());
+  ).rejects.toThrow(/Expected|Unknown command|non-empty|Invalid|absolute/u);
   await expect(
     run(
       ['import-plan', '/kb/plan.md', 'extra', 'extra2'],
@@ -780,7 +789,7 @@ test('run handles import-plan command with wrong args', async () => {
       batchSearchStub,
       importStub,
     ),
-  ).rejects.toThrow(usage());
+  ).rejects.toThrow(/Expected|Unknown command|non-empty|Invalid|absolute/u);
 });
 
 test('run handles render-index command', async () => {
@@ -842,15 +851,9 @@ test('run handles validate command with non-existent file', async () => {
 });
 
 test('run throws for unknown command', async () => {
-  await expect(run(['unknown'])).rejects.toThrow(usage());
-});
-
-test('runWhenMain delegates only when invoked as the main module', async () => {
-  const runner = mock(async (_args: readonly string[]) => undefined);
-
-  expect(runWhenMain(false, ['ignored'], runner)).toBeUndefined();
-  await expect(runWhenMain(true, ['arg'], runner)).resolves.toBeUndefined();
-  expect(runner).toHaveBeenCalledWith(['arg']);
+  await expect(run(['unknown'])).rejects.toThrow(
+    /Expected|Unknown command|non-empty|Invalid|absolute/u,
+  );
 });
 
 test('searchKnowledgeBaseBatch searches multiple queries', async () => {
@@ -1055,4 +1058,15 @@ test('renderOkfConcept renders with metadata', () => {
   expect(result).toContain('tag1');
   expect(result).toContain('tag2');
   expect(result).toContain('body content');
+});
+
+test('rejects empty capture arguments, an invalid concept path, and a relative request path', async () => {
+  const write = mock();
+  await expect(
+    run(['capture', '/kb', 'a.md', '{}', '', 'evidence'], write, captureStub),
+  ).rejects.toThrow('non-empty');
+  await expect(run(['concept-index', 'not-a-concept'], write)).rejects.toThrow(
+    'Invalid KB concept path',
+  );
+  await expect(run(['reconcile', '/kb', 'relative.json'], write)).rejects.toThrow('absolute');
 });

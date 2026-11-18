@@ -1,4 +1,5 @@
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import type { CommandBody, CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
 
 export interface BehaviorMatrixRow {
   readonly assertion: string;
@@ -131,25 +132,6 @@ export const requireDataProvider = (rows: readonly BehaviorMatrixRow[]): void =>
   }
 };
 
-const runPathCommand = (
-  command: string,
-  first: string | undefined,
-  second: string | undefined,
-  rest: readonly string[],
-  length: number,
-  write: (message: string) => void,
-): boolean => {
-  if (command === 'test-path' && first && second && length === 3) {
-    write(testPathFor(first, second));
-    return true;
-  }
-  if (command === 'canonical-path' && first && second && length >= 3) {
-    write(canonicalTestPathFor(first, [second, ...rest]));
-    return true;
-  }
-  return false;
-};
-
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: boundary detection keeps comment states explicit.
 const stripComments = (source: string): string => {
   let result = '';
@@ -181,8 +163,18 @@ const stripComments = (source: string): string => {
   return result;
 };
 
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/bun-test-generator.ts <canonical-path|convert-jest|template|test-path|validate-boundaries|validate-source> <arguments>';
+const textBody = (
+  summary: string,
+  positionals: string,
+  arity: readonly [number, number],
+  run: (values: readonly string[]) => string,
+): CommandBody<string> => ({
+  arity,
+  positionals,
+  renderText: (text) => text,
+  run: (input) => run(input.positionals),
+  summary,
+});
 
 export const validateBunTestSource = (source: string, preloadSource?: string): void => {
   if (!bunImport.test(source) && !bunImport.test(preloadSource ?? '')) {
@@ -393,47 +385,54 @@ export const renderBunTestTemplate = (template: BunTestTemplate): string => {
   ].join('\n');
 };
 
-const runContentCommand = (
-  command: string,
-  first: string | undefined,
-  length: number,
-  write: (message: string) => void,
-): boolean => {
-  if (command === 'validate-source' && first && length === 2) {
-    validateBunTestSource(first);
-    write('bun-test-source: passed');
-    return true;
-  }
-  if (command === 'validate-boundaries' && first && length === 2) {
-    validateBoundaries(first);
-    write('bun-test-boundaries: passed');
-    return true;
-  }
-  if (command === 'template' && first && length === 2) {
-    write(renderBunTestTemplate(JSON.parse(first)));
-    return true;
-  }
-  if (command === 'convert-jest' && first && length === 2) {
-    write(convertJestToBun(first));
-    return true;
-  }
-  return false;
+export const command: CommandDeclaration<string> = {
+  commands: {
+    'canonical-path': textBody(
+      'Print the canonical test path for a SUT given its candidate package.json paths.',
+      '<sut-path> <package-json-path>...',
+      [2, Number.POSITIVE_INFINITY],
+      ([sut = '', ...packageJsonPaths]) => canonicalTestPathFor(sut, packageJsonPaths),
+    ),
+    'convert-jest': textBody(
+      'Convert a Jest test source to Bun.',
+      '<jest-source>',
+      [1, 1],
+      ([source = '']) => convertJestToBun(source),
+    ),
+    template: textBody(
+      'Render a Bun test template from a JSON template.',
+      '<json>',
+      [1, 1],
+      ([json = '']) => renderBunTestTemplate(JSON.parse(json)),
+    ),
+    'test-path': textBody(
+      'Print the canonical test path of a SUT under a project root.',
+      '<project-root> <sut-path>',
+      [2, 2],
+      ([root = '', sut = '']) => testPathFor(root, sut),
+    ),
+    'validate-boundaries': textBody(
+      'Validate that a test mocks every external boundary of its real SUT.',
+      '<json-with-sutSource-testSource-sutModuleSpecifier>',
+      [1, 1],
+      ([json = '']) => {
+        validateBoundaries(json);
+        return 'bun-test-boundaries: passed';
+      },
+    ),
+    'validate-source': textBody(
+      'Validate a generated Bun test source.',
+      '<test-source>',
+      [1, 1],
+      ([source = '']) => {
+        validateBunTestSource(source);
+        return 'bun-test-source: passed';
+      },
+    ),
+  },
+  script: 'scripts/bun-test-generator.ts',
+  summary:
+    'Canonical test paths, Bun source validation, boundary validation, templates, and Jest conversion.',
 };
 
-export const run = (
-  args: readonly string[],
-  write: (message: string) => void = console.log,
-): void => {
-  const [command, first, second, ...rest] = args;
-  if (runPathCommand(command, first, second, rest, args.length, write)) {
-    return;
-  }
-  if (runContentCommand(command, first, args.length, write)) {
-    return;
-  }
-  throw new Error(usage());
-};
-
-export const runWhenMain = runCliWhenMain;
-
-void runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runMain(command, import.meta.main);

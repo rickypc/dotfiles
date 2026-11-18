@@ -476,7 +476,7 @@ fails, report every finding and preserve the prior plan when one exists; do not 
 candidate. The validator also runs eight consistency checks, and any finding blocks the handoff. A
 plan with two or more phases makes Phase 1 a Preflight phase and declares a Predicted deviations
 table of `PD-n` rows. Every cap states `base x multiplier = cap`, with the multiplier taken before
-planning from `bun <agents-root>/scripts/aidx-plan-delta.ts history <agents-root>`. A stop reason
+planning from `bun <agents-root>/scripts/plans/aidx-delta.ts history <agents-root>`. A stop reason
 never completes a deliverable.
 
 ### Standalone plan validation
@@ -484,7 +484,7 @@ never completes a deliverable.
 Before handoff, validate an existing materialized plan with the lightweight AIDP-only validator:
 
 ```text
-bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>
+bun <agents-root>/scripts/plans/aidp-validator.ts <absolute-plan-path>
 ```
 
 The validator is deliberately independent of execution. It checks the exact five-field frontmatter,

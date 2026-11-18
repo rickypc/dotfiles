@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/skill-manager/SKILL.md",
-      "sha256": "674742796eb920752d11189410b2974b76a404e4e4bf9c784b9ed4462a13cabc"
+      "sha256": "312e22e31649cd8b4db629350960734f6af54ba0820c8a9c9af0e1efbb6e7c41"
     },
     {
       "sourcePath": "evals/skills/skill-manager/rubric.md",
@@ -46,7 +46,7 @@
     },
     {
       "sourcePath": "skills/skill-manager/references/train-protocol.md",
-      "sha256": "111f25eb0b465fb3b61d8d559a500254ad4697d559f76bd03d14e7bb089a8259"
+      "sha256": "e55d46480ab409aeabdd8d97600741b8016f9c1cddf3170694df68b909b4c386"
     }
   ],
   "archivedMatrixSources": [
@@ -113,7 +113,7 @@
       {
         "sourcePath": "skills/skill-manager/SKILL.md",
         "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
-        "queryCount": 65,
+        "queryCount": 71,
         "queryIds": [
           "train-37",
           "train-01",
@@ -179,7 +179,13 @@
           "validation-20",
           "validation-21",
           "validation-22",
-          "validation-23"
+          "validation-23",
+          "validation-24",
+          "validation-25",
+          "validation-26",
+          "validation-27",
+          "validation-28",
+          "validation-29"
         ]
       },
       {
@@ -318,7 +324,7 @@
       {
         "sourcePath": "skills/skill-manager/references/train-protocol.md",
         "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
-        "queryCount": 32,
+        "queryCount": 41,
         "queryIds": [
           "train-20",
           "train-01",
@@ -351,7 +357,16 @@
           "validation-09",
           "validation-10",
           "validation-11",
-          "validation-12"
+          "validation-12",
+          "validation-13",
+          "validation-14",
+          "validation-15",
+          "validation-16",
+          "validation-17",
+          "validation-18",
+          "validation-19",
+          "validation-20",
+          "validation-21"
         ]
       }
     ],
@@ -419,7 +434,7 @@
     "behaviorCases": 3
   },
   "fingerprints": {
-    "casesSha256": "7f8bb3c786d824e03598deaaf2344542aead8e96f95e991ab66d99c5cfd834bc",
+    "casesSha256": "9813dcf53c441eba083803998a6c2eecaba8c28fb8003668d660fe7bcde49ac8",
     "activationQueriesSha256": "3a30ed9841b5f71973f0feb73eb8912ffbe666875f478688efce8be7dddbca7d",
     "sourceRubricSha256": "6c799c445d5cbc74d428bea5a1c1ca06a4bf2d63dba09a9eceaf53af9c320913",
     "caseRetirementsSha256": "1a812cb03675b32d4554e533382e35c3447e3a34a9dbbad97a767b373957c85c"

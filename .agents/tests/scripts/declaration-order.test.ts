@@ -1,121 +1,174 @@
 import { expect, mock, test } from 'bun:test';
+import { command, createCommand } from '../../scripts/declaration-order.js';
+import type { CliContext } from '../../utils/cli/context.js';
+import { runCommand } from '../../utils/cli/index.js';
 
-import { run, runWhenMain, usage } from '../../scripts/declaration-order.js';
+const commandFor = (read: (path: string) => Promise<string>, save = mock(async () => undefined)) =>
+  createCommand({ read, save });
+
+const makeContext = () => {
+  const out: string[] = [];
+  const context: CliContext = {
+    listDirectory: async () => [],
+    readStdin: async () => '',
+    setExitCode: () => undefined,
+    write: (message) => out.push(message),
+    writeError: (message) => out.push(message),
+  };
+  return { context, out };
+};
+
+const ordered = 'function alpha() {}\nfunction zebra() {}';
+const unordered = 'function zebra() {}\nfunction alpha() {}';
+const cycle = 'function beta() { return alpha(); }\nfunction alpha() { return beta(); }';
 
 test('renders declaration-order evidence for canonical source', async () => {
-  const write = mock();
-  await expect(run(['file.ts'], async () => 'function alpha() {}', write)).resolves.toBeUndefined();
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"status": "passed"'));
-});
-
-test('renders a concise global-gate summary and only failed checks', async () => {
-  const passingWrite = mock();
-  await run(['--summary', 'alpha.ts', 'beta.ts'], async () => 'function alpha() {}', passingWrite);
-  expect(passingWrite).toHaveBeenCalledWith('declaration-order: passed - 2 file(s) checked.');
-  const failedWrite = mock();
-  await expect(
-    run(
-      ['--summary', 'alpha.ts', 'beta.ts'],
-      async (path) =>
-        path === 'alpha.ts' ? 'function alpha() {}' : 'function zebra() {}\nfunction beta() {}',
-      failedWrite,
+  const { context, out } = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => ordered),
+      ['file.ts'],
+      context,
     ),
-  ).rejects.toThrow('emitted action packet');
-  expect(failedWrite).toHaveBeenCalledWith(
-    expect.stringContaining('declaration-order: failed - 1 of 2 file(s)'),
-  );
-  expect(failedWrite).toHaveBeenCalledWith(expect.stringContaining('"errors"'));
-  expect(failedWrite).toHaveBeenCalledWith(expect.not.stringContaining('"path": "alpha.ts"'));
+  ).toBe(0);
+  const envelope = JSON.parse(out[0] ?? '');
+  expect(envelope.data.checks[0].status).toBe('passed');
+  expect(envelope.data.checks[0].actionPacket).toBeNull();
 });
 
-test('uses the default source reader for an existing canonical test file', async () => {
-  const write = mock();
-  await expect(
-    run(['tests/scripts/declaration-order.test.ts'], undefined, write),
-  ).resolves.toBeUndefined();
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"actionPacket": null'));
-});
-test('rejects non-canonical declarations and protects the main boundary', async () => {
-  const write = mock();
-  await expect(
-    run(['file.ts'], async () => 'function zebra() {}\nfunction alpha() {}', write),
-  ).rejects.toThrow('Declaration ordering requires the emitted action packet.');
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"actionPacket": {'));
-  await expect(run([], async () => '')).rejects.toThrow('At least one path is required.');
-  await expect(run(['--unknown', 'file.ts'])).rejects.toThrow(usage());
-  expect(usage()).toContain('declaration-order.ts');
-  const runner = mock(async () => undefined);
-  await runWhenMain(true, ['file.ts'], runner);
-  await runWhenMain(false, [], runner);
-  expect(runner).toHaveBeenCalledTimes(1);
+test('renders a concise gate summary and only the failed checks', async () => {
+  const passing = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => ordered),
+      ['--summary', 'a.ts', 'b.ts', '--format', 'text'],
+      passing.context,
+    ),
+  ).toBe(0);
+  expect(passing.out).toEqual(['declaration-order: passed - 2 file(s) checked.']);
+  const failing = makeContext();
+  const read = async (path: string) => (path === 'a.ts' ? ordered : unordered);
+  expect(
+    await runCommand(
+      commandFor(read),
+      ['--summary', 'a.ts', 'b.ts', '--format', 'text'],
+      failing.context,
+    ),
+  ).toBe(1);
+  const text = failing.out.join('\n');
+  expect(text).toContain('declaration-order: failed - 1 of 2 file(s)');
+  expect(text).toContain('"errors"');
+  expect(text).not.toContain('"path": "a.ts"');
 });
 
-test('supports a fresh-session declaration-order repair loop without console output', async () => {
-  let source = 'function zebra() {}\nfunction alpha() {}';
-  const baselineWrite = mock();
-  await expect(run(['session.ts'], async () => source, baselineWrite)).rejects.toThrow(
+test('keeps the action packet in the failure envelope data and exits 1', async () => {
+  const { context, out } = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => unordered),
+      ['file.ts'],
+      context,
+    ),
+  ).toBe(1);
+  const envelope = JSON.parse(out[0] ?? '');
+  expect(envelope.ok).toBe(false);
+  expect(envelope.diagnostics).toEqual([
     'Declaration ordering requires the emitted action packet.',
+  ]);
+  expect(envelope.data.checks[0].actionPacket.requiredActionGroups[0].title).toBe(
+    'Reorder runtime declarations as alpha, zebra.',
   );
-  const baseline = JSON.parse(String(baselineWrite.mock.calls[0]?.[0])) as {
-    readonly checks: readonly {
-      readonly actionPacket: {
-        readonly requiredActionGroups: readonly { readonly title: string }[];
-      } | null;
-      readonly status: string;
-    }[];
-  };
-  expect(baseline.checks[0]).toEqual(
-    expect.objectContaining({
-      actionPacket: expect.objectContaining({
-        requiredActionGroups: [
-          expect.objectContaining({
-            title: 'Reorder runtime declarations as alpha, zebra.',
-          }),
-        ],
-      }),
-      status: 'failed',
-    }),
-  );
+});
 
-  source = 'function alpha() {}\nfunction zebra() {}';
-  const candidateWrite = mock();
-  await expect(run(['session.ts'], async () => source, candidateWrite)).resolves.toBeUndefined();
-  expect(candidateWrite).toHaveBeenCalledWith(expect.stringContaining('"actionPacket": null'));
-  expect(candidateWrite).toHaveBeenCalledWith(expect.stringContaining('"status": "passed"'));
+test('emits a blocked result without authorizing an unsafe reorder', async () => {
+  const { context, out } = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => cycle),
+      ['cycle.ts'],
+      context,
+    ),
+  ).toBe(1);
+  const envelope = JSON.parse(out[0] ?? '');
+  expect(envelope.diagnostics[0]).toContain('blocked by the reported dependency');
+  expect(envelope.data.checks[0].status).toBe('blocked');
+  expect(envelope.data.checks[0].actionPacket).toBeNull();
+});
+
+test('supports a fresh-session repair loop from baseline to passing candidate', async () => {
+  let source = unordered;
+  const baseline = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => source),
+      ['session.ts'],
+      baseline.context,
+    ),
+  ).toBe(1);
+  source = ordered;
+  const candidate = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => source),
+      ['session.ts'],
+      candidate.context,
+    ),
+  ).toBe(0);
+  expect(JSON.parse(candidate.out[0] ?? '').data.checks[0].status).toBe('passed');
 });
 
 test('applies a safe action packet only when explicitly requested', async () => {
-  const write = mock();
   const save = mock(async () => undefined);
-  await expect(
-    run(
+  const { context, out } = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => unordered, save),
       ['--apply', 'session.ts'],
-      async () => 'function zebra() {}\nfunction alpha() {}',
-      write,
-      save,
+      context,
     ),
-  ).resolves.toBeUndefined();
+  ).toBe(0);
   expect(save).toHaveBeenCalledWith('session.ts', 'function alpha() {}\n\nfunction zebra() {}');
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"passed"'));
+  expect(JSON.parse(out[0] ?? '').data.checks[0].status).toBe('passed');
 });
 
 test('never applies more than one file in a mutation request', async () => {
   const save = mock(async () => undefined);
-  await expect(
-    run(['--apply', 'one.ts', 'two.ts'], async () => 'function alpha() {}', mock(), save),
-  ).rejects.toThrow('accepts exactly one file');
+  const { context, out } = makeContext();
+  expect(
+    await runCommand(
+      commandFor(async () => ordered, save),
+      ['--apply', 'one.ts', 'two.ts'],
+      context,
+    ),
+  ).toBe(2);
   expect(save).not.toHaveBeenCalled();
+  expect(JSON.parse(out[0] ?? '').diagnostics[0]).toContain('accepts exactly one file');
 });
 
-test('emits a blocked result without authorizing an unsafe reorder', async () => {
-  const write = mock();
-  await expect(
-    run(
-      ['cycle.ts'],
-      async () => 'function beta() { return alpha(); }\nfunction alpha() { return beta(); }',
-      write,
-    ),
-  ).rejects.toThrow('Declaration ordering is blocked by the reported dependency.');
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"status": "blocked"'));
-  expect(write).toHaveBeenCalledWith(expect.stringContaining('"actionPacket": null'));
+test('rejects unknown flags and a missing path with usage exit 2', async () => {
+  const read = async () => ordered;
+  expect(await runCommand(commandFor(read), ['--unknown', 'file.ts'], makeContext().context)).toBe(
+    2,
+  );
+  expect(await runCommand(commandFor(read), [], makeContext().context)).toBe(2);
+});
+
+test('answers --help with the usage text and uses the real reader by default', async () => {
+  const help = makeContext();
+  expect(await runCommand(command, ['--help'], help.context)).toBe(0);
+  expect(help.out[0]).toContain('declaration-order.ts');
+  const real = makeContext();
+  expect(await runCommand(command, ['tests/scripts/declaration-order.test.ts'], real.context)).toBe(
+    0,
+  );
+});
+
+test('renders the checks as JSON in the text view without --summary', async () => {
+  const { context, out } = makeContext();
+  await runCommand(
+    commandFor(async () => ordered),
+    ['file.ts', '--format', 'text'],
+    context,
+  );
+  expect(JSON.parse(out[0] ?? '').checks[0].status).toBe('passed');
 });

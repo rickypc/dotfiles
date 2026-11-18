@@ -1,6 +1,8 @@
 // bun scripts/model-check.ts
 
-import { runWhenMain as runCliWhenMain } from '../utils/cli.js';
+import type { CommandDeclaration } from '../utils/cli/declaration.js';
+import { CliError } from '../utils/cli/errors.js';
+import { runMain } from '../utils/cli/index.js';
 
 export interface BenchResult {
   'Model Name': string;
@@ -20,13 +22,16 @@ export type EnvReader = (source: Readonly<Record<string, string | undefined>>) =
 export interface ModelCheckBoundaries {
   readonly clearTimeout: (timer: ReturnType<typeof setTimeout>) => void;
   readonly error: (message: string) => void;
-  readonly exit: (code: number) => void;
   readonly fetch: (url: string, init: RequestInit) => Promise<Response>;
   readonly log: (message: string) => void;
   readonly now: () => number;
   readonly random: () => number;
   readonly setTimeout: (handler: () => void, ms: number) => ReturnType<typeof setTimeout>;
-  readonly table: (rows: readonly BenchResult[]) => void;
+}
+
+export interface ModelCheckDependencies {
+  readonly boundaries: ModelCheckBoundaries;
+  readonly env: ModelCheckEnv;
 }
 
 export interface ModelCheckEnv {
@@ -55,8 +60,6 @@ export const BENCH_COLUMNS = [
 const FALLBACK_PROMPT = 'Respond with exactly the single word: Pong.';
 const MISSING_CONFIG = 'Missing endpoint configuration; check the .env file for this project.';
 const TIMEOUT_MS = 30_000;
-const USAGE =
-  'Usage: bun <agents-root>/scripts/model-check.ts   # benchmark the configured endpoint models';
 
 export const chunkDelta = (dataStr: string): DeltaChunk | null => {
   let chunk: unknown;
@@ -107,9 +110,6 @@ export const failureFor = (err: unknown): { detail: string; status: string } => 
   return { detail: 'Network exception occurred.', status: 'CONN_ERR' };
 };
 
-const helpRequested = (args: readonly string[]): boolean =>
-  args.some((arg) => arg === '--help' || arg === '-h');
-
 export const parsedMessage = (payload: string): string | null => {
   try {
     return errorDetail(JSON.parse(payload));
@@ -142,13 +142,6 @@ export const pendingResultFor = (modelName: string): BenchResult => ({
   'TTFT (ms)': 'N/A',
 });
 
-export const processExitCode = (
-  code: number,
-  target: { exitCode?: number | string | null } = process,
-): void => {
-  target.exitCode = code;
-};
-
 export const readEnv: EnvReader = (source) => ({
   API_KEY: source.API_KEY,
   API_URL: source.API_URL,
@@ -170,13 +163,11 @@ export const cliBoundaries = (
 ): ModelCheckBoundaries => ({
   clearTimeout,
   error: (message) => readLog(message, out.error),
-  exit: processExitCode,
   fetch: send,
   log: (message) => readLog(message, out.log),
   now: () => performance.now(),
   random: Math.random,
   setTimeout,
-  table: console.table,
 });
 
 export const recordChunk = (stats: StreamStats, dataStr: string, now: () => number): void => {
@@ -218,6 +209,12 @@ export const consumeLines = (
   }
   return false;
 };
+
+export const renderBenchTable = (rows: readonly BenchResult[]): string =>
+  [
+    BENCH_COLUMNS.join(' | '),
+    ...rows.map((row) => BENCH_COLUMNS.map((column) => row[column]).join(' | ')),
+  ].join('\n');
 
 export const splitList = (value: string | undefined): string[] =>
   (value ?? '')
@@ -371,51 +368,32 @@ export const benchmarkModel = async (
 export const runBenchmark = async (
   env: ModelCheckEnv,
   boundaries: ModelCheckBoundaries,
-): Promise<number> => {
+): Promise<readonly BenchResult[]> => {
   const missing = missingConfigFrom(env);
   if (missing.length > 0) {
-    boundaries.error(`❌ Error: ${missing.join(', ')} is missing. ${MISSING_CONFIG}`);
-    return 1;
+    throw new CliError(`Error: ${missing.join(', ')} is missing. ${MISSING_CONFIG}`);
   }
 
   const selectedModels = modelsFrom(env).sort(() => 0.5 - boundaries.random());
-  boundaries.log(`\n🚀 Initializing benchmark across ${selectedModels.length} endpoint targets...`);
-  boundaries.log(`📝 Using prompt: "${promptFrom(env)}"\n`);
-  const results = await Promise.all(
-    selectedModels.map((model) => benchmarkModel(model, env, boundaries)),
-  );
-  boundaries.table(results);
-  return 0;
+  boundaries.log(`\nInitializing benchmark across ${selectedModels.length} endpoint targets...`);
+  boundaries.log(`Using prompt: "${promptFrom(env)}"\n`);
+  return Promise.all(selectedModels.map((model) => benchmarkModel(model, env, boundaries)));
 };
 
-export const runCli = async (
-  isMain: boolean,
-  boundaries: ModelCheckBoundaries,
-  env: ModelCheckEnv,
-): Promise<void> => {
-  if (!isMain) {
-    return;
-  }
-  boundaries.exit(await runBenchmark(env, boundaries));
-};
+export const createCommand = (
+  overrides: Partial<ModelCheckDependencies> = {},
+): CommandDeclaration<readonly BenchResult[]> => ({
+  arity: [0, 0],
+  renderText: renderBenchTable,
+  run: (_input, context) =>
+    runBenchmark(
+      overrides.env ?? readEnv(Bun.env),
+      overrides.boundaries ?? cliBoundaries({ error: context.writeError, log: context.writeError }),
+    ),
+  script: 'scripts/model-check.ts',
+  summary: 'Benchmark the configured endpoint models; progress goes to stderr.',
+});
 
-export const usage = (): string => USAGE;
+export const command = createCommand();
 
-export const run = async (
-  args: readonly string[],
-  injected?: ModelCheckBoundaries,
-  source?: ModelCheckEnv,
-): Promise<number> => {
-  const boundaries: ModelCheckBoundaries = injected ?? cliBoundaries();
-  const env: ModelCheckEnv = source ?? readEnv(Bun.env);
-  if (helpRequested(args)) {
-    boundaries.log(usage());
-    return 0;
-  }
-  await runCli(true, boundaries, env);
-  return 0;
-};
-
-export const runWhenMain = runCliWhenMain;
-
-void runWhenMain(import.meta.main, Bun.argv.slice(2), run);
+void runMain(command, import.meta.main);

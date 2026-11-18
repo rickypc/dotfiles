@@ -48,6 +48,10 @@
     {
       "caseId": "atom:r-73089941b7",
       "reason": "The propose section of librarian.md now says a proposal with more than three candidates produces no snapshot and that propose decides a description change itself, so the sentence text and hash changed (repair after the train-05 and train-06 diagnosis)."
+    },
+    {
+      "caseId": "atom:r-c67b9d2b10",
+      "reason": "The train read rule named the weak reader by its old script path; the reader moved to scripts/weak-reader/index.ts and the rebuilt map holds the renamed text as a new atom."
     }
   ]
 }

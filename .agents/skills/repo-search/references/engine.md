@@ -1,7 +1,7 @@
 # Repo Search Engine Reference
 
-Branch-only detail for the wrapper engine in `utils/repo-search.ts`,
-`utils/repo-search-transport.ts`, and `scripts/repo-search.ts`. The caller-facing contract lives in
+Branch-only detail for the wrapper engine in `utils/repo-search/index.ts`,
+`utils/repo-search/transport.ts`, and `scripts/repo-search.ts`. The caller-facing contract lives in
 [SKILL.md](../SKILL.md); the binary route table lives in [binary-router.md](binary-router.md).
 
 ## Transport probe

@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { AGENTS_ROOT_FLAG, splitAgentsRoot } from '../../utils/agents-root.js';
+import { AGENTS_ROOT_FLAG, agentsRootOf, splitAgentsRoot } from '../../utils/agents-root.js';
 
 const listing = mock(async (directory: string) => {
   if (directory === '/missing') {
@@ -33,5 +33,21 @@ describe('splitAgentsRoot', () => {
     [['/empty'], 'a skills or evals directory'],
   ])('rejects the root %p', async (value, message) => {
     await expect(splitAgentsRoot([AGENTS_ROOT_FLAG, ...value], listing)).rejects.toThrow(message);
+  });
+});
+
+describe('agentsRootOf', () => {
+  test.each([
+    ['/home/u/.agents/scripts', '/home/u/.agents'],
+    ['/home/u/.agents/scripts/validate', '/home/u/.agents'],
+    ['/p/scripts/x/scripts/y', '/p/scripts/x'],
+    ['/scripts', '/'],
+  ])('finds the root above %s', (directory, root) => {
+    expect(agentsRootOf(directory)).toBe(root);
+  });
+
+  test('rejects a directory outside any scripts folder', () => {
+    expect(() => agentsRootOf('/home/u/utils')).toThrow('Not inside');
+    expect(() => agentsRootOf('scripts')).toThrow('Not inside');
   });
 });

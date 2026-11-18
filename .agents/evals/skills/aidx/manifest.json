@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/aidx/SKILL.md",
-      "sha256": "7d3e2ab59cf73524b86799cc0d69c70ad3d61164ab6f9d5b4ec49e881eb1c605"
+      "sha256": "288aaf701fd3c2274df5b2f5afca6cc188f98f4702904a0eaaebfae70b32dd3f"
     },
     {
       "sourcePath": "evals/skills/aidx/rubric.md",
@@ -66,7 +66,7 @@
       {
         "sourcePath": "skills/aidx/SKILL.md",
         "setPath": "evals/skills/aidx/comprehension/SKILL.json",
-        "queryCount": 41,
+        "queryCount": 45,
         "queryIds": [
           "train-01",
           "train-02",
@@ -108,7 +108,11 @@
           "validation-10",
           "validation-11",
           "validation-12",
-          "validation-13"
+          "validation-13",
+          "validation-14",
+          "validation-15",
+          "validation-16",
+          "validation-17"
         ]
       },
       {

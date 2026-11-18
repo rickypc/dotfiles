@@ -170,7 +170,7 @@ add an unlisted fallback or change the plan's objective. If a required input is 
 unavailable, or unverifiable, stop before mutation and report the exact failure; do not guess. If a
 proof fails, preserve the plan and work, report the target and observed result, and do not claim
 success. At preflight AIDX runs
-`bun <agents-root>/scripts/aidp-plan-validator.ts <absolute-plan-path>` on the pending plan and
+`bun <agents-root>/scripts/plans/aidp-validator.ts <absolute-plan-path>` on the pending plan and
 stops on any finding. Every phase checkpoint carries a deviation log: each deviation has a class of
 contradiction, env-fact, scope-change, cap-exceeded, unplanned-step, noise-retry, or stale-evidence,
 and a `registerId` equal to a Predicted deviations id when the plan foresaw it. A contradiction
@@ -186,8 +186,8 @@ After execution, AIDX must complete the plan's closeout before considering retir
 atomically update every successful workflow item to `[x]`, mark intentionally skipped items `[-]`
 with a reason, leave no `[ ]`, `[~]`, or `[!]` item, set frontmatter `status` to `completed`, and
 validate the updated plan at its same absolute path with
-`bun <agents-root>/scripts/aidx-completed-plan-validator.ts <absolute-plan-path>`. That validator
-owns the completed-plan contract; never reuse `aidp-plan-validator.ts`, which requires an unchecked
+`bun <agents-root>/scripts/plans/aidx-completed-validator.ts <absolute-plan-path>`. That validator
+owns the completed-plan contract; never reuse `aidp-validator.ts`, which requires an unchecked
 pending plan and rejects a completed closeout. A stale `pending` field is not evidence that
 execution is incomplete, but it is also not permission to infer completion: the current checklist,
 receipts, acceptance mapping, and final gate must all prove the terminal state. If AIDX cannot write
@@ -217,7 +217,7 @@ source only after its own write+receipt succeeds. The closeout output MUST name 
 `retiredTo` path returned by the importer (or the `~/.Trash/` destination for the remove-only case);
 a missing `retiredTo` in the closeout is an unfinished retirement, not a soft option. Before the
 completed-plan validator, run
-`bun <agents-root>/scripts/aidx-plan-delta.ts record <absolute-plan-path> <absolute-observations-path>`
+`bun <agents-root>/scripts/plans/aidx-delta.ts record <absolute-plan-path> <absolute-observations-path>`
 so the sibling `.delta.json` exists; the validator fails without it, and `import-plan` carries the
 delta into the knowledge base before retirement.
 

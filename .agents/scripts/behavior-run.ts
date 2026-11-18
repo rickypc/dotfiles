@@ -2,12 +2,14 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runWhenMainWithHelp } from '../utils/cli.js';
+import type { CommandBody, CommandDeclaration } from '../utils/cli/declaration.js';
+import { runMain } from '../utils/cli/index.js';
+import { UsageError } from '../utils/cli/usage-error.js';
 import {
   behaviorGraderBundleFor,
   behaviorRunReceiptFromResponses,
   behaviorTargetBundleFor,
-} from '../utils/quality-engine/behavior-bundles.js';
+} from '../utils/quality-engine/behavior/bundles.js';
 import {
   BEHAVIOR_RUNS_PER_CASE,
   type BehaviorRunAggregateReceipt,
@@ -18,8 +20,8 @@ import {
   type BehaviorRunSplit,
   evaluationMatrixFingerprintFor,
   isBehaviorRunId,
-} from '../utils/quality-engine/behavior-run.js';
-import { aggregateBehaviorRunReceipts } from '../utils/quality-engine/behavior-run-aggregate.js';
+} from '../utils/quality-engine/behavior/run.js';
+import { aggregateBehaviorRunReceipts } from '../utils/quality-engine/behavior/run-aggregate.js';
 import {
   type BehaviorEvaluationCase,
   behaviorRubricAxes,
@@ -40,17 +42,6 @@ interface BehaviorRunManifestPolicy {
   readonly manifestFingerprint: string;
 }
 
-const USAGE = [
-  'Usage:',
-  '  bun <agents-root>/scripts/behavior-run.ts expected <cases> <metadata> <split> <sessions.jsonl>',
-  '  bun <agents-root>/scripts/behavior-run.ts target <cases> <source.md> <case-id> <metadata.json>',
-  '  bun <agents-root>/scripts/behavior-run.ts grader <cases> <shared-rubric.md> <case-id> <target-response.json> <metadata.json>',
-  '  bun <agents-root>/scripts/behavior-run.ts seal <cases> <expected.json> <target.jsonl> <grader.jsonl>',
-  '  bun <agents-root>/scripts/behavior-run.ts aggregate <owner-id> <split> <run-receipts.jsonl>',
-  '  seal emits runId-linked provisional local scores; it does not verify session authenticity or admit a baseline.',
-  '  aggregate requires the root manifest run count and validates each case-to-runId link.',
-].join('\n');
-
 export const BEHAVIOR_RUN_ROOT_MANIFEST_PATH = fileURLToPath(
   new URL('../evals/manifest.json', import.meta.url),
 );
@@ -59,8 +50,6 @@ const behaviorCasesFrom = (content: string): readonly BehaviorEvaluationCase[] =
   parseEvaluationCasesJsonl(content).filter(
     (item): item is BehaviorEvaluationCase => item.kind === 'behavior',
   );
-
-export const behaviorRunUsage = (): string => USAGE;
 
 const caseFor = (cases: readonly BehaviorEvaluationCase[], id: string): BehaviorEvaluationCase => {
   const evaluationCase = cases.find((item) => item.id === id);
@@ -81,6 +70,47 @@ const isAbsoluteJsonPath = (value: string | undefined): value is string =>
 
 const isAbsoluteMarkdownPath = (value: string | undefined): value is string =>
   value?.startsWith('/') === true && value?.endsWith('.md') === true;
+
+export const assertBehaviorRunArguments = (args: readonly string[]): void => {
+  const [command, casesPath, argument3, argument4] = args;
+  const commonValid = isAbsoluteJsonlPath(casesPath);
+  const valid =
+    (command === 'expected'
+      && commonValid
+      && isAbsoluteJsonPath(argument3)
+      && isAbsoluteJsonlPath(args[4])
+      && args.length === 5)
+    || (command === 'target'
+      && commonValid
+      && isAbsoluteMarkdownPath(argument3)
+      && typeof argument4 === 'string'
+      && isAbsoluteJsonPath(args[4])
+      && args.length === 5)
+    || (command === 'grader'
+      && commonValid
+      && isAbsoluteMarkdownPath(argument3)
+      && typeof argument4 === 'string'
+      && isAbsoluteJsonPath(args[4])
+      && isAbsoluteJsonPath(args[5])
+      && args.length === 6)
+    || (command === 'seal'
+      && commonValid
+      && isAbsoluteJsonPath(argument3)
+      && isAbsoluteJsonlPath(argument4)
+      && isAbsoluteJsonlPath(args[4])
+      && args.length === 5)
+    || (command === 'aggregate'
+      && typeof casesPath === 'string'
+      && casesPath.trim().length > 0
+      && (argument3 === 'train' || argument3 === 'validation' || argument3 === 'challenge')
+      && isAbsoluteJsonlPath(args[3])
+      && args.length === 4);
+  if (!valid) {
+    throw new UsageError(
+      `Invalid arguments for behavior-run ${command ?? ''}; run with --help for the argument grammar.`,
+    );
+  }
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -235,7 +265,7 @@ const splitFrom = (value: string | undefined): BehaviorRunSplit => {
   if (value === 'train' || value === 'validation' || value === 'challenge') {
     return value;
   }
-  throw new Error(USAGE);
+  throw new UsageError(`Split must be train, validation, or challenge: ${value ?? ''}.`);
 };
 
 const runAggregate = async (
@@ -482,62 +512,78 @@ export const runBehaviorRunCommand = async (
     await runAggregate(args, dependencies);
     return;
   }
-  throw new Error(USAGE);
+  throw new UsageError(`Unknown behavior-run command: ${command}.`);
 };
 
-export const runBehaviorRunCli = async (
-  args: readonly string[],
+const behaviorBody = (
+  name: string,
+  summary: string,
+  positionals: string,
+  count: number,
   dependencies: BehaviorRunCliDependencies,
-): Promise<void> => {
-  const [command, casesPath, argument3, argument4] = args;
-  const commonValid = isAbsoluteJsonlPath(casesPath);
-  const valid =
-    (command === 'expected'
-      && commonValid
-      && isAbsoluteJsonPath(argument3)
-      && isAbsoluteJsonlPath(args[4])
-      && args.length === 5)
-    || (command === 'target'
-      && commonValid
-      && isAbsoluteMarkdownPath(argument3)
-      && typeof argument4 === 'string'
-      && isAbsoluteJsonPath(args[4])
-      && args.length === 5)
-    || (command === 'grader'
-      && commonValid
-      && isAbsoluteMarkdownPath(argument3)
-      && typeof argument4 === 'string'
-      && isAbsoluteJsonPath(args[4])
-      && isAbsoluteJsonPath(args[5])
-      && args.length === 6)
-    || (command === 'seal'
-      && commonValid
-      && isAbsoluteJsonPath(argument3)
-      && isAbsoluteJsonlPath(argument4)
-      && isAbsoluteJsonlPath(args[4])
-      && args.length === 5)
-    || (command === 'aggregate'
-      && typeof casesPath === 'string'
-      && casesPath.trim().length > 0
-      && (argument3 === 'train' || argument3 === 'validation' || argument3 === 'challenge')
-      && isAbsoluteJsonlPath(args[3])
-      && args.length === 4);
-  if (!valid) {
-    throw new Error(USAGE);
-  }
-  await runBehaviorRunCommand(args, dependencies);
+): CommandBody<unknown> => ({
+  arity: [count, count],
+  positionals,
+  renderText: (data) => JSON.stringify(data, null, 2),
+  run: async (input) => {
+    const args = [name, ...input.positionals];
+    assertBehaviorRunArguments(args);
+    const lines: string[] = [];
+    await runBehaviorRunCommand(args, { ...dependencies, write: (message) => lines.push(message) });
+    return JSON.parse(lines[0] ?? 'null') as unknown;
+  },
+  summary,
+});
+
+const defaultDependencies: BehaviorRunCliDependencies = {
+  readText: async (path) => readFile(path, 'utf8'),
+  write: console.log,
 };
 
-export const runBehaviorRunMain = async (args: readonly string[]): Promise<void> => {
-  await runBehaviorRunCli(args, {
-    readText: async (path) => readFile(path, 'utf8'),
-    write: console.log,
-  });
-};
+export const createCommand = (
+  dependencies: BehaviorRunCliDependencies = defaultDependencies,
+): CommandDeclaration<unknown> => ({
+  commands: {
+    aggregate: behaviorBody(
+      'aggregate',
+      'Aggregate the manifest-required runs of one owner and split; each case is linked to its runId.',
+      '<owner-id> <split> <run-receipts.jsonl>',
+      3,
+      dependencies,
+    ),
+    expected: behaviorBody(
+      'expected',
+      'Bind expected cases to the root manifest.',
+      '<cases> <metadata> <split> <sessions.jsonl>',
+      4,
+      dependencies,
+    ),
+    grader: behaviorBody(
+      'grader',
+      'Prepare a grader bundle without candidate identity.',
+      '<cases> <shared-rubric.md> <case-id> <target-response.json> <metadata.json>',
+      5,
+      dependencies,
+    ),
+    seal: behaviorBody(
+      'seal',
+      'Emit runId-linked provisional local scores; it does not verify session authenticity or admit a baseline.',
+      '<cases> <expected.json> <target.jsonl> <grader.jsonl>',
+      4,
+      dependencies,
+    ),
+    target: behaviorBody(
+      'target',
+      'Prepare a blind versioned target bundle.',
+      '<cases> <source.md> <case-id> <metadata.json>',
+      4,
+      dependencies,
+    ),
+  },
+  script: 'scripts/behavior-run.ts',
+  summary: 'Prepare, seal, and aggregate behavior evaluation runs.',
+});
 
-void runWhenMainWithHelp(
-  import.meta.main,
-  import.meta.main ? Bun.argv.slice(2) : [],
-  behaviorRunUsage,
-  runBehaviorRunMain,
-);
+export const command = createCommand();
+
+void runMain(command, import.meta.main);

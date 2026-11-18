@@ -1,11 +1,20 @@
 import { resolve } from 'node:path';
-import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
+import { agentsRootOf } from '../utils/agents-root.js';
+import type { CommandDeclaration } from '../utils/cli/declaration.js';
+import { CliError } from '../utils/cli/errors.js';
+import { runMain } from '../utils/cli/index.js';
 import type { CheckResult, CommandSpec } from '../utils/contracts.js';
 import { failed, normalizePaths, passed } from '../utils/contracts.js';
 import { declarationOrderCheck } from '../utils/declaration-order.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
-import { requirePassingChecks, summarizeChecks } from '../utils/validation.js';
+import { hasFailure, summarizeChecks } from '../utils/validation.js';
+
+export interface BiomeCheckerDependencies {
+  readonly agentsRoot: string;
+  readonly executor: CommandExecutor;
+  readonly read: SourceReader;
+}
 
 export type SourceReader = (path: string) => Promise<string>;
 
@@ -14,7 +23,7 @@ export interface StaticCheckRequest {
   readonly paths: readonly string[];
 }
 
-const command = (executable: string, args: readonly string[], cwd: string): CommandSpec => ({
+const commandSpec = (executable: string, args: readonly string[], cwd: string): CommandSpec => ({
   args,
   command: executable,
   cwd,
@@ -71,7 +80,7 @@ export const runStaticChecks = async (
 ): Promise<CheckResult[]> => {
   const paths = request.paths.map((path) => resolve(path));
   const biome = executor(
-    command(
+    commandSpec(
       `${request.agentsRoot}/node_modules/.bin/biome`,
       [
         'check',
@@ -88,7 +97,7 @@ export const runStaticChecks = async (
   const typeCheck =
     typeScriptPaths.length === 0
       ? undefined
-      : executor(command('bun', ['check', ...typeScriptPaths], request.agentsRoot));
+      : executor(commandSpec('bun', ['check', ...typeScriptPaths], request.agentsRoot));
   const [biomeCommandResult, declarationOrder, typeCheckResult] = await Promise.all([
     biome,
     declarationOrderResult(sourcePaths, read),
@@ -118,22 +127,40 @@ export const runStaticChecks = async (
   ];
 };
 
-export const run = async (
-  args: readonly string[],
-  executor = bunExecutor,
-  agentsRoot = `${import.meta.dir}/..`,
-  write: (message: string) => void = console.log,
-  read: SourceReader = (path) => Bun.file(path).text(),
-): Promise<void> => {
-  const paths = normalizePaths(args);
-  const results = await runStaticChecks(executor, { agentsRoot, paths }, read);
-  write(summarizeChecks(results));
-  requirePassingChecks(results);
+const defaultDependencies: BiomeCheckerDependencies = {
+  agentsRoot: agentsRootOf(import.meta.dir),
+  executor: bunExecutor,
+  read: (path) => Bun.file(path).text(),
 };
 
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/biome-checker.ts <path> [path...]';
+export const createCommand = (
+  overrides: Partial<BiomeCheckerDependencies> = {},
+): CommandDeclaration<readonly CheckResult[]> => {
+  const dependencies = { ...defaultDependencies, ...overrides };
+  return {
+    arity: [1, Number.POSITIVE_INFINITY],
+    positionals: '<path>...',
+    renderText: summarizeChecks,
+    run: async (input) => {
+      const results = await runStaticChecks(
+        dependencies.executor,
+        {
+          agentsRoot: input.agentsRoot ?? dependencies.agentsRoot,
+          paths: normalizePaths(input.positionals),
+        },
+        dependencies.read,
+      );
+      if (hasFailure(results)) {
+        throw new CliError('Static checks failed.', 1, results);
+      }
+      return results;
+    },
+    script: 'scripts/biome-checker.ts',
+    summary:
+      'Run Biome, bun check, and declaration-order checks on selected JavaScript or TypeScript paths.',
+  };
+};
 
-export const runWhenMain = runCliWhenMain;
+export const command = createCommand();
 
-await runWhenMainWithHelp(import.meta.main, Bun.argv.slice(2), usage, run);
+void runMain(command, import.meta.main);

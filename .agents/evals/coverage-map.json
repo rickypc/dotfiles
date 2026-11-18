@@ -9123,7 +9123,7 @@
   },
   "reader": {
     "ownerId": "weak-reader",
-    "sourcePath": "scripts/weak-reader.ts",
+    "sourcePath": "scripts/weak-reader/index.ts",
     "sourceDocumentCount": 39,
     "probeCount": 990,
     "comprehensionProbeSets": [
