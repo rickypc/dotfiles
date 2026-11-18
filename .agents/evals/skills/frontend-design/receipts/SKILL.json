@@ -76,7 +76,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "6e5137a3de7ffe3d2859f22a8b70c62aed9b565b58409e717b8b91889ca05748",
+  "selfSha256": "02fac3b86b21eaa52763eb2db4561585b9656c04bb047b1ff50d8d66c103c901",
   "setPath": "evals/skills/frontend-design/comprehension/SKILL.json",
-  "setSha256": "c5b39a4026e6db70faea642ccbaacc840f7e6feb0f2223bc45b92915a01fafd3"
+  "setSha256": "c5adab467230822818e5d7f8de894d30f09232fe6978517a58c3f498062478b7"
 }

@@ -1,3 +1,5 @@
+import type { ProbeSelection, ProbeVectorCandidate } from './candidate-frontier.js';
+import { selectProbeCandidate } from './candidate-frontier.js';
 import type { EvidenceReceipt } from './receipt.js';
 import { receiptPasses } from './receipt.js';
 import type { WorkflowState } from './state.js';
@@ -6,6 +8,19 @@ import { transition } from './state.js';
 export interface BaselineDecision {
   readonly nextState: WorkflowState;
   readonly nextStep: 'candidate' | 'block';
+}
+
+export interface BatchDecision {
+  readonly nextStep: 'repair' | 'select' | 'stop';
+  readonly selected: string | null;
+  readonly stopReason: ProbeSelection['stopReason'] | 'budget';
+}
+
+export interface BatchDecisionInput {
+  // Candidates that passed the acceptance policy and gained a probe or proved an intent.
+  readonly admissible: readonly ProbeVectorCandidate[];
+  readonly round: number;
+  readonly roundBudget: number;
 }
 
 export interface CandidateDecision {
@@ -43,6 +58,21 @@ export const decideBaseline = (receipt: EvidenceReceipt): BaselineDecision => {
         nextStep: 'candidate',
       }
     : { nextState: 'blocked', nextStep: 'block' };
+};
+
+// One batch round: select the unique frontier winner, or ask for another round while the budget
+// lasts. A round past the budget is a stop, never a silent retry.
+export const decideBatch = (input: BatchDecisionInput): BatchDecision => {
+  if (input.round < 1 || input.roundBudget < input.round) {
+    throw new Error('Batch round is outside its approved budget.');
+  }
+  const selection = selectProbeCandidate(input.admissible);
+  if (selection.selected !== null) {
+    return { nextStep: 'select', selected: selection.selected, stopReason: 'selected' };
+  }
+  return input.round === input.roundBudget
+    ? { nextStep: 'stop', selected: null, stopReason: 'budget' }
+    : { nextStep: 'repair', selected: null, stopReason: selection.stopReason };
 };
 
 export const decideCandidate = (input: CandidateDecisionInput): CandidateDecision => {

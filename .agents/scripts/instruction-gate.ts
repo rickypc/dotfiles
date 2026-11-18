@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { AGENTS_ROOT_FLAG, splitAgentsRoot } from '../utils/agents-root.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
+import { evaluateBatch } from './instruction-gate-batch.js';
+import { calibrateOwners } from './instruction-gate-calibrate.js';
 import {
   CATALOG_ROUTING_RECEIPT,
   DESCRIPTION_PREFIX,
@@ -21,6 +23,7 @@ import {
   routingSkillTarget,
   setPathFor,
 } from './instruction-gate-paths.js';
+import { policyContext, policyProblems } from './instruction-gate-policy.js';
 import type { RoutingRuntime } from './instruction-gate-routing.js';
 import {
   recordRouting as recordRoutingImpl,
@@ -59,10 +62,18 @@ interface DecideOptions extends RecordOptions {
   // Routing compares score totals: the router reads every description, so one edit moves other
   // skills' probes; a per-probe rule would reject edits for noise the editor cannot control.
   readonly aggregate?: boolean;
+  // Train probes a rule change can flip; present only where the document has calibrated atoms.
+  readonly core?: readonly string[];
   readonly fingerprintChanged: boolean;
 }
 
-export type Decision = 'allowed-equal' | 'baseline' | 'improved' | 'perfect' | 'rebaseline';
+export type Decision =
+  | 'allowed-equal'
+  | 'baseline'
+  | 'improved'
+  | 'perfect'
+  | 'rebaseline'
+  | 'swap';
 
 export interface DirectoryItem {
   readonly isDirectory: boolean;
@@ -150,6 +161,8 @@ export interface Receipt {
 export interface RecordOptions {
   readonly allowEqualReason?: string;
   readonly rebaselineReason?: string;
+  readonly rotatePoolPath?: string;
+  readonly swapReason?: string;
 }
 
 export type Verdict =
@@ -325,9 +338,21 @@ const parseReceipt = (content: string): Receipt | undefined => {
 };
 
 const reasonProblems = (receipt: Receipt): string[] =>
-  ['allowed-equal', 'rebaseline'].includes(receipt.decision) && receipt.reason.trim() === ''
+  ['allowed-equal', 'rebaseline', 'swap'].includes(receipt.decision) && receipt.reason.trim() === ''
     ? [`The ${receipt.decision} decision has no recorded reason.`]
     : [];
+
+// The never-worse rule: nothing that passed at baseline may fail now, held-out validation may not
+// lose a pass, and a target that still has failing train probes must gain at least one pass.
+const rebaselineVerdict = (options: DecideOptions): Verdict =>
+  options.rebaselineReason
+    ? { accepted: true, decision: 'rebaseline', problems: [] }
+    : {
+        accepted: false,
+        problems: [
+          'The reader changed since the baseline, so scores are not comparable; rerun with --rebaseline <reason>.',
+        ],
+      };
 
 const sameIds = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length && [...left].sort().join('\n') === [...right].sort().join('\n');
@@ -354,8 +379,6 @@ const worseProblems = (
   return problems;
 };
 
-// The never-worse rule: nothing that passed at baseline may fail now, held-out validation may not
-// lose a pass, and a target that still has failing train probes must gain at least one pass.
 export const decide = (
   candidate: Measurement,
   baseline: Baseline | null,
@@ -365,18 +388,18 @@ export const decide = (
     return { accepted: true, decision: 'baseline', problems: [] };
   }
   if (options.fingerprintChanged) {
-    return options.rebaselineReason
-      ? { accepted: true, decision: 'rebaseline', problems: [] }
-      : {
-          accepted: false,
-          problems: [
-            'The reader changed since the baseline, so scores are not comparable; rerun with --rebaseline <reason>.',
-          ],
-        };
+    return rebaselineVerdict(options);
   }
-  const problems = worseProblems(candidate, baseline, options.aggregate);
+  const policy =
+    options.core === undefined
+      ? undefined
+      : policyProblems(candidate, baseline, options.core, options.swapReason);
+  const problems = policy?.problems ?? worseProblems(candidate, baseline, options.aggregate);
   if (problems.length > 0) {
     return { accepted: false, problems };
+  }
+  if (policy?.swapped) {
+    return { accepted: true, decision: 'swap', problems: [] };
   }
   if (gainedScore(candidate, baseline, options.aggregate)) {
     return { accepted: true, decision: 'improved', problems: [] };
@@ -395,7 +418,7 @@ export const decide = (
 };
 
 const comparisonProblems = (receipt: Receipt, aggregate: boolean): string[] => {
-  if (receipt.baseline === null || ['baseline', 'rebaseline'].includes(receipt.decision)) {
+  if (receipt.baseline === null || ['baseline', 'rebaseline', 'swap'].includes(receipt.decision)) {
     return [];
   }
   const verdict = decide(receipt.measurement, receipt.baseline, {
@@ -638,15 +661,28 @@ const recordTarget = async (
     deps.write(`${missing}\n`);
     return false;
   }
+  const policy = await policyContext(
+    deps,
+    target,
+    documentText,
+    options,
+    isGlobalAgentsRoot(deps.agentsRoot),
+  );
+  if (policy.blocked !== undefined) {
+    deps.write(`${policy.blocked}\n`);
+    return false;
+  }
   const previous = previousText === undefined ? undefined : parseReceipt(previousText);
   const measured = await measureDocument(target, deps);
   const { measurement } = measured;
   const baseline = baselineOf(previous);
   const verdict = decide(measurement, baseline, {
     ...options,
+    core: policy.core,
     fingerprintChanged:
       previous !== undefined && !fingerprintMatches(previous.fingerprint, currentFingerprint()),
   });
+  await policy.commit();
   const baselineRegression = verdict.problems.some((problem) =>
     problem.includes('passed at baseline and now fails'),
   );
@@ -658,7 +694,7 @@ const recordTarget = async (
     deps.write(await diagnose(target, measured, setText, deps, baselineRegression));
     return false;
   }
-  const reason = options.rebaselineReason ?? options.allowEqualReason ?? '';
+  const reason = options.rebaselineReason ?? options.allowEqualReason ?? options.swapReason ?? '';
   const receipt = sealReceipt(
     {
       baseline: baselineOf(previous),
@@ -667,7 +703,7 @@ const recordTarget = async (
       documentSha256: deps.sha256(documentText),
       fingerprint: currentFingerprint(),
       measurement,
-      reason: ['allowed-equal', 'rebaseline'].includes(verdict.decision) ? reason : '',
+      reason: ['allowed-equal', 'rebaseline', 'swap'].includes(verdict.decision) ? reason : '',
       schema: 1,
       setPath: target.setPath,
       setSha256: deps.sha256(setText),
@@ -691,7 +727,7 @@ const staleProblems = (receipt: Receipt, inputs: Inputs, deps: GateDependencies)
   return stale;
 };
 
-const targetOf = (document: string, deps: GateDependencies): GateTarget => {
+export const targetOf = (document: string, deps: GateDependencies): GateTarget => {
   const central = isGlobalAgentsRoot(deps.agentsRoot);
   return {
     document,
@@ -718,7 +754,12 @@ const recordSafely = async (
 export const usage = (): string =>
   'Usage: bun <agents-root>/scripts/instruction-gate.ts verify [--agents-root <absolute-path>]; '
   + 'bun <agents-root>/scripts/instruction-gate.ts record [--agents-root <absolute-path>] '
-  + '[--allow-equal <reason>] [--rebaseline <reason>] [<instruction-path> | descriptions]... '
+  + '[--allow-equal <reason>] [--rebaseline <reason>] [--allow-swap <reason>] '
+  + '[--rotate-pool <pool-file>] [<instruction-path> | descriptions]...; '
+  + 'bun <agents-root>/scripts/instruction-gate.ts evaluate-batch <absolute-request-json> [<absolute-output-json>] '
+  + '(score up to 3 candidate sources per document in one reader run; writes no receipt); '
+  + 'bun <agents-root>/scripts/instruction-gate.ts calibrate <owner-id>... [--write] '
+  + '(mutate selected atoms, record which probes flip, and with --write store it in the atom maps) '
   + '--agents-root selects the content root (documents, skills, sets, receipts) for a '
   + 'project-local agents root; scripts still run from the gate package. '
   + 'The routing of skill descriptions is gated only for the default global root: '
@@ -730,13 +771,23 @@ export const parseRecordArguments = (
   const options: RecordOptions = {
     allowEqualReason: optionValue(args, '--allow-equal'),
     rebaselineReason: optionValue(args, '--rebaseline'),
+    rotatePoolPath: optionValue(args, '--rotate-pool'),
+    swapReason: optionValue(args, '--allow-swap'),
   };
-  for (const flag of ['--allow-equal', '--rebaseline']) {
+  for (const flag of ['--allow-equal', '--rebaseline', '--allow-swap']) {
     if (args.includes(flag) && !optionValue(args, flag)?.trim()) {
       throw new Error(`${flag} needs a written reason. ${usage()}`);
     }
   }
-  const values = new Set([options.allowEqualReason, options.rebaselineReason]);
+  if (args.includes('--rotate-pool') && !options.rotatePoolPath?.trim()) {
+    throw new Error(`--rotate-pool needs a sealed pool file path. ${usage()}`);
+  }
+  const values = new Set([
+    options.allowEqualReason,
+    options.rebaselineReason,
+    options.rotatePoolPath,
+    options.swapReason,
+  ]);
   const documents = args.filter((arg) => !arg.startsWith('--') && !values.has(arg));
   return { documents, options };
 };
@@ -785,6 +836,53 @@ const routingRuntime: RoutingRuntime = {
   measureDocument,
   recordedProblems,
   sealReceipt,
+};
+
+const calibrateCommand = async (
+  args: readonly string[],
+  deps: GateDependencies,
+): Promise<number> => {
+  const owners = args.filter((arg) => arg !== '--write');
+  if (owners.length === 0 || args.length - owners.length > 1) {
+    throw new Error(usage());
+  }
+  const report = await calibrateOwners(deps, owners, args.includes('--write'));
+  deps.write(`${JSON.stringify(report, null, 2)}\n`);
+  return 0;
+};
+
+// One reader run over every candidate source in a batch request; writes no receipt.
+export const evaluateBatchText = (requestText: string, deps: GateDependencies) =>
+  evaluateBatch(requestText, deps, {
+    fingerprint: currentFingerprint,
+    measurementOf,
+    targetOf: (document) => targetOf(document, deps),
+  });
+
+const evaluateBatchCommand = async (
+  args: readonly string[],
+  deps: GateDependencies,
+): Promise<number> => {
+  const [requestPath, outputPath, ...extra] = args;
+  if (
+    !requestPath
+    || !path.isAbsolute(requestPath)
+    || extra.length > 0
+    || (outputPath && !path.isAbsolute(outputPath))
+  ) {
+    throw new Error(usage());
+  }
+  const requestText = await deps.readText(requestPath);
+  if (requestText === undefined) {
+    throw new Error(`Missing evaluate-batch request: ${requestPath}`);
+  }
+  const result = await evaluateBatchText(requestText, deps);
+  const rendered = `${JSON.stringify(result, null, 2)}\n`;
+  if (outputPath) {
+    await deps.writeText(outputPath, rendered);
+  }
+  deps.write(rendered);
+  return 0;
 };
 
 export const verifyRouting = (deps: GateDependencies): Promise<readonly string[]> =>
@@ -894,6 +992,12 @@ export const run = async (args: readonly string[], base: GateDependencies): Prom
   const deps = root === undefined ? base : { ...base, agentsRoot: root };
   if (command === 'verify' && rest.length === 0) {
     return verify(deps);
+  }
+  if (command === 'evaluate-batch') {
+    return evaluateBatchCommand(rest, deps);
+  }
+  if (command === 'calibrate') {
+    return calibrateCommand(rest, deps);
   }
   if (command === 'record') {
     const parsed = parseRecordArguments(rest);

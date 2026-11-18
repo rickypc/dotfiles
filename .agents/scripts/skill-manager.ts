@@ -3,6 +3,8 @@ import { basename, dirname, extname, join, relative, resolve, sep } from 'node:p
 
 import { runWhenMainWithHelp } from '../utils/cli.js';
 import { type FileSystem, nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
+import { auditAtoms } from '../utils/quality-engine/atom-audit.js';
+import { rebuildAtomMaps } from '../utils/quality-engine/atom-build.js';
 import { parseEvaluationCasesJsonl } from '../utils/quality-engine/evaluation-cases.js';
 import type { MatrixCase } from '../utils/quality-engine/matrix.js';
 import { matrixFingerprintFor } from '../utils/quality-engine/matrix.js';
@@ -58,7 +60,10 @@ import {
   validateSkill,
   validateSkillEvaluations,
 } from '../utils/skill-manager.js';
+import { atomGateDeps, atomGateProblems } from './skill-manager-atom-gate.js';
 import { runSkillManagerEvaluation, runSkillManagerRatchet } from './skill-manager-evaluation.js';
+import { defaultLibrarianDeps, runLibrarian } from './skill-manager-librarian.js';
+import { defaultSealDeps, runSeal } from './skill-manager-seal.js';
 
 interface ContractSubject {
   readonly cases: readonly MatrixCase[];
@@ -71,6 +76,13 @@ interface HistoryPaths {
   readonly ledgerPath: string;
   readonly snapshotRoot: string;
 }
+
+type Route = (
+  args: readonly string[],
+  read: (path: string) => Promise<string | Buffer>,
+  write: (message: string) => void,
+  fileSystem: FileSystem,
+) => Promise<void>;
 
 interface ScoredSubject {
   readonly hardFailure: () => Promise<string | undefined>;
@@ -102,6 +114,12 @@ interface TrainSubject {
 export const usage = (): string =>
   [
     'Usage:',
+    '  bun <agents-root>/scripts/skill-manager.ts audit <absolute-agents-root> [owner-id | --check]',
+    '  bun <agents-root>/scripts/skill-manager.ts atoms <absolute-agents-root> [owner-id] [--write]',
+    '  bun <agents-root>/scripts/skill-manager.ts propose <absolute-agents-root> <absolute-proposal-json>',
+    '  bun <agents-root>/scripts/skill-manager.ts check <absolute-agents-root> <batch-id> [--allow-swap <reason>]',
+    '  bun <agents-root>/scripts/skill-manager.ts commit <absolute-agents-root> <batch-id>',
+    '  bun <agents-root>/scripts/skill-manager.ts seal <absolute-agents-root> <owner-id> <case-id> <absolute-capture-json> <document-sha256>',
     '  bun <agents-root>/scripts/skill-manager.ts init <absolute-skill-path> <description>',
     '  bun <agents-root>/scripts/skill-manager.ts validate <absolute-skill-path>',
     '  bun <agents-root>/scripts/skill-manager.ts review <absolute-skill-or-static-root-path> [absolute-additional-static-root-path]',
@@ -150,6 +168,44 @@ const batchPairsFor = (
     );
   }
   return parsed;
+};
+
+const runAtoms = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  fileSystem: FileSystem,
+): Promise<void> => {
+  const flags = args.slice(1).filter((arg) => arg === '--write');
+  const [agentsRoot, ownerId, ...extra] = args.slice(1).filter((arg) => arg !== '--write');
+  if (flags.length > 1 || extra.length > 0 || !agentsRoot?.startsWith('/')) {
+    throw new Error(usage());
+  }
+  const report = await rebuildAtomMaps(fileSystem, agentsRoot, {
+    ownerId,
+    write: flags.length === 1,
+  });
+  write(JSON.stringify(report, null, 2));
+};
+
+const runAudit = async (
+  args: readonly string[],
+  write: (message: string) => void,
+  fileSystem: Pick<FileSystem, 'readFile' | 'readdir'>,
+): Promise<void> => {
+  const check = args.includes('--check');
+  const [, agentsRoot, ownerId, ...extra] = args.filter((arg) => arg !== '--check');
+  if (!agentsRoot?.startsWith('/') || extra.length > 0 || (check && ownerId !== undefined)) {
+    throw new Error(usage());
+  }
+  if (check) {
+    const problems = await atomGateProblems(atomGateDeps(fileSystem, agentsRoot), fileSystem);
+    if (problems.length > 0) {
+      throw new Error(`Atom gate failed:\n${problems.join('\n')}`);
+    }
+    write('atom-maps: passed - every instruction document has an atom map that audits clean.');
+    return;
+  }
+  write(JSON.stringify({ owners: await auditAtoms(fileSystem, agentsRoot, ownerId) }, null, 2));
 };
 
 const runInit = async (
@@ -573,6 +629,8 @@ const consumeTrainFlag = (
   return index;
 };
 
+const librarian: Route = (args, _read, write) => runLibrarian(args, write, defaultLibrarianDeps);
+
 const runBatch = async (
   args: readonly string[],
   read: (path: string) => Promise<string | Buffer>,
@@ -944,6 +1002,22 @@ const runTrain = async (
   throw new Error(usage());
 };
 
+const ROUTES: Readonly<Record<string, Route>> = {
+  atoms: (args, _read, write, fileSystem) => runAtoms(args, write, fileSystem),
+  audit: (args, _read, write, fileSystem) => runAudit(args, write, fileSystem),
+  batch: (args, read, write) => runBatch(args, read, write),
+  check: librarian,
+  commit: librarian,
+  evaluate: (args, read, write) => runSkillManagerEvaluation(args, read, write, usage),
+  init: (args, _read, write, fileSystem) => runInit(args, write, fileSystem),
+  propose: librarian,
+  ratchet: (args, read, write) => runSkillManagerRatchet(args, read, write, usage),
+  review: (args, _read, write, fileSystem) => runReview(args, write, fileSystem),
+  seal: (args, _read, write) => runSeal(args, write, defaultSealDeps()),
+  train: (args, _read, write, fileSystem) => runTrain(args, write, fileSystem),
+  validate: (args, _read, write, fileSystem) => runValidate(args, write, fileSystem),
+};
+
 export const run = async (
   args: readonly string[],
   read: (path: string) => Promise<string | Buffer> = defaultRead,
@@ -951,26 +1025,8 @@ export const run = async (
   fileSystem: FileSystem = nodeFileSystem,
 ): Promise<void> => {
   const [command] = args;
-  if (command === 'init') {
-    return runInit(args, write, fileSystem);
-  }
-  if (command === 'validate') {
-    return runValidate(args, write, fileSystem);
-  }
-  if (command === 'review') {
-    return runReview(args, write, fileSystem);
-  }
-  if (command === 'batch') {
-    return runBatch(args, read, write);
-  }
-  if (command === 'evaluate') {
-    return runSkillManagerEvaluation(args, read, write, usage);
-  }
-  if (command === 'train') {
-    return runTrain(args, write, fileSystem);
-  }
-  if (command === 'ratchet') {
-    return runSkillManagerRatchet(args, read, write, usage);
+  if (command !== undefined && Object.hasOwn(ROUTES, command)) {
+    return ROUTES[command](args, read, write, fileSystem);
   }
   return runPacket(args, write);
 };

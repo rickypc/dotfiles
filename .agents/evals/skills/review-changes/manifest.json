@@ -7,7 +7,8 @@
     "contract",
     "behavior",
     "comprehension",
-    "activation"
+    "activation",
+    "atoms"
   ],
   "deferredLanes": {
     "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
@@ -147,7 +148,12 @@
       }
     ],
     "ledger": "evals/skills/review-changes/ledger.jsonl",
-    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+    "caseRetirements": "evals/skills/review-changes/retirements.json",
+    "atoms": [
+      "evals/skills/review-changes/atoms/SKILL.md",
+      "evals/skills/review-changes/atoms/evals-rubric.md"
+    ]
   },
   "inventory": {
     "contractCases": 30,
@@ -156,8 +162,9 @@
     "behaviorCases": 3
   },
   "fingerprints": {
-    "casesSha256": "510ccfe7285c8c59d04fc4551c7af716ae79b9aee37345c0ac9549b061461898",
+    "casesSha256": "59c45b89a632a604ecbda56fa1b141b6325067d19e41c3cf591891afce330d14",
     "activationQueriesSha256": "7ac45c6f64ff70ae3e28ab03ae8aead1a27265f1f9e53cf819684a503c0bcd98",
-    "sourceRubricSha256": "e5393175000d02da70c3b734540681222b865762f3bc1ac2a144842cd21fadf6"
+    "sourceRubricSha256": "e5393175000d02da70c3b734540681222b865762f3bc1ac2a144842cd21fadf6",
+    "caseRetirementsSha256": "d65d1d39031da1106c479947442a4d1cc90f52caad722ca6c2217e1231e4d46c"
   }
 }

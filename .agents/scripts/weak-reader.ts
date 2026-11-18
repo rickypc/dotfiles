@@ -3,6 +3,8 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import tls from 'node:tls';
 
+import { type BatchHooks, runBatch } from './weak-reader-batch.js';
+
 export interface ChatMessage {
   readonly content: string;
   readonly role: 'system' | 'user';
@@ -633,6 +635,7 @@ export const usage = (): string =>
   + '<absolute-bundle-json-path> <absolute-answers-jsonl-path>; '
   + 'bun <agents-root>/scripts/weak-reader.ts suggest <absolute-bundle-json-path> '
   + '<absolute-failures-json-path> <absolute-suggestions-jsonl-path>; '
+  + 'bun <agents-root>/scripts/weak-reader.ts batch <absolute-batch-json-path>; '
   + 'exit codes: 0 answered, 1 failure, 2 no GPU adapter, 3 integrity failure, '
   + '4 missing webgpu package, 5 document too long.';
 
@@ -758,6 +761,16 @@ const prepareModel = async (
   };
 };
 
+const batchHooks = (deps: ReaderDependencies): BatchHooks => ({
+  answerAll: (model, bundle) => answerAll(model, bundle, deps),
+  fail: (message) => new ReaderError(message, EXIT_CODES.failure),
+  parseBundle,
+  prepare: async (bundle) => (await prepareModel(deps, bundle)).model,
+  suggest: (model, bundle, failure) =>
+    completeText(model, suggestionMessages(bundle.document, failure), SUGGEST_MAX_NEW_TOKENS),
+  usage,
+});
+
 const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Promise<number> => {
   const [bundlePath, failuresPath, suggestionsPath] = args;
   if (args.length !== 3 || !args.every((argument) => path.isAbsolute(argument))) {
@@ -792,6 +805,10 @@ const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Pr
 };
 
 export const run = async (args: readonly string[], deps: ReaderDependencies): Promise<number> => {
+  if (args[0] === 'batch') {
+    await runBatch(args.slice(1), deps, batchHooks(deps));
+    return EXIT_CODES.answered;
+  }
   if (args[0] === 'suggest') {
     return runSuggest(args.slice(1), deps);
   }

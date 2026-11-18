@@ -4,11 +4,15 @@ import matter from 'gray-matter';
 import { runWhenMain as runCliWhenMain, runWhenMainWithHelp } from '../utils/cli.js';
 import type { DirectoryEntry, FileSystem } from '../utils/filesystem.js';
 import { nodeFileSystem, readText, writeText } from '../utils/filesystem.js';
+import type { OkfMetadata } from '../utils/okf.js';
+import { parseOkfConcept, renderOkfConcept, validateOkfMetadata } from '../utils/okf.js';
 import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 import { type BatchTask, runBatched } from '../utils/quality-engine/batch.js';
 import { type RepoSearchEnvelope, repoSearchDiscover } from '../utils/repo-search.js';
 import { defaultMoveSourceToTrash } from './trash.js';
+
+export { parseOkfConcept, renderOkfConcept, validateOkfMetadata };
 
 type BatchSearchDependency = typeof searchKnowledgeBaseBatch;
 
@@ -63,14 +67,6 @@ export interface Lesson {
 
 type MoveSourceToTrashDependency = typeof defaultMoveSourceToTrash;
 
-export interface OkfMetadata {
-  readonly description: string;
-  readonly tags: readonly string[];
-  readonly title: string;
-  readonly type: string;
-  readonly [key: string]: unknown;
-}
-
 export interface PlanImportDocument {
   readonly headings: readonly string[];
   readonly objective: string;
@@ -123,8 +119,6 @@ const conceptPath =
   /^(?:shared|[A-Za-z0-9][A-Za-z0-9._-]*)\/[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*\.md$/u;
 
 export const isKbConceptPath = (path: string): boolean => conceptPath.test(path);
-
-const requiredFields: readonly (keyof OkfMetadata)[] = ['type', 'title', 'description', 'tags'];
 
 const planFrontmatterFields = new Set([
   'title',
@@ -255,6 +249,17 @@ const relativeLinkPath = (from: string, to: string): string => {
 };
 
 const linkTarget = (from: string, to: string): string => `](${relativeLinkPath(from, to)})`;
+
+export const renderCapturedConcept = (
+  metadata: OkfMetadata,
+  evidence: string,
+  body: string,
+): string => {
+  if (!evidence.trim()) {
+    throw new Error('KB capture evidence is required.');
+  }
+  return renderOkfConcept(metadata, `${body.trim()}\n\n## Evidence\n\n${evidence.trim()}`);
+};
 
 export const renderDirectoryIndex = (
   title: string,
@@ -449,100 +454,34 @@ const runSearchCommand = async (
   return true;
 };
 
+const runReadCommand = async (
+  args: readonly string[],
+  search: typeof searchKnowledgeBase,
+  discover: typeof searchKnowledgeBaseWithFallback,
+  batchSearch: typeof searchKnowledgeBaseBatch,
+  write: (message: string) => void,
+): Promise<boolean> => {
+  const [command, value, ...rest] = args;
+  if (command === 'validate' && value && args.length === 2) {
+    parseOkfConcept(await readText(nodeFileSystem, value));
+    write('okf: passed');
+    return true;
+  }
+  if (command === 'render-index' && value && args.length >= 2) {
+    write(renderDirectoryIndex(value, rest));
+    return true;
+  }
+  if (command === 'search' || command === 'related') {
+    return runSearchCommand(args, search, discover, write);
+  }
+  return runBatchSearchCommand(args, batchSearch, write);
+};
+
 export const scopeIndexPath = (path: string): string => {
   if (!isKbConceptPath(path)) {
     throw new Error(`Invalid KB concept path: ${path}`);
   }
   return `${path.split('/')[0]}/index.md`;
-};
-
-const stringMetadata = (data: Record<string, unknown>, key: string): string => {
-  const value = data[key];
-  if (typeof value !== 'string') {
-    throw new Error(`OKF metadata field is required: ${key}`);
-  }
-  return value;
-};
-
-const tokenMatches = (haystack: string, token: string): boolean => {
-  if (haystack.includes(token)) {
-    return true;
-  }
-  return token.endsWith('s') && token.length > 3 && haystack.includes(token.slice(0, -1));
-};
-
-export const usage = (): string =>
-  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search takes one KB root and a query; search-batch takes one KB root and 1-4 unique queries.';
-
-export const validateLesson = (lesson: Lesson): void => {
-  for (const [name, value] of Object.entries(lesson)) {
-    if (!value.trim()) {
-      throw new Error(`Lesson ${name} is required.`);
-    }
-  }
-};
-
-export const renderLessonBody = (lesson: Lesson): string => {
-  validateLesson(lesson);
-  return [
-    '## Observed lesson',
-    '',
-    `- Symptom: ${lesson.symptom}`,
-    `- Cause: ${lesson.cause}`,
-    `- Durable fix: ${lesson.durableFix}`,
-    `- Evidence: ${lesson.evidence}`,
-  ].join('\n');
-};
-
-export const validateOkfMetadata = (metadata: OkfMetadata): void => {
-  for (const field of requiredFields) {
-    const value = metadata[field];
-    if (
-      (typeof value === 'string' && !value.trim())
-      || (Array.isArray(value) && value.length === 0)
-    ) {
-      throw new Error(`OKF metadata field is required: ${field}`);
-    }
-  }
-};
-
-export const parseOkfConcept = (content: string): OkfMetadata => {
-  const parsed = matter(content);
-  if (!matter.test(content) || content.indexOf('\n---', 4) < 0) {
-    throw new Error('OKF concept frontmatter is required.');
-  }
-  const tagsValue = parsed.data.tags;
-  if (!Array.isArray(tagsValue) || tagsValue.some((tag) => typeof tag !== 'string')) {
-    throw new Error('OKF metadata field is required: tags');
-  }
-  const metadata: OkfMetadata = {
-    ...parsed.data,
-    description: stringMetadata(parsed.data, 'description'),
-    tags: tagsValue as readonly string[],
-    title: stringMetadata(parsed.data, 'title'),
-    type: stringMetadata(parsed.data, 'type'),
-  };
-  validateOkfMetadata(metadata);
-  return metadata;
-};
-
-export const renderOkfConcept = (metadata: OkfMetadata, body: string): string => {
-  validateOkfMetadata(metadata);
-  if (!body.trim()) {
-    throw new Error('OKF concept body is required.');
-  }
-  return matter.stringify(body.trim(), metadata);
-};
-
-export const renderCapturedConcept = (
-  metadata: OkfMetadata,
-  evidence: string,
-  body: string,
-): string => {
-  if (!evidence.trim()) {
-    throw new Error('KB capture evidence is required.');
-  }
-  return renderOkfConcept(metadata, `${body.trim()}\n\n## Evidence\n\n${evidence.trim()}`);
 };
 
 export const captureConcept = async (
@@ -640,27 +579,11 @@ export const importPlan = async (
   };
 };
 
-const runReadCommand = async (
-  args: readonly string[],
-  search: typeof searchKnowledgeBase,
-  discover: typeof searchKnowledgeBaseWithFallback,
-  batchSearch: typeof searchKnowledgeBaseBatch,
-  write: (message: string) => void,
-): Promise<boolean> => {
-  const [command, value, ...rest] = args;
-  if (command === 'validate' && value && args.length === 2) {
-    parseOkfConcept(await readText(nodeFileSystem, value));
-    write('okf: passed');
+const tokenMatches = (haystack: string, token: string): boolean => {
+  if (haystack.includes(token)) {
     return true;
   }
-  if (command === 'render-index' && value && args.length >= 2) {
-    write(renderDirectoryIndex(value, rest));
-    return true;
-  }
-  if (command === 'search' || command === 'related') {
-    return runSearchCommand(args, search, discover, write);
-  }
-  return runBatchSearchCommand(args, batchSearch, write);
+  return token.endsWith('s') && token.length > 3 && haystack.includes(token.slice(0, -1));
 };
 
 export const searchKnowledgeBase = async (
@@ -783,6 +706,29 @@ export const searchKnowledgeBaseBatch = async (
     query,
     receipt: receiptById.get(`query-${index}`) as KnowledgeBaseSearchReceipt,
   }));
+};
+
+export const usage = (): string =>
+  'Usage: bun <agents-root>/scripts/knowledge-base.ts <capture|concept-index|import-plan|reconcile|related|render-index|search|search-batch|validate> <arguments>; import-plan takes one plan path plus an optional --remove-source that moves the source plan to ~/.Trash/ after a successful import; search takes one KB root and a query; search-batch takes one KB root and 1-4 unique queries.';
+
+export const validateLesson = (lesson: Lesson): void => {
+  for (const [name, value] of Object.entries(lesson)) {
+    if (!value.trim()) {
+      throw new Error(`Lesson ${name} is required.`);
+    }
+  }
+};
+
+export const renderLessonBody = (lesson: Lesson): string => {
+  validateLesson(lesson);
+  return [
+    '## Observed lesson',
+    '',
+    `- Symptom: ${lesson.symptom}`,
+    `- Cause: ${lesson.cause}`,
+    `- Durable fix: ${lesson.durableFix}`,
+    `- Evidence: ${lesson.evidence}`,
+  ].join('\n');
 };
 
 const validateReconciliationHeader = (plan: ReconciliationPlan): void => {

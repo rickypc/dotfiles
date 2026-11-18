@@ -359,3 +359,50 @@ const invalidSnapshots = [
 test.each(invalidSnapshots)('rejects malformed candidate evidence: $label', ({ snapshots }) => {
   expect(() => sut.paretoFrontierFor(snapshots)).toThrow();
 });
+
+const vec = (
+  candidateId: string,
+  trainPassed: string[],
+  validationPassed = 5,
+  changedAtoms = 1,
+  tokenDelta = 0,
+) => ({ candidateId, changedAtoms, tokenDelta, trainPassed, validationPassed });
+
+test('probe frontier drops a dominated vector and keeps incomparable ones', () => {
+  const frontier = sut.probeFrontierFor([
+    vec('a', ['p1', 'p2']),
+    vec('b', ['p1']),
+    vec('c', ['p3']),
+  ]);
+  expect(frontier.map(({ candidateId }) => candidateId)).toEqual(['a', 'c']);
+});
+
+test('probe selection picks the unique dominating vector', () => {
+  expect(sut.selectProbeCandidate([vec('a', ['p1', 'p2']), vec('b', ['p1'])])).toEqual({
+    frontier: ['a'],
+    selected: 'a',
+    stopReason: 'selected',
+  });
+});
+
+test('probe selection breaks equal vectors by changed atoms, token delta, then id', () => {
+  const pick = (candidates: ReturnType<typeof vec>[]) =>
+    sut.selectProbeCandidate(candidates).selected;
+  expect(pick([vec('a', ['p1'], 5, 3), vec('b', ['p1'], 5, 1)])).toBe('b');
+  expect(pick([vec('a', ['p1'], 5, 1, -9), vec('b', ['p1'], 5, 1, 4)])).toBe('b');
+  expect(pick([vec('b', ['p1']), vec('a', ['p1'])])).toBe('a');
+});
+
+test('probe selection returns none for a trade-off and for no admissible candidate', () => {
+  expect(sut.selectProbeCandidate([vec('a', ['p1']), vec('b', ['p2'])])).toEqual({
+    frontier: ['a', 'b'],
+    selected: null,
+    stopReason: 'trade-off',
+  });
+  expect(sut.selectProbeCandidate([vec('a', ['p1'], 6), vec('b', ['p1'], 5)]).selected).toBe('a');
+  expect(sut.selectProbeCandidate([])).toEqual({
+    frontier: [],
+    selected: null,
+    stopReason: 'no-admissible',
+  });
+});

@@ -1,0 +1,110 @@
+{
+  "kind": "comprehension",
+  "queries": [
+    {
+      "evidence": "A delta is a list of ops over anchored rule atoms, and it never replaces the whole document.",
+      "expected": "A",
+      "id": "train-01",
+      "query": "What does a librarian delta contain?\nA) A list of ops over anchored rule atoms.\nB) The full replacement text of the document.\nC) A unified diff of the file.\nD) A sentence-by-sentence rewrite of the document.",
+      "split": "train"
+    },
+    {
+      "evidence": "The op `tag` changes only a helpful or harmful counter and never touches the text.",
+      "expected": "C",
+      "id": "train-02",
+      "query": "Which delta op changes only an atom counter and never the document text?\nA) modify\nB) move\nC) tag\nD) retire",
+      "split": "train"
+    },
+    {
+      "evidence": "Every `modify` and `retire` op carries a reason of at least 20 characters, and `commit` records it as an `atom:<id>` row in the owner's `retirements.json`.",
+      "expected": "D",
+      "id": "train-03",
+      "query": "Where does commit record the reason of a retire op?\nA) In the frontmatter of the atom map.\nB) In the receipt for the document.\nC) In the ledger of the owner.\nD) As an atom:<id> row in the owner's retirements.json.",
+      "split": "train"
+    },
+    {
+      "evidence": "A drifted anchor, two ops on one atom, or any change outside a named atom span rejects the whole delta.",
+      "expected": "B",
+      "id": "train-04",
+      "query": "One op in a delta names an anchor that no longer matches the text. What happens to the delta?\nA) Only that op is skipped.\nB) The whole delta is rejected.\nC) The anchor is re-resolved by similarity.\nD) The op applies at the nearest placement.",
+      "split": "train"
+    },
+    {
+      "evidence": "`propose` takes one proposal file with 1 to 3 candidate deltas for one document and writes one snapshot per candidate to the OS-temp store.",
+      "expected": "C",
+      "id": "train-05",
+      "query": "A proposal file carries four candidate deltas for one document. What does propose do?\nA) It writes four snapshots.\nB) It keeps the first three candidates.\nC) It rejects the proposal, because a proposal carries 1 to 3 candidates.\nD) It merges the four deltas into one.",
+      "split": "train"
+    },
+    {
+      "evidence": "`propose` also rejects a candidate that changes the skill description or leaves the document text unchanged",
+      "expected": "A",
+      "id": "train-06",
+      "query": "A candidate delta rewrites the description line of a skill. What does propose do?\nA) It rejects the candidate.\nB) It accepts it, because descriptions are atoms.\nC) It accepts it after reflow.\nD) It passes the decision to check.",
+      "split": "train"
+    },
+    {
+      "evidence": "A structural failure skips the reader run and is reported with the candidate.",
+      "expected": "D",
+      "id": "train-07",
+      "query": "A candidate text is not reflowed to the 100-column band. What does check do about the reader run?\nA) It runs the reader anyway.\nB) It reflows the text silently, then scores it.\nC) It rejects the batch without a report.\nD) It skips the reader run and reports the structural failure.",
+      "split": "train"
+    },
+    {
+      "evidence": "`commit` is the only verb that writes an instruction file.",
+      "expected": "B",
+      "id": "train-08",
+      "query": "Which librarian verb writes an instruction file?\nA) propose\nB) commit\nC) check\nD) all three verbs",
+      "split": "train"
+    },
+    {
+      "evidence": "When the frontier holds incomparable vectors, `check` selects none and reports a trade-off.",
+      "expected": "B",
+      "id": "validation-01",
+      "query": "Two admissible candidates each pass a probe the other fails. What does check select?\nA) The one with fewer changed atoms.\nB) None, and it reports a trade-off.\nC) The one with the lower candidate id.\nD) Both candidates.",
+      "split": "validation"
+    },
+    {
+      "evidence": "After the third round `check` stops with the budget reason instead of asking for another round.",
+      "expected": "D",
+      "id": "validation-02",
+      "query": "No candidate is admissible after the third round. What does check do?\nA) It asks for a fourth round.\nB) It selects the best partial candidate.\nC) It resets the round count.\nD) It stops with the budget reason.",
+      "split": "validation"
+    },
+    {
+      "evidence": "`commit` refuses to touch a behavioral atom without a behavior verdict.",
+      "expected": "A",
+      "id": "validation-03",
+      "query": "A selected candidate edits a behavioral atom and no behavior verdict exists. What does commit do?\nA) It refuses to write.\nB) It writes with a warning.\nC) It skips only that atom.\nD) It asks the reader to decide.",
+      "split": "validation"
+    },
+    {
+      "evidence": "`commit` reports the probes whose evidence no longer resolves, and the editor updates those probes in the comprehension set.",
+      "expected": "C",
+      "id": "validation-04",
+      "query": "After commit, some probe evidence no longer resolves in the new text. Who updates those probes?\nA) Commit rewrites the evidence itself.\nB) The reader.\nC) The editor, in the comprehension set.\nD) The audit deletes them.",
+      "split": "validation"
+    },
+    {
+      "evidence": "It leaves the receipt stale, so run `instruction-gate record` on the document afterward.",
+      "expected": "B",
+      "id": "validation-05",
+      "query": "What state is the receipt in right after commit writes the document?\nA) Current.\nB) Stale; run instruction-gate record on the document.\nC) Deleted.\nD) Rebaselined by commit.",
+      "split": "validation"
+    },
+    {
+      "evidence": "`check` selects the unique frontier winner, and equal vectors are ordered by fewest changed atoms, then smallest token delta, then candidate id.",
+      "expected": "D",
+      "id": "validation-06",
+      "query": "Two candidates have identical probe vectors. What orders them first?\nA) Smallest token delta.\nB) Candidate id.\nC) Most added atoms.\nD) Fewest changed atoms.",
+      "split": "validation"
+    }
+  ],
+  "runs_per_query": 3,
+  "skill_name": "skill-manager--references-librarian",
+  "splits": {
+    "train": "Use failures from this split to rewrite unclear passages.",
+    "validation": "Keep fixed and hidden from rewrite decisions."
+  },
+  "target": "../../../../skills/skill-manager/references/librarian.md"
+}

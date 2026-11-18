@@ -1,6 +1,19 @@
 {
-  "baseline": null,
-  "decision": "baseline",
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09"
+    ],
+    "validationPassed": 5
+  },
+  "decision": "perfect",
   "document": "evals/skills/playwright-test-generator/rubric.md",
   "documentSha256": "bc1c4d45fcef64d9a50f5205fb289a72b082bc0d758a6840198ed2c0d1fe9d2f",
   "fingerprint": {
@@ -27,7 +40,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "f01712b41f653b0653f9d877b449f6d33df18e0cced9a6269c0e56e562ed13dd",
+  "selfSha256": "f4162b1729470fb546d5d2581fbd6363d0e139217e12facd1073542b921307e9",
   "setPath": "evals/skills/playwright-test-generator/comprehension/evals-rubric.json",
-  "setSha256": "1dd9ee333d99cea7d9788f21bd36f1d92dd1809ecf4483e188eb223d6b664cde"
+  "setSha256": "13eb1c2899100b5cd537a3c27c2ec2cada26345d5c997edf705f248bd38d7055"
 }

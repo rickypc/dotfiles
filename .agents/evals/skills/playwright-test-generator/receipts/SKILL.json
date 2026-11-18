@@ -1,6 +1,36 @@
 {
-  "baseline": null,
-  "decision": "baseline",
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10",
+      "train-11",
+      "train-12",
+      "train-13",
+      "train-14",
+      "train-15",
+      "train-16",
+      "train-17",
+      "train-18",
+      "train-19",
+      "train-20",
+      "train-21",
+      "train-22",
+      "train-23",
+      "train-24",
+      "train-25",
+      "train-26"
+    ],
+    "validationPassed": 12
+  },
+  "decision": "perfect",
   "document": "skills/playwright-test-generator/SKILL.md",
   "documentSha256": "0809457bc14003c2edde0091743d3e33a7590def9b47ee85517d126bcc920faf",
   "fingerprint": {
@@ -44,7 +74,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "0d2523c1623cfa3098932f079544d3f5d1162dc04d2fdef93da7abb0311bce9f",
+  "selfSha256": "3b203943a9a79a5a09dbbe54baa41c9c2fb7a9ef413afb184c23540184c7cd38",
   "setPath": "evals/skills/playwright-test-generator/comprehension/SKILL.json",
-  "setSha256": "8fc641a6ff100996ccf960a9c65e499dbb70fd715c5be033aa03c7726c6fffcf"
+  "setSha256": "d538cb5eca8500c2353b880ea567116879dde7e438c1b1c25087a65e280ba515"
 }

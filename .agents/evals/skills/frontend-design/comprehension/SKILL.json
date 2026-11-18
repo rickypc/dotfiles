@@ -268,7 +268,7 @@
       "split": "validation"
     },
     {
-      "evidence": "/frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria>",
+      "evidence": "Usage ```text /frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria>",
       "expected": "A",
       "id": "validation-12",
       "query": "Which invocation follows the skill's argument order?\nA) /frontend-design <ui-brief> <affected-screens> <design-system> <acceptance-criteria>\nB) /frontend-design <affected-screens> <ui-brief> <design-system> <acceptance-criteria>\nC) /frontend-design <ui-brief> <design-system> <affected-screens> <acceptance-criteria>\nD) /frontend-design <ui-brief> <affected-screens> <acceptance-criteria> <design-system>",

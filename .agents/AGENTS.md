@@ -557,6 +557,23 @@ Complete all required Markdown reflow before refreshing a manifest source hash o
 `instruction-gate record`. Reflow changes the document fingerprint even when it only wraps lines.
 Revalidate after reflow. Any later edit or reflow makes the receipt stale and requires a new record.
 
+### Atom maps
+
+Every instruction and skill document has an atom map under `<agents-root>/evals/`, with no exception
+and no opt-out. A new or renamed document is incomplete until it has its comprehension set and its
+atom map: run `/skill-manager atoms <agents-root> --write` and
+`/skill-manager audit <agents-root> --check` before closing the work. `bun run test` fails when a
+document has no atom map or a map fails its audit, and `instruction-gate record` refuses a document
+without one.
+
+Edit these documents only through `/skill-manager propose`, `check`, and `commit`; `commit` is the
+only path that writes the instruction file, and it refuses a verdict that selected no candidate or
+is stale for the document, the atom map, or the probe set. A skill description is the one exception:
+it changes only through `instruction-gate record descriptions`. Bound each target to three rounds of
+at most three candidates; a third round without an admissible candidate stops with the diagnosis for
+the document owner. A receipt never regresses: `instruction-gate record` rejects an edit that loses
+a passing probe.
+
 After the complete implementation batch:
 
 1. Run the focused checks for changed behavior and affected boundaries.

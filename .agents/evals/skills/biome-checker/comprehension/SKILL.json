@@ -79,7 +79,7 @@
       "split": "train"
     },
     {
-      "evidence": "other supported extensions use TypeScript grammar.",
+      "evidence": "`.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` use TypeScript grammar",
       "expected": "A",
       "id": "train-12",
       "query": "Which grammar does the declaration-order check use for a file named worker.mts?\nA) The TypeScript grammar\nB) The TSX grammar\nC) The JavaScript grammar\nD) No grammar; .mts files are skipped",
@@ -156,7 +156,7 @@
       "split": "train"
     },
     {
-      "evidence": "`.jsx`/`.tsx` use TSX grammar;",
+      "evidence": "Example: `app.jsx` uses TSX grammar, and its type check is `not-applicable`",
       "expected": "A",
       "id": "train-17",
       "query": "The user selects app.jsx. Which grammar does the declaration-order check use, and what does the receipt say for the type check?\nA) TSX grammar; bun-check is not-applicable\nB) TypeScript grammar; bun check runs\nC) TSX grammar; bun check runs\nD) TypeScript grammar; bun-check is not-applicable",
@@ -247,7 +247,7 @@
       "split": "validation"
     },
     {
-      "evidence": "Rerun the same complete command after one permitted reorder batch.",
+      "evidence": "After one permitted `--apply` reorder batch, rerun the same complete inspection command without `--apply`.",
       "expected": "A",
       "id": "validation-09",
       "query": "The agent ran bun <agents-root>/scripts/declaration-order.ts src/a.ts, got status failed, and applied the packet with --apply. Which command does it rerun to verify?\nA) The same declaration-order.ts inspection command without --apply\nB) declaration-order.ts --apply again\nC) declaration-order.ts --summary only\nD) biome-checker.ts alone",

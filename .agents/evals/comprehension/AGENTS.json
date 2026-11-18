@@ -394,7 +394,7 @@
       "split": "train"
     },
     {
-      "evidence": "where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. The suffix goes AFTER the full basename: a colliding `notes.md` goes to `~/.Trash/notes.md.1`, never to `~/.Trash/1.notes.md`.",
+      "evidence": "Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`",
       "expected": "D",
       "id": "train-41",
       "query": "The agent retires `/work/notes.md`, but `~/.Trash/notes.md` already exists. What is the sanctioned shell action?\nA) `rm` the old trash entry, then move the file.\nB) `mv` over `~/.Trash/notes.md`.\nC) `mv` to `~/.Trash/<suffix>.notes.md`.\nD) `mv` to `~/.Trash/notes.md.<suffix>`.",
@@ -601,6 +601,14 @@
       "expected": "B",
       "id": "validation-29",
       "query": "The harness exposes no tool-event trace, but the target describes the actions it took. Can the receipt be admitted?\nA) Yes; the target's narrative attests its own actions.\nB) No; a narrated trace is not host evidence, so block admission when the case requires that trace.\nC) Yes, if the grader agrees.\nD) Yes, after repeating the same target prompt.",
+      "retired": "The source now allows a target's runId-bound toolTrace as reported-in-session evidence and only forbids calling it an independently verified harness event log, so the 'narrated trace is not host evidence; block admission' premise no longer matches; replaced by validation-30.",
+      "split": "validation"
+    },
+    {
+      "evidence": "A target's runId-bound `toolTrace` may be used as `reported-in-session` evidence.",
+      "expected": "B",
+      "id": "validation-30",
+      "query": "A target session returns a runId-bound toolTrace. How may the case receipt describe that trace?\nA) As an independently verified harness event log.\nB) As reported-in-session evidence, and keep that label in the case receipt and aggregate.\nC) As host-verified proof that every reported tool was invoked.\nD) It cannot be used as evidence at all.",
       "split": "validation"
     }
   ],

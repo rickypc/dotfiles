@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "retirements": [
+    {
+      "caseId": "review-order-findings-within-lens",
+      "reason": "The output contract in skills/review-changes/SKILL.md gives each finding an index line followed by a numbered detail line in the same order. The bare three-line assertion was frozen before that contract and checks only the index, so the case is replaced by one that asserts the numbered per-finding detail lines the contract requires."
+    }
+  ]
+}

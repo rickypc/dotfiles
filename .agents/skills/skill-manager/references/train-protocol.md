@@ -1,7 +1,7 @@
 # In-session training protocol
 
-Skill Manager owns this protocol for evaluation training and weak-reader execution across the
-global and supported project-local `.agents` scopes. This reference owns the training loop that
+Skill Manager owns this protocol for evaluation training and weak-reader execution across the global
+and supported project-local `.agents` scopes. This reference owns the training loop that
 `/skill-manager train` runs. The invocation grammar stays in the parent Usage section; the scripts
 own every number. The only LLM boundary is the executing agent and the fresh child agents it spawns.
 No provider endpoint, credential, or model identifier is configured, read, or embedded.
@@ -150,7 +150,8 @@ re-baseline to hide a loss.
 
 Each document has a comprehension set. Where the set lives depends on the document:
 
-- A Markdown file in a global skill package: `<agents-root>/evals/skills/<skill>/comprehension/<source-key>.json`.
+- A Markdown file in a global skill package:
+  `<agents-root>/evals/skills/<skill>/comprehension/<source-key>.json`.
 - A Markdown file in a supported project-local skill package:
   `<project-agents-root>/skills/<skill>/evals/comprehension/<source-key>.json`.
 - An `AGENTS*`, `CLAUDE*`, or `GEMINI*` root instruction file in the global agents scope:
@@ -190,6 +191,11 @@ question with one option letter in an `answer` field.
   is a JSON array of train misses, each with `id`, `query`, `expected`, and `given`. For every miss
   the reader quotes the sentence it relied on, says what was hard to read, and proposes a clearer
   replacement. Treat the output as a lead: check each proposal against the document before editing.
+- `bun <agents-root>/scripts/weak-reader.ts batch <batch-json>` answers many bundles in one process,
+  loading a fresh model for each document, so every answer matches the single-document run. A shared
+  session kept the previous document's cached prefix and flipped one probe in a parity check. Do not
+  call it by hand: `instruction-gate evaluate-batch` builds the batch file and scores the answers
+  (§12).
 - The runtime bundle is vendored in `vendor/gemma-4-e2b/` with its origin, license status, and two
   edits recorded there. The edits let the reader keep the cached document prefix between questions
   and size the context from the document (up to the model limit of 131072 tokens). The document is
@@ -292,3 +298,80 @@ delete a query: add `"retired": "<reason>"` to it. A retired query stays in the 
 skipped by bundles, scoring, and balance checks, and changes the fingerprint, so record a new
 baseline afterwards. Retire a query when its label is wrong, when two skills could both own it, or
 when the document rule it tested was deliberately replaced.
+
+## 12. Atom maps, audit, and batch scoring
+
+An atom is one rule sentence of an instruction document. Its id is a hash of its text, so it does
+not depend on where the sentence sits. `placements` lists every heading path where that text
+appears: a rule written twice is one atom with two placements.
+
+- Each document has one map, `evals/atoms/<key>.md` for the root document and
+  `evals/skills/<skill>/atoms/<key>.md` for a skill document. `<key>` is the file name of the
+  document's comprehension set. Both manifests list every map in `artifacts.atoms`, and the `atoms`
+  lane in `requiredLanes` makes that list required. The three frozen skills have no maps.
+- A map is derived from probe evidence. The `evidence` text of every active probe must appear in the
+  document; the sentences it covers become atoms linked to that probe. A retired probe is skipped.
+  Never edit a map by hand.
+- After you edit a document or a probe's `evidence`, run
+  `/skill-manager atoms <agents-root> <owner-id>` to preview, then run it again with `--write`. It
+  keeps each atom's recorded state by atom id: `tags`, `precedence`, `behavioral`, `helpful`,
+  `harmful`, and sensitivity. It also rewrites the manifest lists. For a skill it refreshes the
+  `sources` hashes and the rubric fingerprint in the skill manifest, which `validate-skills` rejects
+  when stale. An atom whose text left the document becomes `retired`. Record that in the owner's
+  `retirements.json` as a row whose `caseId` is `atom:<id>`. A probe whose evidence no longer
+  matches appears under `unresolvedProbes`: correct its `evidence`, or retire the probe (§11).
+- `/skill-manager audit <agents-root> [owner-id]` never writes. For each owner it lists map errors,
+  including a comprehension set with no map, and these findings:
+
+  | Finding                 | Meaning                                                               |
+  | ----------------------- | --------------------------------------------------------------------- |
+  | `orphan-atom`           | No active probe covers the atom.                                      |
+  | `orphan-probe`          | No active atom links the probe.                                       |
+  | `anchor-drift`          | The recorded placements differ from the document.                     |
+  | `unrecorded-retirement` | A retired atom has no `atom:<id>` row.                                |
+  | `size-budget`           | The document is over `maxDocumentChars`.                              |
+  | `near-duplicate`        | Two atoms share most 3-word shingles (`duplicateSimilarity`).         |
+  | `duplicate-text`        | Identical text of 30 or more characters sits in several placements.   |
+
+  `near-duplicate` and `duplicate-text` are reports for the owner to review, not failures. The
+  limits are in the root manifest `policy.atomChecks`. The audit also counts each active probe as
+  `calibrated`, `uncalibrated`, or `unmeasured`; a probe is `unmeasured` until a calibration run
+  records mutant results for it in the map's `sensitivity` list.
+- `instruction-gate evaluate-batch <request> [<output>]` scores candidate document texts against a
+  document's comprehension set without recording anything. The request holds 1 to 3 candidates per
+  document; the result gives each candidate's measurement, per-probe pass vector, and failure
+  diagnoses. It uses the reader and the scoring code of `record`, so a candidate equal to the
+  current file scores like its receipt. It writes no receipt, ledger, or snapshot.
+- A candidate may carry `intents`: one question per delta that the edit must change, each with `id`,
+  `op`, `prompt`, `options` (2 to 6), and `expected` (the option letter). The result reports each as
+  `before`, `after`, and `proven`. An `add` or `modify` is proven when the reader misses it on the
+  current text and gets it on the candidate; a `retire` is the reverse; a `move` must be answered
+  correctly on both. An unproven intent means the reader cannot see the edit. Intent probes are
+  scored in the same run and are never added to the document's held-out set.
+- `instruction-gate calibrate <owner-id>... [--write]` measures how sensitive each probe is to the
+  rule it tests. For each document of the owner it takes up to 8 atoms in hash order of their id and
+  builds mutants of the document: the atom's sentence deleted, negated (`must`, `should`, `never`,
+  `always`, `do not` swapped for their opposites), or, for a numbered step, swapped with the next
+  step. It asks only the mutated atom's probes on each mutant, and a probe is flipped when its
+  answer differs from its answer on the unmutated text. A fresh model answers each mutant, as in
+  `evaluate-batch`. With `--write` the counts go into the map's `sensitivity` list, replacing the
+  entry of every probe it measured. A probe that never flipped is `uncalibrated`: no rule change
+  reaches it, so its pass or fail carries no signal. The report lists those probes for the owner.
+  Never weaken or remove a probe because of this; retire it by §11 only after the owner agrees.
+- `audit` also lists each probe that never flipped under `uncalibrated`, with the document and the
+  number of mutants tried. Review that list with the owner before relying on the core.
+- `instruction-gate record` applies an acceptance policy to a global document that has an atom map.
+  The core is the set of probes whose `sensitivity` shows at least one flip. Losing a core train
+  probe always rejects. Losing any other train probe is a swap: it needs `--allow-swap <reason>`,
+  the reason is stored in the receipt as decision `swap`, and the edit must gain at least as many
+  probes as it loses, counting a held-out gain. Held-out validation may never lose a pass, because
+  the per-probe held-out results stay hidden from the editor. A document without an atom map keeps
+  the plain per-probe rule, and so does the routing record.
+- Every distinct text of a document scored against its held-out probes is a look, whether the record
+  is accepted or rejected. `evals/held-out-looks.jsonl` (`evals/skills/<skill>/held-out-looks.jsonl`
+  for a skill) holds one line per look or rotation, and `policy.heldOutLooksPerEpoch` in the root
+  manifest sets the limit (2). Recording the same text again is not a new look. The next distinct
+  text after the limit is refused before any reader run. A fresh session that sees the atoms but no
+  candidate diff authors a new held-out pool, then `record --rotate-pool <pool-file>` hashes it,
+  starts a new epoch, and the record proceeds. Add the pool's probes to the set by §11 and
+  `ratchet`.

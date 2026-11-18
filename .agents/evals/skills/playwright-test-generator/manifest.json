@@ -7,7 +7,8 @@
     "contract",
     "behavior",
     "comprehension",
-    "activation"
+    "activation",
+    "atoms"
   ],
   "deferredLanes": {
     "behavior": "Phase 6 adds distinct owner-specific behavior coverage; the incomplete lane blocks evaluation until then."
@@ -124,7 +125,11 @@
       }
     ],
     "ledger": "evals/skills/playwright-test-generator/ledger.jsonl",
-    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+    "atoms": [
+      "evals/skills/playwright-test-generator/atoms/SKILL.md",
+      "evals/skills/playwright-test-generator/atoms/evals-rubric.md"
+    ]
   },
   "inventory": {
     "contractCases": 7,

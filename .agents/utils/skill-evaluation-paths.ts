@@ -57,6 +57,36 @@ export const agentsRootFor = (path: string): string | undefined => {
   return path.endsWith('/.agents') ? path : undefined;
 };
 
+const assertAtomLane = (
+  data: Record<string, unknown>,
+  artifacts: CentralArtifacts,
+  manifestPath: string,
+  name: string,
+): void => {
+  const declared = Array.isArray(data.requiredLanes) && data.requiredLanes.includes('atoms');
+  const maps = artifacts.atoms;
+  if (declared !== (maps !== undefined)) {
+    throw new Error(
+      `Skill atoms lane and atoms artifacts must be declared together: ${manifestPath}`,
+    );
+  }
+  if (maps === undefined) {
+    return;
+  }
+  const prefix = `evals/skills/${name}/atoms/`;
+  const valid =
+    Array.isArray(maps)
+    && maps.every(
+      (path) => typeof path === 'string' && path.startsWith(prefix) && path.endsWith('.md'),
+    )
+    && new Set(maps).size === maps.length;
+  if (!valid) {
+    throw new Error(
+      `Skill atom maps must be unique Markdown paths inside the owner scope: ${manifestPath}`,
+    );
+  }
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
@@ -352,6 +382,7 @@ const centralManifestFor = async (
   const data = await jsonObjectFor(fileSystem, manifestPath);
   const sourceRubric = sourceRubricFor(data, manifestPath, name);
   const artifacts = artifactsFor(data, manifestPath, name);
+  assertAtomLane(data, artifacts, manifestPath, name);
   if (!Array.isArray(data.sources)) {
     throw new Error(
       `Skill central evaluation manifest requires a source inventory: ${manifestPath}`,

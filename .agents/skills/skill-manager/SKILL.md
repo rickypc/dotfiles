@@ -56,6 +56,15 @@ document.
 /skill-manager train suggest <bundle> <failures> <suggestions>  # ask the weak reader how to fix its train misses
 /skill-manager gate record [flags] [<doc-path>...]              # record a never-worse receipt; flags may add --agents-root <absolute-path>
 /skill-manager gate verify [--agents-root <absolute-path>]      # require a current receipt for every instruction
+/skill-manager gate evaluate-batch <request> [<output>]         # score candidate texts per document in one reader run; no receipt
+/skill-manager gate calibrate <owner-id>... [--write]           # mutate atoms and record which probes flip; --write stores it in the maps
+/skill-manager audit <agents-root> [owner-id]                   # read-only atom-map audit: findings and probe sensitivity per owner
+/skill-manager audit <agents-root> --check                      # fail unless every instruction document has an atom map that audits clean
+/skill-manager atoms <agents-root> [owner-id] [--write]         # preview or rebuild atom maps, manifest lists, and source hashes after an edit
+/skill-manager propose <agents-root> <proposal-json>            # snapshot up to 3 candidate deltas for one document; writes no repository file
+/skill-manager check <agents-root> <batch-id>                   # score the batch in one reader run; print one verdict and the selected candidate
+/skill-manager commit <agents-root> <batch-id>                  # write the selected candidate; the only verb that writes an instruction file
+/skill-manager seal <agents-root> <owner> <case> <capture> <sha>   # seal one target run of a behavior case against a candidate text
 /skill-manager train measure <skill-path> --track contract      # score the SKILL.md body from its matrix
 /skill-manager train select <skill-path> [--track contract]     # report winner, live state, next action
 # Usage governance: keep required <name> and optional [name] arguments explicit.
@@ -85,24 +94,51 @@ GPU runner is available, run this one command outside the sandbox. Without a hos
 blocks the run and writes no receipt. This does not cancel an authorized instruction edit. Do not
 stop the edit. Finish it and all available checks, then ask the user to run the exact GPU command on
 a GPU host. Put the command in a fenced block with its working directory and wait for them to paste
-its output. Do not claim a receipt from the sandbox attempt.
-Do not use in-session child agents as a Gemma substitute; child-agent answers do not replace the
-Gemma reader. `<failures>` is an absolute JSON array of train misses, and `<suggestions>` is the
-absolute `.jsonl` path the reader writes for them. `gate record` needs a GPU. Use an approved
-outside-sandbox runner when available. If none is available, give the user the exact command and
-working directory for a GPU host. State that no receipt was recorded; do not claim acceptance
-without a passing receipt. For one document, run `bun scripts/instruction-gate.ts record <doc-path>`
-from `<agents-root>`. Its flags are `--allow-equal <reason>` and `--rebaseline <reason>`, each
-requiring a written reason. The `gate` routes also take `--agents-root <absolute-path>`, placed
-before the document paths. `<doc-path>` is an instruction document path relative to the agents root,
-or `descriptions` for the routing of every skill description; run `gate record descriptions` for
-that. For a project-local document, pass `--agents-root <absolute-path>` with the absolute path of
-the project `.agents` directory. That root holds the document, its comprehension set, and its
-receipt. The scripts still run from the global package. `descriptions` is gated only for the global
-root. See the weak reader section of the train protocol. `[flags]` are `--measure-only`,
-`--attempt <n>`, `--status <ledger-status>`, `--runs <n>`, `--ledger-root <path>`, and
-`--skills-root <path>`; ledger statuses are `baseline`, `attempt`, `applied`, `post-change`, and
-`rollback`.
+its output. Do not claim a receipt from the sandbox attempt. Do not use in-session child agents as a
+Gemma substitute; child-agent answers do not replace the Gemma reader. `<failures>` is an absolute
+JSON array of train misses, and `<suggestions>` is the absolute `.jsonl` path the reader writes for
+them. `gate record` needs a GPU. Use an approved outside-sandbox runner when available. If none is
+available, give the user the exact command and working directory for a GPU host. State that no
+receipt was recorded; do not claim acceptance without a passing receipt. For one document, run
+`bun scripts/instruction-gate.ts record <doc-path>` from `<agents-root>`. Its flags are
+`--allow-equal <reason>`, `--rebaseline <reason>`, and `--allow-swap <reason>`, each requiring a
+written reason, and `--rotate-pool <pool-file>`. For a global document with calibrated atoms,
+`record` protects its core probes (the ones a calibration run saw flip): losing a core train probe
+always rejects. Losing any other train probe is a swap, accepted only with `--allow-swap` and only
+when the edit gains at least as many probes as it loses; held-out validation may never lose a pass.
+Each distinct text of a document scored against its held-out probes is a look, and a third look in
+one epoch is blocked until `--rotate-pool` names a sealed pool file; the train protocol section on
+atom maps has the rules. The `gate` routes also take `--agents-root <absolute-path>`, placed before
+the document paths. `<doc-path>` is an instruction document path relative to the agents root, or
+`descriptions` for the routing of every skill description; run `gate record descriptions` for that.
+For a project-local document, pass `--agents-root <absolute-path>` with the absolute path of the
+project `.agents` directory. That root holds the document, its comprehension set, and its receipt.
+The scripts still run from the global package. `descriptions` is gated only for the global root. See
+the weak reader section of the train protocol. `[flags]` are `--measure-only`, `--attempt <n>`,
+`--status <ledger-status>`, `--runs <n>`, `--ledger-root <path>`, and `--skills-root <path>`; ledger
+statuses are `baseline`, `attempt`, `applied`, `post-change`, and `rollback`.
+
+`gate evaluate-batch` runs
+`bun <agents-root>/scripts/instruction-gate.ts evaluate-batch <request> [<output>]`. `<request>` is
+an absolute JSON file `{"schemaVersion":1,"targets":[{"document":"<doc-path>","candidates":[{"id":"<id>","source":"<text>"}]}]}`
+with 1 to 3 candidates per target; a candidate without `source` is the current file. It needs the
+same GPU route as `gate record`, prints one JSON result with per-probe pass vectors, measurements,
+and failure diagnoses, writes the optional absolute `<output>`, and writes no receipt or ledger. A
+candidate may also carry `intents`, each `{"id","op","prompt","options","expected"}` with `op` one
+of `add`, `modify`, `retire`, or `move`. The same run scores each intent on the current text and on
+the candidate text and reports `before`, `after`, and `proven`: an `add` or `modify` must fail
+before and pass after, a `retire` the reverse, and a `move` must pass both times.
+`gate calibrate <owner-id>... [--write]` runs
+`bun <agents-root>/scripts/instruction-gate.ts calibrate`. For each document of the owner it mutates
+up to 8 atoms (delete, negate, and swap two ordered steps), asks the mutated atom's probes on each
+mutant, and counts a probe as flipped when its answer differs from the unmutated answer. It needs
+the GPU route of `gate record`, prints one JSON report that lists the probes that never flipped, and
+with `--write` stores the counts in the atom maps. `audit` and `atoms` work on atom maps; the train
+protocol section on atom maps defines atoms, their findings, and when to run each. Every instruction
+and skill document has an atom map, and `audit --check` runs in `bun run test` and fails when one is
+missing. `propose`, `check`, and `commit` are the librarian verbs for editing a document;
+[librarian.md](references/librarian.md) defines the delta ops, the verdict, and the refusals, and
+`seal` records the behavior seals it requires.
 
 Usage governance: the aligned block is the only invocation catalog. Use `<name>` for required
 arguments, `[name]` for optional arguments, and `-` when a command takes none. Keep comments

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:codex:instruction-evaluations:atom-map",
+  "title": "Instruction atom map frontmatter schema",
+  "schemaVersion": 1,
+  "$comment": "Frontmatter of one OKF atom map per instruction document. The runtime parser in utils/quality-engine/atoms.ts additionally enforces unique atom ids and unique sensitivity probe ids within a map. An atom is one rule text identified by its content hash, independent of where it sits; placements lists every location (heading path) of that text in the source, so a repeated rule is one atom with several placements. Atom maps never modify the source document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "title",
+    "description",
+    "tags",
+    "schemaVersion",
+    "source",
+    "atoms"
+  ],
+  "properties": {
+    "type": {
+      "const": "atom-map"
+    },
+    "title": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "description": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/nonBlankString"
+      }
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "atoms": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/atom"
+      }
+    },
+    "sensitivity": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sensitivity"
+      }
+    }
+  },
+  "$defs": {
+    "nonBlankString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "atom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "textSha256",
+        "placements",
+        "tags",
+        "precedence",
+        "probeIds",
+        "behavioral",
+        "status",
+        "helpful",
+        "harmful"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "placements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "headingPath"
+            ],
+            "properties": {
+              "headingPath": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/nonBlankString"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        "textSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonBlankString"
+          }
+        },
+        "precedence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "probeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonBlankString"
+          }
+        },
+        "behavioral": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "retired"
+          ]
+        },
+        "helpful": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "harmful": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "sensitivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "probeId",
+        "mutantsTried",
+        "mutantsFlipped"
+      ],
+      "properties": {
+        "probeId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "mutantsTried": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mutantsFlipped": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

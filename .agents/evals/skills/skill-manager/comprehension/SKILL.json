@@ -2,7 +2,7 @@
   "kind": "comprehension",
   "queries": [
     {
-      "evidence": "Do not stop the edit. Finish the authorized edit and available checks, then give the user the exact GPU command in a fenced block with its working directory and wait for them to paste its output. Do not claim the gate passed or close the work before checking that output.",
+      "evidence": "GPU unavailability in the sandbox does not block an authorized edit: complete it and the available checks, then ask the user to run the exact GPU command in a fenced block with its working directory and wait for them to paste its output.",
       "expected": "B",
       "id": "train-37",
       "query": "The sandbox has no GPU adapter, but an authorized instruction edit is still needed. What should the agent do?\nA) Stop before editing and report the blocker.\nB) Finish the edit and available checks, then ask the user in a fenced block to run the exact GPU command from the stated working directory, and wait for pasted output before closing.\nC) Substitute child-agent answers and record a pass.\nD) Skip the gate and claim acceptance.",
@@ -122,7 +122,7 @@
       "split": "validation"
     },
     {
-      "evidence": "If that state or a required verifier is unavailable, state the exact blocker and stop before the governed edit.",
+      "evidence": "If review state cannot be prepared, state the exact blocker and pause the governed edit.",
       "expected": "A",
       "id": "validation-03",
       "query": "Before editing a skill package, the matching quality-engine review state or a required verifier is unavailable. What must the agent do?\nA) State the exact blocker and stop before the governed edit\nB) Edit anyway and run the review afterward\nC) Invent a substitute verifier\nD) Skip the review and run only the final gate",
@@ -369,6 +369,97 @@
       "id": "train-36",
       "query": "When the actual registered agent is available, how does the source say to run trigger-change tests?\nA) Once in the editing agent's current context.\nB) Repeated runs through the actual registered agent.\nC) Only by asking the model what it would load.\nD) No run is needed when the description is clear.",
       "split": "train"
+    },
+    {
+      "evidence": "/skill-manager commit <agents-root> <batch-id>",
+      "expected": "B",
+      "id": "train-38",
+      "query": "After `/skill-manager commit` writes the selected candidate, what state is the receipt of that document in?\nA) Current, because commit seals it\nB) Stale until `gate record` seals the new text\nC) Deleted by commit\nD) Rebaselined automatically",
+      "split": "train"
+    },
+    {
+      "evidence": "/skill-manager check <agents-root> <batch-id>",
+      "expected": "B",
+      "id": "train-39",
+      "query": "Which route does `/skill-manager check` use to score the candidates?\nA) Offline deterministic checks only\nB) The GPU weak-reader route that `gate record` uses\nC) An in-session child agent\nD) A provider API",
+      "split": "train"
+    },
+    {
+      "evidence": "/skill-manager seal <agents-root> <owner> <case> <capture> <sha>",
+      "expected": "A",
+      "id": "train-40",
+      "query": "A candidate edits a behavioral atom. What must exist before `check` selects it?\nA) A passing seal for each citing behavior case, bound to the candidate hash\nB) A refreshed receipt for the document\nC) A new comprehension probe\nD) Nothing; check selects it directly",
+      "split": "train"
+    },
+    {
+      "evidence": "/skill-manager check <agents-root> <batch-id>",
+      "expected": "A",
+      "id": "train-41",
+      "query": "According to the Usage rows, what kind of run does `check` perform?\nA) A GPU reader run\nB) A CPU-only lint\nC) A provider API call\nD) A manual review",
+      "split": "train"
+    },
+    {
+      "evidence": "/skill-manager check <agents-root> <batch-id>",
+      "expected": "A",
+      "id": "train-42",
+      "query": "According to the Usage rows, what does `check` need before it selects a behavioral edit?\nA) A passing seal\nB) A new receipt\nC) A GPU token\nD) Nothing",
+      "split": "train"
+    },
+    {
+      "evidence": "For `batch`, the phase is only `baseline` or `candidate`.",
+      "expected": "A",
+      "id": "validation-16",
+      "query": "Which phases may the `batch` evaluation route use?\nA) `baseline` or `candidate` only\nB) `baseline`, `candidate`, or `challenge`\nC) `challenge` only\nD) `candidate` or `challenge`",
+      "split": "validation"
+    },
+    {
+      "evidence": "the exit codes are 0 answered, 1 other failure, 2 no GPU adapter, 3 integrity failure, 4 missing package, 5 document too long",
+      "expected": "B",
+      "id": "validation-17",
+      "query": "The `train read` route runs the weak reader in a sandbox with no GPU adapter. Which exit code does it return?\nA) 1\nB) 2\nC) 3\nD) 5",
+      "split": "validation"
+    },
+    {
+      "evidence": "write the selected candidate; the only verb that writes an instruction file",
+      "expected": "C",
+      "id": "validation-18",
+      "query": "Among the librarian verbs, which one is the only verb that writes an instruction file?\nA) propose\nB) check\nC) commit\nD) seal",
+      "split": "validation"
+    },
+    {
+      "evidence": "a third look in one epoch is blocked until `--rotate-pool` names a sealed pool file",
+      "expected": "D",
+      "id": "validation-19",
+      "query": "A document's held-out probes have already had two looks in one epoch. What must happen before a third look is allowed?\nA) Pass `--allow-equal` with a written reason\nB) Pass `--rebaseline` with a written reason\nC) Pass `--allow-swap` with a written reason\nD) Pass `--rotate-pool` naming a sealed pool file",
+      "split": "validation"
+    },
+    {
+      "evidence": "Keep `SKILL.md` below 500 lines and about 5,000 tokens.",
+      "expected": "A",
+      "id": "validation-20",
+      "query": "What size limit applies to a `SKILL.md` file?\nA) Below 500 lines and about 5,000 tokens\nB) Below 1,000 lines and about 10,000 tokens\nC) Below 300 lines and about 2,000 tokens\nD) Below 500 lines and about 20,000 tokens",
+      "split": "validation"
+    },
+    {
+      "evidence": "limit them to 1,024 characters",
+      "expected": "B",
+      "id": "validation-21",
+      "query": "What is the maximum length of a skill description?\nA) 500 characters\nB) 1,024 characters\nC) 2,048 characters\nD) 250 characters",
+      "split": "validation"
+    },
+    {
+      "evidence": "it mutates up to 8 atoms (delete, negate, and swap two ordered steps)",
+      "expected": "C",
+      "id": "validation-22",
+      "query": "For each document of the owner, how many atoms does `gate calibrate` mutate at most?\nA) 3\nB) 5\nC) 8\nD) 12",
+      "split": "validation"
+    },
+    {
+      "evidence": "Losing any other train probe is a swap, accepted only with `--allow-swap` and only when the edit gains at least as many probes as it loses",
+      "expected": "D",
+      "id": "validation-23",
+      "query": "For a global document with calibrated atoms, an edit loses a train probe that is not a core probe. When is the edit accepted?\nA) Never; any lost train probe always rejects\nB) Always, because it is not a core probe\nC) Only with `--rebaseline` and a written reason\nD) Only with `--allow-swap` and when the edit gains at least as many probes as it loses",
+      "split": "validation"
     }
   ],
   "runs_per_query": 3,

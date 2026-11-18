@@ -413,6 +413,50 @@ test('validates a global skill from its central manifest and ignores package-loc
   expect(fixture.reads).not.toContain('/test-home/.agents/skills/demo/evals/trigger-queries.json');
 });
 
+const atomsMessage = 'atoms lane and atoms artifacts must be declared together';
+const mapsMessage = 'atom maps must be unique Markdown paths';
+const atomMap = 'evals/skills/demo/atoms/SKILL.md';
+
+test.each([
+  ['atoms artifacts without the atoms lane', undefined, [], atomsMessage],
+  ['atoms lane without atoms artifacts', ['contract', 'atoms'], undefined, atomsMessage],
+  ['atom map outside the owner scope', ['atoms'], ['evals/atoms/SKILL.md'], mapsMessage],
+  ['atom map that is not Markdown', ['atoms'], ['evals/skills/demo/atoms/SKILL.json'], mapsMessage],
+  ['duplicate atom maps', ['atoms'], [atomMap, atomMap], mapsMessage],
+  ['atom maps that are not a list', ['atoms'], atomMap, mapsMessage],
+])('rejects an inconsistent atoms lane: %s', async (_name, lanes, maps, message) => {
+  const fixture = centralSkillFixtureFor();
+  const manifest = JSON.parse(fixture.files.get(fixture.manifestPath) ?? '') as Record<
+    string,
+    unknown
+  >;
+  if (lanes !== undefined) {
+    manifest.requiredLanes = lanes;
+  }
+  if (maps !== undefined) {
+    (manifest.artifacts as Record<string, unknown>).atoms = maps;
+  }
+  fixture.files.set(fixture.manifestPath, JSON.stringify(manifest));
+  await expect(validateSkillEvaluations(fixture.fileSystem, fixture.skillPath)).rejects.toThrow(
+    message,
+  );
+});
+
+test.each([[[]], [['evals/skills/demo/atoms/SKILL.md']]])(
+  'accepts a declared atoms lane with atom maps %j',
+  async (maps) => {
+    const fixture = centralSkillFixtureFor();
+    const manifest = JSON.parse(fixture.files.get(fixture.manifestPath) ?? '') as Record<
+      string,
+      unknown
+    >;
+    manifest.requiredLanes = ['contract', 'behavior', 'comprehension', 'activation', 'atoms'];
+    (manifest.artifacts as Record<string, unknown>).atoms = maps;
+    fixture.files.set(fixture.manifestPath, JSON.stringify(manifest));
+    expect(await validateSkillEvaluations(fixture.fileSystem, fixture.skillPath)).toBe(1);
+  },
+);
+
 test('fails closed when a global skill manifest is missing despite complete legacy evals', async () => {
   const fixture = centralSkillFixtureFor(null);
   await expect(validateSkillEvaluations(fixture.fileSystem, fixture.skillPath)).rejects.toThrow(

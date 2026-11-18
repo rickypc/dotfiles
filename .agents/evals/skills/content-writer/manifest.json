@@ -7,7 +7,8 @@
     "contract",
     "behavior",
     "comprehension",
-    "activation"
+    "activation",
+    "atoms"
   ],
   "deferredLanes": {
     "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
@@ -123,7 +124,11 @@
       }
     ],
     "ledger": "evals/skills/content-writer/ledger.jsonl",
-    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+    "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+    "atoms": [
+      "evals/skills/content-writer/atoms/SKILL.md",
+      "evals/skills/content-writer/atoms/evals-rubric.md"
+    ]
   },
   "inventory": {
     "contractCases": 4,

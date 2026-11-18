@@ -10,15 +10,17 @@ import {
 test('defines the distinct lint commands under one agents root', () => {
   const commands = lintCommandsFor('/agents');
   expect(commands.map(({ name }) => name)).toEqual([
+    'atom-maps',
     'biome',
     'declaration-order',
     'instruction-gate',
     'skills',
   ]);
   expect(commands.every(({ spec }) => spec.cwd === '/agents')).toBe(true);
-  expect(commands[1]?.spec.args.join(' ')).toContain('*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}');
-  expect(commands[2]?.spec.args.join(' ')).toContain('scripts/instruction-gate.ts verify');
-  expect(commands[3]?.spec.args.join(' ')).toContain('scripts/validate-skills.ts');
+  expect(commands[0]?.spec.args.join(' ')).toContain('skill-manager.ts audit "$PWD" --check');
+  expect(commands[2]?.spec.args.join(' ')).toContain('*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}');
+  expect(commands[3]?.spec.args.join(' ')).toContain('scripts/instruction-gate.ts verify');
+  expect(commands[4]?.spec.args.join(' ')).toContain('scripts/validate-skills.ts');
 });
 
 test('runs distinct lint commands together and preserves every command result', async () => {
@@ -32,9 +34,9 @@ test('runs distinct lint commands together and preserves every command result', 
     return args.join(' ').includes('biome') ? biome : { code: 0, stderr: '', stdout: `${started}` };
   });
   const receipts = runLintCommands(executor, '/agents');
-  expect(started).toBe(4);
+  expect(started).toBe(5);
   releaseBiome?.({ code: 0, stderr: '', stdout: 'biome' });
-  await expect(receipts).resolves.toHaveLength(4);
+  await expect(receipts).resolves.toHaveLength(5);
 });
 
 test('replays command output without converting failures into replacement errors', () => {

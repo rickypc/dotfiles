@@ -24,6 +24,22 @@ interface ParsedCandidateSnapshot extends CandidateSnapshot {
   >;
 }
 
+export interface ProbeSelection {
+  readonly frontier: readonly string[];
+  readonly selected: string | null;
+  readonly stopReason: 'no-admissible' | 'selected' | 'trade-off';
+}
+
+// Per-atom probe vectors: a candidate is a set of passing train probes plus a held-out count, so the
+// same dominance and tie-break rules the behavior axes use apply to the Gemma gate.
+export interface ProbeVectorCandidate {
+  readonly candidateId: string;
+  readonly changedAtoms: number;
+  readonly tokenDelta: number;
+  readonly trainPassed: readonly string[];
+  readonly validationPassed: number;
+}
+
 const aggregateTaskAxes = (
   validationCases: Readonly<Record<string, CandidateCaseResult>>,
 ): Record<string, Record<BehaviorRubricAxis, CandidateAxisStatus>> => {
@@ -139,6 +155,22 @@ const candidateSnapshotObjectFor = (value: unknown): Record<string, unknown> => 
   return value;
 };
 
+const probeDominates = (left: ProbeVectorCandidate, right: ProbeVectorCandidate): boolean => {
+  const covers = right.trainPassed.every((id) => left.trainPassed.includes(id));
+  const better =
+    left.trainPassed.length > right.trainPassed.length
+    || left.validationPassed > right.validationPassed;
+  return covers && left.validationPassed >= right.validationPassed && better;
+};
+
+export const probeFrontierFor = (
+  candidates: readonly ProbeVectorCandidate[],
+): ProbeVectorCandidate[] =>
+  candidates.filter(
+    (candidate) =>
+      !candidates.some((other) => other !== candidate && probeDominates(other, candidate)),
+  );
+
 const publicSnapshotFor = (snapshot: ParsedCandidateSnapshot): CandidateSnapshot => ({
   candidateId: snapshot.candidateId,
   matrixFingerprint: snapshot.matrixFingerprint,
@@ -161,6 +193,34 @@ const sameValidationCoverage = (
         && left.validationCases[caseId].taskFamily === right.validationCases[caseId].taskFamily,
     )
   );
+};
+
+const sameVector = (left: ProbeVectorCandidate, right: ProbeVectorCandidate): boolean =>
+  left.validationPassed === right.validationPassed
+  && left.trainPassed.length === right.trainPassed.length
+  && left.trainPassed.every((id) => right.trainPassed.includes(id));
+
+const tieBreak = (left: ProbeVectorCandidate, right: ProbeVectorCandidate): number =>
+  left.changedAtoms - right.changedAtoms
+  || Math.abs(left.tokenDelta) - Math.abs(right.tokenDelta)
+  || left.candidateId.localeCompare(right.candidateId, 'en');
+
+// Admissible candidates only. Equal vectors are ordered by fewest changed atoms, smallest token
+// delta, then id; incomparable vectors are a trade-off with no unique choice, so none is selected.
+export const selectProbeCandidate = (
+  admissible: readonly ProbeVectorCandidate[],
+): ProbeSelection => {
+  const frontier = probeFrontierFor(admissible);
+  const first = frontier[0];
+  if (first === undefined) {
+    return { frontier: [], selected: null, stopReason: 'no-admissible' };
+  }
+  const ids = frontier.map(({ candidateId }) => candidateId).sort();
+  if (!frontier.every((candidate) => sameVector(candidate, first))) {
+    return { frontier: ids, selected: null, stopReason: 'trade-off' };
+  }
+  const [winner] = [...frontier].sort(tieBreak);
+  return { frontier: ids, selected: winner?.candidateId ?? null, stopReason: 'selected' };
 };
 
 const validateBaselineSnapshot = (baseline: ParsedCandidateSnapshot): void => {

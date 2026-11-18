@@ -4,6 +4,50 @@
     {
       "caseId": "skill-manager-trigger-query-set",
       "reason": "The pre-centralization contract pointed to evals/trigger-queries.json. Centralization moved the active input to evals/skills/<skill>/trigger-queries.json; retire the obsolete case id and retain this scenario under a new id with the canonical path assertion."
+    },
+    {
+      "caseId": "atom:r-63d7ee550d",
+      "reason": "The Usage invocation block gained the gate evaluate-batch, audit, and atoms routes, so its text and hash changed; the rebuilt map holds the extended block as a new atom."
+    },
+    {
+      "caseId": "atom:r-8bc618121e",
+      "reason": "The atoms route comment in the Usage invocation block was reworded to name the source hashes it refreshes, so the block text and hash changed again; the rebuilt map holds the current block."
+    },
+    {
+      "caseId": "atom:r-b88e0fc754",
+      "reason": "The gate evaluate-batch comment in the Usage invocation block now says one reader run instead of one reader session, so the block text and hash changed; the rebuilt map holds the current block."
+    },
+    {
+      "caseId": "atom:r-50879025dc",
+      "reason": "The Usage invocation block gained the gate calibrate route, so the block text and hash changed; the rebuilt map holds the current block."
+    },
+    {
+      "caseId": "atom:r-811deee909",
+      "reason": "The Usage invocation block gained the propose, check, and commit routes, so the block text and hash changed; the rebuilt map holds the current block."
+    },
+    {
+      "caseId": "atom:r-60cb977e24",
+      "reason": "The Usage invocation block gained the seal route, so the block text and hash changed; the rebuilt map holds the current block."
+    },
+    {
+      "caseId": "atom:r-ffac6090d5",
+      "reason": "The skill description gained trigger phrases for router tuning, activation-set ratchets, AGENTS.md conflict checks, SKILL.md splits, and validate-skills errors (target B round 1), so its frontmatter unit and hash changed; the rebuilt map holds the current text."
+    },
+    {
+      "caseId": "atom:r-99cad408b9",
+      "reason": "Target B round 1 description was rejected by the catalog gate on held-out validation; round 2 drops the clauses that gained no train probe (router tuning and SKILL.md split), so the frontmatter unit and hash changed again."
+    },
+    {
+      "caseId": "atom:r-7f18b633b3",
+      "reason": "Target B round 2 description was rejected by the catalog gate on neighbor regressions; the original description was restored, so this attempt text left the document."
+    },
+    {
+      "caseId": "atom:r-683cb0364a",
+      "reason": "The Usage invocation block gained the audit --check route, so the block text and hash changed; the rebuilt map holds the current block."
+    },
+    {
+      "caseId": "atom:r-73089941b7",
+      "reason": "The propose section of librarian.md now says a proposal with more than three candidates produces no snapshot and that propose decides a description change itself, so the sentence text and hash changed (repair after the train-05 and train-06 diagnosis)."
     }
   ]
 }

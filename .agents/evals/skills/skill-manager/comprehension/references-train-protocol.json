@@ -2,7 +2,7 @@
   "kind": "comprehension",
   "queries": [
     {
-      "evidence": "When no adapter is available in the sandbox, finish the authorized work, ask the user to run the exact gate command on a GPU host with its working directory, and wait for pasted output. Do not write a receipt or claim acceptance from the sandbox attempt.",
+      "evidence": "When the sandbox has no adapter and no approved host route is available, finish the edit and local checks, then give the user the exact command and working directory and wait for its output.",
       "expected": "C",
       "id": "train-20",
       "query": "A sandboxed weak-reader run exits 2 because no GPU adapter is available. How should the agent proceed?\nA) Stop all authorized work and ask the user whether to continue.\nB) Replace the weak reader with an in-session child agent.\nC) Finish the authorized work, ask the user to run the exact GPU gate command with its working directory, and wait for pasted output; do not claim a receipt from the sandbox.\nD) Write a receipt manually from the current measurement.",
@@ -59,7 +59,7 @@
       "split": "train"
     },
     {
-      "evidence": "Stop after three attempts or when no train failure remains.",
+      "evidence": "When no train failures remain or the three-attempt limit is reached, select once more.",
       "expected": "D",
       "id": "train-08",
       "query": "Three attempts have been made and train failures still remain. What does the loop say?\nA) Keep trying until no failure remains\nB) Make a fourth attempt with a bigger edit\nC) Edit the query set to remove the failures\nD) Stop after three attempts or when no train failure remains",
@@ -103,7 +103,7 @@
       "split": "validation"
     },
     {
-      "evidence": "With no winner, restore the baseline snapshot and record `--status rollback`.",
+      "evidence": "If there is no winner, restore the baseline snapshot and record `--status rollback`.",
       "expected": "A",
       "id": "validation-05",
       "query": "No attempt was accepted, so there is no winner. What does the protocol say to record?\nA) Restore the baseline snapshot and record `--status rollback`\nB) Record `--status applied` with the last attempt\nC) Keep the last attempt and record `post-change`\nD) Re-baseline to hide the loss",
@@ -117,7 +117,7 @@
       "split": "train"
     },
     {
-      "evidence": "After the final description edit anywhere, repeat step 3 for the suite once more.",
+      "evidence": "After the final description edit anywhere, including a repair, repeat step 3 for every skill in the suite against the final catalog.",
       "expected": "B",
       "id": "train-11",
       "query": "In a suite run, the last description edit was a repair of a blocked skill, and every skill was already remeasured post-change before it. What comes next?\nA) Run the gate and finish.\nB) Repeat the post-change remeasure of every skill against the final catalog once more.\nC) Remeasure only the repaired skill.\nD) Re-baseline every skill.",
@@ -223,7 +223,7 @@
       "split": "validation"
     },
     {
-      "evidence": "A `blocked` post-change skill lost a query that every run used to pass, so treat it as a real regression; never remeasure just to get a pass. Repair it by editing the blocked skill's description from its train failure and remeasuring with `--status post-change` (the hold gate), or restore the neighbor edit that caused it.",
+      "evidence": "A `blocked` post-change skill lost a query that every run used to pass, so treat it as a real regression; never remeasure just to get a pass. Repair it by editing the blocked skill's description from its train failure and remeasuring with `--status post-change` (the hold gate).",
       "expected": "B",
       "id": "validation-12",
       "query": "A neighboring description edit leaves a skill blocked after its first post-change measurement. What does the protocol require?\nA) Remeasure repeatedly until the skill passes.\nB) Treat it as a real regression; repair from its train failure and remeasure post-change, or restore the neighbor edit.\nC) Re-baseline the blocked skill.\nD) Ignore the result because that skill's own source did not change.",

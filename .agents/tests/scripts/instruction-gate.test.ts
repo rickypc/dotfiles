@@ -24,6 +24,9 @@ interface Harness {
 const realProcess = await import('../../utils/process.js');
 const realAgentsRoot = await import('../../utils/agents-root.js');
 const realWeakReader = await import('../../scripts/weak-reader.js');
+const realInstructionGateBatch = await import('../../scripts/instruction-gate-batch.js');
+const realInstructionGateCalibrate = await import('../../scripts/instruction-gate-calibrate.js');
+const realInstructionGatePolicy = await import('../../scripts/instruction-gate-policy.js');
 const realInstructionGatePaths = await import('../../scripts/instruction-gate-paths.js');
 const realInstructionGateRouting = await import('../../scripts/instruction-gate-routing.js');
 
@@ -48,7 +51,10 @@ mock.module('node:crypto', () => realCrypto);
 mock.module('node:url', () => realUrl);
 mock.module('../utils/agents-root.js', () => realAgentsRoot);
 mock.module('../utils/process.js', () => realProcess);
+mock.module('./instruction-gate-batch.js', () => realInstructionGateBatch);
+mock.module('./instruction-gate-calibrate.js', () => realInstructionGateCalibrate);
 mock.module('./instruction-gate-paths.js', () => realInstructionGatePaths);
+mock.module('./instruction-gate-policy.js', () => realInstructionGatePolicy);
 mock.module('./instruction-gate-routing.js', () => realInstructionGateRouting);
 mock.module('./weak-reader.js', () => realWeakReader);
 const centralPathCases = await import('./instruction-gate-central-cases.js');
@@ -443,8 +449,10 @@ const withReceipt = (harness: Harness, receipt: Receipt | string): Harness => {
 const target = { document: DOCUMENT, receiptPath: RECEIPT, setPath: SET };
 
 const gateTestContext = {
+  CENTRAL_SET,
   currentFingerprint,
   DOCUMENT,
+  decide,
   fingerprintMatches,
   formatReceipt,
   GLOBAL_ROOT,

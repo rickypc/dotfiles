@@ -1,6 +1,7 @@
 {
   "baseline": {
     "trainPassed": [
+      "train-37",
       "train-01",
       "train-03",
       "train-04",
@@ -35,9 +36,9 @@
     ],
     "validationPassed": 15
   },
-  "decision": "improved",
+  "decision": "swap",
   "document": "skills/skill-manager/SKILL.md",
-  "documentSha256": "67a7b3bf4df82f81e946f1d6d80eb001ec49cf01094286934b0e7ec46d810c7f",
+  "documentSha256": "674742796eb920752d11189410b2974b76a404e4e4bf9c784b9ed4462a13cabc",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -45,7 +46,7 @@
     "readerVersion": "reader-v1"
   },
   "measurement": {
-    "trainFailed": [],
+    "trainFailed": ["train-30", "train-41", "train-42"],
     "trainPassed": [
       "train-37",
       "train-01",
@@ -72,20 +73,22 @@
       "train-26",
       "train-27",
       "train-29",
-      "train-30",
       "train-31",
       "train-32",
       "train-33",
       "train-34",
       "train-35",
-      "train-36"
+      "train-36",
+      "train-38",
+      "train-39",
+      "train-40"
     ],
-    "validationPassed": 15,
-    "validationTotal": 15
+    "validationPassed": 23,
+    "validationTotal": 23
   },
-  "reason": "",
+  "reason": "train-30 failed on the unedited SKILL.md in the round 2 baseline row, so it is reader noise; train-38 to train-40 gained and it is non-core",
   "schema": 1,
-  "selfSha256": "b948bc3941b3e9551e90da58e3f259c5c9bad91ba13efd8b9b79bc08d640c3d7",
+  "selfSha256": "1f4befb8ef31a4382bcc9d2185c5513c1c5b91430fcb16c534d3ba958100d326",
   "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
-  "setSha256": "cf2d7b066d47a5cde3aa0bf4dd03ce19381b22d82af97c34ee0a9b21968a9d13"
+  "setSha256": "d9b76d02e1b894194d39307f0419bed955c21df8927053b612e653cff549233a"
 }

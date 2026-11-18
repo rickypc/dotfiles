@@ -1,11 +1,15 @@
 import { describe, expect, mock, test } from 'bun:test';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { GateDependencies } from '../../scripts/instruction-gate.js';
 import type { CommandResult, CommandSpec } from '../../utils/contracts.js';
 
 interface GateCommandContext {
+  readonly CENTRAL_SET: string;
   readonly DOCUMENT: string;
+  readonly GLOBAL_ROOT: string;
   readonly makeHarness: (options?: {
+    readonly agentsRoot?: string;
     readonly overrides?: (spec: CommandSpec) => CommandResult | undefined;
     readonly tree?: Record<string, readonly { isDirectory: boolean; name: string }[]>;
   }) => GateCommandHarness;
@@ -23,6 +27,7 @@ interface GateCommandContext {
 interface GateCommandHarness {
   readonly deps: GateDependencies;
   readonly executor: ReturnType<typeof mock>;
+  readonly executorCalls: () => number;
   readonly files: Map<string, string>;
   readonly output: string[];
 }
@@ -296,7 +301,267 @@ const registerAgentRootValidationCases = (context: GateCommandContext): void => 
   });
 };
 
+const COMPREHENSION_SET = JSON.stringify({
+  kind: 'comprehension',
+  queries: [
+    { evidence: 'r', expected: 'A', id: 'train-01', query: 'Q?\nA) a\nB) b', split: 'train' },
+    { evidence: 'r', expected: 'B', id: 'train-02', query: 'Q?\nA) a\nB) b', split: 'train' },
+    {
+      evidence: 'r',
+      expected: 'A',
+      id: 'validation-01',
+      query: 'Q?\nA) a\nB) b',
+      split: 'validation',
+    },
+  ],
+  runs_per_query: 3,
+  skill_name: 'demo--doc',
+  splits: { train: 't', validation: 'v' },
+  target: '../doc.md',
+});
+
+const registerCalibrateCases = (context: GateCommandContext): void => {
+  const { ROOT, makeHarness, run, usage } = context;
+  const sentence = 'The agent must always check the gate.';
+  const atom = {
+    behavioral: false,
+    harmful: 0,
+    helpful: 0,
+    id: 'a1',
+    placements: [{ headingPath: ['Rules'] }],
+    precedence: 0,
+    probeIds: ['train-01'],
+    status: 'active',
+    tags: [],
+    textSha256: createHash('sha256').update(sentence).digest('hex'),
+  };
+  const mapText = [
+    '---',
+    'type: atom-map',
+    'title: t',
+    'description: d',
+    'tags: [atoms]',
+    'schemaVersion: 1',
+    'source: skills/demo/SKILL.md',
+    `atoms: ${JSON.stringify([atom])}`,
+    '---',
+    'body',
+  ].join('\n');
+  const owner = {
+    artifacts: { atoms: [], comprehension: ['evals/skills/demo/comprehension/SKILL.json'] },
+    directory: 'evals/skills/demo/',
+    id: 'skill:demo',
+    requiredLanes: ['atoms'],
+  };
+  const calibrateHarness = () => {
+    const holder: { files?: Map<string, string> } = {};
+    const harness = makeHarness({
+      overrides: (spec) => {
+        const files = holder.files as Map<string, string>;
+        const batch = JSON.parse(files.get(spec.args.at(-1) ?? '') ?? '{}') as {
+          items: { answersPath: string; bundlePath: string }[];
+        };
+        for (const item of batch.items) {
+          const bundle = JSON.parse(files.get(item.bundlePath) ?? '{}') as {
+            prompts: { query_id: string; run: number }[];
+          };
+          const lines = bundle.prompts.map((prompt) =>
+            JSON.stringify({ answer: 'A', query_id: prompt.query_id, run: prompt.run }),
+          );
+          files.set(item.answersPath, lines.join('\n'));
+        }
+        return { code: 0, stderr: '', stdout: '' };
+      },
+    });
+    holder.files = harness.files;
+    const set = JSON.parse(COMPREHENSION_SET) as Record<string, unknown>;
+    harness.files.set(path.join(ROOT, 'evals/manifest.json'), JSON.stringify({ owners: [owner] }));
+    harness.files.set(
+      path.join(ROOT, 'evals/skills/demo/comprehension/SKILL.json'),
+      JSON.stringify({ ...set, target: '../../../../skills/demo/SKILL.md' }),
+    );
+    harness.files.set(path.join(ROOT, 'evals/skills/demo/atoms/SKILL.md'), mapText);
+    harness.files.set(path.join(ROOT, 'skills/demo/SKILL.md'), `# Rules\n\n${sentence}\n`);
+    return harness;
+  };
+
+  describe('calibrate', () => {
+    test('prints the calibration report and stores sensitivity only with --write', async () => {
+      const preview = calibrateHarness();
+      expect(await run(['calibrate', 'skill:demo'], preview.deps)).toBe(0);
+      const report = JSON.parse(preview.output.join('')) as { owners: { ownerId: string }[] };
+      expect(report.owners.map((o) => o.ownerId)).toEqual(['skill:demo']);
+      expect(preview.files.get(path.join(ROOT, 'evals/skills/demo/atoms/SKILL.md'))).toBe(mapText);
+      const written = calibrateHarness();
+      await run(['calibrate', '--write', 'skill:demo'], written.deps);
+      expect(written.files.get(path.join(ROOT, 'evals/skills/demo/atoms/SKILL.md'))).toContain(
+        'sensitivity',
+      );
+    });
+
+    test.each<[readonly string[]]>([
+      [['calibrate']],
+      [['calibrate', '--write']],
+      [['calibrate', 'skill:demo', '--write', '--write']],
+    ])('refuses the arguments %p with the usage text', async (args) => {
+      await expect(run(args, calibrateHarness().deps)).rejects.toThrow(usage());
+    });
+  });
+};
+
+const registerEvaluateBatchCases = (context: GateCommandContext): void => {
+  const { DOCUMENT, ROOT, SET, makeHarness, run, usage } = context;
+  const request = JSON.stringify({
+    schemaVersion: 1,
+    targets: [{ candidates: [{ id: 'current' }], document: DOCUMENT }],
+  });
+  const batchHarness = () => {
+    const holder: { files?: Map<string, string> } = {};
+    const harness = makeHarness({
+      overrides: (spec) => {
+        const files = holder.files as Map<string, string>;
+        const manifest = JSON.parse(files.get(spec.args.at(-1) ?? '') ?? '{}') as {
+          items: { answersPath: string; bundlePath: string; expected: Record<string, string> }[];
+        };
+        for (const item of manifest.items) {
+          const bundle = JSON.parse(files.get(item.bundlePath) ?? '{}') as {
+            prompts: { query_id: string; run: number }[];
+          };
+          const lines = bundle.prompts.map((prompt) =>
+            JSON.stringify({
+              answer: item.expected[prompt.query_id] ?? 'A',
+              query_id: prompt.query_id,
+              run: prompt.run,
+            }),
+          );
+          files.set(item.answersPath, lines.join('\n'));
+        }
+        return { code: 0, stderr: 'GPU ready', stdout: '' };
+      },
+    });
+    holder.files = harness.files;
+    harness.files.set(path.join(ROOT, SET), COMPREHENSION_SET);
+    harness.files.set('/req.json', request);
+    return harness;
+  };
+
+  describe('evaluate-batch', () => {
+    test('prints the result, writes the optional output file, and records no receipt', async () => {
+      const harness = batchHarness();
+      expect(await run(['evaluate-batch', '/req.json', '/out.json'], harness.deps)).toBe(0);
+      const printed = JSON.parse(harness.output.join('')) as {
+        targets: { candidates: { measurement: { trainPassed: string[] } }[] }[];
+      };
+      expect(printed.targets[0]?.candidates[0]?.measurement.trainPassed).toEqual([
+        'train-01',
+        'train-02',
+      ]);
+      expect(harness.files.get('/out.json')).toBe(harness.output.join(''));
+      expect([...harness.files.keys()].filter((file) => file.includes('receipts'))).toEqual([]);
+      const printedOnly = batchHarness();
+      expect(await run(['evaluate-batch', '/req.json'], printedOnly.deps)).toBe(0);
+      expect(printedOnly.files.has('/out.json')).toBe(false);
+    });
+
+    test.each<[readonly string[]]>([
+      [['evaluate-batch']],
+      [['evaluate-batch', 'req.json']],
+      [['evaluate-batch', '/req.json', 'out.json']],
+      [['evaluate-batch', '/req.json', '/out.json', 'extra']],
+    ])('refuses the arguments %p with the usage text', async (args) => {
+      await expect(run(args, batchHarness().deps)).rejects.toThrow(usage());
+    });
+
+    test('reports a missing request file', async () => {
+      await expect(run(['evaluate-batch', '/absent.json'], batchHarness().deps)).rejects.toThrow(
+        'Missing evaluate-batch request: /absent.json',
+      );
+    });
+  });
+};
+
+const registerPolicyRecordCases = (context: GateCommandContext): void => {
+  const { CENTRAL_SET, DOCUMENT, GLOBAL_ROOT, makeHarness, parseRecordArguments, record } = context;
+  const looksFile = path.join(GLOBAL_ROOT, 'evals/skills/aidp/held-out-looks.jsonl');
+  const poolFile = path.join(GLOBAL_ROOT, 'evals/skills/aidp/pool.md');
+  const look = (digit: string): string =>
+    `${JSON.stringify({ at: 'x', document: DOCUMENT, documentSha256: digit.repeat(64), kind: 'look' })}\n`;
+  const harnessFor = (files: Record<string, string> = {}) => {
+    const harness = makeHarness({ agentsRoot: GLOBAL_ROOT });
+    harness.files.set(path.join(GLOBAL_ROOT, DOCUMENT), 'document text');
+    harness.files.set(
+      path.join(GLOBAL_ROOT, 'evals/skills/aidp/atoms/SKILL.md'),
+      '---\ntype: atom-map\ntitle: t\ndescription: d\ntags: [atoms]\nschemaVersion: 1\nsource: skills/aidp/SKILL.md\natoms: []\n---\nbody',
+    );
+    harness.files.set(
+      path.join(GLOBAL_ROOT, CENTRAL_SET),
+      harness.files.get(path.join(GLOBAL_ROOT, context.SET)) ?? '',
+    );
+    for (const [file, text] of Object.entries(files)) {
+      harness.files.set(file, text);
+    }
+    const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex');
+    return { ...harness, deps: { ...harness.deps, sha256 } };
+  };
+
+  describe('held-out look budget in record', () => {
+    test('parses the swap and rotation flags and refuses them without a value', () => {
+      const parsed = parseRecordArguments([
+        '--allow-swap',
+        'reorder',
+        '--rotate-pool',
+        'p.md',
+        'a.md',
+      ]);
+      expect(parsed).toEqual({
+        documents: ['a.md'],
+        options: {
+          allowEqualReason: undefined,
+          rebaselineReason: undefined,
+          rotatePoolPath: 'p.md',
+          swapReason: 'reorder',
+        },
+      });
+      expect(() => parseRecordArguments(['--allow-swap'])).toThrow(
+        '--allow-swap needs a written reason',
+      );
+      expect(() => parseRecordArguments(['--rotate-pool'])).toThrow(
+        '--rotate-pool needs a sealed pool file path',
+      );
+    });
+
+    test('blocks a third distinct text before any reader run', async () => {
+      const harness = harnessFor({ [looksFile]: look('a') + look('b') });
+      expect(await record([DOCUMENT], {}, harness.deps)).toBe(1);
+      expect(harness.output.join('')).toContain('BLOCKED skills/aidp/SKILL.md: 2 held-out looks');
+      expect(harness.executorCalls()).toBe(0);
+    });
+
+    test('counts a new text once and not again when the same text is recorded again', async () => {
+      const harness = harnessFor();
+      expect(await record([DOCUMENT], {}, harness.deps)).toBe(0);
+      expect(harness.files.get(looksFile)?.trim().split('\n')).toHaveLength(1);
+      expect(await record([DOCUMENT], {}, harness.deps)).toBe(0);
+      expect(harness.files.get(looksFile)?.trim().split('\n')).toHaveLength(1);
+    });
+
+    test('a sealed pool rotates the epoch and the record then proceeds', async () => {
+      const harness = harnessFor({ [looksFile]: look('a') + look('b'), [poolFile]: 'new probes' });
+      const options = { rotatePoolPath: 'evals/skills/aidp/pool.md' };
+      expect(await record([DOCUMENT], options, harness.deps)).toBe(0);
+      const kinds = (harness.files.get(looksFile) ?? '')
+        .trim()
+        .split('\n')
+        .map((line) => (JSON.parse(line) as { kind: string }).kind);
+      expect(kinds).toEqual(['look', 'look', 'rotation', 'look']);
+    });
+  });
+};
+
 export const registerGateCommandCases = (context: GateCommandContext): void => {
+  registerPolicyRecordCases(context);
+  registerCalibrateCases(context);
+  registerEvaluateBatchCases(context);
   registerAgentRootRecordCases(context);
   registerAgentRootValidationCases(context);
   registerGateArgumentCases(context);

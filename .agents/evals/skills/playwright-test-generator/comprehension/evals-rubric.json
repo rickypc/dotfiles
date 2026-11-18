@@ -30,7 +30,7 @@
       "split": "train"
     },
     {
-      "evidence": "The package also conforms to the shared seven-part skill contract: role and scope, usage, immutable",
+      "evidence": "The package also conforms to the shared seven-part skill contract, in this order:",
       "expected": "B",
       "id": "train-05",
       "query": "The rubric says the package conforms to a shared contract. How many parts does that contract have?\nA) Five parts\nB) Seven parts\nC) Six parts\nD) Three parts",
@@ -86,14 +86,14 @@
       "split": "train"
     },
     {
-      "evidence": "shared seven-part skill contract: role and scope, usage, immutable",
+      "evidence": "The part right after usage is immutable operational rules.",
       "expected": "B",
       "id": "validation-04",
       "query": "In the shared seven-part skill contract, which part comes immediately after usage?\nA) role and scope\nB) immutable operational rules\nC) input and context schema\nD) ordered execution chain",
       "split": "validation"
     },
     {
-      "evidence": "evaluation anchors. The canonical matrix checks each heading and challenges brittle",
+      "evidence": "The canonical matrix checks each heading and challenges brittle exact-output or robotic-persona language",
       "expected": "D",
       "id": "validation-05",
       "query": "What does the canonical matrix do with the contract headings and wording?\nA) It checks only the first heading and challenges missing personas\nB) It checks each heading and requires exact-output wording\nC) It checks each heading and challenges wording only when asked\nD) It checks each heading and challenges brittle exact-output or robotic-persona language",

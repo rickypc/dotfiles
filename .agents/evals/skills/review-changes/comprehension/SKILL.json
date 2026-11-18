@@ -16,7 +16,7 @@
       "split": "train"
     },
     {
-      "evidence": "`git diff --no-index /dev/null <path>` for each scoped untracked file; accept status 1 with a",
+      "evidence": "and `git diff --no-index /dev/null <path>` for each scoped untracked file; accept status 1 with a",
       "expected": "C",
       "id": "train-03",
       "query": "To collect an untracked file, the agent runs git diff --no-index against /dev/null and the command exits with status 1 and a non-empty diff. What does the agent do?\nA) Ask the user to clarify because of an error\nB) Skip the file as unreadable\nC) Accept it as successful collection\nD) Rerun the command with a different option",
@@ -149,7 +149,7 @@
       "split": "train"
     },
     {
-      "evidence": "clarification for actual command errors (status greater than 1)",
+      "evidence": "and `git diff --no-index /dev/null <path>` for each scoped untracked file; accept status 1 with a non-empty diff as successful collection; exit status 1 is expected when files differ; reserve clarification for actual command errors (status greater than 1)",
       "expected": "D",
       "id": "train-16",
       "query": "The agent runs git diff --no-index /dev/null on a scoped untracked file and the command exits with status 2. What does the agent do?\nA) Accept it as successful collection, like status 1\nB) Skip that file and review the others\nC) Rerun the command until it returns status 1\nD) Ask the user to clarify, because status greater than 1 is an actual error",
@@ -212,7 +212,7 @@
       "split": "train"
     },
     {
-      "evidence": "use `git status --short --untracked-files=all` or `git ls-files --others --exclude-standard` to",
+      "evidence": "inventory. If that inventory is unavailable or incomplete, use `git status --short --untracked-files=all` or `git ls-files --others --exclude-standard` to",
       "expected": "D",
       "id": "train-25",
       "query": "The runtime workspace inventory is unavailable. How does the agent establish the complete non-ignored untracked file list?\nA) git diff HEAD\nB) git clean -n\nC) git stash -u\nD) git ls-files --others --exclude-standard",
@@ -240,7 +240,7 @@
       "split": "validation"
     },
     {
-      "evidence": "review scope; expand directories to every in-scope tracked change and non-ignored untracked file",
+      "evidence": "behavior. A user-supplied file or directory defines the review scope; expand directories to every in-scope tracked change and non-ignored untracked file",
       "expected": "D",
       "id": "validation-09",
       "query": "The user names a directory as the scope and supplies no diff. Which files does the agent review under it?\nA) Only the tracked changes beneath it\nB) Only the files the user lists afterward\nC) Every file beneath it, changed or not\nD) Every in-scope tracked change and every non-ignored untracked file beneath it",
@@ -254,7 +254,7 @@
       "split": "validation"
     },
     {
-      "evidence": "has no findings and name any limitation that static review cannot resolve.",
+      "evidence": "addenda. Say when a lens has no findings and name any limitation that static review cannot resolve.",
       "expected": "B",
       "id": "validation-11",
       "query": "The Requirements lens has no findings, and the Repository and language standards lens has two. How does the report treat the Requirements lens?\nA) Omit the Requirements section entirely\nB) Say that the lens has no findings\nC) State that the change is approved\nD) State that the tests passed",

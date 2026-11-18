@@ -6683,21 +6683,31 @@
           "challenge": 1
         },
         "caseIds": [
-          "review-order-findings-within-lens",
+          "review-order-findings-report-fields",
           "review-static-finding-without-running-tests",
           "review-stops-without-requirements"
         ],
         "cases": [
           {
-            "id": "review-order-findings-within-lens",
+            "id": "review-order-findings-report-fields",
             "split": "train",
             "taskFamily": "review-report-ordering",
             "sourceRule": "skills/review-changes/SKILL.md:233-255 - sort paths ascending within each lens, then line numbers within a path; preserve lens order.",
             "hardAssertions": [
               {
-                "id": "ordered-report-lines",
+                "id": "detail-line-first",
                 "kind": "output-contains",
-                "expected": "- `a.ts:12` - [Bug]\n- `a.ts:90` - [Bug]\n- `z.ts:5` - [Risk]"
+                "expected": "1. `a.ts:12` - [Bug]"
+              },
+              {
+                "id": "detail-line-second",
+                "kind": "output-contains",
+                "expected": "2. `a.ts:90` - [Bug]"
+              },
+              {
+                "id": "detail-line-third",
+                "kind": "output-contains",
+                "expected": "3. `z.ts:5` - [Risk]"
               },
               {
                 "id": "no-review-target-edit",
@@ -10540,5 +10550,5 @@
     "logInventorySha256": "b2315c9a8346f4b18aab886d3b38b8c037d97087f05ff16c4761db217b465e92"
   },
   "coverageMapSha256Rule": "SHA-256 of UTF-8 JSON.stringify(this object with coverageMapSha256 omitted, two-space indentation, and a terminal newline).",
-  "coverageMapSha256": "8b8578f7d4993964c8093772bb0ba321f5736382b11ccbcee02c75ec9e8bf110"
+  "coverageMapSha256": "be13bcd150d35b8b20e8deeb9a27b9c4e237c88cc8f437197a74e2204333ffa2"
 }

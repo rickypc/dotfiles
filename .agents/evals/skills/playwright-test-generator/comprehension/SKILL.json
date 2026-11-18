@@ -2,7 +2,7 @@
   "kind": "comprehension",
   "queries": [
     {
-      "evidence": "Use it to write or extend retained browser tests, not to review, run, or debug existing tests",
+      "evidence": "Do NOT use to run or debug existing tests",
       "expected": "B",
       "id": "train-01",
       "query": "The user asks the agent to debug an existing Playwright test that fails in CI. Should this skill be used?\nA) Yes, it debugs and repairs any Playwright test\nB) No, it writes or extends retained browser tests, not review, run, or debug existing ones\nC) Yes, but only when the test is a unit test\nD) Yes, but only to review the test",
@@ -226,7 +226,7 @@
       "split": "train"
     },
     {
-      "evidence": "**Optional:** Browser project, required viewport, responsive/performance budget, existing related",
+      "evidence": "All of these inputs are optional; work proceeds without them",
       "expected": "A",
       "id": "validation-07",
       "query": "The user supplies criteria for a login-error flow, the project root, and the runner, but no browser project, viewport, budget, or trace option. None of the criteria is about performance. What follows?\nA) Proceed, because those inputs are optional\nB) Stop, because a viewport is required\nC) Stop, because a budget is required for every test\nD) Ask for a trace option first",

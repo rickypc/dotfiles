@@ -8,6 +8,12 @@
     "oneOwnerPerSource": true,
     "oneOwnerPerArtifact": true,
     "behaviorRunsPerCase": 3,
+    "heldOutLooksPerEpoch": 2,
+    "atomChecks": {
+      "duplicateReportOnly": true,
+      "duplicateSimilarity": 0.5,
+      "maxDocumentChars": 45000
+    },
     "unknownLanesFailClosed": true,
     "pathRoots": [
       "evals/",
@@ -69,7 +75,14 @@
       "fullSnapshotsAndRawPayloads": "outside-repository-and-untracked",
       "missingPayloadRequiredForRollbackOrComparison": "fail-closed"
     },
-    "caseRetirements": "evals/skills/{skill}/retirements.json"
+    "caseRetirements": "evals/skills/{skill}/retirements.json",
+    "heldOutLooks": "evals/held-out-looks.jsonl",
+    "skillHeldOutLooks": "evals/skills/{skill}/held-out-looks.jsonl",
+    "behaviorSeals": "evals/behavior-seals.jsonl",
+    "skillBehaviorSeals": "evals/skills/{skill}/behavior-seals.jsonl",
+    "atomSchema": "evals/atom-schema.json",
+    "rootAtoms": "evals/atoms/{source-key}.md",
+    "skillAtoms": "evals/skills/{skill}/atoms/{source-key}.md"
   },
   "receiptFingerprintInputs": [
     "source fingerprint and owned source paths",
@@ -92,7 +105,8 @@
       "requiredLanes": [
         "contract",
         "behavior",
-        "comprehension"
+        "comprehension",
+        "atoms"
       ],
       "artifacts": {
         "manifestRef": "evals/manifest.json",
@@ -105,7 +119,10 @@
           "evals/receipts/AGENTS.json"
         ],
         "ledger": "evals/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/atoms/AGENTS.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/root-instruction-comprehension.json"
@@ -124,7 +141,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/aidp/manifest.json",
@@ -142,7 +160,12 @@
           "evals/skills/aidp/receipts/references--engineering-planning-contract.json"
         ],
         "ledger": "evals/skills/aidp/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/aidp/atoms/SKILL.md",
+          "evals/skills/aidp/atoms/evals-rubric.md",
+          "evals/skills/aidp/atoms/references-engineering-planning-contract.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/aidp/comprehension/SKILL.json",
@@ -171,7 +194,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/aidx/manifest.json",
@@ -191,7 +215,13 @@
           "evals/skills/aidx/receipts/references--execution-contract.json"
         ],
         "ledger": "evals/skills/aidx/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/aidx/atoms/SKILL.md",
+          "evals/skills/aidx/atoms/evals-rubric.md",
+          "evals/skills/aidx/atoms/references-engineering-execution-contract.md",
+          "evals/skills/aidx/atoms/references-execution-contract.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/aidx/comprehension/SKILL.json",
@@ -220,7 +250,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/biome-checker/manifest.json",
@@ -236,7 +267,11 @@
           "evals/skills/biome-checker/receipts/rubric.json"
         ],
         "ledger": "evals/skills/biome-checker/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/biome-checker/atoms/SKILL.md",
+          "evals/skills/biome-checker/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/biome-checker/comprehension/SKILL.json",
@@ -262,7 +297,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/bun-test-generator/manifest.json",
@@ -280,7 +316,12 @@
           "evals/skills/bun-test-generator/receipts/references--lessons-learned.json"
         ],
         "ledger": "evals/skills/bun-test-generator/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/bun-test-generator/atoms/SKILL.md",
+          "evals/skills/bun-test-generator/atoms/evals-rubric.md",
+          "evals/skills/bun-test-generator/atoms/references-lessons-learned.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/bun-test-generator/comprehension/SKILL.json",
@@ -307,7 +348,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/content-writer/manifest.json",
@@ -323,7 +365,11 @@
           "evals/skills/content-writer/receipts/rubric.json"
         ],
         "ledger": "evals/skills/content-writer/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/content-writer/atoms/SKILL.md",
+          "evals/skills/content-writer/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/content-writer/comprehension/SKILL.json",
@@ -348,7 +394,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/frontend-design/manifest.json",
@@ -364,7 +411,11 @@
           "evals/skills/frontend-design/receipts/rubric.json"
         ],
         "ledger": "evals/skills/frontend-design/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/frontend-design/atoms/SKILL.md",
+          "evals/skills/frontend-design/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/frontend-design/comprehension/SKILL.json",
@@ -389,7 +440,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/knowledge-base/manifest.json",
@@ -405,7 +457,11 @@
           "evals/skills/knowledge-base/receipts/rubric.json"
         ],
         "ledger": "evals/skills/knowledge-base/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/knowledge-base/atoms/SKILL.md",
+          "evals/skills/knowledge-base/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/knowledge-base/comprehension/SKILL.json",
@@ -431,7 +487,8 @@
         "behavior",
         "comprehension",
         "activation",
-        "transaction-contract"
+        "transaction-contract",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/md-compress/manifest.json",
@@ -448,7 +505,11 @@
         ],
         "ledger": "evals/skills/md-compress/ledger.jsonl",
         "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
-        "auxiliary": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl"
+        "auxiliary": "evals/skills/md-compress/auxiliary/cli-transaction.matrix.jsonl",
+        "atoms": [
+          "evals/skills/md-compress/atoms/SKILL.md",
+          "evals/skills/md-compress/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/md-compress/comprehension/SKILL.json",
@@ -474,7 +535,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/playwright-test-generator/manifest.json",
@@ -490,7 +552,11 @@
           "evals/skills/playwright-test-generator/receipts/rubric.json"
         ],
         "ledger": "evals/skills/playwright-test-generator/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/playwright-test-generator/atoms/SKILL.md",
+          "evals/skills/playwright-test-generator/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/playwright-test-generator/comprehension/SKILL.json",
@@ -515,7 +581,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/react/manifest.json",
@@ -531,7 +598,11 @@
           "evals/skills/react/receipts/rubric.json"
         ],
         "ledger": "evals/skills/react/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/react/atoms/SKILL.md",
+          "evals/skills/react/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/react/comprehension/SKILL.json",
@@ -559,7 +630,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/repo-search/manifest.json",
@@ -581,7 +653,14 @@
           "evals/skills/repo-search/receipts/references--usage-patterns.json"
         ],
         "ledger": "evals/skills/repo-search/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/repo-search/atoms/SKILL.md",
+          "evals/skills/repo-search/atoms/evals-rubric.md",
+          "evals/skills/repo-search/atoms/references-binary-router.md",
+          "evals/skills/repo-search/atoms/references-engine.md",
+          "evals/skills/repo-search/atoms/references-usage-patterns.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/repo-search/comprehension/SKILL.json",
@@ -612,7 +691,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/review-changes/manifest.json",
@@ -628,7 +708,11 @@
           "evals/skills/review-changes/receipts/rubric.json"
         ],
         "ledger": "evals/skills/review-changes/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/review-changes/atoms/SKILL.md",
+          "evals/skills/review-changes/atoms/evals-rubric.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/review-changes/comprehension/SKILL.json",
@@ -649,6 +733,7 @@
         "evals/skills/skill-manager/rubric.md",
         "skills/skill-manager/references/agent-skills-guidance.md",
         "skills/skill-manager/references/index.md",
+        "skills/skill-manager/references/librarian.md",
         "skills/skill-manager/references/skill-lifecycle.md",
         "skills/skill-manager/references/skill-template.md",
         "skills/skill-manager/references/train-protocol.md"
@@ -658,7 +743,8 @@
         "contract",
         "behavior",
         "comprehension",
-        "activation"
+        "activation",
+        "atoms"
       ],
       "artifacts": {
         "manifest": "evals/skills/skill-manager/manifest.json",
@@ -669,6 +755,7 @@
           "evals/skills/skill-manager/comprehension/evals-rubric.json",
           "evals/skills/skill-manager/comprehension/references-agent-skills-guidance.json",
           "evals/skills/skill-manager/comprehension/references-index.json",
+          "evals/skills/skill-manager/comprehension/references-librarian.json",
           "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json",
           "evals/skills/skill-manager/comprehension/references-skill-template.json",
           "evals/skills/skill-manager/comprehension/references-train-protocol.json"
@@ -679,12 +766,23 @@
           "evals/skills/skill-manager/receipts/rubric.json",
           "evals/skills/skill-manager/receipts/references--agent-skills-guidance.json",
           "evals/skills/skill-manager/receipts/references--index.json",
+          "evals/skills/skill-manager/receipts/references--librarian.json",
           "evals/skills/skill-manager/receipts/references--skill-lifecycle.json",
           "evals/skills/skill-manager/receipts/references--skill-template.json",
           "evals/skills/skill-manager/receipts/references--train-protocol.json"
         ],
         "ledger": "evals/skills/skill-manager/ledger.jsonl",
-        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/"
+        "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
+        "atoms": [
+          "evals/skills/skill-manager/atoms/SKILL.md",
+          "evals/skills/skill-manager/atoms/evals-rubric.md",
+          "evals/skills/skill-manager/atoms/references-agent-skills-guidance.md",
+          "evals/skills/skill-manager/atoms/references-index.md",
+          "evals/skills/skill-manager/atoms/references-librarian.md",
+          "evals/skills/skill-manager/atoms/references-skill-lifecycle.md",
+          "evals/skills/skill-manager/atoms/references-skill-template.md",
+          "evals/skills/skill-manager/atoms/references-train-protocol.md"
+        ]
       },
       "archivedArtifacts": [
         "evals/archive/phase-3-eval-retirement/skill-manager/comprehension/SKILL.json",
@@ -1024,6 +1122,10 @@
     },
     {
       "sourcePath": "skills/skill-manager/references/index.md",
+      "ownerId": "skill:skill-manager"
+    },
+    {
+      "sourcePath": "skills/skill-manager/references/librarian.md",
       "ownerId": "skill:skill-manager"
     },
     {
@@ -1611,6 +1713,11 @@
     },
     {
       "path": "evals/skills/skill-manager/comprehension/references-index.json",
+      "ownerId": "skill:skill-manager",
+      "lane": "comprehension"
+    },
+    {
+      "path": "evals/skills/skill-manager/comprehension/references-librarian.json",
       "ownerId": "skill:skill-manager",
       "lane": "comprehension"
     },

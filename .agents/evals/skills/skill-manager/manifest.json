@@ -7,7 +7,8 @@
     "contract",
     "behavior",
     "comprehension",
-    "activation"
+    "activation",
+    "atoms"
   ],
   "deferredLanes": {
     "behavior": "Behavior cases are authored and ratcheted (3 cases). No baseline, candidate, or challenge behavior receipt exists. Keep the lane out of optimization until the host provides fresh isolated target/grader sessions and fixture execution."
@@ -17,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/skill-manager/SKILL.md",
-      "sha256": "67a7b3bf4df82f81e946f1d6d80eb001ec49cf01094286934b0e7ec46d810c7f"
+      "sha256": "674742796eb920752d11189410b2974b76a404e4e4bf9c784b9ed4462a13cabc"
     },
     {
       "sourcePath": "evals/skills/skill-manager/rubric.md",
@@ -32,6 +33,10 @@
       "sha256": "4345a0cb1ad527bc83c1d71bf0d79a12b724cab4b1ed5eba4dc7253e062a9c20"
     },
     {
+      "sourcePath": "skills/skill-manager/references/librarian.md",
+      "sha256": "3269af85de07789b3b315630c5430cd43d76b8a5492097116707bfb0322e8d9b"
+    },
+    {
       "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
       "sha256": "c32d8f01be6dfa29346a776fd5a193b28738e21b0be1e84de37902614026cc8a"
     },
@@ -41,7 +46,7 @@
     },
     {
       "sourcePath": "skills/skill-manager/references/train-protocol.md",
-      "sha256": "c30b0c92013ed8efd1060834d1d8a5dc88dbef27619c90ccfbb8c8925b54099d"
+      "sha256": "111f25eb0b465fb3b61d8d559a500254ad4697d559f76bd03d14e7bb089a8259"
     }
   ],
   "archivedMatrixSources": [
@@ -108,7 +113,7 @@
       {
         "sourcePath": "skills/skill-manager/SKILL.md",
         "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
-        "queryCount": 52,
+        "queryCount": 65,
         "queryIds": [
           "train-37",
           "train-01",
@@ -161,7 +166,20 @@
           "train-33",
           "train-34",
           "train-35",
-          "train-36"
+          "train-36",
+          "train-38",
+          "train-39",
+          "train-40",
+          "train-41",
+          "train-42",
+          "validation-16",
+          "validation-17",
+          "validation-18",
+          "validation-19",
+          "validation-20",
+          "validation-21",
+          "validation-22",
+          "validation-23"
         ]
       },
       {
@@ -226,6 +244,27 @@
           "train-06",
           "validation-03",
           "validation-04"
+        ]
+      },
+      {
+        "sourcePath": "skills/skill-manager/references/librarian.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-librarian.json",
+        "queryCount": 14,
+        "queryIds": [
+          "train-01",
+          "train-02",
+          "train-03",
+          "train-04",
+          "train-05",
+          "train-06",
+          "train-07",
+          "train-08",
+          "validation-01",
+          "validation-02",
+          "validation-03",
+          "validation-04",
+          "validation-05",
+          "validation-06"
         ]
       },
       {
@@ -339,6 +378,11 @@
         "path": "evals/skills/skill-manager/receipts/references--index.json"
       },
       {
+        "sourcePath": "skills/skill-manager/references/librarian.md",
+        "setPath": "evals/skills/skill-manager/comprehension/references-librarian.json",
+        "path": "evals/skills/skill-manager/receipts/references--librarian.json"
+      },
+      {
         "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
         "setPath": "evals/skills/skill-manager/comprehension/references-skill-lifecycle.json",
         "path": "evals/skills/skill-manager/receipts/references--skill-lifecycle.json"
@@ -356,12 +400,22 @@
     ],
     "ledger": "evals/skills/skill-manager/ledger.jsonl",
     "runsDirectory": "os.tmpdir()/agents-evaluation-runs/{repositoryId}/{ownerId}/{runId}/",
-    "caseRetirements": "evals/skills/skill-manager/retirements.json"
+    "caseRetirements": "evals/skills/skill-manager/retirements.json",
+    "atoms": [
+      "evals/skills/skill-manager/atoms/SKILL.md",
+      "evals/skills/skill-manager/atoms/evals-rubric.md",
+      "evals/skills/skill-manager/atoms/references-agent-skills-guidance.md",
+      "evals/skills/skill-manager/atoms/references-index.md",
+      "evals/skills/skill-manager/atoms/references-librarian.md",
+      "evals/skills/skill-manager/atoms/references-skill-lifecycle.md",
+      "evals/skills/skill-manager/atoms/references-skill-template.md",
+      "evals/skills/skill-manager/atoms/references-train-protocol.md"
+    ]
   },
   "inventory": {
     "contractCases": 50,
     "activationQueries": 62,
-    "comprehensionQueries": 161,
+    "comprehensionQueries": 188,
     "behaviorCases": 3
   },
   "fingerprints": {

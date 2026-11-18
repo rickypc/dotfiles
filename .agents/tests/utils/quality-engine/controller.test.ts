@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 
 import {
   decideBaseline,
+  decideBatch,
   decideCandidate,
   decideChallenge,
 } from '../../../utils/quality-engine/controller.js';
@@ -133,4 +134,44 @@ test('rejects challenge evidence that does not match the candidate', () => {
       receipt: { ...passingReceipt, state: 'challenge_checked' },
     }),
   ).toThrow('candidate evidence');
+});
+
+const probeVector = (candidateId: string, trainPassed: string[]) => ({
+  candidateId,
+  changedAtoms: 1,
+  tokenDelta: 0,
+  trainPassed,
+  validationPassed: 5,
+});
+
+test('a batch round selects the unique frontier winner', () => {
+  expect(
+    decideBatch({
+      admissible: [probeVector('a', ['p1', 'p2']), probeVector('b', ['p1'])],
+      round: 1,
+      roundBudget: 3,
+    }),
+  ).toEqual({ nextStep: 'select', selected: 'a', stopReason: 'selected' });
+});
+
+test('a batch round with a trade-off asks for repair, then stops at the budget', () => {
+  const admissible = [probeVector('a', ['p1']), probeVector('b', ['p2'])];
+  expect(decideBatch({ admissible, round: 1, roundBudget: 3 })).toEqual({
+    nextStep: 'repair',
+    selected: null,
+    stopReason: 'trade-off',
+  });
+  expect(decideBatch({ admissible, round: 3, roundBudget: 3 })).toEqual({
+    nextStep: 'stop',
+    selected: null,
+    stopReason: 'budget',
+  });
+});
+
+test('a batch round outside its budget throws', () => {
+  expect(() => decideBatch({ admissible: [], round: 4, roundBudget: 3 })).toThrow('budget');
+  expect(() => decideBatch({ admissible: [], round: 0, roundBudget: 3 })).toThrow('budget');
+  expect(decideBatch({ admissible: [], round: 1, roundBudget: 3 }).stopReason).toBe(
+    'no-admissible',
+  );
 });

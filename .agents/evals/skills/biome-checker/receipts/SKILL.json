@@ -1,6 +1,37 @@
 {
-  "baseline": null,
-  "decision": "baseline",
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10",
+      "train-11",
+      "train-12",
+      "train-13",
+      "train-14",
+      "train-15",
+      "train-16",
+      "train-17",
+      "train-18",
+      "train-19",
+      "train-20",
+      "train-21",
+      "train-22",
+      "train-23",
+      "train-24",
+      "train-25",
+      "train-26",
+      "train-27"
+    ],
+    "validationPassed": 12
+  },
+  "decision": "perfect",
   "document": "skills/biome-checker/SKILL.md",
   "documentSha256": "633b844e3a0d7869a124c0331c4a314e51f3cf698df60319f2e6857664106574",
   "fingerprint": {
@@ -45,7 +76,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "c62b96c5034e8c0b7388f90a69c3d4da6c40dba4d9cd2e2acaa4cfdd92d7e8e7",
+  "selfSha256": "0d4993b0c1935fa3bee4a79ed93c7ec3815ce09d2d8a1ae3ee4271354e33adcf",
   "setPath": "evals/skills/biome-checker/comprehension/SKILL.json",
-  "setSha256": "d931e0b0b8d4e7c1933d4b46162936a034bcf2a3513a0ecb513227179c1445ef"
+  "setSha256": "f2828672a2defdd4fc48cd8de0975f138472a2c91a35d25e84101d39b0025aeb"
 }

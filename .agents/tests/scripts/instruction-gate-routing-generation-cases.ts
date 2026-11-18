@@ -775,6 +775,10 @@ const registerCentralDocumentRecordTest = (context: CentralTestContext): void =>
     harness.files.set(join(globalRoot, document), 'central source');
     harness.files.set(join(globalRoot, centralSet), setText);
     harness.files.set(join(globalRoot, set), '{"queries":[]}');
+    harness.files.set(
+      join(globalRoot, centralSet.replace('/comprehension/', '/atoms/').replace(/\.json$/u, '.md')),
+      '---\ntype: atom-map\ntitle: t\ndescription: d\ntags: [atoms]\nschemaVersion: 1\nsource: skills/aidp/SKILL.md\natoms: []\n---\nbody',
+    );
 
     expect(await record([document], {}, harness.deps)).toBe(0);
 

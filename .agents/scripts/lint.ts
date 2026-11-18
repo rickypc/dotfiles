@@ -5,7 +5,7 @@ import type { CommandExecutor } from '../utils/process.js';
 import { bunExecutor } from '../utils/process.js';
 
 export interface LintReceipt {
-  readonly name: 'biome' | 'declaration-order' | 'instruction-gate' | 'skills';
+  readonly name: 'atom-maps' | 'biome' | 'declaration-order' | 'instruction-gate' | 'skills';
   readonly result: CommandResult;
 }
 
@@ -24,6 +24,10 @@ export const lintCommandsFor = (
   readonly name: LintReceipt['name'];
   readonly spec: CommandSpec;
 }[] => [
+  {
+    name: 'atom-maps',
+    spec: shellCommand('bun scripts/skill-manager.ts audit "$PWD" --check', agentsRoot),
+  },
   {
     name: 'biome',
     spec: shellCommand(

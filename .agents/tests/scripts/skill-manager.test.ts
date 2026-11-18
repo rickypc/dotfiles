@@ -1,4 +1,5 @@
 import { expect, mock, test } from 'bun:test';
+import { createHash } from 'node:crypto';
 
 import { run, runWhenMain, usage } from '../../scripts/skill-manager.js';
 
@@ -114,6 +115,87 @@ test('validates a selected skill through the public command', async () => {
   await run(['validate', '/tmp/.agents/skills/demo'], undefined, write, fileSystem);
   expect(write).toHaveBeenCalledWith(expect.stringContaining('"status": "valid"'));
   await expect(run(['validate', 'relative-root'])).rejects.toThrow(usage());
+});
+
+test('audits atom maps read-only through the public command', async () => {
+  const sentence = 'The agent must answer in English always.';
+  const atom = {
+    behavioral: false,
+    harmful: 0,
+    helpful: 0,
+    id: 'a1',
+    placements: [{ headingPath: ['Rules'] }],
+    precedence: 0,
+    probeIds: ['p1'],
+    status: 'active',
+    tags: [],
+    textSha256: createHash('sha256').update(sentence).digest('hex'),
+  };
+  const map = {
+    atoms: [atom],
+    description: 'd',
+    schemaVersion: 1,
+    source: 'skills/demo/SKILL.md',
+    tags: ['atoms'],
+    title: 't',
+    type: 'atom-map',
+  };
+  const frontmatter = Object.entries(map).map(([key, value]) => `${key}: ${JSON.stringify(value)}`);
+  const files = new Map<string, string>([
+    [
+      '/agents/evals/manifest.json',
+      JSON.stringify({
+        owners: [
+          {
+            artifacts: {
+              atoms: ['evals/skills/demo/atoms/SKILL.md'],
+              comprehension: [{ setPath: 'evals/skills/demo/comprehension/SKILL.json' }],
+            },
+            directory: 'evals/skills/demo/',
+            id: 'skill:demo',
+            requiredLanes: ['atoms'],
+          },
+        ],
+        policy: {
+          atomChecks: {
+            duplicateReportOnly: true,
+            duplicateSimilarity: 0.5,
+            maxDocumentChars: 1000,
+          },
+        },
+      }),
+    ],
+    ['/agents/evals/skills/demo/atoms/SKILL.md', `---\n${frontmatter.join('\n')}\n---\nbody\n`],
+    [
+      '/agents/evals/skills/demo/comprehension/SKILL.json',
+      JSON.stringify({ queries: [{ id: 'p1' }] }),
+    ],
+    ['/agents/skills/demo/SKILL.md', `# Rules\n\n${sentence}\n`],
+  ]);
+  const fileSystem = {
+    exists: async () => false,
+    mkdir: async () => undefined,
+    readFile: async (path: string) => {
+      const text = files.get(path);
+      if (text === undefined) {
+        throw new Error(`ENOENT ${path}`);
+      }
+      return text;
+    },
+    rm: async () => undefined,
+    writeFile: async () => undefined,
+  };
+  const output: string[] = [];
+  await run(['audit', '/agents', 'skill:demo'], undefined, (m) => output.push(m), fileSystem);
+  const report = JSON.parse(output[0] ?? '') as {
+    owners: { atoms: number; findings: unknown[]; ownerId: string }[];
+  };
+  expect(report.owners.map((o) => [o.ownerId, o.atoms, o.findings])).toEqual([
+    ['skill:demo', 1, []],
+  ]);
+  await expect(run(['audit', 'relative-root'])).rejects.toThrow(usage());
+  await expect(run(['audit'])).rejects.toThrow(usage());
+  await expect(run(['audit', '/agents', 'a', 'b'])).rejects.toThrow(usage());
 });
 
 test('initializes a selected skill through the public command', async () => {

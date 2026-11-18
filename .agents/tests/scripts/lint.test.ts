@@ -19,8 +19,8 @@ test('sets a nonzero exit code after replaying every failed command diagnostic',
   const write = mock();
   const setExitCode = mock();
   await run([], executor, '/agents', write, setExitCode);
-  expect(executor).toHaveBeenCalledTimes(5);
-  expect(write).toHaveBeenCalledTimes(8);
+  expect(executor).toHaveBeenCalledTimes(6);
+  expect(write).toHaveBeenCalledTimes(10);
   expect(setExitCode).toHaveBeenCalledWith(1);
 });
 
