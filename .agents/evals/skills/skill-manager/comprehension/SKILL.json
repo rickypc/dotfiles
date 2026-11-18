@@ -531,6 +531,48 @@
       "id": "validation-33",
       "query": "How many repeated runs per trigger query are required at minimum?\nA) One\nB) Three\nC) Five\nD) Ten",
       "split": "validation"
+    },
+    {
+      "evidence": "exit code is 0 when answered and 1 on any failure, and the failure envelope `data.reason` is `failure`, `integrity`, `missing-dependency`, `no-adapter`, or `too-long`",
+      "expected": "B",
+      "id": "train-43",
+      "query": "The weak reader fails because the document is longer than its context window. Which `data.reason` does the failure envelope carry?\nA) `integrity`\nB) `too-long`\nC) `failure`\nD) `missing-dependency`",
+      "split": "train"
+    },
+    {
+      "evidence": "`[description]` is optional scaffold metadata limited to 1,024 characters.",
+      "expected": "D",
+      "id": "validation-34",
+      "query": "What limit applies to the optional description given to the init route?\nA) 500 characters\nB) 5,000 characters\nC) 256 characters\nD) 1,024 characters",
+      "split": "validation"
+    },
+    {
+      "evidence": "Do not add a competing `trigger` field.",
+      "expected": "C",
+      "id": "validation-35",
+      "query": "A skill author wants a second field that controls when the skill activates. What does the file say?\nA) Add a trigger field next to the description\nB) Put the trigger field in argument-hint\nC) Do not add a competing trigger field; description owns activation\nD) Add a trigger field only if the description is over 1,024 characters",
+      "split": "validation"
+    },
+    {
+      "evidence": "`--max-description-change <percent>` defaults to 25 of the baseline description characters;",
+      "expected": "C",
+      "id": "validation-36",
+      "query": "What is the default for the maximum description change in one training attempt?\nA) 10 percent of the baseline description\nB) 50 percent of the baseline description\nC) 25 percent of the baseline description\nD) 40 percent of the baseline description",
+      "split": "validation"
+    },
+    {
+      "evidence": "For global `.agents` roots, read `.agents/.gitignore` before inventory.",
+      "expected": "D",
+      "id": "validation-37",
+      "query": "What must be read before inventory for a global .agents root?\nA) The package.json file\nB) The biome.jsonc file\nC) The LICENSE file\nD) The .agents/.gitignore file",
+      "split": "validation"
+    },
+    {
+      "evidence": "A weak reader that fails a probe means the document is unclear, not that the reader is bad.",
+      "expected": "B",
+      "id": "validation-38",
+      "query": "A weak reader fails a probe on a document. What does the file conclude?\nA) The reader is too small and should be replaced\nB) The document is unclear and should be rewritten\nC) The probe should be deleted\nD) The failure should be ignored if other probes pass",
+      "split": "validation"
     }
   ],
   "runs_per_query": 3,

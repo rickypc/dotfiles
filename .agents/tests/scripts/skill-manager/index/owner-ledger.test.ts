@@ -1,7 +1,7 @@
 import { expect, mock, test } from 'bun:test';
 
-import { run } from '../../../scripts/skill-manager/index.js';
-import { fingerprint } from '../../../utils/quality-engine/packet.js';
+import { run } from '../../../../scripts/skill-manager/index.js';
+import { fingerprint } from '../../../../utils/quality-engine/packet.js';
 
 const skillSource = (): string =>
   '---\nname: skill-manager\ndescription: Manage skills.\n---\n\n# Skill Manager\n\ncontract\n';
@@ -111,7 +111,7 @@ const triggerQueries = (): string =>
   });
 
 const createWorld = () => {
-  const root = import.meta.dir.replace(/\/tests\/scripts\/skill-manager$/u, '');
+  const root = import.meta.dir.replace(/\/tests\/scripts\/skill-manager\/index$/u, '');
   const skillPath = `${root}/skills/skill-manager`;
   const sourcePath = `${skillPath}/SKILL.md`;
   const ownerRelative = 'evals/skills/skill-manager';

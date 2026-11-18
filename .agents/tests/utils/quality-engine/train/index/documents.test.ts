@@ -1,10 +1,10 @@
 import { expect, mock, test } from 'bun:test';
 import * as path from 'node:path';
 import realMatter from 'gray-matter';
-import * as realFilesystem from '../../../../utils/filesystem.js';
-import * as realPacket from '../../../../utils/quality-engine/packet.js';
-import * as realProvider from '../../../../utils/quality-engine/provider.js';
-import * as realTrainErrors from '../../../../utils/quality-engine/train/errors.js';
+import * as realFilesystem from '../../../../../utils/filesystem.js';
+import * as realPacket from '../../../../../utils/quality-engine/packet.js';
+import * as realProvider from '../../../../../utils/quality-engine/provider.js';
+import * as realTrainErrors from '../../../../../utils/quality-engine/train/errors.js';
 
 mock.module('node:path', () => path);
 mock.module('gray-matter', () => ({ default: realMatter }));
@@ -22,7 +22,7 @@ const {
   queryRatchetViolations,
   querySetBalanceProblems,
   snapshotPathFor,
-} = await import('../../../../utils/quality-engine/train/index.js');
+} = await import('../../../../../utils/quality-engine/train/index.js');
 
 const probeFor = (
   id: string,

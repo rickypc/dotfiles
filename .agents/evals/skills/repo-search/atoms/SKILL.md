@@ -78,6 +78,18 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-3bbc11fa1d
+    placements:
+      - headingPath: *ref_0
+    precedence: 0
+    probeIds:
+      - train-30
+    status: active
+    tags: []
+    textSha256: 3bbc11fa1d6f1b754919d3257edd9a84c8cddae492eaa5604b0d450e12774426
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-4a25ef611f
     placements:
       - headingPath: &ref_1
@@ -674,6 +686,7 @@ Atoms for `skills/repo-search/SKILL.md`.
 | `r-402da4359e` | Repo Search > 1. Role & Scope | 1 |
 | `r-01a4ec0a9f` | Repo Search > 2. Usage | 1 |
 | `r-45561a5eed` | Repo Search > 2. Usage | 1 |
+| `r-3bbc11fa1d` | Repo Search > 2. Usage | 1 |
 | `r-4a25ef611f` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-7b6f31cc98` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-a99d1cb1a1` | Repo Search > 3. Immutable Operational Rules | 1 |

@@ -1,5 +1,4 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { tmpdir } from 'node:os';
 
 import {
   createNodeFileSystem,
@@ -9,6 +8,23 @@ import {
   removeFile,
   writeText,
 } from '../../utils/filesystem.js';
+
+const realFs = { ...(await import('node:fs/promises')) };
+const present = new Set<string>();
+
+// Delegates every path outside /memory/ to the real module, so same-process suites are unaffected.
+mock.module('node:fs/promises', () => ({
+  ...realFs,
+  access: mock(async (path: string, mode?: number) => {
+    if (!path.startsWith('/memory/')) {
+      return realFs.access(path, mode);
+    }
+    if (!present.has(path)) {
+      throw new Error('ENOENT');
+    }
+    return undefined;
+  }),
+}));
 
 describe('filesystem', () => {
   test('creates the node filesystem adapter from injected operations', async () => {
@@ -83,13 +99,11 @@ describe('filesystem', () => {
   });
 
   test('the node adapter exists probe answers for present and missing paths', async () => {
-    const path = `${tmpdir()}/filesystem-exists-${process.pid}.txt`;
+    const path = '/memory/exists.txt';
     await expect(nodeFileSystem.exists(path)).resolves.toBeFalse();
-    await Bun.write(path, 'content');
-    try {
-      await expect(nodeFileSystem.exists(path)).resolves.toBeTrue();
-    } finally {
-      await nodeFileSystem.rm(path, { force: true });
-    }
+    present.add(path);
+    await expect(nodeFileSystem.exists(path)).resolves.toBeTrue();
+    present.delete(path);
+    await expect(nodeFileSystem.exists('/definitely/missing/real-path.txt')).resolves.toBeFalse();
   });
 });

@@ -1,11 +1,15 @@
 import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test';
 import * as realFsPromises from 'node:fs/promises';
-import { homedir } from 'node:os';
+import * as realOs from 'node:os';
 import { resolve } from 'node:path';
 
 // Snapshot the real exports before mock.module registration so the afterAll hook
 // can restore them for later test files running in the same process.
 const realFsPromisesExports = { ...realFsPromises };
+const realOsExports = { ...realOs };
+const { homedir } = realOsExports;
+
+mock.module('node:os', () => ({ ...realOsExports, homedir: mock(() => homedir()) }));
 
 const renameMock = mock((_src: string, _dest: string) => Promise.resolve());
 const accessMock = mock((_path: string) => Promise.resolve());
@@ -28,6 +32,7 @@ mock.module('node:fs/promises', () => ({
 const { trashRoot, defaultMoveSourceToTrash } = await import('../../scripts/trash.js');
 
 afterAll(() => {
+  mock.module('node:os', () => realOsExports);
   mock.module('node:fs/promises', () => realFsPromisesExports);
 });
 

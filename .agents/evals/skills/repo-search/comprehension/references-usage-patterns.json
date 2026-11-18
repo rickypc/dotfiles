@@ -98,6 +98,13 @@
       "id": "validation-05",
       "query": "A caller searches an indexed root for a code literal that is absent from symbol names and file paths. What does the envelope show?\nA) `source: \"graph\"` with identity-field matches\nB) One `connection` result\nC) Only `path:line` fallback locations\nD) Merged `symbol` results plus the `directories` cluster",
       "split": "validation"
+    },
+    {
+      "evidence": "envelope in the `data` of the shared CLI envelope, so the response contract never changes between scenarios",
+      "expected": "B",
+      "id": "train-10",
+      "query": "Why does the repo-search response contract never change between scenarios?\nA) Each scenario has its own schema\nB) Every route prints the one unified envelope in the `data` of the shared CLI envelope\nC) Only `search` returns an envelope\nD) The contract changes only with `--verbose`",
+      "split": "train"
     }
   ],
   "runs_per_query": 3,

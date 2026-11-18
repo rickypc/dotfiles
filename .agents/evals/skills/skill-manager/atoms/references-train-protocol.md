@@ -426,11 +426,37 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-075f98a43a
+    id: r-797fe5f052
     placements:
       - headingPath:
           - In-session training protocol
           - 8. Documents and the weak reader
+    precedence: 0
+    probeIds:
+      - train-21
+    status: active
+    tags: []
+    textSha256: 797fe5f05221b1d7667dfa5a796186b2580d3e8db947828898eeb78af912ca52
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-652ef361c1
+    placements:
+      - headingPath: &ref_7
+          - In-session training protocol
+          - 8. Documents and the weak reader
+    precedence: 0
+    probeIds:
+      - train-22
+    status: active
+    tags: []
+    textSha256: 652ef361c15bdac69ae8d1f656d5db136ad135a28f506d82304cf4e02dc59f2f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-075f98a43a
+    placements:
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - validation-21
@@ -547,7 +573,7 @@ atoms:
     helpful: 0
     id: r-e9691048e5
     placements:
-      - headingPath: &ref_7
+      - headingPath: &ref_8
           - In-session training protocol
           - 11. Retiring queries
     precedence: 0
@@ -561,7 +587,7 @@ atoms:
     helpful: 0
     id: r-9b073e2f1c
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - train-16
@@ -577,7 +603,7 @@ atoms:
     helpful: 0
     id: r-d3d7bcd4f8
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - train-17
@@ -628,6 +654,9 @@ sensitivity:
   - mutantsFlipped: 0
     mutantsTried: 2
     probeId: validation-11
+  - mutantsFlipped: 1
+    mutantsTried: 2
+    probeId: validation-13
 source: skills/skill-manager/references/train-protocol.md
 tags:
   - atoms
@@ -665,6 +694,8 @@ Atoms for `skills/skill-manager/references/train-protocol.md`.
 | `r-3d7f426d72` | In-session training protocol > 7. Resuming | 1 |
 | `r-5ec4ca9087` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-f46ccf6526` | In-session training protocol > 8. Documents and the weak reader | 1 |
+| `r-797fe5f052` | In-session training protocol > 8. Documents and the weak reader | 1 |
+| `r-652ef361c1` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-075f98a43a` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-c9247acab9` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-379768fa88` | In-session training protocol > 8. Documents and the weak reader | 1 |

@@ -3,6 +3,19 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-7b475fab98
+    placements:
+      - headingPath:
+          - Repo Search Usage Patterns
+    precedence: 0
+    probeIds:
+      - train-10
+    status: active
+    tags: []
+    textSha256: 7b475fab98d4f04888b2b051b2e1d7ba9fd9a2c07365d29b34e2eae9f51ca284
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-e68e3ef2fa
     placements:
       - headingPath:
@@ -246,6 +259,7 @@ Atoms for `skills/repo-search/references/usage-patterns.md`.
 
 | Atom | Placements | Probes |
 | --- | --- | --- |
+| `r-7b475fab98` | Repo Search Usage Patterns | 1 |
 | `r-e68e3ef2fa` | Repo Search Usage Patterns > Scenario patterns | 1 |
 | `r-5148e124b6` | Repo Search Usage Patterns > Scenario patterns | 1 |
 | `r-c125a2d36a` | Repo Search Usage Patterns > Scenario patterns | 1 |

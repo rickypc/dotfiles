@@ -20,7 +20,7 @@ import {
   searchKnowledgeBaseWithFallback,
   validateLesson,
   validateOkfMetadata,
-} from '../../scripts/knowledge-base.js';
+} from '../../../scripts/knowledge-base.js';
 
 test('validates KB concept paths and derives subject indexes', () => {
   expect(isKbConceptPath('shared/team/decision.md')).toBeTrue();

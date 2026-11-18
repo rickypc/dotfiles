@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/skill-manager/SKILL.md",
-      "sha256": "a54a6d8d23f45151d57ea63c4d8cfe848ed95e9866ed29e2c55dec7b9cc98923"
+      "sha256": "434c40f4770b8466c57a75d009e0fc878b3ef446a29f73a2a17c2e9f52cdd844"
     },
     {
       "sourcePath": "evals/skills/skill-manager/rubric.md",
@@ -113,7 +113,7 @@
       {
         "sourcePath": "skills/skill-manager/SKILL.md",
         "setPath": "evals/skills/skill-manager/comprehension/SKILL.json",
-        "queryCount": 75,
+        "queryCount": 81,
         "queryIds": [
           "train-37",
           "train-01",
@@ -189,7 +189,13 @@
           "validation-30",
           "validation-31",
           "validation-32",
-          "validation-33"
+          "validation-33",
+          "train-43",
+          "validation-34",
+          "validation-35",
+          "validation-36",
+          "validation-37",
+          "validation-38"
         ]
       },
       {
@@ -328,7 +334,7 @@
       {
         "sourcePath": "skills/skill-manager/references/train-protocol.md",
         "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
-        "queryCount": 41,
+        "queryCount": 43,
         "queryIds": [
           "train-20",
           "train-01",
@@ -370,7 +376,9 @@
           "validation-18",
           "validation-19",
           "validation-20",
-          "validation-21"
+          "validation-21",
+          "train-21",
+          "train-22"
         ]
       }
     ],

@@ -1,5 +1,12 @@
 import { expect, mock, test } from 'bun:test';
-import { command, createCommand, lintCommandsFor } from '../../scripts/lint.js';
+import {
+  command,
+  createCommand,
+  lintCommandsFor,
+  lintDiagnostics,
+  lintExitCode,
+  runLintCommands,
+} from '../../scripts/lint.js';
 import type { CliContext } from '../../utils/cli/context.js';
 import { runCommand } from '../../utils/cli/index.js';
 
@@ -108,4 +115,62 @@ test('rejects arguments with usage exit 2 and answers --help', async () => {
   const help = makeContext();
   expect(await runCommand(command, ['--help'], help.context)).toBe(0);
   expect(help.out[0]).toContain('scripts/lint.ts');
+});
+
+test('defines the distinct lint commands under one agents root', () => {
+  const commands = lintCommandsFor('/agents');
+  expect(commands.map(({ name }) => name)).toEqual([
+    'atom-maps',
+    'biome',
+    'declaration-order',
+    'instruction-gate',
+    'skills',
+  ]);
+  expect(commands.every(({ spec }) => spec.cwd === '/agents')).toBe(true);
+  expect(commands[0]?.spec.args.join(' ')).toContain('skill-manager/index.ts audit "$PWD" --check');
+  expect(commands[2]?.spec.args.join(' ')).toContain('*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}');
+  expect(commands[3]?.spec.args.join(' ')).toContain('scripts/instruction-gate/index.ts verify');
+  expect(commands[4]?.spec.args.join(' ')).toContain('scripts/validate/skills.ts --format text');
+  expect(commands[2]?.spec.args.join(' ')).toContain('--summary --format text');
+});
+
+test('runs distinct lint commands together and preserves every command result', async () => {
+  let releaseBiome: ((value: { code: number; stderr: string; stdout: string }) => void) | undefined;
+  const biome = new Promise<{ code: number; stderr: string; stdout: string }>((resolve) => {
+    releaseBiome = resolve;
+  });
+  let started = 0;
+  const executor = mock(async ({ args }: { args: readonly string[] }) => {
+    started += 1;
+    return args.join(' ').includes('biome') ? biome : { code: 0, stderr: '', stdout: `${started}` };
+  });
+  const receipts = runLintCommands(executor, '/agents');
+  expect(started).toBe(5);
+  releaseBiome?.({ code: 0, stderr: '', stdout: 'biome' });
+  await expect(receipts).resolves.toHaveLength(5);
+});
+
+test('replays command output without converting failures into replacement errors', () => {
+  const receipts = [
+    {
+      name: 'biome' as const,
+      result: { code: 0, stderr: 'biome stderr', stdout: 'biome stdout' },
+    },
+    {
+      name: 'declaration-order' as const,
+      result: {
+        code: 4,
+        stderr: 'declaration-order stderr',
+        stdout: 'declaration-order stdout',
+      },
+    },
+  ];
+  expect(lintDiagnostics(receipts)).toBe(
+    'biome stdout\ndeclaration-order: failed\ndeclaration-order stdout\ndeclaration-order stderr',
+  );
+  const quiet = [
+    { name: 'biome' as const, result: { code: 0, stderr: 'noise\nChecked 9 files', stdout: '' } },
+  ];
+  expect(lintDiagnostics(quiet)).toBe('biome: passed - Checked 9 files');
+  expect(lintExitCode(receipts)).toBe(4);
 });

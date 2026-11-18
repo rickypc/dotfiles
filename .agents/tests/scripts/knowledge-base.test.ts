@@ -1,4 +1,5 @@
-import { expect, mock, test } from 'bun:test';
+import { afterAll, expect, mock, test } from 'bun:test';
+import * as realOs from 'node:os';
 import {
   buildKbInfo,
   captureConcept,
@@ -21,6 +22,16 @@ import {
 import type { FileSystem } from '../../utils/filesystem.js';
 import type { CommandExecutor } from '../../utils/process.js';
 import { helpText, runKnowledgeBase as run } from '../support/knowledge-base.js';
+
+const realOsExports = { ...realOs };
+const { homedir } = realOsExports;
+
+// Delegating registration: the real homedir is returned, and the snapshot is restored afterwards.
+mock.module('node:os', () => ({ ...realOsExports, homedir: mock(() => homedir()) }));
+
+afterAll(() => {
+  mock.module('node:os', () => realOsExports);
+});
 
 const concept = [
   '---',
@@ -161,7 +172,9 @@ test('renderDirectoryIndex renders index with children', () => {
       { path: 'note.md', title: 'Note' },
       'simple.md',
     ]),
-  ).toBeDefined();
+  ).toBe(
+    '# Team\n\n- [Decision](decision.md) - A decision\n- [Note](note.md)\n- [simple](simple.md)\n',
+  );
 });
 
 test('buildKbInfo returns kb info', async () => {

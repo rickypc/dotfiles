@@ -73,16 +73,63 @@ export const validateBehaviorMatrix = (rows: readonly BehaviorMatrixRow[]): void
   }
 };
 
-const jestApi =
-  /\b(?:jest\.|describe\.(?:only|skip)|it\.(?:only|skip))|from ['"]@jest\/globals['"]/u;
+const jestApi = /\b(?:jest\.|describe\.(?:only|skip)|it\.(?:only|skip))/u;
+const jestImport = /^\s*import\b[^;]*\bfrom\s*['"]@jest\/globals['"]/mu;
 const bunImport = /from ['"]bun:test['"]/u;
 const bunMockImport = /import\s*\{[^}]*\bmock\b[^}]*\}\s*from\s*['"]bun:test['"]/u;
 const testEach = /test\.each\(/u;
+const typeDirective = /\b(?:ts-ignore|ts-expect-error|ts-nocheck)\b/u;
+const typeSuppression = /(?::|\bas|<)\s*any\b|\bany\[\]/u;
+const sideEffectModules = new Set([
+  'axios',
+  'child_process',
+  'cluster',
+  'dgram',
+  'dns',
+  'execa',
+  'fs',
+  'fs/promises',
+  'got',
+  'http',
+  'http2',
+  'https',
+  'net',
+  'node-fetch',
+  'os',
+  'perf_hooks',
+  'readline',
+  'timers',
+  'timers/promises',
+  'tls',
+  'tty',
+  'undici',
+  'worker_threads',
+  'ws',
+]);
+const injectionNames = `(?:${[
+  'deps',
+  'dependencies',
+  'context',
+  'ctx',
+  'executor',
+  'runner',
+  'transport',
+  'fetcher',
+  'clock',
+  'spawn',
+  'exec',
+  'sleep',
+  'reader',
+  'write',
+  'writer',
+  'provider',
+  'io',
+].join('|')})\\w*`;
 const moduleSpecifier = /(?:\bfrom\s*|\b(?:import|require)\s*\(\s*|\bimport\s*)['"]([^'"]+)['"]/gu;
 
 const globalBoundaries = [
   ['Bun', /\bBun\./u],
-  ['Date', /\b(?:new\s+Date|Date\.)/u],
+  ['Date', /\bnew\s+Date\s*\(\s*\)|\bDate\.now\b/u],
   ['Math.random', /\bMath\.random\s*\(/u],
   ['console', /\bconsole\./u],
   ['crypto', /\bcrypto\./u],
@@ -91,12 +138,32 @@ const globalBoundaries = [
   ['timers', /\b(?:setInterval|setTimeout|clearInterval|clearTimeout)\s*\(/u],
 ] as const;
 
+const globalFakes: Readonly<Record<string, RegExp>> = { Date: /\bsetSystemTime\s*\(/u };
+
+const globalTokens: Readonly<Record<string, readonly string[]>> = {
+  'Math.random': ['Math'],
+  timers: ['setInterval', 'setTimeout', 'clearInterval', 'clearTimeout'],
+};
+
+const blankStrings = (source: string): string =>
+  source.replace(/(['"`])(?:\\.|(?!\1)[^\\])*\1/gu, '$1$1');
+
 export const canonicalTestPathFor = (
   sutPath: string,
   packageJsonPaths: readonly string[],
 ): string => testPathFor(projectRootFor(sutPath, packageJsonPaths), sutPath);
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+
+const defaultSitesFor = (sutCode: string, token: string): readonly string[] => {
+  const defaulted = new RegExp(
+    `(?<!\\b(?:const|let|var)\\s)\\b([\\w$]+)(?:\\s*:\\s*[\\w.<>[\\]| ]+)?\\s*=\\s*(\\{[^}]*)?\\b${escapeRegExp(token)}\\b`,
+    'gu',
+  );
+  return [...sutCode.matchAll(defaulted)].flatMap((match) =>
+    match[2] ? [match[1] ?? '', token] : [match[1] ?? ''],
+  );
+};
 
 export const externalModuleSpecifiersFor = (source: string): readonly string[] =>
   [
@@ -109,15 +176,69 @@ export const externalModuleSpecifiersFor = (source: string): readonly string[] =
     .filter((specifier) => specifier !== 'bun:test')
     .sort((left, right) => left.localeCompare(right, 'en'));
 
+const hasFakeFor = (testCode: string, name: string): boolean =>
+  new RegExp(
+    `\\b${escapeRegExp(name)}\\b(?:\\s*:\\s*[\\w.<>[\\]| ]+)?\\s*[:=]\\s*(?:async\\s*)?(?:[{(\\[\\d'"\`]|[\\w$]+\\s*=>|mock\\()|[{,]\\s*${escapeRegExp(name)}\\s*[,}]`,
+    'u',
+  ).test(testCode);
+
+const importedNamesFor = (source: string, specifier: string): readonly string[] => {
+  const clause = new RegExp(
+    `import\\s+([^;]*?)\\s+from\\s*['"]${escapeRegExp(specifier)}['"]`,
+    'u',
+  ).exec(source)?.[1];
+  return [...(clause ?? '').matchAll(/[\w$]+/gu)]
+    .map((match) => match[0])
+    .filter((name) => name !== 'as' && name !== 'type');
+};
+
+const isLocalSpecifier = (specifier: string): boolean => specifier.startsWith('.');
+
+const isSideEffectModule = (specifier: string): boolean =>
+  specifier === 'bun'
+  || specifier.startsWith('bun:')
+  || sideEffectModules.has(specifier.replace(/^node:/u, ''));
+
 export const jestTestPathsFor = (canonicalPath: string): readonly string[] => {
   const stem = canonicalPath.replace(/\.test\.ts$/u, '');
   return [`${stem}.test.js`, `${stem}.spec.js`, `${stem}.test.ts`, `${stem}.spec.ts`];
+};
+
+const lineSitesFor = (sutCode: string, token: string): readonly string[] => {
+  const tokenPattern = new RegExp(`\\b${escapeRegExp(token)}\\b`, 'u');
+  return sutCode
+    .split('\n')
+    .filter((line) => tokenPattern.test(line))
+    .flatMap((line) => [...line.matchAll(new RegExp(`\\b${injectionNames}`, 'giu'))])
+    .map((match) => match[0]);
 };
 
 const mockedModuleSpecifiersFor = (source: string): readonly string[] =>
   [...source.matchAll(/\bmock\.module\(\s*['"]([^'"]+)['"]/gu)]
     .map((match) => match[1])
     .filter((specifier): specifier is string => Boolean(specifier));
+
+const propertySitesFor = (sutCode: string, token: string): readonly string[] =>
+  [
+    ...sutCode.matchAll(
+      new RegExp(
+        `\\b([\\w$]+)\\s*:\\s*(?:async\\s*)?(?:\\([^)]*\\)\\s*=>\\s*)?(?:(?:await|new)\\s+)?${escapeRegExp(token)}\\b`,
+        'gu',
+      ),
+    ),
+  ].map((match) => match[1] ?? '');
+
+const injectionSitesFor = (sutCode: string, tokens: readonly string[]): ReadonlySet<string> =>
+  new Set(
+    tokens.flatMap((token) => [
+      ...defaultSitesFor(sutCode, token),
+      ...propertySitesFor(sutCode, token),
+      ...lineSitesFor(sutCode, token),
+    ]),
+  );
+
+const isInjected = (sutCode: string, testCode: string, tokens: readonly string[]): boolean =>
+  [...injectionSitesFor(sutCode, tokens)].some((name) => hasFakeFor(testCode, name));
 
 export const requireDataProvider = (rows: readonly BehaviorMatrixRow[]): void => {
   const repeated = new Map<string, number>();
@@ -180,13 +301,16 @@ export const validateBunTestSource = (source: string, preloadSource?: string): v
   if (!bunImport.test(source) && !bunImport.test(preloadSource ?? '')) {
     throw new Error('Generated tests must import from bun:test or run under a preload that does.');
   }
-  if (jestApi.test(source)) {
+  if (jestApi.test(blankStrings(stripComments(source))) || jestImport.test(stripComments(source))) {
     throw new Error('Generated tests must not contain Jest APIs.');
   }
-  if (/\b(?:any|ts-ignore|ts-expect-error)\b/u.test(source)) {
+  if (
+    typeDirective.test(blankStrings(source))
+    || typeSuppression.test(blankStrings(stripComments(source)))
+  ) {
     throw new Error('Generated tests must not suppress type checking.');
   }
-  if (/\bvoid\s+sut\b/u.test(source) || /\.toBeDefined\(\)/u.test(source)) {
+  if (/\bvoid\s+sut\b|\.toBeDefined\(\)/u.test(blankStrings(stripComments(source)))) {
     throw new Error('Generated tests must not use filler assertions.');
   }
 };
@@ -234,19 +358,21 @@ export const validateExternalDependencyMocks = (
   if (scope !== 'isolated-unit' && scope !== 'shared-suite-integration') {
     throw new Error(`Unsupported Bun test scope: ${scope}.`);
   }
-  const localModules = externalModules.filter((specifier) => specifier.startsWith('.'));
-  const locallyMocked = mockedModuleSpecifiersFor(testSource).filter((specifier) =>
-    specifier.startsWith('.'),
-  );
+  const locallyMocked = mockedModuleSpecifiersFor(testSource).filter(isLocalSpecifier);
   if (scope === 'shared-suite-integration' && locallyMocked.length > 0) {
     throw new Error(
       `Shared-suite integration tests must not mock local modules: ${locallyMocked.join(', ')}.`,
     );
   }
-  const modulesRequiringMocks =
-    scope === 'shared-suite-integration'
-      ? externalModules.filter((specifier) => !localModules.includes(specifier))
-      : externalModules;
+  const sutCode = stripComments(sutSource);
+  const sutBlanked = blankStrings(sutCode);
+  const testCode = stripComments(testSource);
+  const modulesRequiringMocks = externalModules.filter(
+    (specifier) =>
+      !isLocalSpecifier(specifier)
+      && isSideEffectModule(specifier)
+      && !isInjected(sutCode, testCode, importedNamesFor(sutCode, specifier)),
+  );
   if (
     modulesRequiringMocks.length > 0
     && !bunMockImport.test(testSource)
@@ -263,14 +389,15 @@ export const validateExternalDependencyMocks = (
       ),
   );
   const missingGlobals = globalBoundaries
-    .filter(([, pattern]) => pattern.test(stripComments(sutSource)))
+    .filter(([, pattern]) => pattern.test(sutBlanked))
+    .filter(([name]) => !isInjected(sutCode, testCode, globalTokens[name] ?? [name]))
     .filter(([name]) => {
-      const root = name.split('.')[0] ?? name;
+      const roots = [name, ...(globalTokens[name] ?? [])].map(escapeRegExp).join('|');
       const mockPattern = new RegExp(
-        `${escapeRegExp(root)}[\\s\\S]*?\\bmock\\s*\\(|\\bmock\\s*\\([\\s\\S]*?${escapeRegExp(root)}`,
+        `(?:${roots})[\\s\\S]*?\\bmock\\s*\\(|\\bmock\\s*\\([\\s\\S]*?(?:${roots})`,
         'u',
       );
-      return !mockPattern.test(testSource);
+      return !mockPattern.test(testSource) && !globalFakes[name]?.test(testSource);
     })
     .map(([name]) => name);
   const missing = [

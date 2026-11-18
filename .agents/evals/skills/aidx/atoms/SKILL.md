@@ -832,7 +832,7 @@ sensitivity:
   - mutantsFlipped: 0
     mutantsTried: 2
     probeId: validation-03
-  - mutantsFlipped: 1
+  - mutantsFlipped: 0
     mutantsTried: 2
     probeId: validation-05
 source: skills/aidx/SKILL.md

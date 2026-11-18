@@ -291,6 +291,20 @@
       "id": "validation-21",
       "query": "The sandbox shows no GPU adapter, so the reader cannot run. May child-agent answers stand in so the gate can pass?\nA) Yes, if three child agents agree\nB) No; give the user the exact command and wait for the output\nC) Yes, but only for held-out probes\nD) No; restore the baseline and close the work",
       "split": "validation"
+    },
+    {
+      "evidence": "Exit codes: 0 answered, 1 failure; the failure envelope `data.reason` is `failure`, `integrity`, `missing-dependency`, `no-adapter`, or `too-long`.",
+      "expected": "A",
+      "id": "train-21",
+      "query": "Which list names every `data.reason` the weak reader failure envelope can carry?\nA) `failure`, `integrity`, `missing-dependency`, `no-adapter`, `too-long`\nB) `failure`, `no-adapter`\nC) `integrity`, `too-long`, `timeout`\nD) `failure`, `integrity`, `network`",
+      "split": "train"
+    },
+    {
+      "evidence": "When the process is sandboxed it finds no adapter and fails with reason `no-adapter`.",
+      "expected": "A",
+      "id": "train-22",
+      "query": "A sandboxed weak-reader run finds no GPU adapter. What does it report?\nA) Exit 1 with reason `no-adapter`\nB) Exit 2 with reason `no-adapter`\nC) Exit 0 with reason `failure`\nD) Exit 1 with reason `integrity`",
+      "split": "train"
     }
   ],
   "runs_per_query": 3,

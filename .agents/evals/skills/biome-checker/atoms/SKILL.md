@@ -498,7 +498,7 @@ sensitivity:
   - mutantsFlipped: 0
     mutantsTried: 1
     probeId: validation-05
-  - mutantsFlipped: 0
+  - mutantsFlipped: 1
     mutantsTried: 1
     probeId: validation-07
   - mutantsFlipped: 1
@@ -510,6 +510,9 @@ sensitivity:
   - mutantsFlipped: 1
     mutantsTried: 1
     probeId: validation-12
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-15
 source: skills/biome-checker/SKILL.md
 tags:
   - atoms

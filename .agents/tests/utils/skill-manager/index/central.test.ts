@@ -9,8 +9,8 @@ mock.module('node:path', () => path);
 mock.module('node:os', () => ({ ...realOs, homedir: mock(() => mockedHome) }));
 mock.module('gray-matter', () => ({ default: realMatter }));
 
-const { validateSkillEvaluations } = await import('../../../utils/skill-manager/index.js');
-const { run: runSkillManager } = await import('../../../scripts/skill-manager/index.js');
+const { validateSkillEvaluations } = await import('../../../../utils/skill-manager/index.js');
+const { run: runSkillManager } = await import('../../../../scripts/skill-manager/index.js');
 
 const sharedRubric = [
   '---',
@@ -234,7 +234,7 @@ const withGlobalSkillManagerRoot = async <T>(
   work: (fixture: ReturnType<typeof centralSkillFixtureFor>, root: string) => Promise<T>,
 ): Promise<T> => {
   const priorHome = mockedHome;
-  const root = path.resolve(import.meta.dir, '../../..');
+  const root = path.resolve(import.meta.dir, '../../../..');
   mockedHome = path.dirname(root);
   try {
     return await work(centralSkillFixtureFor(undefined, root), root);
@@ -273,7 +273,7 @@ test('central training commands reject stale activation and case fingerprints', 
       `${fixture.skillPath}/evals/comprehension/answers.jsonl`,
       queryResponsesFor({}),
     );
-    const activationPath = `${path.resolve(import.meta.dir, '../../..')}/evals/skills/demo/trigger-queries.json`;
+    const activationPath = `${path.resolve(import.meta.dir, '../../../..')}/evals/skills/demo/trigger-queries.json`;
     fixture.files.set(activationPath, `${fixture.files.get(activationPath)} `);
     await expect(
       runSkillManager(
@@ -284,7 +284,7 @@ test('central training commands reject stale activation and case fingerprints', 
       ),
     ).rejects.toThrow('activation-query fingerprint is stale');
 
-    const root = path.resolve(import.meta.dir, '../../..');
+    const root = path.resolve(import.meta.dir, '../../../..');
     const casePath = `${root}/evals/skills/demo/cases.jsonl`;
     fixture.files.set(casePath, `${fixture.files.get(casePath)} `);
     await expect(

@@ -62,7 +62,7 @@ document.
 /skill-manager audit <agents-root> --check                      # fail unless every instruction document has an atom map that audits clean
 /skill-manager atoms <agents-root> [owner-id] [--write]         # preview or rebuild atom maps, manifest lists, and source hashes after an edit
 /skill-manager propose <agents-root> <proposal-json>            # snapshot up to 3 candidate deltas for one document; writes no repository file
-/skill-manager check <agents-root> <batch-id>                   # score the batch in one reader run; print one verdict and the selected candidate
+/skill-manager check <agents-root> <batch-id>                   # score the batch in one GPU reader run; print one verdict and the selected candidate; a behavioral edit needs a passing seal
 /skill-manager commit <agents-root> <batch-id>                  # write the selected candidate; the only verb that writes an instruction file
 /skill-manager seal <agents-root> <owner> <case> <capture> <sha>   # seal one target run of a behavior case against a candidate text
 /skill-manager train measure <skill-path> --track contract      # score the SKILL.md body from its matrix

@@ -310,5 +310,5 @@ test('prints the condensed envelope as indented JSON with --format text', async 
     read: mock(),
     temporaryDirectory: '/os-temp',
   });
-  expect(JSON.parse(out[0] ?? '').status).toBeDefined();
+  expect(typeof JSON.parse(out[0] ?? '').status).toBe('string');
 });

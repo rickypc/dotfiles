@@ -3,6 +3,19 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-45066ac57e
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+    precedence: 0
+    probeIds:
+      - validation-31
+    status: active
+    tags: []
+    textSha256: 45066ac57e639ce7de276b42a21a64ce30bad04a936efab9a92a3d89c8a0985d
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-499d79638d
     placements:
       - headingPath: &ref_0
@@ -67,11 +80,11 @@ atoms:
       - headingPath:
           - Universal Assistant Runtime
           - 2. Scope and authorization
-      - headingPath: &ref_24
+      - headingPath: &ref_26
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Mechanical rewrites and formatting transforms
-      - headingPath: &ref_28
+      - headingPath: &ref_30
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
@@ -79,7 +92,7 @@ atoms:
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
-      - headingPath: &ref_34
+      - headingPath: &ref_36
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -161,6 +174,18 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-7bee1fe30e
+    placements:
+      - headingPath: *ref_3
+    precedence: 0
+    probeIds:
+      - validation-32
+    status: active
+    tags: []
+    textSha256: 7bee1fe30e19586b525f54733279ca8dd7ab2dfe52fdefa86fcb549e37055e72
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-6bc54f13be
     placements:
       - headingPath:
@@ -169,7 +194,7 @@ atoms:
       - headingPath: &ref_4
           - Universal Assistant Runtime
           - 2. Scope and authorization
-      - headingPath: &ref_25
+      - headingPath: &ref_27
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Mechanical rewrites and formatting transforms
@@ -181,7 +206,7 @@ atoms:
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
-      - headingPath: &ref_35
+      - headingPath: &ref_37
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -215,7 +240,7 @@ atoms:
     helpful: 0
     id: r-d952dcf769
     placements:
-      - headingPath:
+      - headingPath: &ref_5
           - Universal Assistant Runtime
           - 2. Scope and authorization
     precedence: 0
@@ -228,6 +253,18 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: d952dcf7691a40daa8fac545b98fbee23997359d4e355950fc6952699a527834
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f5531a7b78
+    placements:
+      - headingPath: *ref_5
+    precedence: 0
+    probeIds:
+      - validation-33
+    status: active
+    tags: []
+    textSha256: f5531a7b784cd921405f524daf12599f1b0349f50e11b60da3bd5853c30003e0
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -255,6 +292,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-08
+      - validation-34
     status: active
     tags:
       - boundary
@@ -297,12 +335,13 @@ atoms:
     helpful: 0
     id: r-66fedbff94
     placements:
-      - headingPath: &ref_5
+      - headingPath: &ref_6
           - Universal Assistant Runtime
           - 3. Workspace and instruction precedence
     precedence: 0
     probeIds:
       - train-10
+      - validation-35
     status: active
     tags:
       - boundary
@@ -313,7 +352,7 @@ atoms:
     helpful: 0
     id: r-a868f6e992
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-10
@@ -327,13 +366,14 @@ atoms:
     helpful: 0
     id: r-2b4d912bbd
     placements:
-      - headingPath: &ref_6
+      - headingPath: &ref_7
           - Universal Assistant Runtime
           - 4. Non-negotiable safety boundaries
           - Protected `.agents` configuration
     precedence: 0
     probeIds:
       - train-11
+      - validation-36
     status: active
     tags:
       - boundary
@@ -344,7 +384,7 @@ atoms:
     helpful: 0
     id: r-71b7d5f2f4
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - train-11
@@ -358,7 +398,7 @@ atoms:
     helpful: 0
     id: r-3136c43f60
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - train-11
@@ -372,7 +412,7 @@ atoms:
     helpful: 0
     id: r-6ed0a78522
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - train-34
@@ -421,7 +461,7 @@ atoms:
     helpful: 0
     id: r-27c45df260
     placements:
-      - headingPath: &ref_7
+      - headingPath: &ref_8
           - Universal Assistant Runtime
           - 4. Non-negotiable safety boundaries
           - Runtime and reusable-content boundaries
@@ -438,7 +478,7 @@ atoms:
     helpful: 0
     id: r-c9d8539c0b
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - validation-04
@@ -450,9 +490,24 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-efaf46e17d
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - 4. Non-negotiable safety boundaries
+          - Runtime and reusable-content boundaries
+    precedence: 0
+    probeIds:
+      - validation-37
+    status: active
+    tags: []
+    textSha256: efaf46e17d49fc92eaa7cb3cf53c5a4ab1800766ed35da0f44c3f567bfcb65a4
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-c90b682d69
     placements:
-      - headingPath: &ref_8
+      - headingPath: &ref_9
           - Universal Assistant Runtime
           - 4. Non-negotiable safety boundaries
           - Runtime and reusable-content boundaries
@@ -469,7 +524,7 @@ atoms:
     helpful: 0
     id: r-47fe0caca7
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - validation-05
@@ -481,9 +536,21 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-488b91239e
+    placements:
+      - headingPath: *ref_9
+    precedence: 0
+    probeIds:
+      - validation-38
+    status: active
+    tags: []
+    textSha256: 488b91239e2d0e21e828b6dd27f3bb3ca7616f41f280258c9c3a65153142ed8e
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-176cead8d5
     placements:
-      - headingPath: &ref_9
+      - headingPath: &ref_10
           - Universal Assistant Runtime
           - 5. Skill routing quick start
     precedence: 0
@@ -501,7 +568,7 @@ atoms:
     helpful: 0
     id: r-3066919198
     placements:
-      - headingPath: *ref_9
+      - headingPath: *ref_10
     precedence: 0
     probeIds:
       - train-14
@@ -564,7 +631,7 @@ atoms:
     helpful: 0
     id: r-4f538aed17
     placements:
-      - headingPath: &ref_10
+      - headingPath: &ref_11
           - Universal Assistant Runtime
           - '6. Evidence, discovery, and context'
     precedence: 0
@@ -581,7 +648,7 @@ atoms:
     helpful: 0
     id: r-ac9d6f6547
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_11
     precedence: 0
     probeIds:
       - train-16
@@ -613,7 +680,7 @@ atoms:
     helpful: 0
     id: r-fc8c55566a
     placements:
-      - headingPath: &ref_11
+      - headingPath: &ref_12
           - Universal Assistant Runtime
           - '6. Evidence, discovery, and context'
     precedence: 0
@@ -630,7 +697,7 @@ atoms:
     helpful: 0
     id: r-20d5f0b5b5
     placements:
-      - headingPath: *ref_11
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - train-18
@@ -645,7 +712,7 @@ atoms:
     helpful: 0
     id: r-fa9beb32c5
     placements:
-      - headingPath: *ref_11
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - train-18
@@ -660,7 +727,7 @@ atoms:
     helpful: 0
     id: r-fcbd7e1429
     placements:
-      - headingPath: *ref_11
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - train-18
@@ -675,7 +742,7 @@ atoms:
     helpful: 0
     id: r-8d84cd00ed
     placements:
-      - headingPath: *ref_11
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - train-49
@@ -689,7 +756,7 @@ atoms:
     helpful: 0
     id: r-75825b9d9e
     placements:
-      - headingPath: &ref_12
+      - headingPath: &ref_13
           - Universal Assistant Runtime
           - '6. Evidence, discovery, and context'
           - AIDP and AIDX boundary
@@ -705,7 +772,7 @@ atoms:
     helpful: 0
     id: r-40be56e6fb
     placements:
-      - headingPath: *ref_12
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - train-52
@@ -718,7 +785,7 @@ atoms:
     helpful: 0
     id: r-81da29eb05
     placements:
-      - headingPath: *ref_12
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - train-52
@@ -731,7 +798,7 @@ atoms:
     helpful: 0
     id: r-b6009ad873
     placements:
-      - headingPath: *ref_12
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - validation-23
@@ -744,7 +811,7 @@ atoms:
     helpful: 0
     id: r-79d5f2d40f
     placements:
-      - headingPath: *ref_12
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - validation-08
@@ -760,13 +827,14 @@ atoms:
     helpful: 0
     id: r-4d1564fd18
     placements:
-      - headingPath: &ref_13
+      - headingPath: &ref_14
           - Universal Assistant Runtime
           - '6. Evidence, discovery, and context'
           - Injected memory discipline
     precedence: 0
     probeIds:
       - train-19
+      - validation-42
     status: active
     tags:
       - boundary
@@ -777,7 +845,7 @@ atoms:
     helpful: 0
     id: r-7bc55796cd
     placements:
-      - headingPath: *ref_13
+      - headingPath: *ref_14
     precedence: 0
     probeIds:
       - train-19
@@ -806,9 +874,24 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-8c633f0b40
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '6. Evidence, discovery, and context'
+          - Injected memory discipline
+    precedence: 0
+    probeIds:
+      - validation-43
+    status: active
+    tags: []
+    textSha256: 8c633f0b4088e9222c2c78c77011be7486b689756c2222cb44c5cefc4287f9be
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-989dbe1eda
     placements:
-      - headingPath: &ref_14
+      - headingPath: &ref_15
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
@@ -826,11 +909,12 @@ atoms:
     helpful: 0
     id: r-584364c6e4
     placements:
-      - headingPath: *ref_14
+      - headingPath: *ref_15
     precedence: 0
     probeIds:
       - train-20
       - train-32
+      - validation-40
     status: active
     tags:
       - boundary
@@ -842,7 +926,7 @@ atoms:
     helpful: 0
     id: r-c32f483a94
     placements:
-      - headingPath: &ref_15
+      - headingPath: &ref_16
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
@@ -860,7 +944,7 @@ atoms:
     helpful: 0
     id: r-e0788287a0
     placements:
-      - headingPath: *ref_15
+      - headingPath: *ref_16
     precedence: 0
     probeIds:
       - train-55
@@ -876,7 +960,7 @@ atoms:
     helpful: 0
     id: r-58fbd83c19
     placements:
-      - headingPath: *ref_15
+      - headingPath: *ref_16
     precedence: 0
     probeIds:
       - train-55
@@ -892,7 +976,7 @@ atoms:
     helpful: 0
     id: r-5ca189d084
     placements:
-      - headingPath: *ref_15
+      - headingPath: *ref_16
     precedence: 0
     probeIds:
       - train-55
@@ -908,7 +992,7 @@ atoms:
     helpful: 0
     id: r-a34aa6a238
     placements:
-      - headingPath: *ref_15
+      - headingPath: *ref_16
     precedence: 0
     probeIds:
       - train-55
@@ -924,7 +1008,7 @@ atoms:
     helpful: 0
     id: r-2665133df2
     placements:
-      - headingPath: &ref_16
+      - headingPath: &ref_17
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
@@ -942,7 +1026,7 @@ atoms:
     helpful: 0
     id: r-7354e385db
     placements:
-      - headingPath: *ref_16
+      - headingPath: *ref_17
     precedence: 0
     probeIds:
       - train-55
@@ -958,7 +1042,7 @@ atoms:
     helpful: 0
     id: r-96b426bdc3
     placements:
-      - headingPath: *ref_16
+      - headingPath: *ref_17
     precedence: 0
     probeIds:
       - train-55
@@ -974,12 +1058,13 @@ atoms:
     helpful: 0
     id: r-9b547fcaaa
     placements:
-      - headingPath: &ref_17
+      - headingPath: &ref_18
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
     probeIds:
       - validation-06
+      - validation-41
     status: active
     tags:
       - combined_pressure
@@ -990,7 +1075,7 @@ atoms:
     helpful: 0
     id: r-29cc7da99e
     placements:
-      - headingPath: *ref_17
+      - headingPath: *ref_18
     precedence: 0
     probeIds:
       - validation-06
@@ -1021,12 +1106,13 @@ atoms:
     helpful: 0
     id: r-e46466d246
     placements:
-      - headingPath: &ref_18
+      - headingPath: &ref_19
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
     probeIds:
       - train-21
+      - validation-39
     status: active
     tags:
       - boundary
@@ -1037,7 +1123,7 @@ atoms:
     helpful: 0
     id: r-b44faec378
     placements:
-      - headingPath: *ref_18
+      - headingPath: *ref_19
     precedence: 0
     probeIds:
       - train-21
@@ -1069,7 +1155,7 @@ atoms:
     helpful: 0
     id: r-e4e2431639
     placements:
-      - headingPath:
+      - headingPath: &ref_20
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
@@ -1082,6 +1168,18 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: e4e2431639eb164b4a89fb647aacad4ca22370837b8723acf64b071adab5125c
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-b87335ab8b
+    placements:
+      - headingPath: *ref_20
+    precedence: 0
+    probeIds:
+      - validation-44
+    status: active
+    tags: []
+    textSha256: b87335ab8b96d6472a330e6323fcad18ac7d3a982a38697eb7fb4d3694bdd881
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -1103,7 +1201,7 @@ atoms:
     helpful: 0
     id: r-a4cae260a0
     placements:
-      - headingPath: &ref_19
+      - headingPath: &ref_21
           - Universal Assistant Runtime
           - 7. Coding and test changes
     precedence: 0
@@ -1121,7 +1219,7 @@ atoms:
     helpful: 0
     id: r-ddc7478299
     placements:
-      - headingPath: *ref_19
+      - headingPath: *ref_21
     precedence: 0
     probeIds:
       - validation-17
@@ -1135,7 +1233,7 @@ atoms:
     helpful: 0
     id: r-cca039de4a
     placements:
-      - headingPath: &ref_20
+      - headingPath: &ref_22
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Line length
@@ -1152,7 +1250,7 @@ atoms:
     helpful: 0
     id: r-bef5f06c47
     placements:
-      - headingPath: *ref_20
+      - headingPath: *ref_22
     precedence: 0
     probeIds:
       - train-44
@@ -1166,7 +1264,7 @@ atoms:
     helpful: 0
     id: r-632c39871b
     placements:
-      - headingPath: &ref_21
+      - headingPath: &ref_23
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Line length
@@ -1183,7 +1281,7 @@ atoms:
     helpful: 0
     id: r-701463cc49
     placements:
-      - headingPath: *ref_21
+      - headingPath: *ref_23
     precedence: 0
     probeIds:
       - train-23
@@ -1248,7 +1346,7 @@ atoms:
     helpful: 0
     id: r-c90c907d34
     placements:
-      - headingPath: &ref_22
+      - headingPath: &ref_24
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Line length
@@ -1266,7 +1364,7 @@ atoms:
     helpful: 0
     id: r-5c36019ad1
     placements:
-      - headingPath: *ref_22
+      - headingPath: *ref_24
     precedence: 0
     probeIds:
       - train-45
@@ -1281,7 +1379,7 @@ atoms:
     helpful: 0
     id: r-733a710a66
     placements:
-      - headingPath: *ref_22
+      - headingPath: *ref_24
     precedence: 0
     probeIds:
       - train-45
@@ -1346,7 +1444,7 @@ atoms:
     helpful: 0
     id: r-f6424f1daf
     placements:
-      - headingPath: &ref_23
+      - headingPath: &ref_25
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Mechanical rewrites and formatting transforms
@@ -1363,7 +1461,7 @@ atoms:
     helpful: 0
     id: r-6a532d6562
     placements:
-      - headingPath: *ref_23
+      - headingPath: *ref_25
     precedence: 0
     probeIds:
       - validation-12
@@ -1377,7 +1475,7 @@ atoms:
     helpful: 0
     id: r-5c082dd3cf
     placements:
-      - headingPath: *ref_24
+      - headingPath: *ref_26
     precedence: 0
     probeIds:
       - validation-11
@@ -1392,7 +1490,7 @@ atoms:
     helpful: 0
     id: r-66ee85bf04
     placements:
-      - headingPath: *ref_25
+      - headingPath: *ref_27
     precedence: 0
     probeIds:
       - train-47
@@ -1408,7 +1506,7 @@ atoms:
     helpful: 0
     id: r-e6d374448d
     placements:
-      - headingPath: *ref_25
+      - headingPath: *ref_27
     precedence: 0
     probeIds:
       - train-47
@@ -1454,9 +1552,23 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-ef3a6aaab6
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+    precedence: 0
+    probeIds:
+      - train-58
+    status: active
+    tags: []
+    textSha256: ef3a6aaab618b4494a9e40c3e16a49f5e29ce0d4e802302011a98cd9667a2937
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-e534328736
     placements:
-      - headingPath: &ref_26
+      - headingPath: &ref_28
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
     precedence: 0
@@ -1471,7 +1583,7 @@ atoms:
     helpful: 0
     id: r-7eda9dcfcb
     placements:
-      - headingPath: *ref_26
+      - headingPath: *ref_28
     precedence: 0
     probeIds:
       - train-48
@@ -1501,7 +1613,7 @@ atoms:
     helpful: 0
     id: r-72d1dc5ddf
     placements:
-      - headingPath: &ref_27
+      - headingPath: &ref_29
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - File retirement (deletion is prohibited)
@@ -1520,7 +1632,7 @@ atoms:
     helpful: 0
     id: r-cb684dff73
     placements:
-      - headingPath: *ref_27
+      - headingPath: *ref_29
     precedence: 0
     probeIds:
       - train-41
@@ -1536,7 +1648,7 @@ atoms:
     helpful: 0
     id: r-c3727ee485
     placements:
-      - headingPath: *ref_28
+      - headingPath: *ref_30
     precedence: 0
     probeIds:
       - train-26
@@ -1601,7 +1713,7 @@ atoms:
     helpful: 0
     id: r-2e5315f907
     placements:
-      - headingPath: &ref_29
+      - headingPath: &ref_31
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
@@ -1619,7 +1731,7 @@ atoms:
     helpful: 0
     id: r-8d6d46f795
     placements:
-      - headingPath: *ref_29
+      - headingPath: *ref_31
     precedence: 0
     probeIds:
       - train-39
@@ -1716,7 +1828,7 @@ atoms:
     helpful: 0
     id: r-f0385825a5
     placements:
-      - headingPath: &ref_30
+      - headingPath: &ref_32
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - Tool-call and sandbox discipline
@@ -1733,7 +1845,7 @@ atoms:
     helpful: 0
     id: r-3929e87a82
     placements:
-      - headingPath: *ref_30
+      - headingPath: *ref_32
     precedence: 0
     probeIds:
       - train-43
@@ -1749,7 +1861,7 @@ atoms:
     helpful: 0
     id: r-becaa5c6ab
     placements:
-      - headingPath: &ref_31
+      - headingPath: &ref_33
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Behavioral evaluation sessions
@@ -1765,7 +1877,7 @@ atoms:
     helpful: 0
     id: r-e286f048b8
     placements:
-      - headingPath: *ref_31
+      - headingPath: *ref_33
     precedence: 0
     probeIds:
       - train-57
@@ -1794,7 +1906,7 @@ atoms:
     helpful: 0
     id: r-c949df8d4f
     placements:
-      - headingPath: &ref_32
+      - headingPath: &ref_34
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -1811,7 +1923,7 @@ atoms:
     helpful: 0
     id: r-cbf3a032bf
     placements:
-      - headingPath: *ref_32
+      - headingPath: *ref_34
     precedence: 0
     probeIds:
       - train-27
@@ -1856,7 +1968,7 @@ atoms:
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
-      - headingPath: &ref_33
+      - headingPath: &ref_35
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -1874,7 +1986,7 @@ atoms:
     helpful: 0
     id: r-d0898ecdee
     placements:
-      - headingPath: *ref_33
+      - headingPath: *ref_35
     precedence: 0
     probeIds:
       - train-28
@@ -1907,7 +2019,7 @@ atoms:
     helpful: 0
     id: r-1a6ce67ed9
     placements:
-      - headingPath: *ref_34
+      - headingPath: *ref_36
     precedence: 0
     probeIds:
       - train-35
@@ -1922,7 +2034,7 @@ atoms:
     helpful: 0
     id: r-cb76931756
     placements:
-      - headingPath: *ref_35
+      - headingPath: *ref_37
     precedence: 0
     probeIds:
       - train-35
@@ -1953,7 +2065,7 @@ atoms:
     helpful: 0
     id: r-626bc01a95
     placements:
-      - headingPath: &ref_36
+      - headingPath: &ref_38
           - Universal Assistant Runtime
           - 'Appendix A: repo-search command catalog'
     precedence: 0
@@ -1969,7 +2081,7 @@ atoms:
     helpful: 0
     id: r-c94f49ac49
     placements:
-      - headingPath: *ref_36
+      - headingPath: *ref_38
     precedence: 0
     probeIds:
       - train-29
@@ -1999,7 +2111,7 @@ atoms:
     helpful: 0
     id: r-b4c8db73da
     placements:
-      - headingPath: &ref_37
+      - headingPath: &ref_39
           - Universal Assistant Runtime
           - 'Appendix A: repo-search command catalog'
     precedence: 0
@@ -2015,7 +2127,7 @@ atoms:
     helpful: 0
     id: r-2649723680
     placements:
-      - headingPath: *ref_37
+      - headingPath: *ref_39
     precedence: 0
     probeIds:
       - train-30
@@ -2026,6 +2138,19 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: 2649723680b8b9db19b813bc539b6bf3f9289fe757453a5f378802d15535841f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-aa70bd22ec
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: aa70bd22ec4dc1f2b3c11650621cc2f186a544efc51ed3bf167505297484afce
 description: Rule atoms placed in AGENTS.md; derived from comprehension probe evidence.
 schemaVersion: 1
 sensitivity:
@@ -2044,7 +2169,7 @@ sensitivity:
   - mutantsFlipped: 0
     mutantsTried: 1
     probeId: train-32
-  - mutantsFlipped: 0
+  - mutantsFlipped: 1
     mutantsTried: 2
     probeId: train-35
   - mutantsFlipped: 1
@@ -2060,6 +2185,7 @@ Atoms for `AGENTS.md`.
 
 | Atom | Placements | Probes |
 | --- | --- | --- |
+| `r-45066ac57e` | Universal Assistant Runtime | 1 |
 | `r-499d79638d` | Universal Assistant Runtime > Response style | 1 |
 | `r-a2594f3871` | Universal Assistant Runtime > Response style | 1 |
 | `r-318d97ca34` | Universal Assistant Runtime > Response style | 1 |
@@ -2069,16 +2195,18 @@ Atoms for `AGENTS.md`.
 | `r-87d26439f0` | Universal Assistant Runtime > 1. Read this first: decision order | 1 |
 | `r-058bcf59fc` | Universal Assistant Runtime > 2. Scope and authorization | 1 |
 | `r-f2d7a18ad1` | Universal Assistant Runtime > 2. Scope and authorization | 1 |
+| `r-7bee1fe30e` | Universal Assistant Runtime > 2. Scope and authorization | 1 |
 | `r-6bc54f13be` | Universal Assistant Runtime > 1. Read this first: decision order; Universal Assistant Runtime > 2. Scope and authorization; Universal Assistant Runtime > 7. Coding and test changes > Mechanical rewrites and formatting transforms; Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary; Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps; Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 2 |
 | `r-4f672bb1c7` | Universal Assistant Runtime > 2. Scope and authorization | 1 |
 | `r-d952dcf769` | Universal Assistant Runtime > 2. Scope and authorization | 1 |
+| `r-f5531a7b78` | Universal Assistant Runtime > 2. Scope and authorization | 1 |
 | `r-69d5af3659` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 1 |
-| `r-1debaf96ce` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 1 |
+| `r-1debaf96ce` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 2 |
 | `r-b3bbb3550c` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 1 |
 | `r-5e4228439e` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 1 |
-| `r-66fedbff94` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 1 |
+| `r-66fedbff94` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 2 |
 | `r-a868f6e992` | Universal Assistant Runtime > 3. Workspace and instruction precedence | 1 |
-| `r-2b4d912bbd` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Protected `.agents` configuration | 1 |
+| `r-2b4d912bbd` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Protected `.agents` configuration | 2 |
 | `r-71b7d5f2f4` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Protected `.agents` configuration | 1 |
 | `r-3136c43f60` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Protected `.agents` configuration | 1 |
 | `r-6ed0a78522` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Protected `.agents` configuration | 1 |
@@ -2086,8 +2214,10 @@ Atoms for `AGENTS.md`.
 | `r-dc84ff45c9` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
 | `r-27c45df260` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
 | `r-c9d8539c0b` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
+| `r-efaf46e17d` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
 | `r-c90b682d69` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
 | `r-47fe0caca7` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
+| `r-488b91239e` | Universal Assistant Runtime > 4. Non-negotiable safety boundaries > Runtime and reusable-content boundaries | 1 |
 | `r-176cead8d5` | Universal Assistant Runtime > 5. Skill routing quick start | 1 |
 | `r-3066919198` | Universal Assistant Runtime > 5. Skill routing quick start | 1 |
 | `r-dc1cf90ea8` | Universal Assistant Runtime > 5. Skill routing quick start | 1 |
@@ -2106,11 +2236,12 @@ Atoms for `AGENTS.md`.
 | `r-81da29eb05` | Universal Assistant Runtime > 6. Evidence, discovery, and context > AIDP and AIDX boundary | 1 |
 | `r-b6009ad873` | Universal Assistant Runtime > 6. Evidence, discovery, and context > AIDP and AIDX boundary | 1 |
 | `r-79d5f2d40f` | Universal Assistant Runtime > 6. Evidence, discovery, and context > AIDP and AIDX boundary | 2 |
-| `r-4d1564fd18` | Universal Assistant Runtime > 6. Evidence, discovery, and context > Injected memory discipline | 1 |
+| `r-4d1564fd18` | Universal Assistant Runtime > 6. Evidence, discovery, and context > Injected memory discipline | 2 |
 | `r-7bc55796cd` | Universal Assistant Runtime > 6. Evidence, discovery, and context > Injected memory discipline | 1 |
 | `r-5b4cceba0d` | Universal Assistant Runtime > 6. Evidence, discovery, and context > Injected memory discipline | 1 |
+| `r-8c633f0b40` | Universal Assistant Runtime > 6. Evidence, discovery, and context > Injected memory discipline | 1 |
 | `r-989dbe1eda` | Universal Assistant Runtime > 7. Coding and test changes | 2 |
-| `r-584364c6e4` | Universal Assistant Runtime > 7. Coding and test changes | 2 |
+| `r-584364c6e4` | Universal Assistant Runtime > 7. Coding and test changes | 3 |
 | `r-c32f483a94` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-e0788287a0` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-58fbd83c19` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
@@ -2119,13 +2250,14 @@ Atoms for `AGENTS.md`.
 | `r-2665133df2` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-7354e385db` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-96b426bdc3` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
-| `r-9b547fcaaa` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
+| `r-9b547fcaaa` | Universal Assistant Runtime > 7. Coding and test changes | 2 |
 | `r-29cc7da99e` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-4e6e6a8660` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
-| `r-e46466d246` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
+| `r-e46466d246` | Universal Assistant Runtime > 7. Coding and test changes | 2 |
 | `r-b44faec378` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-107dc904b8` | Universal Assistant Runtime > 7. Coding and test changes | 2 |
 | `r-e4e2431639` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
+| `r-b87335ab8b` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-70e3e06f12` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-a4cae260a0` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-ddc7478299` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
@@ -2149,6 +2281,7 @@ Atoms for `AGENTS.md`.
 | `r-e6d374448d` | Universal Assistant Runtime > 7. Coding and test changes > Mechanical rewrites and formatting transforms | 1 |
 | `r-be59d7defa` | Universal Assistant Runtime > 7. Coding and test changes > Mechanical rewrites and formatting transforms | 1 |
 | `r-7fec2d9903` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts | 1 |
+| `r-ef3a6aaab6` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts | 1 |
 | `r-e534328736` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts | 1 |
 | `r-7eda9dcfcb` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts | 1 |
 | `r-e8d9634b8f` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 1 |

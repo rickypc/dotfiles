@@ -128,6 +128,13 @@
       "id": "validation-05",
       "query": "Which order does a symbol read follow?\nA) Retry the read, then index, then re-check status\nB) Resolve the index, index only when none matches, re-check status, retry the read once, then read the snippet\nC) Always index first, then resolve the index, then read the snippet\nD) Resolve the index, index when none matches, then read the snippet with no retry",
       "split": "validation"
+    },
+    {
+      "evidence": "The shared CLI envelope (`ok`, `command`, `data`, `diagnostics`, `exitCode`) wraps it, so the object below is its `data`",
+      "expected": "B",
+      "id": "train-13",
+      "query": "In the engine response, which part of the shared CLI envelope holds the `status` and `results` keys?\nA) The envelope itself\nB) Its `data`\nC) Its `diagnostics`\nD) Its `command`",
+      "split": "train"
     }
   ],
   "runs_per_query": 3,

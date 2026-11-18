@@ -369,6 +369,10 @@ does not already provide the contract. Verify exact arity, positional meanings, 
 owner parser before any side effect. A rejected invocation is a command-contract defect to repair,
 not evidence and not a reason to repeat the same malformed command.
 
+Every bundled script shares the `utils/cli` base: its default JSON output is one envelope with
+`ok`, `command`, `data`, `diagnostics`, and `exitCode`, and the documented result is its `data`.
+Exit 0 is success, 1 failure, and 2 a usage error.
+
 Every bundled script accepts exactly one `--help` or `-h` argument as a side-effect-free metadata
 route. It prints that script's usage contract to stdout, exits successfully, and performs no file,
 process, network, or stdin work. Treat this universal option as part of every script's input/output

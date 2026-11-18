@@ -2,8 +2,8 @@ import { expect, mock, test } from 'bun:test';
 import * as realOs from 'node:os';
 import * as realPath from 'node:path';
 import realMatter from 'gray-matter';
-import type { FileSystem } from '../../utils/filesystem.js';
-import { runKnowledgeBase as run } from '../support/knowledge-base.js';
+import type { FileSystem } from '../../../utils/filesystem.js';
+import { runKnowledgeBase as run } from '../../support/knowledge-base.js';
 
 // Plan-import delta coverage in its own file so the shared knowledge-base suite stays under the
 // file-size limit. The SUT and its local helpers are real (shared-suite integration); the external
@@ -14,7 +14,7 @@ mock.module('gray-matter', () => ({ default: realMatter }));
 mock.module('node:os', () => realOs);
 mock.module('node:path', () => realPath);
 
-const { importPlan } = await import('../../scripts/knowledge-base.js');
+const { importPlan } = await import('../../../scripts/knowledge-base.js');
 
 const deltaPlanPath = '/kb/.agents/plans/delta-plan.md';
 const deltaPlan = [

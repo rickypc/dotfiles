@@ -5,11 +5,11 @@ import {
   KV_CAPACITY_GLOBAL,
   VENDORED_BUNDLE_PATH,
   VENDORED_BUNDLE_SHA256,
-} from '../../../scripts/weak-reader/index.js';
+} from '../../../../scripts/weak-reader/index.js';
 
 // Asset integrity check for the committed runtime bundle; it exercises no production code.
 describe('vendored Gemma 4 E2B runtime bundle', () => {
-  const archive = path.join(import.meta.dir, '..', '..', '..', VENDORED_BUNDLE_PATH);
+  const archive = path.join(import.meta.dir, '..', '..', '..', '..', VENDORED_BUNDLE_PATH);
   const loadSource = async (): Promise<string> =>
     new TextDecoder().decode(Bun.gunzipSync(await Bun.file(archive).bytes()));
 

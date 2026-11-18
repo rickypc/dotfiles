@@ -25,7 +25,7 @@ mock.module('node:tls', () => ({
 }));
 mock.module('webgpu', () => ({ create: webgpuCreate, globals: { GPUBufferUsage: 'usage' } }));
 
-const { defaultDependencies } = await import('../../../scripts/weak-reader/index.js');
+const { defaultDependencies } = await import('../../../../scripts/weak-reader/index.js');
 
 const realBun = {
   CryptoHasher: Bun.CryptoHasher,

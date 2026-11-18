@@ -97,7 +97,7 @@
       {
         "sourcePath": "skills/repo-search/SKILL.md",
         "setPath": "evals/skills/repo-search/comprehension/SKILL.json",
-        "queryCount": 42,
+        "queryCount": 43,
         "queryIds": [
           "train-28",
           "train-29",
@@ -140,7 +140,8 @@
           "validation-10",
           "validation-11",
           "validation-12",
-          "validation-13"
+          "validation-13",
+          "train-30"
         ]
       },
       {
@@ -200,7 +201,7 @@
       {
         "sourcePath": "skills/repo-search/references/engine.md",
         "setPath": "evals/skills/repo-search/comprehension/references-engine.json",
-        "queryCount": 18,
+        "queryCount": 19,
         "queryIds": [
           "train-01",
           "train-02",
@@ -219,13 +220,14 @@
           "train-12",
           "validation-04",
           "validation-06",
-          "validation-05"
+          "validation-05",
+          "train-13"
         ]
       },
       {
         "sourcePath": "skills/repo-search/references/usage-patterns.md",
         "setPath": "evals/skills/repo-search/comprehension/references-usage-patterns.json",
-        "queryCount": 14,
+        "queryCount": 15,
         "queryIds": [
           "train-01",
           "train-02",
@@ -240,7 +242,8 @@
           "train-08",
           "train-09",
           "validation-04",
-          "validation-05"
+          "validation-05",
+          "train-10"
         ]
       }
     ],

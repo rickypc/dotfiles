@@ -1,7 +1,20 @@
-import { expect, mock, test } from 'bun:test';
+import { afterAll, beforeAll, expect, mock, setSystemTime, test } from 'bun:test';
 import { createHash } from 'node:crypto';
 
 import { run, usage } from '../../../scripts/skill-manager/index.js';
+
+const realOs = { ...(await import('node:os')) };
+const { homedir, tmpdir } = realOs;
+
+// Delegating registration: same-process suites keep the real os behavior.
+mock.module('node:os', () => ({
+  ...realOs,
+  homedir: mock(() => homedir()),
+  tmpdir: mock(() => tmpdir()),
+}));
+
+beforeAll(() => setSystemTime(new Date('2026-01-01T00:00:00Z')));
+afterAll(() => setSystemTime());
 
 interface BundleReceipt {
   readonly boundary: string;

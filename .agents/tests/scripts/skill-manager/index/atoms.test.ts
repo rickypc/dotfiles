@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { run, usage } from '../../../scripts/skill-manager/index.js';
+import { run, usage } from '../../../../scripts/skill-manager/index.js';
 
 const json = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`;
 

@@ -39,7 +39,7 @@ describe('skill-manager command', () => {
   test('prints structured output as envelope data and plain output as text', async () => {
     const packet = await exec(['packet', 'improve-skill', 'draft', '/skill.md']);
     expect(packet.code).toBe(0);
-    expect(JSON.parse(packet.out[0] ?? '').data).toBeDefined();
+    expect(JSON.parse(packet.out[0] ?? '').data).toEqual(expect.any(Object));
     const text = await exec(['packet', 'improve-skill', 'draft', '/skill.md', '--format', 'text']);
     expect(text.out[0]).toContain('improve-skill');
   });

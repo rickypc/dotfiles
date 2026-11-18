@@ -7,7 +7,7 @@ import type {
   ChatMessage,
   ModelHandle,
   ReaderDependencies,
-} from '../../../scripts/weak-reader/index.js';
+} from '../../../../scripts/weak-reader/index.js';
 
 mock.module('node:fs/promises', () => realFsPromises);
 mock.module('node:os', () => realOs);
@@ -17,10 +17,10 @@ mock.module('webgpu', () => ({
   create: mock(() => ({ requestAdapter: mock(async () => ({})) })),
   globals: { GPUBufferUsage: 'usage' },
 }));
-mock.module('./weak-reader-batch.js', () => import('../../../scripts/weak-reader/batch.js'));
+mock.module('./weak-reader-batch.js', () => import('../../../../scripts/weak-reader/batch.js'));
 
 const { EXIT_CODES, MODEL_REVISION, SUGGEST_MAX_NEW_TOKENS, VENDORED_BUNDLE_SHA256, run } =
-  await import('../../../scripts/weak-reader/index.js');
+  await import('../../../../scripts/weak-reader/index.js');
 
 const original = { error: console.error, exit: process.exit, log: console.log };
 const consoleError = mock();

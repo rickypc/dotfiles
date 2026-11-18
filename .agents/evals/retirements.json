@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "retirements": [
+    {
+      "caseId": "atom:r-aa70bd22ec",
+      "reason": "The shared CLI base paragraph in section 8 was shortened after the longer wording regressed the final-gate probe, so the earlier unit text and hash changed; the rebuilt map holds the current unit."
+    }
+  ]
+}

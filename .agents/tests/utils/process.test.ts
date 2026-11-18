@@ -185,3 +185,33 @@ describe('process cleanup', () => {
     expect(kill).toHaveBeenCalledWith(9);
   });
 });
+
+describe('process timers', () => {
+  test('rejects through a test-local timer stub without waiting on a real clock', async () => {
+    const realSetTimeout = globalThis.setTimeout;
+    const setTimeoutMock = mock((handler: () => void) => {
+      queueMicrotask(handler);
+      return 0 as unknown as ReturnType<typeof setTimeout>;
+    });
+    globalThis.setTimeout = setTimeoutMock as unknown as typeof setTimeout;
+    let finish!: (code: number) => void;
+    const kill = mock(() => finish(9));
+    const spawn: BunSpawner = () => ({
+      exited: new Promise((resolve) => {
+        finish = resolve;
+      }),
+      kill,
+      stderr: null,
+      stdout: null,
+    });
+    try {
+      await expect(
+        createBunExecutor(spawn)({ args: [], command: 'tool', timeoutMs: 60_000 }),
+      ).rejects.toThrow('tool timed out after 60000ms');
+    } finally {
+      globalThis.setTimeout = realSetTimeout;
+    }
+    expect(setTimeoutMock).toHaveBeenCalledTimes(1);
+    expect(kill).toHaveBeenCalledWith(9);
+  });
+});

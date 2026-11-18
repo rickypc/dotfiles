@@ -1,13 +1,28 @@
-import { expect, test } from 'bun:test';
+import { expect, mock, test } from 'bun:test';
 
 import { defaultContext } from '../../../utils/cli/context.js';
 
+const realFs = { ...(await import('node:fs/promises')) };
+
+// Delegates every directory except /memory to the real module, so same-process suites are unaffected.
+mock.module('node:fs/promises', () => ({
+  ...realFs,
+  readdir: mock(async (directory: string, options: never) =>
+    directory === '/memory'
+      ? [
+          { isDirectory: () => false, name: 'context.test.ts' },
+          { isDirectory: () => true, name: 'nested' },
+        ]
+      : realFs.readdir(directory, options),
+  ),
+}));
+
 test('lists directory entries with their kind', async () => {
-  const items = await defaultContext().listDirectory(import.meta.dir);
-  expect(items.find((item) => item.name === 'context.test.ts')).toEqual({
-    isDirectory: false,
-    name: 'context.test.ts',
-  });
+  const items = await defaultContext().listDirectory('/memory');
+  expect(items).toEqual([
+    { isDirectory: false, name: 'context.test.ts' },
+    { isDirectory: true, name: 'nested' },
+  ]);
 });
 
 test('sets the exit code on a supplied target', () => {

@@ -3,11 +3,11 @@ import * as realCrypto from 'node:crypto';
 import * as realFsPromises from 'node:fs/promises';
 import * as realOs from 'node:os';
 import path from 'node:path';
-import type { GateDependencies, Receipt } from '../../../scripts/instruction-gate/index.js';
-import type { CommandResult, CommandSpec } from '../../../utils/contracts.js';
+import type { GateDependencies, Receipt } from '../../../../scripts/instruction-gate/index.js';
+import type { CommandResult, CommandSpec } from '../../../../utils/contracts.js';
 
-const realProcess = await import('../../../utils/process.js');
-const realWeakReader = await import('../../../scripts/weak-reader/index.js');
+const realProcess = await import('../../../../utils/process.js');
+const realWeakReader = await import('../../../../scripts/weak-reader/index.js');
 
 mock.module('node:fs/promises', () => realFsPromises);
 mock.module('node:os', () => realOs);
@@ -28,7 +28,7 @@ const {
   routingSkillTarget,
   sealReceipt,
   verifyRouting,
-} = await import('../../../scripts/instruction-gate/index.js');
+} = await import('../../../../scripts/instruction-gate/index.js');
 
 const ROOT = '/agents';
 const hash = (text: string): string => `h(${text})`;

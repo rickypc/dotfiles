@@ -60,6 +60,10 @@
     {
       "caseId": "atom:r-3dc1108574",
       "reason": "The train read route sentence now states exit 0 or 1 with the failure kind in data.reason, so its text and hash changed; the rebuilt map holds the current sentence."
+    },
+    {
+      "caseId": "atom:r-4976a16ddb",
+      "reason": "The check row did not say it is a GPU reader run or that a behavioral edit needs a passing seal."
     }
   ]
 }

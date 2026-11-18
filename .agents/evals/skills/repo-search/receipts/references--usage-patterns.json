@@ -13,7 +13,7 @@
     ],
     "validationPassed": 5
   },
-  "decision": "perfect",
+  "decision": "improved",
   "document": "skills/repo-search/references/usage-patterns.md",
   "documentSha256": "a7174ddd614c5c574128c263afc202abaa6bd0e2a2b5615b337c439f040a2539",
   "fingerprint": {
@@ -33,14 +33,15 @@
       "train-06",
       "train-07",
       "train-08",
-      "train-09"
+      "train-09",
+      "train-10"
     ],
     "validationPassed": 5,
     "validationTotal": 5
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "082e6aeec36b690b98739cb14c10b96fe5952877aa2dd24821a63119eaf4bf1a",
+  "selfSha256": "8609be3456f5143fd485f55e7f727f90eb5e6f817a168a3f3ff417f0922204b4",
   "setPath": "evals/skills/repo-search/comprehension/references-usage-patterns.json",
-  "setSha256": "273a2645de8d0eedaef7c8e2f2405b2bd4b180998790a9e1225752e1511305b8"
+  "setSha256": "1f7847848da0a6206f8f528ca8cd0d94760f10b2decf3fbbec59e1b32f5bb3a1"
 }

@@ -294,6 +294,13 @@
       "id": "validation-13",
       "query": "Which inputs does a `search` require?\nA) An approved root only\nB) A query string only\nC) One approved absolute root and a query string\nD) A root plus known subsystem boundaries",
       "split": "validation"
+    },
+    {
+      "evidence": "The unified response is the `data` of the shared CLI envelope",
+      "expected": "B",
+      "id": "train-30",
+      "query": "Where does a repo-search caller read `status` and `results`?\nA) At the top level of the printed output\nB) In `data` of the shared CLI envelope\nC) In `diagnostics`\nD) In `exitCode`",
+      "split": "train"
     }
   ],
   "runs_per_query": 3,

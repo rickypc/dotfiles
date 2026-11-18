@@ -33,7 +33,7 @@
     ],
     "validationPassed": 13
   },
-  "decision": "perfect",
+  "decision": "improved",
   "document": "skills/repo-search/SKILL.md",
   "documentSha256": "2f02fd7c36d922f9cf0ba8daab2ae7058a93173ea3e2e632768b1a631a3b53c5",
   "fingerprint": {
@@ -73,14 +73,15 @@
       "train-24",
       "train-25",
       "train-26",
-      "train-27"
+      "train-27",
+      "train-30"
     ],
     "validationPassed": 13,
     "validationTotal": 13
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "181c4da5ada6e56200c454eee0449998d50537f0b8dabb0af3671f9a8c1391db",
+  "selfSha256": "b6dd718f94a97f08eddc3a853ed94b81cbaeca4dbef94697ad7419c1c08c07c9",
   "setPath": "evals/skills/repo-search/comprehension/SKILL.json",
-  "setSha256": "991f92d99a8f6e11238ec7325f60558820c5b30fac590e595e6675e224ad99a1"
+  "setSha256": "c588a290da76332994e2fae8cbcbb8d8e36d02c25b0143c56a5b8ec0c8c4ca39"
 }

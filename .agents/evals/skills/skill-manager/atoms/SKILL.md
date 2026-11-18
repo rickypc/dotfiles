@@ -34,8 +34,8 @@ atoms:
     textSha256: db4b9c518fc4eb763d286d7692e4043396ab64ffd318b97ff28615ef59fa39c2
   - behavioral: false
     harmful: 0
-    helpful: 0
-    id: r-4976a16ddb
+    helpful: 1
+    id: r-573ff20196
     placements:
       - headingPath:
           - Skill Manager - Govern Agent Skills and Instructions
@@ -51,7 +51,7 @@ atoms:
       - validation-18
     status: active
     tags: []
-    textSha256: 4976a16ddb496da0c67191265b45caeef8f44da07f923ae5851329d6eb9f71e7
+    textSha256: 573ff20196101285eab6d76fde761b878187392918a286b7290fb3a806530551
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -126,6 +126,18 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-780ad391f9
+    placements:
+      - headingPath: *ref_0
+    precedence: 0
+    probeIds:
+      - validation-34
+    status: active
+    tags: []
+    textSha256: 780ad391f93d5c1da38c5bb3b0edf51a540442e7d948f5a40346c3a7aed06017
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-52681f7ccb
     placements:
       - headingPath: *ref_0
@@ -136,6 +148,18 @@ atoms:
     tags:
       - rule_meaning
     textSha256: 52681f7ccbf2e9a3fc9361dd8862d5a5b5e8b5d184ff17f43282b7088f3db8cf
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-5ec19f9e3e
+    placements:
+      - headingPath: *ref_0
+    precedence: 0
+    probeIds:
+      - train-43
+    status: active
+    tags: []
+    textSha256: 5ec19f9e3e42d9552206ae297b5f9cb2025aedf1a44f459d2847397a2d13fb88
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -334,11 +358,23 @@ atoms:
   - behavioral: true
     harmful: 0
     helpful: 0
-    id: r-7c81c7e881
+    id: r-ee9c50d5fc
     placements:
-      - headingPath:
+      - headingPath: &ref_4
           - Skill Manager - Govern Agent Skills and Instructions
           - 3. Immutable Operational Rules
+    precedence: 0
+    probeIds:
+      - validation-37
+    status: active
+    tags: []
+    textSha256: ee9c50d5fc8a72d377e6079ba9bee1e9485efa5f7b5bd0bcfb8edbdbb092af67
+  - behavioral: true
+    harmful: 0
+    helpful: 0
+    id: r-7c81c7e881
+    placements:
+      - headingPath: *ref_4
     precedence: 0
     probeIds:
       - train-08
@@ -366,7 +402,7 @@ atoms:
     helpful: 0
     id: r-6c5f2cc669
     placements:
-      - headingPath: &ref_4
+      - headingPath: &ref_5
           - Skill Manager - Govern Agent Skills and Instructions
           - 3. Immutable Operational Rules
     precedence: 0
@@ -380,7 +416,7 @@ atoms:
     helpful: 0
     id: r-8031a1b7a1
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-13
@@ -395,10 +431,11 @@ atoms:
     helpful: 0
     id: r-b631ef2151
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-13
+      - validation-35
     status: active
     tags:
       - combined_pressure
@@ -409,7 +446,7 @@ atoms:
     helpful: 0
     id: r-0666a8fe36
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-35
@@ -425,7 +462,7 @@ atoms:
     helpful: 0
     id: r-6800a88967
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-23
@@ -473,7 +510,7 @@ atoms:
     helpful: 0
     id: r-bdb560cdda
     placements:
-      - headingPath: &ref_5
+      - headingPath: &ref_6
           - Skill Manager - Govern Agent Skills and Instructions
           - 3. Immutable Operational Rules
     precedence: 0
@@ -492,7 +529,7 @@ atoms:
     helpful: 0
     id: r-efeb0ee48c
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-33
@@ -510,7 +547,7 @@ atoms:
     helpful: 0
     id: r-150750ea31
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-11
@@ -529,7 +566,7 @@ atoms:
     helpful: 0
     id: r-9eddcfe84e
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-11
@@ -545,7 +582,7 @@ atoms:
     helpful: 0
     id: r-8219d12455
     placements:
-      - headingPath: &ref_6
+      - headingPath: &ref_7
           - Skill Manager - Govern Agent Skills and Instructions
           - 3. Immutable Operational Rules
     precedence: 0
@@ -561,7 +598,7 @@ atoms:
     helpful: 0
     id: r-06b0571e17
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - validation-01
@@ -575,7 +612,7 @@ atoms:
     helpful: 0
     id: r-c2e2405a34
     placements:
-      - headingPath: &ref_7
+      - headingPath: &ref_8
           - Skill Manager - Govern Agent Skills and Instructions
           - 3. Immutable Operational Rules
     precedence: 0
@@ -593,7 +630,7 @@ atoms:
     helpful: 0
     id: r-197b83f50e
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - train-34
@@ -638,7 +675,7 @@ atoms:
     helpful: 0
     id: r-0d7faf6325
     placements:
-      - headingPath: &ref_8
+      - headingPath: &ref_9
           - Skill Manager - Govern Agent Skills and Instructions
           - 3. Immutable Operational Rules
     precedence: 0
@@ -653,7 +690,7 @@ atoms:
     helpful: 0
     id: r-df49866e16
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - train-31
@@ -663,6 +700,18 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: df49866e166b3559ec615b58adf181b3d44521860e4cad89aa0d668beffad726
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-92cc184bf9
+    placements:
+      - headingPath: *ref_9
+    precedence: 0
+    probeIds:
+      - validation-38
+    status: active
+    tags: []
+    textSha256: 92cc184bf9062d32e1f6c60b8068613432da6ea1984f6e2efb9c373c6e091673
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -717,7 +766,7 @@ atoms:
     helpful: 0
     id: r-2854865296
     placements:
-      - headingPath: &ref_9
+      - headingPath: &ref_10
           - Skill Manager - Govern Agent Skills and Instructions
           - 5. Ordered Execution Chain
     precedence: 0
@@ -733,7 +782,7 @@ atoms:
     helpful: 0
     id: r-c21b5b61ed
     placements:
-      - headingPath: *ref_9
+      - headingPath: *ref_10
     precedence: 0
     probeIds:
       - train-09
@@ -879,7 +928,7 @@ atoms:
     helpful: 0
     id: r-b67ca97420
     placements:
-      - headingPath: &ref_10
+      - headingPath: &ref_11
           - Skill Manager - Govern Agent Skills and Instructions
           - 5. Ordered Execution Chain
           - In-session training loop
@@ -895,7 +944,7 @@ atoms:
     helpful: 0
     id: r-aa9d5e38c3
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_11
     precedence: 0
     probeIds:
       - validation-15
@@ -907,9 +956,24 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-469803f823
+    placements:
+      - headingPath:
+          - Skill Manager - Govern Agent Skills and Instructions
+          - 5. Ordered Execution Chain
+          - In-session training loop
+    precedence: 0
+    probeIds:
+      - validation-36
+    status: active
+    tags: []
+    textSha256: 469803f823fbd1d408fc25a388c464f6fe51916f9ae79774f0c00a67efdea354
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-2ea2c0d973
     placements:
-      - headingPath: &ref_11
+      - headingPath: &ref_12
           - Skill Manager - Govern Agent Skills and Instructions
           - 5. Ordered Execution Chain
           - In-session training loop
@@ -927,7 +991,7 @@ atoms:
     helpful: 0
     id: r-be03a04501
     placements:
-      - headingPath: *ref_11
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - train-22
@@ -983,6 +1047,19 @@ atoms:
     status: active
     tags: []
     textSha256: b9d8d240fcfad03d92380f3edd924af51c09000e9feb767f6f645b8f5171d449
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-4976a16ddb
+    placements:
+      - headingPath:
+          - Skill Manager - Govern Agent Skills and Instructions
+          - 2. Usage
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 4976a16ddb496da0c67191265b45caeef8f44da07f923ae5851329d6eb9f71e7
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -1136,7 +1213,7 @@ sensitivity:
   - mutantsFlipped: 0
     mutantsTried: 1
     probeId: train-13
-  - mutantsFlipped: 1
+  - mutantsFlipped: 0
     mutantsTried: 1
     probeId: train-14
   - mutantsFlipped: 0
@@ -1154,6 +1231,9 @@ sensitivity:
   - mutantsFlipped: 0
     mutantsTried: 1
     probeId: validation-15
+  - mutantsFlipped: 0
+    mutantsTried: 1
+    probeId: validation-26
 source: skills/skill-manager/SKILL.md
 tags:
   - atoms
@@ -1166,13 +1246,15 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | --- | --- | --- |
 | `r-ffac6090d5` | frontmatter | 1 |
 | `r-db4b9c518f` | Skill Manager - Govern Agent Skills and Instructions > 1. Role & Scope | 1 |
-| `r-4976a16ddb` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 7 |
+| `r-573ff20196` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 7 |
 | `r-a34e1c88a9` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-c0c2076f60` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-4708274ad1` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 2 |
 | `r-d23d86baa0` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 2 |
 | `r-d5e0a50446` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
+| `r-780ad391f9` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-52681f7ccb` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
+| `r-5ec19f9e3e` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-7b6819638c` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-6957d7b224` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
 | `r-d154eaf1bb` | Skill Manager - Govern Agent Skills and Instructions > 2. Usage | 1 |
@@ -1187,11 +1269,12 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | `r-75443beb77` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-95bab2fec5` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-9a0bddcfd5` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
+| `r-ee9c50d5fc` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-7c81c7e881` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-7e86165ae5` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-6c5f2cc669` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-8031a1b7a1` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 2 |
-| `r-b631ef2151` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
+| `r-b631ef2151` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 2 |
 | `r-0666a8fe36` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 2 |
 | `r-6800a88967` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-b35ce6818d` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
@@ -1208,6 +1291,7 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | `r-1b140f3af7` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-0d7faf6325` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-df49866e16` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
+| `r-92cc184bf9` | Skill Manager - Govern Agent Skills and Instructions > 3. Immutable Operational Rules | 1 |
 | `r-dabd2ee2a1` | Skill Manager - Govern Agent Skills and Instructions > 4. Input & Context Schema | 1 |
 | `r-617396a5df` | Skill Manager - Govern Agent Skills and Instructions > 4. Input & Context Schema | 1 |
 | `r-2e0b0953b7` | Skill Manager - Govern Agent Skills and Instructions > 4. Input & Context Schema | 1 |
@@ -1223,6 +1307,7 @@ Atoms for `skills/skill-manager/SKILL.md`.
 | `r-8454a4e5a4` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > Evaluation contract | 1 |
 | `r-b67ca97420` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
 | `r-aa9d5e38c3` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
+| `r-469803f823` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
 | `r-2ea2c0d973` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
 | `r-be03a04501` | Skill Manager - Govern Agent Skills and Instructions > 5. Ordered Execution Chain > In-session training loop | 1 |
 | `r-09258bda46` | Skill Manager - Govern Agent Skills and Instructions > 6. Output & Completion Contract | 1 |

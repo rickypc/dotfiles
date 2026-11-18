@@ -99,6 +99,20 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-2f591ebf6d
+    placements:
+      - headingPath:
+          - Repo Search Engine Reference
+          - Response envelope
+    precedence: 0
+    probeIds:
+      - train-13
+    status: active
+    tags: []
+    textSha256: 2f591ebf6d4ef3128a13a03f93468df18e9729564b78dfe1c512a0e6ebe735a9
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-9c779500c6
     placements:
       - headingPath: &ref_3
@@ -372,6 +386,7 @@ Atoms for `skills/repo-search/references/engine.md`.
 | `r-cba8120850` | Repo Search Engine Reference > Transport probe | 1 |
 | `r-5e434542ac` | Repo Search Engine Reference > Transport probe | 1 |
 | `r-9f4d41a110` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-2f591ebf6d` | Repo Search Engine Reference > Response envelope | 1 |
 | `r-9c779500c6` | Repo Search Engine Reference > Response envelope | 1 |
 | `r-2f7c9ead1c` | Repo Search Engine Reference > Response envelope | 1 |
 | `r-2d169fa46d` | Repo Search Engine Reference > Backend table parsing | 1 |

@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 
-import { run, usage } from '../../../scripts/skill-manager/index.js';
+import { run, usage } from '../../../../scripts/skill-manager/index.js';
 
 test('evaluates a matrix in one deterministic script phase', async () => {
   const matrix = [

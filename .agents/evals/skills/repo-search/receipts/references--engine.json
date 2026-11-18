@@ -14,7 +14,7 @@
     ],
     "validationPassed": 6
   },
-  "decision": "perfect",
+  "decision": "improved",
   "document": "skills/repo-search/references/engine.md",
   "documentSha256": "1e5b9bafad6d8b7297eae2e2cf766594a00fe67bd0392c5c829089fd65673ad8",
   "fingerprint": {
@@ -35,14 +35,15 @@
       "train-09",
       "train-10",
       "train-11",
-      "train-12"
+      "train-12",
+      "train-13"
     ],
     "validationPassed": 6,
     "validationTotal": 6
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "52e948d5b9b946c762a58e90b33a5e136a26e7e52b41939d943ca0476cafd3b8",
+  "selfSha256": "dd2aaf8d7d5490b8193fac5c7990e89cdc712bf59de7a6e43a0414942dd689a1",
   "setPath": "evals/skills/repo-search/comprehension/references-engine.json",
-  "setSha256": "b0622512e56da172c1326855997abfb18f5ffa2a7f40b7e9215c4b83fdd2f1ad"
+  "setSha256": "e25153ecd2a5d2957f3c657305dda3b89d09a13f9079f68f1baae3c22ecb3c8e"
 }
