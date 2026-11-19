@@ -119,8 +119,12 @@ if [ -d $ANDROID_SDK ]; then
 fi
 
 if [ -f ~/.github-token ]; then
-  eval "$(grep -v '^[[:space:]]*#' ~/.github-token | grep 'GITHUB_TOKEN=')"
-  export GITHUB_TOKEN
+  # Load each variable from ~/.github-token: last uncommented assignment wins.
+  for _gh_var in GITHUB_TOKEN GITHUB_MCP_PAT; do
+    _gh_line=$(grep -v '^[[:space:]]*#' ~/.github-token | grep -E "^[[:space:]]*(export[[:space:]]+)?${_gh_var}=" | tail -n 1)
+    [ -n "$_gh_line" ] && eval "$_gh_line" && export "$_gh_var"
+  done
+  unset _gh_var _gh_line
 fi
 
 # Golang specific environment
