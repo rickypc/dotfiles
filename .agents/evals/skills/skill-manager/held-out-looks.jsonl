@@ -20,3 +20,8 @@
 {"at":"2026-11-18T19:32:37.293Z","document":"skills/skill-manager/SKILL.md","documentSha256":"8417439e7961632cb2d6bfe2264a49a49d0b4a035c22cb7748e694be19978893","kind":"look"}
 {"at":"2026-11-18T23:20:57.164Z","document":"skills/skill-manager/SKILL.md","kind":"rotation","poolSha256":"e2853d12d2ceb758dbe756d7a1c596875bcbf1813b9f754739b43f9715dff929"}
 {"at":"2026-11-18T23:21:48.756Z","document":"skills/skill-manager/SKILL.md","documentSha256":"434c40f4770b8466c57a75d009e0fc878b3ef446a29f73a2a17c2e9f52cdd844","kind":"look"}
+{"at":"2026-11-23T07:32:25.090Z","document":"skills/skill-manager/references/librarian.md","documentSha256":"1b87987d6553981b8db42e1d9ef796929dd708f9331a1061da3d320778939a2e","kind":"look"}
+{"at":"2026-11-23T08:08:06.358Z","document":"skills/skill-manager/references/librarian.md","kind":"rotation","poolSha256":"a35968b270450abf533434467aa538601cf5169f940fb71abf79e0616a853107"}
+{"at":"2026-11-23T08:10:43.598Z","document":"skills/skill-manager/references/librarian.md","documentSha256":"7ce23fc518f20876c138628c6e09b7ef29cf81db16a53e3c973cf4b91b573dae","kind":"look"}
+{"at":"2026-11-23T08:10:43.601Z","document":"skills/skill-manager/references/train-protocol.md","kind":"rotation","poolSha256":"a35968b270450abf533434467aa538601cf5169f940fb71abf79e0616a853107"}
+{"at":"2026-11-23T08:19:08.331Z","document":"skills/skill-manager/references/train-protocol.md","documentSha256":"d92207ff99427c656939d2214fa6ae6303006b2ce8df492c8346f587856d6f6a","kind":"look"}

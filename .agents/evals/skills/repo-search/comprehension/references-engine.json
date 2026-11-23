@@ -135,6 +135,48 @@
       "id": "train-13",
       "query": "In the engine response, which part of the shared CLI envelope holds the `status` and `results` keys?\nA) The envelope itself\nB) Its `data`\nC) Its `diagnostics`\nD) Its `command`",
       "split": "train"
+    },
+    {
+      "evidence": "A workspace succeeds when the cache lies inside its writable root, and a nested workspace fails until the session grants the backend's canonical cache directory as an additional writable root (DSH `sandbox-policy` `additionalWritableRoots`; a patch replaces row `config` wholesale, so restate the base `mode` and `workspaceRoot`).",
+      "expected": "B",
+      "id": "train-14",
+      "query": "Why does the same wrapper query succeed from the home workspace but fail from a nested workspace?\nA) The nested workspace lacks a ready index.\nB) The cache root sits outside the nested workspace's writable boundary until it is granted explicitly.\nC) The nested workspace uses a different backend binary.\nD) The CLI transport is disabled in nested workspaces.",
+      "split": "train"
+    },
+    {
+      "evidence": "A host's successful stdio registration does not let another client join that MCP session; use the host's registered MCP tools as the transport-independent route.",
+      "expected": "C",
+      "id": "validation-07",
+      "query": "DSH registers the backend successfully over stdio. Another SDK client wants the same session. What is correct?\nA) Point the second client at the host's stdio transport URL.\nB) The host shares its stdio session with SDK clients.\nC) Use the host's registered MCP tools; a stdio session cannot be joined.\nD) Re-register the server to create a shared MCP HTTP endpoint.",
+      "split": "validation"
+    },
+    {
+      "evidence": "A `cache-private` chmod denial is the other known signature: the spawning context may not write the cache root, so run the wrapper where the root is writable or keep a standing `codebase-memory-mcp daemon start` running.",
+      "expected": "B",
+      "id": "train-15",
+      "split": "train",
+      "query": "The wrapper reports a `cache-private` chmod denial for the backend cache root. What does the engine reference direct?\nA) Reset the cache directory permissions to 0777 and rerun.\nB) Run the wrapper where the root is writable or keep a standing daemon running.\nC) Reinstall the backend binary.\nD) Point CBM_CACHE_DIR at a temporary directory."
+    },
+    {
+      "evidence": "The pin keeps the backend's canonical cache root resolvable in stripped caller environments (the `cache-resolve` failure) without touching `CBM_CACHE_DIR` or `CBM_RUNTIME_DIR`, which must stay shared with every other CBM client on the account or the admission barrier rejects the child.",
+      "expected": "C",
+      "id": "validation-08",
+      "split": "validation",
+      "query": "A caller considers setting a private CBM_CACHE_DIR for the wrapper only. What is correct?\nA) The pinned child environment overrides CBM_CACHE_DIR safely.\nB) A private cache dir is the recommended isolation.\nC) CBM_CACHE_DIR and CBM_RUNTIME_DIR must stay shared with every other CBM client or the admission barrier rejects the child.\nD) Only CBM_RUNTIME_DIR must stay shared."
+    },
+    {
+      "id": "holdout-references-engine-01",
+      "split": "validation",
+      "evidence": "A spawn failure, `initialize` handshake timeout, or backend denial is captured in `attempts[0]` as the transport-probe receipt instead of being thrown to the caller. On the default route, an MCP failure is followed by the CLI probe.",
+      "query": "On the default route, the MCP stdio probe fails with an `initialize` handshake timeout. What does the engine do?\nA) Throws the timeout to the caller and stops the run.\nB) Captures it in attempts[0] as the transport-probe receipt, then follows with the CLI probe.\nC) Retries the MCP handshake three times before degrading.\nD) Records an empty result with no receipt.",
+      "expected": "B"
+    },
+    {
+      "id": "holdout-references-engine-02",
+      "split": "validation",
+      "evidence": "The grant is deployment configuration for the composition's sessions and needs a fresh boot before it takes effect.",
+      "query": "A sandbox-policy patch grants the backend's canonical cache directory to the session as an additional writable root. When does the grant take effect?\nA) Immediately, including for already-running sessions.\nB) After the backend daemon is restarted.\nC) It is deployment configuration for the composition's sessions and needs a fresh boot before it takes effect.\nD) After the wrapper's next transport probe completes.",
+      "expected": "C"
     }
   ],
   "runs_per_query": 3,

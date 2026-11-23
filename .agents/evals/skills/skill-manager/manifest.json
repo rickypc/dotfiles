@@ -34,7 +34,7 @@
     },
     {
       "sourcePath": "skills/skill-manager/references/librarian.md",
-      "sha256": "3269af85de07789b3b315630c5430cd43d76b8a5492097116707bfb0322e8d9b"
+      "sha256": "7ce23fc518f20876c138628c6e09b7ef29cf81db16a53e3c973cf4b91b573dae"
     },
     {
       "sourcePath": "skills/skill-manager/references/skill-lifecycle.md",
@@ -46,7 +46,7 @@
     },
     {
       "sourcePath": "skills/skill-manager/references/train-protocol.md",
-      "sha256": "071e4d7ebd030008aa1fd8ca1690c9eff2c15fd8dac496765d8d718476d9742c"
+      "sha256": "d92207ff99427c656939d2214fa6ae6303006b2ce8df492c8346f587856d6f6a"
     }
   ],
   "archivedMatrixSources": [
@@ -265,7 +265,7 @@
       {
         "sourcePath": "skills/skill-manager/references/librarian.md",
         "setPath": "evals/skills/skill-manager/comprehension/references-librarian.json",
-        "queryCount": 14,
+        "queryCount": 17,
         "queryIds": [
           "train-01",
           "train-02",
@@ -280,7 +280,10 @@
           "validation-03",
           "validation-04",
           "validation-05",
-          "validation-06"
+          "validation-06",
+          "train-09",
+          "holdout-references-librarian-01",
+          "holdout-references-librarian-02"
         ]
       },
       {
@@ -334,7 +337,7 @@
       {
         "sourcePath": "skills/skill-manager/references/train-protocol.md",
         "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
-        "queryCount": 43,
+        "queryCount": 47,
         "queryIds": [
           "train-20",
           "train-01",
@@ -378,7 +381,11 @@
           "validation-20",
           "validation-21",
           "train-21",
-          "train-22"
+          "train-22",
+          "train-23",
+          "train-24",
+          "holdout-references-train-protocol-01",
+          "holdout-references-train-protocol-02"
         ]
       }
     ],

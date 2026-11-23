@@ -64,6 +64,10 @@
     {
       "caseId": "atom:r-4976a16ddb",
       "reason": "The check row did not say it is a GPU reader run or that a behavioral edit needs a passing seal."
+    },
+    {
+      "caseId": "atom:r-47a4d8d2aa",
+      "reason": "Owner edit: the propose-rejection sentence was split and restated at the end of section 2 so the weak reader resolves the description-line rejection probe; the old atom text no longer exists."
     }
   ]
 }

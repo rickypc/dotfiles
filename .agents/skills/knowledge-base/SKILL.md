@@ -112,8 +112,8 @@ Use this exact command shape for one new concept:
 bun <agents-root>/scripts/knowledge-base.ts capture <private-kb-root> <concept-relative-path> <metadata-json> <body> <evidence>
 ```
 
-`<concept-relative-path>` is `<kb-scope-or-shared>/<subject>/<concept>.md`. `<metadata-json>` must be
-one valid JSON object with type, title, description, and tags; `<body>` and `<evidence>` are
+`<concept-relative-path>` is `<kb-scope-or-shared>/<subject>/<concept>.md`. `<metadata-json>` must
+be one valid JSON object with type, title, description, and tags; `<body>` and `<evidence>` are
 separate positional arguments. Metadata JSON, body, and evidence are separate positional arguments
 and must each be passed as one shell argument. Capture does not take a request-file path and does
 not use `write-json.ts`. Quote each argument for the caller's shell.

@@ -495,6 +495,20 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-3deafff4aa
+    placements:
+      - headingPath:
+          - In-session training protocol
+          - 8. Documents and the weak reader
+    precedence: 0
+    probeIds:
+      - train-23
+    status: active
+    tags: []
+    textSha256: 3deafff4aadf11fc26d20dc266b85bd9edbbe5e54043ea2418ec2ad96d414c87
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-00a1ecb78d
     placements:
       - headingPath:
@@ -614,6 +628,44 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-bb6a3ba0b8
+    placements:
+      - headingPath: &ref_9
+          - In-session training protocol
+          - '12. Atom maps, audit, and batch scoring'
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-02
+    status: active
+    tags: []
+    textSha256: bb6a3ba0b84e04a2fc9970a59681150f9ee14031deb96ee69b6d2403fe06d03e
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-4ef527a2b4
+    placements:
+      - headingPath: *ref_9
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-02
+    status: active
+    tags: []
+    textSha256: 4ef527a2b47dff7c52b22d4453f6a09e9ff7dacd39cf9b8e0419efcb4ffc446a
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-70d8c4c22e
+    placements:
+      - headingPath: *ref_9
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-02
+    status: active
+    tags: []
+    textSha256: 70d8c4c22e49365daf2488cdd6501ff7bd3ca787bc03ccb1cf33927bb83ac327
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-3d15665636
     placements:
       - headingPath:
@@ -625,6 +677,80 @@ atoms:
     status: active
     tags: []
     textSha256: 3d156656363b3fb9bbc068d04f90a10984da6cfe16895210a48ce88ac57c1a51
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-d5cc74256a
+    placements:
+      - headingPath: &ref_10
+          - In-session training protocol
+          - '12. Atom maps, audit, and batch scoring'
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-01
+    status: active
+    tags: []
+    textSha256: d5cc74256a4813b8defd53078f5afdee782617ee00d67cbf3329975a0ca7c7b1
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-90f22a9e1a
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-01
+    status: active
+    tags: []
+    textSha256: 90f22a9e1a803be943e57bdaeb94e7645145d268b856fa79a1f6a07aa7df6450
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-bb3bbb1ef7
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-01
+    status: active
+    tags: []
+    textSha256: bb3bbb1ef77ae72649b9c345a5eb8005ff9817d45ca854b325ca4b6fd602cb80
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-c690bbb4aa
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-01
+    status: active
+    tags: []
+    textSha256: c690bbb4aac817ed7b188d45adba0a337b7c1b5ddc18ee62a01acff9a119fea2
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-7cfbe0b464
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-01
+    status: active
+    tags: []
+    textSha256: 7cfbe0b4648066c1f87433d54f09084abf71cee91b02fc60c3ee53b5014d14cc
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-a55c9ed78b
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds:
+      - holdout-references-train-protocol-01
+    status: active
+    tags: []
+    textSha256: a55c9ed78ba6bd450d869cf739a7154111bbdf6e8f11539654b9ebedfcfe7df5
 description: >-
   Rule atoms placed in skills/skill-manager/references/train-protocol.md;
   derived from comprehension probe evidence.
@@ -699,6 +825,7 @@ Atoms for `skills/skill-manager/references/train-protocol.md`.
 | `r-075f98a43a` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-c9247acab9` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-379768fa88` | In-session training protocol > 8. Documents and the weak reader | 1 |
+| `r-3deafff4aa` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-00a1ecb78d` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-568562d496` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-519f4b39c4` | In-session training protocol > 8. Documents and the weak reader | 1 |
@@ -707,4 +834,13 @@ Atoms for `skills/skill-manager/references/train-protocol.md`.
 | `r-e9691048e5` | In-session training protocol > 11. Retiring queries | 1 |
 | `r-9b073e2f1c` | In-session training protocol > 11. Retiring queries | 1 |
 | `r-d3d7bcd4f8` | In-session training protocol > 11. Retiring queries | 1 |
+| `r-bb6a3ba0b8` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-4ef527a2b4` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-70d8c4c22e` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
 | `r-3d15665636` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-d5cc74256a` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-90f22a9e1a` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-bb3bbb1ef7` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-c690bbb4aa` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-7cfbe0b464` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
+| `r-a55c9ed78b` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |

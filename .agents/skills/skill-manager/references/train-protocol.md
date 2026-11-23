@@ -179,10 +179,10 @@ question with one option letter in an `answer` field.
 - Exit codes: 0 answered, 1 failure; the failure envelope `data.reason` is `failure`, `integrity`,
   `missing-dependency`, `no-adapter`, or `too-long`.
 - When the process is sandboxed it finds no adapter and fails with reason `no-adapter`. This does
-  not cancel authorized work. Finish the edit and available checks, then give the user the exact blocked GPU command in a
-  fenced block with its working directory and ask them to run it. Wait for them to paste the output
-  before closeout. The sandbox attempt writes no receipt and cannot pass the gate. Do not substitute
-  child-agent answers for the pinned reader.
+  not cancel authorized work. Finish the edit and available checks, then give the user the exact
+  blocked GPU command in a fenced block with its working directory and ask them to run it. Wait for
+  them to paste the output before closeout. The sandbox attempt writes no receipt and cannot pass
+  the gate. Do not substitute child-agent answers for the pinned reader.
 - An unparseable reply is written as `NONE` (a document) or `UNPARSEABLE` (a router) and scores as a
   miss.
 - The reader runs on macOS (Metal through Dawn); it is not meant for any other platform.

@@ -35,6 +35,16 @@ failure) without touching `CBM_CACHE_DIR` or `CBM_RUNTIME_DIR`, which must stay 
 other CBM client on the account or the admission barrier rejects the child. A `cache-private` chmod
 denial is the other known signature: the spawning context may not write the cache root, so run the
 wrapper where the root is writable or keep a standing `codebase-memory-mcp daemon start` running.
+Workspace/cache containment is the third signature: the caller's sandbox may deny writes to the
+existing cache root. A workspace succeeds when the cache lies inside its writable root, and a nested
+workspace fails until the session grants the backend's canonical cache directory as an additional
+writable root (DSH `sandbox-policy` `additionalWritableRoots`; a patch replaces row `config`
+wholesale, so restate the base `mode` and `workspaceRoot`). The grant is deployment configuration
+for the composition's sessions and needs a fresh boot before it takes effect. Never recover by
+relocating the cache, reading the backend store, or spawning a replacement daemon; changing
+`CBM_CACHE_DIR` or `CBM_RUNTIME_DIR` for one client while another CBM process is active is a
+conflict, not a recovery. A host's successful stdio registration does not let another client join
+that MCP session; use the host's registered MCP tools as the transport-independent route.
 
 ## Response envelope
 

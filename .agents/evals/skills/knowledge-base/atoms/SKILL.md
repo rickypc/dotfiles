@@ -319,9 +319,35 @@ atoms:
   - behavioral: true
     harmful: 0
     helpful: 0
-    id: r-b0a82140b1
+    id: r-9a8b643b01
     placements:
       - headingPath: &ref_7
+          - Knowledge Base
+          - 5. Ordered Execution Chain
+    precedence: 0
+    probeIds:
+      - holdout-SKILL-01
+    status: active
+    tags: []
+    textSha256: 9a8b643b01a0e5f6f2c73817d982ae1fad6e950c7540d1fde7409eebf98b8fa9
+  - behavioral: true
+    harmful: 0
+    helpful: 0
+    id: r-b46cb807ed
+    placements:
+      - headingPath: *ref_7
+    precedence: 0
+    probeIds:
+      - holdout-SKILL-01
+    status: active
+    tags: []
+    textSha256: b46cb807ed7232a5635a493127b2a463a7a3af0cf60d0c2076c4f4724920475d
+  - behavioral: true
+    harmful: 0
+    helpful: 0
+    id: r-b0a82140b1
+    placements:
+      - headingPath: &ref_8
           - Knowledge Base
           - 5. Ordered Execution Chain
     precedence: 0
@@ -337,7 +363,7 @@ atoms:
     helpful: 0
     id: r-3209faa19a
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - train-19
@@ -368,12 +394,13 @@ atoms:
     helpful: 0
     id: r-1e38f87cf7
     placements:
-      - headingPath: &ref_8
+      - headingPath: &ref_9
           - Knowledge Base
           - 5. Ordered Execution Chain
           - Fixed JSON request boundary
     precedence: 0
     probeIds:
+      - holdout-SKILL-02
       - validation-07
     status: active
     tags:
@@ -386,7 +413,7 @@ atoms:
     helpful: 0
     id: r-5be385836b
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - train-13
@@ -400,7 +427,7 @@ atoms:
     helpful: 0
     id: r-cd6a833bdd
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - train-27
@@ -414,7 +441,7 @@ atoms:
     helpful: 0
     id: r-dcb5694d39
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - train-27
@@ -428,7 +455,7 @@ atoms:
     helpful: 0
     id: r-bb7575b820
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - train-27
@@ -442,7 +469,7 @@ atoms:
     helpful: 0
     id: r-1f38f0e5c4
     placements:
-      - headingPath: &ref_9
+      - headingPath: &ref_10
           - Knowledge Base
           - 5. Ordered Execution Chain
           - Reconciliation schema and dispositions
@@ -458,7 +485,7 @@ atoms:
     helpful: 0
     id: r-628525cb6f
     placements:
-      - headingPath: *ref_9
+      - headingPath: *ref_10
     precedence: 0
     probeIds:
       - validation-05
@@ -539,7 +566,7 @@ atoms:
     helpful: 0
     id: r-56733e9501
     placements:
-      - headingPath: &ref_10
+      - headingPath: &ref_11
           - Knowledge Base
           - 5. Ordered Execution Chain
           - Reconciliation schema and dispositions
@@ -556,7 +583,7 @@ atoms:
     helpful: 0
     id: r-e0664660ac
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_11
     precedence: 0
     probeIds:
       - validation-09
@@ -623,7 +650,7 @@ atoms:
     helpful: 0
     id: r-6f5677ddf5
     placements:
-      - headingPath: &ref_11
+      - headingPath: &ref_12
           - Knowledge Base
           - 5. Ordered Execution Chain
           - Search and batch retrieval
@@ -638,7 +665,7 @@ atoms:
     helpful: 0
     id: r-426b9aca90
     placements:
-      - headingPath: *ref_11
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - validation-01
@@ -651,7 +678,7 @@ atoms:
     helpful: 0
     id: r-1bdfe34023
     placements:
-      - headingPath: &ref_12
+      - headingPath: &ref_13
           - Knowledge Base
           - 5. Ordered Execution Chain
           - Search and batch retrieval
@@ -668,7 +695,7 @@ atoms:
     helpful: 0
     id: r-85ee9540e8
     placements:
-      - headingPath: *ref_12
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - train-16
@@ -702,7 +729,7 @@ atoms:
     helpful: 0
     id: r-8316102eb6
     placements:
-      - headingPath: &ref_13
+      - headingPath: &ref_14
           - Knowledge Base
           - 6. Output & Completion Contract
     precedence: 0
@@ -718,7 +745,7 @@ atoms:
     helpful: 0
     id: r-d73f9e818a
     placements:
-      - headingPath: *ref_13
+      - headingPath: *ref_14
     precedence: 0
     probeIds:
       - validation-06
@@ -803,10 +830,12 @@ Atoms for `skills/knowledge-base/SKILL.md`.
 | `r-25fe71d493` | Knowledge Base > 4. Input & Context Schema | 1 |
 | `r-d2c451bdaf` | Knowledge Base > 4. Input & Context Schema | 1 |
 | `r-21487ee7b4` | Knowledge Base > 5. Ordered Execution Chain | 1 |
+| `r-9a8b643b01` | Knowledge Base > 5. Ordered Execution Chain | 1 |
+| `r-b46cb807ed` | Knowledge Base > 5. Ordered Execution Chain | 1 |
 | `r-b0a82140b1` | Knowledge Base > 5. Ordered Execution Chain | 1 |
 | `r-3209faa19a` | Knowledge Base > 5. Ordered Execution Chain | 1 |
 | `r-513f7f3f7f` | Knowledge Base > 5. Ordered Execution Chain > Fixed JSON request boundary | 1 |
-| `r-1e38f87cf7` | Knowledge Base > 5. Ordered Execution Chain > Fixed JSON request boundary | 1 |
+| `r-1e38f87cf7` | Knowledge Base > 5. Ordered Execution Chain > Fixed JSON request boundary | 2 |
 | `r-5be385836b` | Knowledge Base > 5. Ordered Execution Chain > Fixed JSON request boundary | 1 |
 | `r-cd6a833bdd` | Knowledge Base > 5. Ordered Execution Chain > Fixed JSON request boundary | 1 |
 | `r-dcb5694d39` | Knowledge Base > 5. Ordered Execution Chain > Fixed JSON request boundary | 1 |

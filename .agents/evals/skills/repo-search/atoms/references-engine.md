@@ -99,6 +99,94 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-ff4c08a5b2
+    placements:
+      - headingPath: &ref_3
+          - Repo Search Engine Reference
+          - Transport probe
+    precedence: 0
+    probeIds:
+      - holdout-references-engine-01
+    status: active
+    tags: []
+    textSha256: ff4c08a5b213dc5dc8ae0cf82d3df87f62447c5016a87842d5e0d30449983b84
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-053fbf0b73
+    placements:
+      - headingPath: *ref_3
+    precedence: 0
+    probeIds:
+      - holdout-references-engine-01
+    status: active
+    tags: []
+    textSha256: 053fbf0b73d7d278fc4094a6d82c6d26b0850663fb6f59e367c17873c24e779d
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-a5524e63e3
+    placements:
+      - headingPath: &ref_4
+          - Repo Search Engine Reference
+          - Transport probe
+    precedence: 0
+    probeIds:
+      - validation-08
+    status: active
+    tags: []
+    textSha256: a5524e63e3aeb7af943bb49da17ae35f73801779d7907e8bd35489d94fcab845
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-c7de06f72c
+    placements:
+      - headingPath: *ref_4
+    precedence: 0
+    probeIds:
+      - train-15
+    status: active
+    tags: []
+    textSha256: c7de06f72c49c9805c0224a07feb1ee66f864ba8ead5fc831b80d4e8761bd305
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-2e46e33213
+    placements:
+      - headingPath: *ref_4
+    precedence: 0
+    probeIds:
+      - train-14
+    status: active
+    tags: []
+    textSha256: 2e46e33213e8ea32a25cafab7621d4492c83193cf6b5e38632703519c4e876e7
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-ee1d404d5f
+    placements:
+      - headingPath: *ref_4
+    precedence: 0
+    probeIds:
+      - holdout-references-engine-02
+    status: active
+    tags: []
+    textSha256: ee1d404d5fff230b64e3406ead777fe518bdeaa3574471e094c9abc48f2d7025
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-67a30d34e3
+    placements:
+      - headingPath: *ref_4
+    precedence: 0
+    probeIds:
+      - validation-07
+    status: active
+    tags: []
+    textSha256: 67a30d34e3175b2d451c9ab5a907b64d78aa00fdadd8b74b6fc1907dc1a3b913
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-2f591ebf6d
     placements:
       - headingPath:
@@ -115,7 +203,7 @@ atoms:
     helpful: 0
     id: r-9c779500c6
     placements:
-      - headingPath: &ref_3
+      - headingPath: &ref_5
           - Repo Search Engine Reference
           - Response envelope
     precedence: 0
@@ -132,7 +220,7 @@ atoms:
     helpful: 0
     id: r-2f7c9ead1c
     placements:
-      - headingPath: *ref_3
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-02
@@ -146,7 +234,7 @@ atoms:
     helpful: 0
     id: r-2d169fa46d
     placements:
-      - headingPath: &ref_4
+      - headingPath: &ref_6
           - Repo Search Engine Reference
           - Backend table parsing
     precedence: 0
@@ -162,7 +250,7 @@ atoms:
     helpful: 0
     id: r-4902616f29
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-09
@@ -176,7 +264,7 @@ atoms:
     helpful: 0
     id: r-e966032b4b
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-09
@@ -240,7 +328,7 @@ atoms:
     helpful: 0
     id: r-775ffecce8
     placements:
-      - headingPath: &ref_5
+      - headingPath: &ref_7
           - Repo Search Engine Reference
           - Search pipeline
     precedence: 0
@@ -256,7 +344,7 @@ atoms:
     helpful: 0
     id: r-4588874b21
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - train-10
@@ -270,7 +358,7 @@ atoms:
     helpful: 0
     id: r-fbf360cb47
     placements:
-      - headingPath: &ref_6
+      - headingPath: &ref_8
           - Repo Search Engine Reference
           - Read classification
     precedence: 0
@@ -287,7 +375,7 @@ atoms:
     helpful: 0
     id: r-27210b76b3
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - validation-03
@@ -300,7 +388,7 @@ atoms:
     helpful: 0
     id: r-dfec6d527a
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - validation-05
@@ -386,6 +474,13 @@ Atoms for `skills/repo-search/references/engine.md`.
 | `r-cba8120850` | Repo Search Engine Reference > Transport probe | 1 |
 | `r-5e434542ac` | Repo Search Engine Reference > Transport probe | 1 |
 | `r-9f4d41a110` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-ff4c08a5b2` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-053fbf0b73` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-a5524e63e3` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-c7de06f72c` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-2e46e33213` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-ee1d404d5f` | Repo Search Engine Reference > Transport probe | 1 |
+| `r-67a30d34e3` | Repo Search Engine Reference > Transport probe | 1 |
 | `r-2f591ebf6d` | Repo Search Engine Reference > Response envelope | 1 |
 | `r-9c779500c6` | Repo Search Engine Reference > Response envelope | 1 |
 | `r-2f7c9ead1c` | Repo Search Engine Reference > Response envelope | 1 |

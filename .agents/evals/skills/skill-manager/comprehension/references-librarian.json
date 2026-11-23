@@ -37,7 +37,7 @@
       "split": "train"
     },
     {
-      "evidence": "`propose` also rejects a candidate that changes the skill description or leaves the document text unchanged",
+      "evidence": "`propose` itself rejects a candidate that changes the skill description or leaves the document text unchanged.",
       "expected": "A",
       "id": "train-06",
       "query": "A candidate delta rewrites the description line of a skill. What does propose do?\nA) It rejects the candidate.\nB) It accepts it, because descriptions are atoms.\nC) It accepts it after reflow.\nD) It passes the decision to check.",
@@ -98,6 +98,27 @@
       "id": "validation-06",
       "query": "Two candidates have identical probe vectors. What orders them first?\nA) Smallest token delta.\nB) Candidate id.\nC) Most added atoms.\nD) Fewest changed atoms.",
       "split": "validation"
+    },
+    {
+      "evidence": "After the third round `check` stops with the budget reason instead of asking for another round.",
+      "expected": "C",
+      "id": "train-09",
+      "split": "train",
+      "query": "The third propose round for a document text ends without an admissible candidate. What does the reference state about further rounds?\nA) A fourth round is allowed with a written reason.\nB) The budget resets after each commit.\nC) `check` stops with the budget reason instead of asking for another round.\nD) `commit` may override the budget."
+    },
+    {
+      "id": "holdout-references-librarian-01",
+      "split": "validation",
+      "evidence": "A no-admissible verdict is a repair input, not a stop: read the complete verdict output first - the per-atom probe vectors, every reader diagnosis, and the measured baseline beside the candidate.",
+      "query": "A check round returns a no-admissible verdict. What must the editor do first?\nA) Stop the edit and close the document as unrepairable.\nB) Read the complete verdict output, including probe vectors, diagnoses, and the measured baseline beside the candidate.\nC) Rerun the same candidates without changing anything.\nD) Ask commit to select the least-bad candidate.",
+      "expected": "B"
+    },
+    {
+      "id": "holdout-references-librarian-02",
+      "split": "validation",
+      "evidence": "Keep an intent ledger of every change the edit must deliver, verify each intent item against the accepted text before closeout, and never drop an intent item because an earlier round rejected it.",
+      "query": "An earlier check round rejected one item in the edit's intent ledger. What must happen to that intent item before closeout?\nA) It must be dropped so the accepted text can pass.\nB) It must be converted into a held-out probe.\nC) It must be marked satisfied by the rejection itself.\nD) It must remain in the ledger and be verified against the accepted text.",
+      "expected": "D"
     }
   ],
   "runs_per_query": 3,

@@ -107,6 +107,18 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-cba1b5510b
+    placements:
+      - headingPath: *ref_1
+    precedence: 0
+    probeIds:
+      - train-32
+    status: active
+    tags: []
+    textSha256: cba1b5510b819008ccb915527433a56bea2adb306641b5d564b8635400edd793
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-7b6f31cc98
     placements:
       - headingPath: *ref_1
@@ -119,6 +131,43 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: 7b6f31cc98bfee1fb42c1fcacd48afa988abb0d93d58eb72aa37c07a33552259
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-6a6bf32e46
+    placements:
+      - headingPath: *ref_1
+    precedence: 0
+    probeIds:
+      - holdout-SKILL-01
+      - train-33
+    status: active
+    tags: []
+    textSha256: 6a6bf32e46d4b13c5d611c5735d22e2d6167c08bbed1e93fd242589796f2ebe7
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f824c28936
+    placements:
+      - headingPath: *ref_1
+    precedence: 0
+    probeIds:
+      - train-31
+    status: active
+    tags: []
+    textSha256: f824c28936cee1bfc82db57061f659119d3db931cdf7fe15d6f7682ae9c25a6f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-b98f7d36c3
+    placements:
+      - headingPath: *ref_1
+    precedence: 0
+    probeIds:
+      - validation-14
+    status: active
+    tags: []
+    textSha256: b98f7d36c346a4b85da7ffce25ee581fbdd46c011e7c6413e07c9c557dbc129e
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -370,7 +419,7 @@ atoms:
     tags:
       - rule_meaning
     textSha256: ed011f9601e1cc662ad44906346bbf7e58f3c3aa90df77c5ce5d9f86b07760b7
-  - behavioral: false
+  - behavioral: true
     harmful: 0
     helpful: 0
     id: r-bbf858bf74
@@ -387,7 +436,7 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: bbf858bf742b26c76c1ec8dfea1485c5f82ddbcc2f727cc0e6c7a72393a94948
-  - behavioral: false
+  - behavioral: true
     harmful: 0
     helpful: 0
     id: r-1ea9591430
@@ -417,7 +466,21 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: fe5882ef74aaa0c15ac3517113ca3fcb5d32114365039c69b13bc2214eee28ec
-  - behavioral: false
+  - behavioral: true
+    harmful: 0
+    helpful: 0
+    id: r-77b52fae58
+    placements:
+      - headingPath:
+          - Repo Search
+          - 3. Immutable Operational Rules
+    precedence: 0
+    probeIds:
+      - holdout-SKILL-02
+    status: active
+    tags: []
+    textSha256: 77b52fae5803b62cc457c8b59ba778fbc21814f90f2477fe68fe415d1b15136c
+  - behavioral: true
     harmful: 0
     helpful: 0
     id: r-1f049a21cd
@@ -506,7 +569,7 @@ atoms:
     tags:
       - rule_meaning
     textSha256: f548318a281ab6c44d3972b2f90bce8731a6ee60be51eb50364861100c54d2f0
-  - behavioral: true
+  - behavioral: false
     harmful: 0
     helpful: 0
     id: r-a090a46bb5
@@ -688,7 +751,11 @@ Atoms for `skills/repo-search/SKILL.md`.
 | `r-45561a5eed` | Repo Search > 2. Usage | 1 |
 | `r-3bbc11fa1d` | Repo Search > 2. Usage | 1 |
 | `r-4a25ef611f` | Repo Search > 3. Immutable Operational Rules | 1 |
+| `r-cba1b5510b` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-7b6f31cc98` | Repo Search > 3. Immutable Operational Rules | 1 |
+| `r-6a6bf32e46` | Repo Search > 3. Immutable Operational Rules | 2 |
+| `r-f824c28936` | Repo Search > 3. Immutable Operational Rules | 1 |
+| `r-b98f7d36c3` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-a99d1cb1a1` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-6385934215` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-f12a14aada` | Repo Search > 3. Immutable Operational Rules | 1 |
@@ -709,6 +776,7 @@ Atoms for `skills/repo-search/SKILL.md`.
 | `r-bbf858bf74` | Repo Search > 3. Immutable Operational Rules | 3 |
 | `r-1ea9591430` | Repo Search > 3. Immutable Operational Rules | 2 |
 | `r-fe5882ef74` | Repo Search > 3. Immutable Operational Rules | 2 |
+| `r-77b52fae58` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-1f049a21cd` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-93513f0b74` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-800ce23a34` | Repo Search > 3. Immutable Operational Rules | 1 |

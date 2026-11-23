@@ -71,7 +71,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-47a4d8d2aa
+    id: r-fe1c0fec46
     placements:
       - headingPath:
           - Librarian workflow
@@ -81,7 +81,33 @@ atoms:
       - train-06
     status: active
     tags: []
-    textSha256: 47a4d8d2aa006269639ff7dfeb67247482104bd146186d6e1284bc193084750e
+    textSha256: fe1c0fec4602e58777212cc2d478b917f7dee0ab451710e46a39391b0b53a75f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-c4dd19a42b
+    placements:
+      - headingPath: &ref_1
+          - Librarian workflow
+          - 3. check
+    precedence: 0
+    probeIds:
+      - holdout-references-librarian-01
+    status: active
+    tags: []
+    textSha256: c4dd19a42b8ba6da38b472c6ca7c1fe2b55181155276399582ddcd01ff086ee1
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-0c8056d9f6
+    placements:
+      - headingPath: *ref_1
+    precedence: 0
+    probeIds:
+      - holdout-references-librarian-02
+    status: active
+    tags: []
+    textSha256: 0c8056d9f679628ee26e54ccad0f91d90f1816f2d0bcc8073b1e49adb937c7b0
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -115,7 +141,7 @@ atoms:
     helpful: 0
     id: r-f2f6fca2e5
     placements:
-      - headingPath: &ref_1
+      - headingPath: &ref_2
           - Librarian workflow
           - 3. check
     precedence: 0
@@ -129,9 +155,10 @@ atoms:
     helpful: 0
     id: r-21fc9296b7
     placements:
-      - headingPath: *ref_1
+      - headingPath: *ref_2
     precedence: 0
     probeIds:
+      - train-09
       - validation-02
     status: active
     tags: []
@@ -155,7 +182,7 @@ atoms:
     helpful: 0
     id: r-db0976a40f
     placements:
-      - headingPath: &ref_2
+      - headingPath: &ref_3
           - Librarian workflow
           - 4. commit
     precedence: 0
@@ -169,7 +196,7 @@ atoms:
     helpful: 0
     id: r-a916fadf9c
     placements:
-      - headingPath: *ref_2
+      - headingPath: *ref_3
     precedence: 0
     probeIds:
       - validation-05
@@ -190,6 +217,19 @@ atoms:
     status: active
     tags: []
     textSha256: 0bc3575033ef43ae8ff648740229cddd7824410404a6564ca6f4171981eba820
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-47a4d8d2aa
+    placements:
+      - headingPath:
+          - Librarian workflow
+          - 2. propose
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 47a4d8d2aa006269639ff7dfeb67247482104bd146186d6e1284bc193084750e
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -247,11 +287,13 @@ Atoms for `skills/skill-manager/references/librarian.md`.
 | `r-1a09aa7155` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-b97ed788c7` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-ee1dbf9b3d` | Librarian workflow > 2. propose | 1 |
-| `r-47a4d8d2aa` | Librarian workflow > 2. propose | 1 |
+| `r-fe1c0fec46` | Librarian workflow > 2. propose | 1 |
+| `r-c4dd19a42b` | Librarian workflow > 3. check | 1 |
+| `r-0c8056d9f6` | Librarian workflow > 3. check | 1 |
 | `r-9a73b24146` | Librarian workflow > 3. check | 1 |
 | `r-f20c053012` | Librarian workflow > 3. check | 1 |
 | `r-f2f6fca2e5` | Librarian workflow > 3. check | 1 |
-| `r-21fc9296b7` | Librarian workflow > 3. check | 1 |
+| `r-21fc9296b7` | Librarian workflow > 3. check | 2 |
 | `r-301799f239` | Librarian workflow > 4. commit | 1 |
 | `r-db0976a40f` | Librarian workflow > 4. commit | 1 |
 | `r-a916fadf9c` | Librarian workflow > 4. commit | 1 |

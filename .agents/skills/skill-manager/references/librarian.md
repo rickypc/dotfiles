@@ -26,11 +26,21 @@ OS-temp directory of the shell, so set `INSTRUCTION_LIBRARIAN_STORE` to one abso
 `propose` and `check` run in different shells.
 
 `propose` rejects a proposal that carries more than three candidates, so four candidates produce no
-snapshot at all. `propose` also rejects a candidate that changes the skill description or leaves the
-document text unchanged, and it makes that decision itself without passing it to `check`. A document
-text gets at most three propose rounds.
+snapshot at all. A document text gets at most three propose rounds.
+
+`propose` itself rejects a candidate that changes the skill description or leaves the document text
+unchanged. That rejection is `propose`'s own decision and never passes to `check`. A candidate whose
+delta rewrites the description line is rejected by `propose`.
 
 ## 3. check
+
+A no-admissible verdict is a repair input, not a stop: read the complete verdict output first - the
+per-atom probe vectors, every reader diagnosis, and the measured baseline beside the candidate. The
+weak reader is the judge: when it cannot distinguish the candidate from the current text, the edit
+has no reader-visible behavior change, so restate the candidate toward reader-visible behavior or
+repair the wrong-shaped assertion; never rerun an unchanged measurement. Keep an intent ledger of
+every change the edit must deliver, verify each intent item against the accepted text before
+closeout, and never drop an intent item because an earlier round rejected it.
 
 `check` runs the structural checks first, then one batched reader run over every candidate, and then
 prints one verdict for the round. A structural failure skips the reader run and is reported with the

@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/knowledge-base/SKILL.md",
-      "sha256": "0523cfc6261956eaddaa06ff0df50d32b2445c3472b1a48521ac21feae03d9c1"
+      "sha256": "5e27ce5700a4ad72915f07cf7e217f076104454fdf8da27f77cafcf95a1ca242"
     },
     {
       "sourcePath": "evals/skills/knowledge-base/rubric.md",
@@ -45,7 +45,7 @@
       {
         "sourcePath": "skills/knowledge-base/SKILL.md",
         "setPath": "evals/skills/knowledge-base/comprehension/SKILL.json",
-        "queryCount": 39,
+        "queryCount": 41,
         "queryIds": [
           "train-01",
           "train-02",
@@ -85,7 +85,9 @@
           "validation-09",
           "validation-10",
           "validation-11",
-          "validation-12"
+          "validation-12",
+          "holdout-SKILL-01",
+          "holdout-SKILL-02"
         ]
       },
       {

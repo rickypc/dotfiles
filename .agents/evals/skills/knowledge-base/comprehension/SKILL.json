@@ -273,6 +273,20 @@
       "id": "validation-12",
       "query": "A write was materialized, OKF checks passed, and link checks passed, but the index updates have not happened. Is the write complete?\nA) Yes, OKF and link checks are enough\nB) No; it is complete only after preconditions, OKF checks, link checks, index updates, and receipts all pass\nC) Yes, because index updates are optional\nD) No; it is complete only after a second search ranks the concept first",
       "split": "validation"
+    },
+    {
+      "id": "holdout-SKILL-01",
+      "split": "validation",
+      "evidence": "For one concept, run `capture` with metadata, body, and evidence as separate positional arguments. For coordinated multi-concept changes, materialize the reconciliation request through the fixed TypeScript writer, then run `reconcile`.",
+      "query": "Which route matches the skill's capture/reconcile boundary?\nA) Use reconcile for one concept and capture for coordinated multi-concept changes.\nB) Use capture with separate metadata, body, and evidence arguments for one concept; use the fixed writer and reconcile for coordinated multi-concept changes.\nC) Use capture with one reconciliation JSON path for both one-concept and multi-concept writes.\nD) Use import-plan for one concept and direct Markdown edits for coordinated changes.",
+      "expected": "B"
+    },
+    {
+      "id": "holdout-SKILL-02",
+      "split": "validation",
+      "evidence": "The writer receives exactly one absolute output-path argument under the actual OS temporary directory, parses and formats JSON before writing, and rejects malformed, relative, or out-of-directory paths.",
+      "query": "A reconciliation request source contains malformed JSON, although its requested output path is absolute and under the real OS temporary directory. What does the fixed writer do?\nA) It rejects the malformed JSON instead of writing it.\nB) It writes the malformed source unchanged and lets reconcile parse it.\nC) It repairs the JSON semantically and writes the repaired request.\nD) It accepts the source because the output path is valid.",
+      "expected": "A"
     }
   ],
   "runs_per_query": 3,

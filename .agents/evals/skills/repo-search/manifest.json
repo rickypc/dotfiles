@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/repo-search/SKILL.md",
-      "sha256": "2f02fd7c36d922f9cf0ba8daab2ae7058a93173ea3e2e632768b1a631a3b53c5"
+      "sha256": "c01ae9444bdb4e7802a24de06bc25ace6588ea833d92aa20e87c485cec0f2222"
     },
     {
       "sourcePath": "evals/skills/repo-search/rubric.md",
@@ -30,7 +30,7 @@
     },
     {
       "sourcePath": "skills/repo-search/references/engine.md",
-      "sha256": "1e5b9bafad6d8b7297eae2e2cf766594a00fe67bd0392c5c829089fd65673ad8"
+      "sha256": "4411b1ce919ac8b4a8d35cf7675825bf5905f3f6ac1c0b7e6fb2be1aba1d21ef"
     },
     {
       "sourcePath": "skills/repo-search/references/usage-patterns.md",
@@ -97,7 +97,7 @@
       {
         "sourcePath": "skills/repo-search/SKILL.md",
         "setPath": "evals/skills/repo-search/comprehension/SKILL.json",
-        "queryCount": 43,
+        "queryCount": 49,
         "queryIds": [
           "train-28",
           "train-29",
@@ -141,7 +141,13 @@
           "validation-11",
           "validation-12",
           "validation-13",
-          "train-30"
+          "train-30",
+          "train-31",
+          "validation-14",
+          "holdout-SKILL-01",
+          "holdout-SKILL-02",
+          "train-32",
+          "train-33"
         ]
       },
       {
@@ -201,7 +207,7 @@
       {
         "sourcePath": "skills/repo-search/references/engine.md",
         "setPath": "evals/skills/repo-search/comprehension/references-engine.json",
-        "queryCount": 19,
+        "queryCount": 25,
         "queryIds": [
           "train-01",
           "train-02",
@@ -221,7 +227,13 @@
           "validation-04",
           "validation-06",
           "validation-05",
-          "train-13"
+          "train-13",
+          "train-14",
+          "validation-07",
+          "train-15",
+          "validation-08",
+          "holdout-references-engine-01",
+          "holdout-references-engine-02"
         ]
       },
       {
@@ -292,7 +304,7 @@
     "behaviorCases": 3
   },
   "fingerprints": {
-    "casesSha256": "97a066507b40529f32af451377ee5c5ff8c626e05f954df21eda717305cff3ec",
+    "casesSha256": "03d6845be097c95cfce0d3250fa76d19f677e727e45ced09647625d9aab66d47",
     "activationQueriesSha256": "676797ccf1f57d6f452bfddd67a8c8a6f0883852d7037263071830abf35b7e1b",
     "sourceRubricSha256": "911c3ce92dcecbcf117af1f241c5e490806363815bfa345cabb60f70bd7d4c52"
   }

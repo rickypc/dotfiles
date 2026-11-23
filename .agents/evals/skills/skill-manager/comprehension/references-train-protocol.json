@@ -305,6 +305,35 @@
       "id": "train-22",
       "query": "A sandboxed weak-reader run finds no GPU adapter. What does it report?\nA) Exit 1 with reason `no-adapter`\nB) Exit 2 with reason `no-adapter`\nC) Exit 0 with reason `failure`\nD) Exit 1 with reason `integrity`",
       "split": "train"
+    },
+    {
+      "evidence": "Read the DIAGNOSIS block: each failing probe, its source rule, and the weak reader's own view.",
+      "expected": "B",
+      "id": "train-23",
+      "split": "train",
+      "query": "An instruction-gate record rejection arrives. What does the protocol say to read first?\nA) The held-out probe texts for the document.\nB) The DIAGNOSIS block: each failing probe, its source rule, and the weak reader's own view.\nC) The document's full git history.\nD) The reader's benchmark profile."
+    },
+    {
+      "evidence": "Keep an intent ledger of every change the edit must deliver, verify each intent item against the accepted text before closeout, and never drop an intent item because an earlier round rejected it.",
+      "expected": "A",
+      "id": "train-24",
+      "split": "train",
+      "query": "What does the protocol direct about an edit's original intent items across weak-reader retry rounds?\nA) Keep an intent ledger, verify each intent item against the accepted text before closeout, and never drop an intent item because an earlier round rejected it.\nB) Retire intent items that any round rejected.\nC) Keep intent items only in memory of the first round.\nD) Restate the whole document to rediscover the intent.",
+      "retired": "Evidence quotes a refinement the weak reader judged already behaviorally covered by the retry loop (two no-admissible verdicts); the rule lives in references/librarian.md instead."
+    },
+    {
+      "id": "holdout-references-train-protocol-01",
+      "split": "validation",
+      "evidence": "Every distinct text of a document scored against its held-out probes is a look, whether the record is accepted or rejected. `evals/held-out-looks.jsonl` (`evals/skills/<skill>/held-out-looks.jsonl` for a skill) holds one line per look or rotation, and `policy.heldOutLooksPerEpoch` in the root manifest sets the limit (2). Recording the same text again is not a new look. The next distinct text after the limit is refused before any reader run. A fresh session that sees the atoms but no candidate diff authors a new held-out pool, then `record --rotate-pool <pool-file>` hashes it, starts a new epoch, and the record proceeds. Add the pool's probes to the set by §11 and `ratchet`.",
+      "query": "A fresh session with the atoms but no candidate diff needs to score another distinct text after the held-out look limit. What procedure does the protocol specify?\nA) Rescore the same text to reset the epoch, then run record normally.\nB) Use --allow-equal to bypass the look limit and keep the old pool.\nC) Author a new held-out pool, run record --rotate-pool <pool-file>, then add the pool's probes to the set and ratchet.\nD) Read the existing held-out probes and revise them before recording the candidate.",
+      "expected": "C"
+    },
+    {
+      "id": "holdout-references-train-protocol-02",
+      "split": "validation",
+      "evidence": "An `add` or `modify` is proven when the reader misses it on the current text and gets it on the candidate; a `retire` is the reverse; a `move` must be answered correctly on both. An unproven intent means the reader cannot see the edit. Intent probes are scored in the same run and are never added to the document's held-out set.",
+      "query": "Which intent result is proven under the evaluate-batch contract?\nA) An add intent that the reader answers correctly on both current and candidate texts.\nB) A move intent missed on the current text but answered correctly on the candidate.\nC) A retire intent missed on the current text and answered correctly on the candidate.\nD) A modify intent missed on the current text and answered correctly on the candidate.",
+      "expected": "D"
     }
   ],
   "runs_per_query": 3,

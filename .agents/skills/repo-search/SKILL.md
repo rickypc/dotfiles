@@ -8,7 +8,7 @@ description: >-
   an unknown, packed, or garbled binary, executable, or blob file is and what it contains. Mandatory
   first step for repository discovery. Do NOT use to edit code, review changes, or look up private
   knowledge-base notes.
-argument-hint: <approved-root> <query...> | read <approved-root> <target> [query...] | inspect <approved-root> <jsonl-path>
+argument-hint: <root> <query...> | read <root> <target> [query...] | inspect <root> <jsonl-path>
 capabilities:
   [
     "Script-owned transport probe (MCP stdio primary via the SDK, CLI second; REPO_SEARCH_TRANSPORT_FORCE overrides)",
@@ -69,9 +69,14 @@ in [usage-patterns.md](references/usage-patterns.md).
   Every backend child process is spawned with its working directory pinned to the backend's own
   cache root, so the caller's workspace cwd can no longer break the backend's runtime-settings load.
   The caller never chooses, bans, or hand-runs a transport, and never claims the backend is
-  unavailable without the script's transport receipt. On harnesses that register the
-  codebase-memory-mcp MCP server, its MCP tools are the transport-independent indexed route, and the
-  daemon log (`cbm-daemon.log`) proves daemon health before any reinstall attempt.
+  unavailable without the script's transport receipt. The pin fixes cache resolution, not the
+  caller's write boundary: a caller workspace that cannot write the backend cache root still breaks
+  the backend's runtime-settings load. Run the wrapper where the cache root lies inside the writable
+  workspace, or recover a nested workspace by granting the backend's canonical cache directory to
+  the session sandbox as an explicit additional writable root. Never recover this failure by
+  relocating the cache, reading the backend store, or restarting the daemon. On harnesses that
+  register the codebase-memory-mcp MCP server, its MCP tools are the transport-independent indexed
+  route, and the daemon log (`cbm-daemon.log`) proves daemon health before any reinstall attempt.
 - **Backend-store isolation:** Callers never access the backend storage; the backend binary owns it
   and every path inside it is redacted to `<backend-store>` in all wrapper output. A cache-private
   or sandbox denial is a transport failure - never an empty result and never backend
@@ -97,8 +102,8 @@ in [usage-patterns.md](references/usage-patterns.md).
   unavailable artifact evidence unverified.
 - **Index discipline:** The search never creates an index. If no ready index exists, report the
   caveat and answer with the local fallback. `read` creates an index only when no matching index
-  exists. `inspect` requires a ready matching index; otherwise it returns an error receipt
-  without indexing. When a symbol `read` creates an index, run `re-check status` and
+  exists. `inspect` requires a ready matching index; otherwise it returns an error receipt without
+  indexing. When a symbol `read` creates an index, run `re-check status` and
   `retry the requested read once`.
 - **Query pipeline:** One-token queries make one `search_code` call with `mode: "full"`. The request
   is `search_code --mode full --pattern <pattern> --project <project>` (generic form:
@@ -123,10 +128,10 @@ in [usage-patterns.md](references/usage-patterns.md).
   carried in `reliability.spillFile`.
 - **Binary rules:** The content gate classifies every located candidate by bytes. It is never
   extension-only. A NUL byte, or invalid UTF-8 plus magic bytes, identifies a binary candidate. Use
-  `file` mime as corroboration. Apply this rule: classify always, decode as needed. The [binary
-  router](references/binary-router.md) owns its eighteen route rows and check-then-install steps for
-  missing tools. Its extraction must work on a copy in the operating-system temporary directory
-  without creating ephemeral project indexes. It also owns receipt strategies:
+  `file` mime as corroboration. Apply this rule: classify always, decode as needed. The
+  [binary router](references/binary-router.md) owns its eighteen route rows and check-then-install
+  steps for missing tools. Its extraction must work on a copy in the operating-system temporary
+  directory without creating ephemeral project indexes. It also owns receipt strategies:
   `binary-gate:classify`, `binary-tool-check`, `binary-tool-install`, and `binary-route:*`. The
   website and running-app rows fire only on an explicitly provided target. Probe backend transports;
   never hand-run the `codebase-memory-mcp` binary.
@@ -139,9 +144,8 @@ in [usage-patterns.md](references/usage-patterns.md).
   request path for `inspect` on a root with a ready matching index.
 - **Optional:** Known subsystem boundaries, prior receipts, or one bounded batch of distinct
   independent reads through `inspect`. Duplicate normalized queries are rejected.
-- **Unknowns:** Report missing indexes, denied transports, and empty results with their caveats.
-  The rule is to never guess paths, never guess symbols, never guess causes, and never guess
-  completion.
+- **Unknowns:** Report missing indexes, denied transports, and empty results with their caveats. The
+  rule is to never guess paths, never guess symbols, never guess causes, and never guess completion.
 
 ## 5. Ordered Execution Chain
 

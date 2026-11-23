@@ -301,6 +301,48 @@
       "id": "train-30",
       "query": "Where does a repo-search caller read `status` and `results`?\nA) At the top level of the printed output\nB) In `data` of the shared CLI envelope\nC) In `diagnostics`\nD) In `exitCode`",
       "split": "train"
+    },
+    {
+      "evidence": "Run the wrapper where the cache root lies inside the writable workspace, or recover a nested workspace by granting the backend's canonical cache directory to the session sandbox as an explicit additional writable root.",
+      "expected": "A",
+      "id": "train-31",
+      "query": "A repo-search wrapper run from a nested workspace fails with `could not load saved runtime settings` while the backend cache exists. What does the skill direct?\nA) Grant the backend's canonical cache directory to the session sandbox as an explicit additional writable root.\nB) Relocate the backend cache into the workspace and rerun.\nC) Restart the daemon and clear the cache.\nD) Reinstall the backend binary.",
+      "split": "train"
+    },
+    {
+      "evidence": "Never recover this failure by relocating the cache, reading the backend store, or restarting the daemon.",
+      "expected": "B",
+      "id": "validation-14",
+      "query": "The nested-workspace runtime-settings failure persists. Which recovery does the guidance forbid?\nA) Granting the cache directory as an additional writable root.\nB) Relocating the cache, reading the backend store, or restarting the daemon.\nC) Running the wrapper from a workspace that can write the cache root.\nD) Using the host's registered MCP tools as the indexed route.",
+      "split": "validation"
+    },
+    {
+      "id": "holdout-SKILL-01",
+      "split": "validation",
+      "evidence": "The pin fixes cache resolution, not the caller's write boundary: a caller workspace that cannot write the backend cache root still breaks the backend's runtime-settings load.",
+      "query": "The wrapper pins every backend child process's working directory to the backend's cache root, but the caller's workspace cannot write that cache root and the backend fails to load its runtime settings. Does the working-directory pin alone fix this?\nA) Yes; the pin fixes both cache resolution and the caller's write boundary.\nB) No; the pin fixes cache resolution, not the caller's write boundary, so a workspace that cannot write the cache root still breaks the backend's runtime-settings load.\nC) Yes; the pin makes the cache root read-only safe for any workspace.\nD) Yes, once the daemon is restarted from inside the workspace.",
+      "expected": "B"
+    },
+    {
+      "id": "holdout-SKILL-02",
+      "split": "validation",
+      "evidence": "Slot results are budgeted to at most 8 results per slot with 200-character details; when budgets cut output, the full output spills to one operating-system temporary file carried in `reliability.spillFile`.",
+      "query": "A staged-fallback slot returns more matches than the budget allows and the output is cut. Where does the caller retrieve the full output?\nA) Re-run the same search with --verbose, which restores the full slot output.\nB) In the one operating-system temporary file carried in reliability.spillFile.\nC) In the detail strings of the attempts array.\nD) Nowhere; the cut output is discarded.",
+      "expected": "B"
+    },
+    {
+      "evidence": "Every backend child process is spawned with its working directory pinned to the backend's own cache root, so the caller's workspace cwd can no longer break the backend's runtime-settings load.",
+      "expected": "B",
+      "id": "train-32",
+      "split": "train",
+      "query": "What does the skill state about the backend child's working directory and the runtime-settings load?\nA) The child cwd is unpinned; callers must export CBM_CACHE_DIR.\nB) Every backend child process is spawned with its working directory pinned to the backend's own cache root.\nC) The child runs in the caller's workspace with a relocated cache.\nD) The pin applies only to the CLI transport."
+    },
+    {
+      "evidence": "The pin fixes cache resolution, not the caller's write boundary: a caller workspace that cannot write the backend cache root still breaks the backend's runtime-settings load.",
+      "expected": "A",
+      "id": "train-33",
+      "split": "train",
+      "query": "Per the skill, what does the backend child's pinned working directory actually fix?\nA) Cache resolution only; it does not authorize the caller's sandbox to write that cache root.\nB) Both cache resolution and the caller's sandbox write boundary.\nC) Nothing; the pin is advisory only.\nD) It authorizes writes but not reads."
     }
   ],
   "runs_per_query": 3,
