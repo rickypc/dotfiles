@@ -1,9 +1,17 @@
 {
-  "schemaVersion": 1,
-  "retirements": [
-    {
-      "caseId": "atom:r-aa70bd22ec",
-      "reason": "The shared CLI base paragraph in section 8 was shortened after the longer wording regressed the final-gate probe, so the earlier unit text and hash changed; the rebuilt map holds the current unit."
-    }
-  ]
+ "schemaVersion": 1,
+ "retirements": [
+  {
+   "caseId": "atom:r-aa70bd22ec",
+   "reason": "The shared CLI base paragraph in section 8 was shortened after the longer wording regressed the final-gate probe, so the earlier unit text and hash changed; the rebuilt map holds the current unit."
+  },
+  {
+   "caseId": "atom:r-ff5a1a8ab8",
+   "reason": "Probe retired before baselining: the weak reader answers this layout-presence question from plausibility rather than the document text, so the atom can no longer be probed with signal."
+  },
+  {
+   "caseId": "atom:r-65cf241329",
+   "reason": "Probe retired before baselining: the weak reader answers this layout-presence question from plausibility rather than the document text, so the atom can no longer be probed with signal."
+  }
+ ]
 }
