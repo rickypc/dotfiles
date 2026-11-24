@@ -92,7 +92,7 @@ atoms:
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
-      - headingPath: &ref_51
+      - headingPath: &ref_49
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -129,7 +129,7 @@ atoms:
     helpful: 0
     id: r-87d26439f0
     placements:
-      - headingPath: &ref_39
+      - headingPath: &ref_51
           - Universal Assistant Runtime
           - '1. Read this first: decision order'
     precedence: 0
@@ -207,7 +207,7 @@ atoms:
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
-      - headingPath: &ref_52
+      - headingPath: &ref_50
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -1337,7 +1337,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-107dc904b8
+    id: r-09f8f5c583
     placements:
       - headingPath: &ref_20
           - Universal Assistant Runtime
@@ -1348,11 +1348,8 @@ atoms:
       - train-51
       - train-78
     status: active
-    tags:
-      - boundary
-      - precedence_order
-      - rule_meaning
-    textSha256: 107dc904b80bedd28df0b51d38e82be15fa79e485d70bfe8ea8d1f6d0aec159f
+    tags: []
+    textSha256: 09f8f5c583a8b6edbc413294b98134a090fc8c08d2412df931ae2824ed4642c0
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -1361,22 +1358,12 @@ atoms:
       - headingPath: *ref_20
     precedence: 0
     probeIds:
+      - train-22
+      - train-51
       - train-78
     status: active
     tags: []
     textSha256: 96d0711d9002d5cda51d0bd7e3298c53b3620909289f7c950622557061e6e311
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-19a731d465
-    placements:
-      - headingPath: *ref_20
-    precedence: 0
-    probeIds:
-      - train-78
-    status: active
-    tags: []
-    textSha256: 19a731d46549ef93b7a6ca1a0d4a7211ea355006e2466ff73889e494421e71d7
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -2103,6 +2090,7 @@ atoms:
           - File retirement (deletion is prohibited)
     precedence: 0
     probeIds:
+      - train-41
       - train-73
       - train-77
       - train-85
@@ -2117,6 +2105,7 @@ atoms:
       - headingPath: *ref_34
     precedence: 0
     probeIds:
+      - train-41
       - train-73
       - train-77
       - train-85
@@ -2126,7 +2115,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-72d1dc5ddf
+    id: r-a2fb43a443
     placements:
       - headingPath: *ref_34
     precedence: 0
@@ -2136,12 +2125,23 @@ atoms:
       - train-77
       - train-85
     status: active
-    tags:
-      - boundary
-      - combined_pressure
-      - precedence_order
-      - rule_meaning
-    textSha256: 72d1dc5ddfecb1a6c092c493c13449b8e230cd3cb618b9e90f1c93aa6cb844be
+    tags: []
+    textSha256: a2fb43a44374ae3cdcaf3a053c93c757e824e75138255eb6c038b1424ce6fa21
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-0fb262925f
+    placements:
+      - headingPath: *ref_34
+    precedence: 0
+    probeIds:
+      - train-41
+      - train-73
+      - train-77
+      - train-85
+    status: active
+    tags: []
+    textSha256: 0fb262925fc13b94f0b83a5a984be7bef14d5bad63e950f3fd83012301f4cd53
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -2150,9 +2150,7 @@ atoms:
       - headingPath: *ref_34
     precedence: 0
     probeIds:
-      - train-41
       - train-73
-      - train-77
       - train-85
     status: active
     tags:
@@ -2218,7 +2216,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-8de83dfc29
+    id: r-584712e131
     placements:
       - headingPath: *ref_35
     precedence: 0
@@ -2226,7 +2224,7 @@ atoms:
       - train-59
     status: active
     tags: []
-    textSha256: 8de83dfc2939cabfa25d6e821f6654eba21dced330b75ec2e7b945a2bcc32334
+    textSha256: 584712e1310d0200b4ad1203a1a2cf56cb3aa384276a47012ce6c55c9cd95429
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -2281,7 +2279,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-c3727ee485
+    id: r-83fe122374
     placements:
       - headingPath: *ref_37
     precedence: 0
@@ -2289,38 +2287,12 @@ atoms:
       - train-26
       - train-60
     status: active
-    tags:
-      - precedence_order
-      - rule_meaning
-    textSha256: c3727ee485c992935a274d0d84ec2abf4229e43bcdbbdf08d90aad99021440ea
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-a6b9f3b28b
-    placements:
-      - headingPath: *ref_37
-    precedence: 0
-    probeIds:
-      - train-60
-    status: active
     tags: []
-    textSha256: a6b9f3b28b44251878423475ae8473e2a34b0c5c7ae3ce5db4934178e59584a6
+    textSha256: 83fe1223743be34572fb7648dc93c7741a25212fd59c1e9ed62697e894977de8
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-0c7ff24faa
-    placements:
-      - headingPath: *ref_37
-    precedence: 0
-    probeIds:
-      - train-60
-    status: active
-    tags: []
-    textSha256: 0c7ff24faafd0291cbb29f1e33c3d289b86b0ba4b4b63032e538bc6c06ee0bda
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-6d2c15c8da
+    id: r-3f5d2e24b9
     placements:
       - headingPath: *ref_38
     precedence: 0
@@ -2328,87 +2300,46 @@ atoms:
       - train-61
     status: active
     tags: []
-    textSha256: 6d2c15c8dabf469d899609a8e40561dacb87c096cc14fd885f4d2166ccf4ebbe
+    textSha256: 3f5d2e24b9e2c161df8c4b718bcacbea96e9dd44ac564f72bcd6af4a21bb8232
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-ed34ad8dd1
+    id: r-cba220f37b
     placements:
-      - headingPath: *ref_38
-    precedence: 0
-    probeIds:
-      - train-61
-    status: active
-    tags: []
-    textSha256: ed34ad8dd1285c753bb7d2f8932d18e22d4cd6cc211cde45c9c050c78489e700
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-267c23695b
-    placements:
-      - headingPath: *ref_39
-      - headingPath:
-          - Universal Assistant Runtime
-          - 2. Scope and authorization
-      - headingPath:
-          - Universal Assistant Runtime
-          - 7. Coding and test changes
-          - Mechanical rewrites and formatting transforms
-      - headingPath: &ref_40
+      - headingPath: &ref_39
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
-      - headingPath:
-          - Universal Assistant Runtime
-          - '9. Validation, gates, and closeout'
-          - Atom maps
-      - headingPath:
-          - Universal Assistant Runtime
-          - '9. Validation, gates, and closeout'
-          - Atom maps
-    precedence: 0
-    probeIds:
-      - train-62
-    status: active
-    tags: []
-    textSha256: 267c23695b6e8fc29bd88b9f5d1962d3d208fa9c2fafd974614e6ab3b84fa55c
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-0550099442
-    placements:
-      - headingPath: *ref_40
     precedence: 0
     probeIds:
       - train-62
       - train-79
     status: active
     tags: []
-    textSha256: 0550099442efd50993662ad2b6c61a9a8b7fadf095f194600c21a5095c09f1c9
+    textSha256: cba220f37bad4becc3369a1f306bc52dc8372c0b38e44bd8a79644cf56a93397
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-515b351ba4
+    id: r-7274cd92cc
     placements:
-      - headingPath: &ref_41
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
+      - headingPath: *ref_39
     precedence: 0
     probeIds:
       - train-40
       - train-62
       - train-79
     status: active
-    tags:
-      - rule_meaning
-    textSha256: 515b351ba4cdeb3c167b6fe70b166cb6f5b84223f08b77883eba4ad7cf380cd0
+    tags: []
+    textSha256: 7274cd92cc301661bc026bc6c0341f1690e54e25c32f1ea98dc2fdbbbb9f271c
   - behavioral: false
     harmful: 0
     helpful: 0
     id: r-8b6135ff6c
     placements:
-      - headingPath: *ref_41
+      - headingPath: &ref_40
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
     precedence: 0
     probeIds:
       - train-62
@@ -2418,69 +2349,18 @@ atoms:
     textSha256: 8b6135ff6cd55c027b5c0955af8b2ecf0e2f50a99ba09557a9a831e7ebd1a1ec
   - behavioral: false
     harmful: 0
-    helpful: 0
-    id: r-f769183794
+    helpful: 1
+    id: r-9011e53586
     placements:
-      - headingPath: *ref_41
-    precedence: 0
-    probeIds:
-      - train-62
-      - train-79
-    status: active
-    tags: []
-    textSha256: f7691837947cafeeaedbdd05e0f3c93c3973df9859b1dd514ac00bb6d7d1229d
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-d930aad34d
-    placements:
-      - headingPath:
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
-    precedence: 0
-    probeIds:
-      - train-62
-      - train-79
-    status: active
-    tags: []
-    textSha256: d930aad34d32b65e5ce5f4167a205e2e1542672785a802dfb1a41482a454764f
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-9bbe2ed772
-    placements:
-      - headingPath:
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
-    precedence: 0
-    probeIds:
-      - train-62
-      - train-79
-    status: active
-    tags: []
-    textSha256: 9bbe2ed77245f94aba4f8cdac3324376643963b16530b698d83c5d6fa2627bd7
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-4663ba9e6d
-    placements:
-      - headingPath:
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
+      - headingPath: *ref_40
     precedence: 0
     probeIds:
       - train-38
       - train-62
       - train-79
     status: active
-    tags:
-      - boundary
-      - exception_failure
-      - rule_meaning
-    textSha256: 4663ba9e6d08514818086360531c2cda0ad44d095d29a9eaa8242214b6ace97f
+    tags: []
+    textSha256: 9011e535863d33357aaf5cbd3e6d89c9346ecbe4debd9c51a297342a529feca7
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -2493,6 +2373,7 @@ atoms:
     precedence: 0
     probeIds:
       - train-37
+      - train-62
       - train-63
       - train-79
     status: active
@@ -2505,12 +2386,13 @@ atoms:
     helpful: 0
     id: r-2e5315f907
     placements:
-      - headingPath: &ref_42
+      - headingPath: &ref_41
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
     precedence: 0
     probeIds:
+      - train-62
       - train-63
       - train-79
       - validation-15
@@ -2525,10 +2407,12 @@ atoms:
     helpful: 0
     id: r-957ba5b66f
     placements:
-      - headingPath: *ref_42
+      - headingPath: *ref_41
     precedence: 0
     probeIds:
+      - train-62
       - train-63
+      - train-79
     status: active
     tags: []
     textSha256: 957ba5b66f005fc084e17749548045f9b94250dfc86803965154ab639bd085f5
@@ -2537,10 +2421,12 @@ atoms:
     helpful: 0
     id: r-4fdb572b29
     placements:
-      - headingPath: *ref_42
+      - headingPath: *ref_41
     precedence: 0
     probeIds:
+      - train-62
       - train-63
+      - train-79
     status: active
     tags: []
     textSha256: 4fdb572b2931ad8d7d2416c96378b284f25bf659214ac79913f118c787915223
@@ -2549,11 +2435,13 @@ atoms:
     helpful: 0
     id: r-8d6d46f795
     placements:
-      - headingPath: *ref_42
+      - headingPath: *ref_41
     precedence: 0
     probeIds:
       - train-39
+      - train-62
       - train-63
+      - train-79
     status: active
     tags:
       - boundary
@@ -2563,25 +2451,10 @@ atoms:
     textSha256: 8d6d46f79597518d242e9fb94d6a632b33e5da00d074b8f37b0585051e6cfa60
   - behavioral: false
     harmful: 0
-    helpful: 0
-    id: r-5759482a03
+    helpful: 1
+    id: r-2ca1fbccfe
     placements:
-      - headingPath: &ref_49
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
-    precedence: 0
-    probeIds:
-      - train-64
-    status: active
-    tags: []
-    textSha256: 5759482a032f6db0b1104a6415186a5f9da6e586a245610f54bd1657b1176cbe
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-513f7f3f7f
-    placements:
-      - headingPath:
+      - headingPath: &ref_47
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
@@ -2590,30 +2463,17 @@ atoms:
       - train-64
       - validation-13
     status: active
-    tags:
-      - rule_meaning
-    textSha256: 513f7f3f7fea2af5589c816ad0d09984686130d930ab47fb5a60f43a9760bbb3
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-2a32264058
-    placements:
-      - headingPath: &ref_43
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
-    precedence: 0
-    probeIds:
-      - train-64
-    status: active
     tags: []
-    textSha256: 2a3226405833822147e2e7b7729900971c070580833295ccf46f06e6ada27824
+    textSha256: 2ca1fbccfee17fefee8d8a885464c5cdfde9915619432b5d447cd339625765c4
   - behavioral: false
     harmful: 0
     helpful: 0
     id: r-db30ef57b7
     placements:
-      - headingPath: *ref_43
+      - headingPath: &ref_42
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
     precedence: 0
     probeIds:
       - train-64
@@ -2625,7 +2485,7 @@ atoms:
     helpful: 0
     id: r-c0ad177910
     placements:
-      - headingPath: *ref_43
+      - headingPath: *ref_42
     precedence: 0
     probeIds:
       - train-64
@@ -2637,7 +2497,7 @@ atoms:
     helpful: 0
     id: r-6be9dc5c49
     placements:
-      - headingPath: *ref_43
+      - headingPath: *ref_42
     precedence: 0
     probeIds:
       - train-64
@@ -2646,66 +2506,23 @@ atoms:
     textSha256: 6be9dc5c49e385bb990ed15dbad098cba76ef060f8590c016e503c3a52d5ca3c
   - behavioral: false
     harmful: 0
-    helpful: 0
-    id: r-e8e599b4fd
+    helpful: 1
+    id: r-677bffa60d
     placements:
-      - headingPath: *ref_43
-    precedence: 0
-    probeIds:
-      - train-64
-    status: active
-    tags: []
-    textSha256: e8e599b4fdb481ef8cf7da79f5786d88be23c9ef37f301cb16914486d6486901
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-42ca5e4ca5
-    placements:
-      - headingPath:
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
+      - headingPath: *ref_42
     precedence: 0
     probeIds:
       - train-64
       - validation-27
     status: active
-    tags:
-      - rule_meaning
-    textSha256: 42ca5e4ca539ab70eed346f88f86a3955bcd77031ccd6b2214afa945cdba8617
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-45faf5f251
-    placements:
-      - headingPath: &ref_44
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
-    precedence: 0
-    probeIds:
-      - train-64
-    status: active
     tags: []
-    textSha256: 45faf5f251aed91e303a942895dcab670c570e3fda51a0ba278ad903887c577c
-  - behavioral: false
-    harmful: 0
-    helpful: 0
-    id: r-7e7b9ff26e
-    placements:
-      - headingPath: *ref_44
-    precedence: 0
-    probeIds:
-      - train-64
-    status: active
-    tags: []
-    textSha256: 7e7b9ff26ee1489e8d42c5988dd8e79eccbf10724e506902fba5dd42781f92c3
+    textSha256: 677bffa60d5741078703cc1f78282dc20604cdfb3e5836e8bfdf42da4a5ba390
   - behavioral: false
     harmful: 0
     helpful: 0
     id: r-04eedf1bea
     placements:
-      - headingPath: &ref_45
+      - headingPath: &ref_43
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - String-only JSON boundary
@@ -2720,7 +2537,7 @@ atoms:
     helpful: 0
     id: r-f46ec7fb10
     placements:
-      - headingPath: *ref_45
+      - headingPath: *ref_43
     precedence: 0
     probeIds:
       - train-65
@@ -2730,24 +2547,21 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-cfab26eb68
+    id: r-feedbfd75a
     placements:
-      - headingPath: *ref_45
+      - headingPath: *ref_43
     precedence: 0
     probeIds:
       - train-65
     status: active
     tags: []
-    textSha256: cfab26eb684cbba4d7d1bd8ff6a22b87eb98469a34197e5145430c2b7ca4fc5f
+    textSha256: feedbfd75a8e95630803a8c3137cb83c21db9771617378613e96ecce66138d2a
   - behavioral: false
     harmful: 0
     helpful: 0
     id: r-22076dc720
     placements:
-      - headingPath:
-          - Universal Assistant Runtime
-          - '8. Command, script, and structured-data contracts'
-          - String-only JSON boundary
+      - headingPath: *ref_43
     precedence: 0
     probeIds:
       - train-65
@@ -2808,7 +2622,7 @@ atoms:
     helpful: 0
     id: r-f0385825a5
     placements:
-      - headingPath: &ref_46
+      - headingPath: &ref_44
           - Universal Assistant Runtime
           - '8. Command, script, and structured-data contracts'
           - Tool-call and sandbox discipline
@@ -2825,7 +2639,7 @@ atoms:
     helpful: 0
     id: r-3929e87a82
     placements:
-      - headingPath: *ref_46
+      - headingPath: *ref_44
     precedence: 0
     probeIds:
       - train-43
@@ -2841,7 +2655,7 @@ atoms:
     helpful: 0
     id: r-becaa5c6ab
     placements:
-      - headingPath: &ref_47
+      - headingPath: &ref_45
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Behavioral evaluation sessions
@@ -2857,7 +2671,7 @@ atoms:
     helpful: 0
     id: r-e286f048b8
     placements:
-      - headingPath: *ref_47
+      - headingPath: *ref_45
     precedence: 0
     probeIds:
       - train-57
@@ -2886,7 +2700,7 @@ atoms:
     helpful: 0
     id: r-c949df8d4f
     placements:
-      - headingPath: &ref_48
+      - headingPath: &ref_46
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -2903,7 +2717,7 @@ atoms:
     helpful: 0
     id: r-cbf3a032bf
     placements:
-      - headingPath: *ref_48
+      - headingPath: *ref_46
     precedence: 0
     probeIds:
       - train-27
@@ -2944,8 +2758,8 @@ atoms:
           - Universal Assistant Runtime
           - 7. Coding and test changes
           - Mechanical rewrites and formatting transforms
-      - headingPath: *ref_49
-      - headingPath: &ref_50
+      - headingPath: *ref_47
+      - headingPath: &ref_48
           - Universal Assistant Runtime
           - '9. Validation, gates, and closeout'
           - Atom maps
@@ -2964,7 +2778,7 @@ atoms:
     helpful: 0
     id: r-d0898ecdee
     placements:
-      - headingPath: *ref_50
+      - headingPath: *ref_48
     precedence: 0
     probeIds:
       - train-28
@@ -2997,7 +2811,7 @@ atoms:
     helpful: 0
     id: r-1a6ce67ed9
     placements:
-      - headingPath: *ref_51
+      - headingPath: *ref_49
     precedence: 0
     probeIds:
       - train-35
@@ -3010,18 +2824,72 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-cb76931756
+    id: r-1403d0251d
+    placements:
+      - headingPath: *ref_50
+    precedence: 0
+    probeIds:
+      - train-35
+    status: active
+    tags: []
+    textSha256: 1403d0251dc1198ff026e7adadac881fa04f3ba7f0b0b42dce1408e8baacfefa
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-267c23695b
+    placements:
+      - headingPath: *ref_51
+      - headingPath:
+          - Universal Assistant Runtime
+          - 2. Scope and authorization
+      - headingPath:
+          - Universal Assistant Runtime
+          - 7. Coding and test changes
+          - Mechanical rewrites and formatting transforms
+      - headingPath: *ref_39
+      - headingPath:
+          - Universal Assistant Runtime
+          - '9. Validation, gates, and closeout'
+          - Atom maps
+      - headingPath: &ref_52
+          - Universal Assistant Runtime
+          - '9. Validation, gates, and closeout'
+          - Atom maps
+    precedence: 0
+    probeIds:
+      - train-35
+      - train-62
+      - train-79
+    status: active
+    tags: []
+    textSha256: 267c23695b6e8fc29bd88b9f5d1962d3d208fa9c2fafd974614e6ab3b84fa55c
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-ff5a1a8ab8
     placements:
       - headingPath: *ref_52
     precedence: 0
     probeIds:
       - train-35
     status: active
-    tags:
-      - combined_pressure
-      - precedence_order
-      - rule_meaning
-    textSha256: cb7693175679f5c86898e583982688e1cb4e819b785cf5a3649b1d0154d1425d
+    tags: []
+    textSha256: ff5a1a8ab800e345382de0d0935e5da38e0d6e878ca737c85c7119e2d57d15c2
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-65cf241329
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '9. Validation, gates, and closeout'
+          - Atom maps
+    precedence: 0
+    probeIds:
+      - train-35
+    status: active
+    tags: []
+    textSha256: 65cf24132907968983a9c8e82043057c35fea0c2463624012d8507a0625491e3
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -3119,21 +2987,322 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-ff5a1a8ab8
+    id: r-107dc904b8
     placements:
-      - headingPath:
+      - headingPath: &ref_55
           - Universal Assistant Runtime
-          - '9. Validation, gates, and closeout'
-          - Atom maps
+          - 7. Coding and test changes
     precedence: 0
     probeIds: []
     status: retired
-    tags: []
-    textSha256: ff5a1a8ab800e345382de0d0935e5da38e0d6e878ca737c85c7119e2d57d15c2
+    tags:
+      - boundary
+      - precedence_order
+      - rule_meaning
+    textSha256: 107dc904b80bedd28df0b51d38e82be15fa79e485d70bfe8ea8d1f6d0aec159f
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-65cf241329
+    id: r-19a731d465
+    placements:
+      - headingPath: *ref_55
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 19a731d46549ef93b7a6ca1a0d4a7211ea355006e2466ff73889e494421e71d7
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-72d1dc5ddf
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - File retirement (deletion is prohibited)
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - combined_pressure
+      - precedence_order
+      - rule_meaning
+    textSha256: 72d1dc5ddfecb1a6c092c493c13449b8e230cd3cb618b9e90f1c93aa6cb844be
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-8de83dfc29
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 8de83dfc2939cabfa25d6e821f6654eba21dced330b75ec2e7b945a2bcc32334
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-c3727ee485
+    placements:
+      - headingPath: &ref_56
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - precedence_order
+      - rule_meaning
+    textSha256: c3727ee485c992935a274d0d84ec2abf4229e43bcdbbdf08d90aad99021440ea
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-a6b9f3b28b
+    placements:
+      - headingPath: *ref_56
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: a6b9f3b28b44251878423475ae8473e2a34b0c5c7ae3ce5db4934178e59584a6
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-0c7ff24faa
+    placements:
+      - headingPath: *ref_56
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 0c7ff24faafd0291cbb29f1e33c3d289b86b0ba4b4b63032e538bc6c06ee0bda
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-6d2c15c8da
+    placements:
+      - headingPath: &ref_57
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 6d2c15c8dabf469d899609a8e40561dacb87c096cc14fd885f4d2166ccf4ebbe
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-ed34ad8dd1
+    placements:
+      - headingPath: *ref_57
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: ed34ad8dd1285c753bb7d2f8932d18e22d4cd6cc211cde45c9c050c78489e700
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-0550099442
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 0550099442efd50993662ad2b6c61a9a8b7fadf095f194600c21a5095c09f1c9
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-515b351ba4
+    placements:
+      - headingPath: &ref_58
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: 515b351ba4cdeb3c167b6fe70b166cb6f5b84223f08b77883eba4ad7cf380cd0
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f769183794
+    placements:
+      - headingPath: *ref_58
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: f7691837947cafeeaedbdd05e0f3c93c3973df9859b1dd514ac00bb6d7d1229d
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-d930aad34d
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: d930aad34d32b65e5ce5f4167a205e2e1542672785a802dfb1a41482a454764f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-9bbe2ed772
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 9bbe2ed77245f94aba4f8cdac3324376643963b16530b698d83c5d6fa2627bd7
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-4663ba9e6d
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - boundary
+      - exception_failure
+      - rule_meaning
+    textSha256: 4663ba9e6d08514818086360531c2cda0ad44d095d29a9eaa8242214b6ace97f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-5759482a03
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 5759482a032f6db0b1104a6415186a5f9da6e586a245610f54bd1657b1176cbe
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-513f7f3f7f
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: 513f7f3f7fea2af5589c816ad0d09984686130d930ab47fb5a60f43a9760bbb3
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-2a32264058
+    placements:
+      - headingPath: &ref_59
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 2a3226405833822147e2e7b7729900971c070580833295ccf46f06e6ada27824
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-e8e599b4fd
+    placements:
+      - headingPath: *ref_59
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: e8e599b4fdb481ef8cf7da79f5786d88be23c9ef37f301cb16914486d6486901
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-42ca5e4ca5
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: 42ca5e4ca539ab70eed346f88f86a3955bcd77031ccd6b2214afa945cdba8617
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-45faf5f251
+    placements:
+      - headingPath: &ref_60
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 45faf5f251aed91e303a942895dcab670c570e3fda51a0ba278ad903887c577c
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-7e7b9ff26e
+    placements:
+      - headingPath: *ref_60
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: 7e7b9ff26ee1489e8d42c5988dd8e79eccbf10724e506902fba5dd42781f92c3
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-cfab26eb68
+    placements:
+      - headingPath:
+          - Universal Assistant Runtime
+          - '8. Command, script, and structured-data contracts'
+          - String-only JSON boundary
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: cfab26eb684cbba4d7d1bd8ff6a22b87eb98469a34197e5145430c2b7ca4fc5f
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-cb76931756
     placements:
       - headingPath:
           - Universal Assistant Runtime
@@ -3142,8 +3311,11 @@ atoms:
     precedence: 0
     probeIds: []
     status: retired
-    tags: []
-    textSha256: 65cf24132907968983a9c8e82043057c35fea0c2463624012d8507a0625491e3
+    tags:
+      - combined_pressure
+      - precedence_order
+      - rule_meaning
+    textSha256: cb7693175679f5c86898e583982688e1cb4e819b785cf5a3649b1d0154d1425d
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -3275,9 +3447,8 @@ Atoms for `AGENTS.md`.
 | `r-4e6e6a8660` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-e46466d246` | Universal Assistant Runtime > 7. Coding and test changes | 2 |
 | `r-b44faec378` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
-| `r-107dc904b8` | Universal Assistant Runtime > 7. Coding and test changes | 3 |
-| `r-96d0711d90` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
-| `r-19a731d465` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
+| `r-09f8f5c583` | Universal Assistant Runtime > 7. Coding and test changes | 3 |
+| `r-96d0711d90` | Universal Assistant Runtime > 7. Coding and test changes | 3 |
 | `r-e4e2431639` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-b87335ab8b` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
 | `r-70e3e06f12` | Universal Assistant Runtime > 7. Coding and test changes | 1 |
@@ -3326,50 +3497,39 @@ Atoms for `AGENTS.md`.
 | `r-9c0642679e` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 1 |
 | `r-15d12abdaa` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 2 |
 | `r-e8d9634b8f` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 3 |
-| `r-60155438a3` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 3 |
-| `r-1c72c756b6` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 3 |
-| `r-72d1dc5ddf` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 4 |
-| `r-cb684dff73` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 4 |
+| `r-60155438a3` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 4 |
+| `r-1c72c756b6` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 4 |
+| `r-a2fb43a443` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 4 |
+| `r-0fb262925f` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 4 |
+| `r-cb684dff73` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 2 |
 | `r-d8efc48b0b` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 2 |
 | `r-dafb68a52a` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 2 |
 | `r-652a3f0e6e` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > File retirement (deletion is prohibited) | 2 |
 | `r-dd909140ee` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-8de83dfc29` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
+| `r-584712e131` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-ccd0edaa97` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-7198596d06` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-80341af452` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-50ab7c66b7` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-c3727ee485` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-a6b9f3b28b` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-0c7ff24faa` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-6d2c15c8da` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-ed34ad8dd1` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-267c23695b` | Universal Assistant Runtime > 1. Read this first: decision order; Universal Assistant Runtime > 2. Scope and authorization; Universal Assistant Runtime > 7. Coding and test changes > Mechanical rewrites and formatting transforms; Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary; Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps; Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
-| `r-0550099442` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-515b351ba4` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
+| `r-83fe122374` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
+| `r-3f5d2e24b9` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
+| `r-cba220f37b` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
+| `r-7274cd92cc` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
 | `r-8b6135ff6c` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-f769183794` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-d930aad34d` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-9bbe2ed772` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-4663ba9e6d` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
-| `r-65b8d1761b` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
-| `r-2e5315f907` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
-| `r-957ba5b66f` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-4fdb572b29` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-8d6d46f795` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-5759482a03` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-513f7f3f7f` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-2a32264058` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
+| `r-9011e53586` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
+| `r-65b8d1761b` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 4 |
+| `r-2e5315f907` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 4 |
+| `r-957ba5b66f` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
+| `r-4fdb572b29` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 3 |
+| `r-8d6d46f795` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 4 |
+| `r-2ca1fbccfe` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
 | `r-db30ef57b7` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-c0ad177910` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-6be9dc5c49` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-e8e599b4fd` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-42ca5e4ca5` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
-| `r-45faf5f251` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-7e7b9ff26e` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
+| `r-677bffa60d` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 2 |
 | `r-04eedf1bea` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-f46ec7fb10` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
-| `r-cfab26eb68` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
+| `r-feedbfd75a` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-22076dc720` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary | 1 |
 | `r-eb795722f2` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > Temporary paths | 1 |
 | `r-1e530493d7` | Universal Assistant Runtime > 8. Command, script, and structured-data contracts > Model error recovery | 1 |
@@ -3386,7 +3546,10 @@ Atoms for `AGENTS.md`.
 | `r-d0898ecdee` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
 | `r-1d78c71e69` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
 | `r-1a6ce67ed9` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
-| `r-cb76931756` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
+| `r-1403d0251d` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
+| `r-267c23695b` | Universal Assistant Runtime > 1. Read this first: decision order; Universal Assistant Runtime > 2. Scope and authorization; Universal Assistant Runtime > 7. Coding and test changes > Mechanical rewrites and formatting transforms; Universal Assistant Runtime > 8. Command, script, and structured-data contracts > String-only JSON boundary; Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps; Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 3 |
+| `r-ff5a1a8ab8` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
+| `r-65cf241329` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
 | `r-8cfab7ef43` | Universal Assistant Runtime > 9. Validation, gates, and closeout > Atom maps | 1 |
 | `r-626bc01a95` | Universal Assistant Runtime > Appendix A: repo-search command catalog | 1 |
 | `r-c94f49ac49` | Universal Assistant Runtime > Appendix A: repo-search command catalog | 1 |

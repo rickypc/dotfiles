@@ -1,131 +1,187 @@
 {
-  "kind": "comprehension",
-  "queries": [
-    {
-      "evidence": "A delta is a list of ops over anchored rule atoms, and it never replaces the whole document.",
-      "expected": "A",
-      "id": "train-01",
-      "query": "What does a librarian delta contain?\nA) A list of ops over anchored rule atoms.\nB) The full replacement text of the document.\nC) A unified diff of the file.\nD) A sentence-by-sentence rewrite of the document.",
-      "split": "train"
-    },
-    {
-      "evidence": "The op `tag` changes only a helpful or harmful counter and never touches the text.",
-      "expected": "C",
-      "id": "train-02",
-      "query": "Which delta op changes only an atom counter and never the document text?\nA) modify\nB) move\nC) tag\nD) retire",
-      "split": "train"
-    },
-    {
-      "evidence": "Every `modify` and `retire` op carries a reason of at least 20 characters, and `commit` records it as an `atom:<id>` row in the owner's `retirements.json`.",
-      "expected": "D",
-      "id": "train-03",
-      "query": "Where does commit record the reason of a retire op?\nA) In the frontmatter of the atom map.\nB) In the receipt for the document.\nC) In the ledger of the owner.\nD) As an atom:<id> row in the owner's retirements.json.",
-      "split": "train"
-    },
-    {
-      "evidence": "A drifted anchor, two ops on one atom, or any change outside a named atom span rejects the whole delta.",
-      "expected": "B",
-      "id": "train-04",
-      "query": "One op in a delta names an anchor that no longer matches the text. What happens to the delta?\nA) Only that op is skipped.\nB) The whole delta is rejected.\nC) The anchor is re-resolved by similarity.\nD) The op applies at the nearest placement.",
-      "split": "train"
-    },
-    {
-      "evidence": "`propose` takes one proposal file with 1 to 3 candidate deltas for one document and writes one snapshot per candidate to the OS-temp store.",
-      "expected": "C",
-      "id": "train-05",
-      "query": "A proposal file carries four candidate deltas for one document. What does propose do?\nA) It writes four snapshots.\nB) It keeps the first three candidates.\nC) It rejects the proposal, because a proposal carries 1 to 3 candidates.\nD) It merges the four deltas into one.",
-      "split": "train"
-    },
-    {
-      "evidence": "`propose` itself rejects a candidate that changes the skill description or leaves the document text unchanged.",
-      "expected": "A",
-      "id": "train-06",
-      "query": "A candidate delta rewrites the description line of a skill. What does propose do?\nA) It rejects the candidate.\nB) It accepts it, because descriptions are atoms.\nC) It accepts it after reflow.\nD) It passes the decision to check.",
-      "split": "train"
-    },
-    {
-      "evidence": "A structural failure skips the reader run and is reported with the candidate.",
-      "expected": "D",
-      "id": "train-07",
-      "query": "A candidate text is not reflowed to the 100-column band. What does check do about the reader run?\nA) It runs the reader anyway.\nB) It reflows the text silently, then scores it.\nC) It rejects the batch without a report.\nD) It skips the reader run and reports the structural failure.",
-      "split": "train"
-    },
-    {
-      "evidence": "`commit` is the only verb that writes an instruction file.",
-      "expected": "B",
-      "id": "train-08",
-      "query": "Which librarian verb writes an instruction file?\nA) propose\nB) commit\nC) check\nD) all three verbs",
-      "split": "train"
-    },
-    {
-      "evidence": "When the frontier holds incomparable vectors, `check` selects none and reports a trade-off.",
-      "expected": "B",
-      "id": "validation-01",
-      "query": "Two admissible candidates each pass a probe the other fails. What does check select?\nA) The one with fewer changed atoms.\nB) None, and it reports a trade-off.\nC) The one with the lower candidate id.\nD) Both candidates.",
-      "split": "validation"
-    },
-    {
-      "evidence": "After the third round `check` stops with the budget reason instead of asking for another round.",
-      "expected": "D",
-      "id": "validation-02",
-      "query": "No candidate is admissible after the third round. What does check do?\nA) It asks for a fourth round.\nB) It selects the best partial candidate.\nC) It resets the round count.\nD) It stops with the budget reason.",
-      "split": "validation"
-    },
-    {
-      "evidence": "`commit` refuses to touch a behavioral atom without a behavior verdict.",
-      "expected": "A",
-      "id": "validation-03",
-      "query": "A selected candidate edits a behavioral atom and no behavior verdict exists. What does commit do?\nA) It refuses to write.\nB) It writes with a warning.\nC) It skips only that atom.\nD) It asks the reader to decide.",
-      "split": "validation"
-    },
-    {
-      "evidence": "`commit` reports the probes whose evidence no longer resolves, and the editor updates those probes in the comprehension set.",
-      "expected": "C",
-      "id": "validation-04",
-      "query": "After commit, some probe evidence no longer resolves in the new text. Who updates those probes?\nA) Commit rewrites the evidence itself.\nB) The reader.\nC) The editor, in the comprehension set.\nD) The audit deletes them.",
-      "split": "validation"
-    },
-    {
-      "evidence": "It leaves the receipt stale, so run `instruction-gate record` on the document afterward.",
-      "expected": "B",
-      "id": "validation-05",
-      "query": "What state is the receipt in right after commit writes the document?\nA) Current.\nB) Stale; run instruction-gate record on the document.\nC) Deleted.\nD) Rebaselined by commit.",
-      "split": "validation"
-    },
-    {
-      "evidence": "`check` selects the unique frontier winner, and equal vectors are ordered by fewest changed atoms, then smallest token delta, then candidate id.",
-      "expected": "D",
-      "id": "validation-06",
-      "query": "Two candidates have identical probe vectors. What orders them first?\nA) Smallest token delta.\nB) Candidate id.\nC) Most added atoms.\nD) Fewest changed atoms.",
-      "split": "validation"
-    },
-    {
-      "evidence": "After the third round `check` stops with the budget reason instead of asking for another round.",
-      "expected": "C",
-      "id": "train-09",
-      "split": "train",
-      "query": "The third propose round for a document text ends without an admissible candidate. What does the reference state about further rounds?\nA) A fourth round is allowed with a written reason.\nB) The budget resets after each commit.\nC) `check` stops with the budget reason instead of asking for another round.\nD) `commit` may override the budget."
-    },
-    {
-      "id": "holdout-references-librarian-01",
-      "split": "validation",
-      "evidence": "A no-admissible verdict is a repair input, not a stop: read the complete verdict output first - the per-atom probe vectors, every reader diagnosis, and the measured baseline beside the candidate.",
-      "query": "A check round returns a no-admissible verdict. What must the editor do first?\nA) Stop the edit and close the document as unrepairable.\nB) Read the complete verdict output, including probe vectors, diagnoses, and the measured baseline beside the candidate.\nC) Rerun the same candidates without changing anything.\nD) Ask commit to select the least-bad candidate.",
-      "expected": "B"
-    },
-    {
-      "id": "holdout-references-librarian-02",
-      "split": "validation",
-      "evidence": "Keep an intent ledger of every change the edit must deliver, verify each intent item against the accepted text before closeout, and never drop an intent item because an earlier round rejected it.",
-      "query": "An earlier check round rejected one item in the edit's intent ledger. What must happen to that intent item before closeout?\nA) It must be dropped so the accepted text can pass.\nB) It must be converted into a held-out probe.\nC) It must be marked satisfied by the rejection itself.\nD) It must remain in the ledger and be verified against the accepted text.",
-      "expected": "D"
-    }
-  ],
-  "runs_per_query": 3,
-  "skill_name": "skill-manager--references-librarian",
-  "splits": {
-    "train": "Use failures from this split to rewrite unclear passages.",
-    "validation": "Keep fixed and hidden from rewrite decisions."
+ "kind": "comprehension",
+ "queries": [
+  {
+   "evidence": "A delta is a list of ops over anchored rule atoms, and it never replaces the whole document.",
+   "expected": "A",
+   "id": "train-01",
+   "query": "What does a librarian delta contain?\nA) A list of ops over anchored rule atoms.\nB) The full replacement text of the document.\nC) A unified diff of the file.\nD) A sentence-by-sentence rewrite of the document.",
+   "split": "train"
   },
-  "target": "../../../../skills/skill-manager/references/librarian.md"
+  {
+   "evidence": "The op `tag` changes only a helpful or harmful counter and never touches the text.",
+   "expected": "C",
+   "id": "train-02",
+   "query": "Which delta op changes only an atom counter and never the document text?\nA) modify\nB) move\nC) tag\nD) retire",
+   "split": "train"
+  },
+  {
+   "evidence": "Every `modify` and `retire` op carries a reason of at least 20 characters, and `commit` records it as an `atom:<id>` row in the owner's `retirements.json`.",
+   "expected": "D",
+   "id": "train-03",
+   "query": "Where does commit record the reason of a retire op?\nA) In the frontmatter of the atom map.\nB) In the receipt for the document.\nC) In the ledger of the owner.\nD) As an atom:<id> row in the owner's retirements.json.",
+   "split": "train"
+  },
+  {
+   "evidence": "A drifted anchor, two ops on one atom, or any change outside a named atom span rejects the whole delta.",
+   "expected": "B",
+   "id": "train-04",
+   "query": "One op in a delta names an anchor that no longer matches the text. What happens to the delta?\nA) Only that op is skipped.\nB) The whole delta is rejected.\nC) The anchor is re-resolved by similarity.\nD) The op applies at the nearest placement.",
+   "split": "train"
+  },
+  {
+   "evidence": "`propose` takes one proposal file with 1 to 3 candidate deltas for one document and writes one snapshot per candidate to the OS-temp store.",
+   "expected": "C",
+   "id": "train-05",
+   "query": "A proposal file carries four candidate deltas for one document. What does propose do?\nA) It writes four snapshots.\nB) It keeps the first three candidates.\nC) It rejects the proposal, because a proposal carries 1 to 3 candidates.\nD) It merges the four deltas into one.",
+   "split": "train"
+  },
+  {
+   "evidence": "`propose` itself rejects a candidate that changes the skill description or leaves the document text unchanged.",
+   "expected": "A",
+   "id": "train-06",
+   "query": "A candidate delta rewrites the description line of a skill. What does propose do?\nA) It rejects the candidate.\nB) It accepts it, because descriptions are atoms.\nC) It accepts it after reflow.\nD) It passes the decision to check.",
+   "split": "train"
+  },
+  {
+   "evidence": "A structural failure skips the reader run and is reported with the candidate.",
+   "expected": "D",
+   "id": "train-07",
+   "query": "A candidate text is not reflowed to the 100-column band. What does check do about the reader run?\nA) It runs the reader anyway.\nB) It reflows the text silently, then scores it.\nC) It rejects the batch without a report.\nD) It skips the reader run and reports the structural failure.",
+   "split": "train"
+  },
+  {
+   "evidence": "`commit` is the only verb that writes an instruction file.",
+   "expected": "B",
+   "id": "train-08",
+   "query": "Which librarian verb writes an instruction file?\nA) propose\nB) commit\nC) check\nD) all three verbs",
+   "split": "train"
+  },
+  {
+   "evidence": "When the frontier holds incomparable vectors, `check` selects none and reports a trade-off.",
+   "expected": "B",
+   "id": "validation-01",
+   "query": "Two admissible candidates each pass a probe the other fails. What does check select?\nA) The one with fewer changed atoms.\nB) None, and it reports a trade-off.\nC) The one with the lower candidate id.\nD) Both candidates.",
+   "split": "validation"
+  },
+  {
+   "evidence": "After the third round `check` stops with the budget reason instead of asking for another round.",
+   "expected": "D",
+   "id": "validation-02",
+   "query": "No candidate is admissible after the third round. What does check do?\nA) It asks for a fourth round.\nB) It selects the best partial candidate.\nC) It resets the round count.\nD) It stops with the budget reason.",
+   "split": "validation"
+  },
+  {
+   "evidence": "`commit` refuses to touch a behavioral atom without a behavior verdict.",
+   "expected": "A",
+   "id": "validation-03",
+   "query": "A selected candidate edits a behavioral atom and no behavior verdict exists. What does commit do?\nA) It refuses to write.\nB) It writes with a warning.\nC) It skips only that atom.\nD) It asks the reader to decide.",
+   "split": "validation"
+  },
+  {
+   "evidence": "`commit` reports the probes whose evidence no longer resolves, and the editor updates those probes in the comprehension set.",
+   "expected": "C",
+   "id": "validation-04",
+   "query": "After commit, some probe evidence no longer resolves in the new text. Who updates those probes?\nA) Commit rewrites the evidence itself.\nB) The reader.\nC) The editor, in the comprehension set.\nD) The audit deletes them.",
+   "split": "validation"
+  },
+  {
+   "evidence": "It leaves the receipt stale, so run `instruction-gate record` on the document afterward.",
+   "expected": "B",
+   "id": "validation-05",
+   "query": "What state is the receipt in right after commit writes the document?\nA) Current.\nB) Stale; run instruction-gate record on the document.\nC) Deleted.\nD) Rebaselined by commit.",
+   "split": "validation"
+  },
+  {
+   "evidence": "`check` selects the unique frontier winner, and equal vectors are ordered by fewest changed atoms, then smallest token delta, then candidate id.",
+   "expected": "D",
+   "id": "validation-06",
+   "query": "Two candidates have identical probe vectors. What orders them first?\nA) Smallest token delta.\nB) Candidate id.\nC) Most added atoms.\nD) Fewest changed atoms.",
+   "split": "validation"
+  },
+  {
+   "evidence": "After the third round `check` stops with the budget reason instead of asking for another round.",
+   "expected": "C",
+   "id": "train-09",
+   "split": "train",
+   "query": "The third propose round for a document text ends without an admissible candidate. What does the reference state about further rounds?\nA) A fourth round is allowed with a written reason.\nB) The budget resets after each commit.\nC) `check` stops with the budget reason instead of asking for another round.\nD) `commit` may override the budget."
+  },
+  {
+   "id": "holdout-references-librarian-01",
+   "split": "validation",
+   "evidence": "A no-admissible verdict is a repair input, not a stop: read the complete verdict output first - the per-atom probe vectors, every reader diagnosis, and the measured baseline beside the candidate.",
+   "query": "A check round returns a no-admissible verdict. What must the editor do first?\nA) Stop the edit and close the document as unrepairable.\nB) Read the complete verdict output, including probe vectors, diagnoses, and the measured baseline beside the candidate.\nC) Rerun the same candidates without changing anything.\nD) Ask commit to select the least-bad candidate.",
+   "expected": "B"
+  },
+  {
+   "id": "holdout-references-librarian-02",
+   "split": "validation",
+   "evidence": "Keep an intent ledger of every change the edit must deliver, verify each intent item against the accepted text before closeout, and never drop an intent item because an earlier round rejected it.",
+   "query": "An earlier check round rejected one item in the edit's intent ledger. What must happen to that intent item before closeout?\nA) It must be dropped so the accepted text can pass.\nB) It must be converted into a held-out probe.\nC) It must be marked satisfied by the rejection itself.\nD) It must remain in the ledger and be verified against the accepted text.",
+   "expected": "D"
+  },
+  {
+   "evidence": "A delta carries 1 to 40 ops.",
+   "expected": "B",
+   "id": "pool-01",
+   "query": "How many ops may one librarian delta carry?\nA) 1 to 3 ops.\nB) 1 to 40 ops.\nC) At most 20 ops.\nD) Any number of ops.",
+   "split": "validation"
+  },
+  {
+   "evidence": "Each op names an atom by its id and by the heading path of one placement, so a rule that appears at two placements is edited only where the delta names it.",
+   "expected": "C",
+   "id": "pool-02",
+   "query": "A rule atom appears at two placements in the document. A delta op names that atom at one placement. Which placement does the op edit?\nA) Both placements, because the atom id is the same.\nB) Neither placement; atoms at two placements are locked.\nC) Only the placement the delta names.\nD) The first placement in document order.",
+   "split": "validation"
+  },
+  {
+   "evidence": "`propose` takes one proposal file with 1 to 3 candidate deltas for one document and writes one snapshot per candidate to the OS-temp store. It writes no repository file.",
+   "expected": "D",
+   "id": "pool-03",
+   "query": "What does propose write for a proposal with candidate deltas?\nA) One snapshot per candidate directly into the repository's evals directory.\nB) One snapshot for the whole proposal into the repository.\nC) Nothing; snapshots are written only by commit.\nD) Snapshots go to the OS-temp store, one per candidate, and it writes no repository file.",
+   "split": "validation"
+  },
+  {
+   "evidence": "A batch with fewer than three candidates also measures the current text, so a gain is counted against a measured baseline and not the last receipt.",
+   "expected": "A",
+   "id": "pool-04",
+   "query": "A check batch carries only two candidates. Against what is a gain counted?\nA) Against a measured baseline of the current text, which the batch measures because it has fewer than three candidates.\nB) Against the last receipt.\nC) Against the proposal file's declared intents.\nD) Against the strongest candidate in the same batch.",
+   "split": "validation"
+  },
+  {
+   "evidence": "A candidate is admissible only when it loses no core train probe, loses no held-out validation pass, and either gains a train probe or proves its intents.",
+   "expected": "B",
+   "id": "pool-05",
+   "query": "A candidate loses no core train probe and no held-out validation pass, but gains no train probe and proves none of its declared intents. What does the document conclude?\nA) It is admissible, because it loses no probe.\nB) It is not admissible, because it must either gain a train probe or prove its intents.\nC) It is admissible when its token delta is negative.\nD) It is admissible after check re-measures the baseline.",
+   "split": "validation"
+  },
+  {
+   "evidence": "`check --allow-swap <reason>` admits a non-core train loss that is matched by at least as many gains, and the later `gate record` needs the same flag.",
+   "expected": "C",
+   "id": "pool-06",
+   "query": "What does `check --allow-swap <reason>` admit, and what does the later `gate record` need?\nA) Any train loss at all, and gate record needs no extra flag.\nB) A core train loss matched by at least as many gains, and gate record needs a fresh receipt.\nC) A non-core train loss matched by at least as many gains as losses, and the later gate record needs the same flag.\nD) A held-out validation loss matched by gains, and gate record needs the candidate id.",
+   "split": "validation"
+  },
+  {
+   "evidence": "It refuses a verdict that selected no candidate, is bound to a different candidate, or is stale for the document, the atom map, or the probe set.",
+   "expected": "D",
+   "id": "pool-07",
+   "query": "Which verdict does commit refuse?\nA) A verdict that selected the candidate with the fewest changed atoms.\nB) A verdict produced in a round run with the --allow-swap flag.\nC) A verdict from a round whose batch carried only two candidates.\nD) A verdict that is bound to a different candidate than the write targets.",
+   "split": "validation"
+  },
+  {
+   "evidence": "`seal` scores one fresh target run with the literal hard assertions of the case over the captured output, trace, and diff, so no model grades it.",
+   "expected": "A",
+   "id": "pool-08",
+   "query": "How does `seal` score a target run?\nA) It scores one fresh target run against the case's literal hard assertions over the captured output, trace, and diff, so no model grades it.\nB) A weak reader model grades the captured output against the case.\nC) It reuses the check round's reader diagnosis for the case.\nD) It compares the diff against the atom map's text hashes.",
+   "split": "validation"
+  }
+ ],
+ "runs_per_query": 3,
+ "skill_name": "skill-manager--references-librarian",
+ "splits": {
+  "train": "Use failures from this split to rewrite unclear passages.",
+  "validation": "Keep fixed and hidden from rewrite decisions."
+ },
+ "target": "../../../../skills/skill-manager/references/librarian.md"
 }

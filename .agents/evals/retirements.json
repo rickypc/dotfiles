@@ -12,6 +12,118 @@
   {
    "caseId": "atom:r-65cf241329",
    "reason": "Probe retired before baselining: the weak reader answers this layout-presence question from plausibility rather than the document text, so the atom can no longer be probed with signal."
+  },
+  {
+   "caseId": "atom:r-dd909140ee",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-8de83dfc29",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-ccd0edaa97",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-c3727ee485",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-a6b9f3b28b",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-0c7ff24faa",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-6d2c15c8da",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-ed34ad8dd1",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-0550099442",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-515b351ba4",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-f769183794",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-d930aad34d",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-9bbe2ed772",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-4663ba9e6d",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-5759482a03",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-513f7f3f7f",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-2a32264058",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-e8e599b4fd",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-42ca5e4ca5",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-45faf5f251",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-7e7b9ff26e",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-04eedf1bea",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-f46ec7fb10",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-cfab26eb68",
+   "reason": "Lossless compression of the String-only JSON boundary: sentences tightened, command fences folded inline; every rule, literal, and forbidden entry preserved."
+  },
+  {
+   "caseId": "atom:r-72d1dc5ddf",
+   "reason": "Repair reader placement for the trash-collision probe: lead with the concrete suffixed destination and add a question-shaped example; rules unchanged."
+  },
+  {
+   "caseId": "atom:r-107dc904b8",
+   "reason": "Repair reader placement for the bun-test-generator sequence probe: separate the real SUT from the mocked external boundaries; rules unchanged."
+  },
+  {
+   "caseId": "atom:r-cb76931756",
+   "reason": "Repair reader placement for the final-gate-order core probe: state the no-finalGate outcome explicitly beside the ordered step; rule unchanged."
+  },
+  {
+   "caseId": "atom:r-19a731d465",
+   "reason": "Retired by the committed compression delta; the rule's content survives in the replacement sentence recorded by the same commit."
   }
  ]
 }

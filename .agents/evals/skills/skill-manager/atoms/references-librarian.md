@@ -5,7 +5,7 @@ atoms:
     helpful: 0
     id: r-2867431096
     placements:
-      - headingPath:
+      - headingPath: &ref_0
           - Librarian workflow
           - 1. Edits are deltas over atoms
     precedence: 0
@@ -14,6 +14,18 @@ atoms:
     status: active
     tags: []
     textSha256: 2867431096d0cc4143c190ed65d4f6c71f2c613cbf5202af3ca0b399a90cfbc0
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-5fa1186841
+    placements:
+      - headingPath: *ref_0
+    precedence: 0
+    probeIds:
+      - pool-02
+    status: active
+    tags: []
+    textSha256: 5fa1186841dc03392018349f2e1ca03a1bf81a5ac7d3a2ec3fc365ff80997644
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -33,7 +45,7 @@ atoms:
     helpful: 0
     id: r-1a09aa7155
     placements:
-      - headingPath: &ref_0
+      - headingPath: &ref_1
           - Librarian workflow
           - 1. Edits are deltas over atoms
     precedence: 0
@@ -45,9 +57,21 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-4c0696b28b
+    placements:
+      - headingPath: *ref_1
+    precedence: 0
+    probeIds:
+      - pool-01
+    status: active
+    tags: []
+    textSha256: 4c0696b28b3d05b233968056df7d2c3132014890d61b8811439962e0d6d3cfc2
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-b97ed788c7
     placements:
-      - headingPath: *ref_0
+      - headingPath: *ref_1
     precedence: 0
     probeIds:
       - train-04
@@ -59,15 +83,28 @@ atoms:
     helpful: 0
     id: r-ee1dbf9b3d
     placements:
-      - headingPath:
+      - headingPath: &ref_2
           - Librarian workflow
           - 2. propose
     precedence: 0
     probeIds:
+      - pool-03
       - train-05
     status: active
     tags: []
     textSha256: ee1dbf9b3d454c87d0e1909faece303b99f6151d64de49d885aafbe22836612d
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-056d353fc0
+    placements:
+      - headingPath: *ref_2
+    precedence: 0
+    probeIds:
+      - pool-03
+    status: active
+    tags: []
+    textSha256: 056d353fc0fbeefc9aae6cb7066ab5175cbdcb25270b778f5bdaaf2a01379b94
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -87,7 +124,7 @@ atoms:
     helpful: 0
     id: r-c4dd19a42b
     placements:
-      - headingPath: &ref_1
+      - headingPath: &ref_3
           - Librarian workflow
           - 3. check
     precedence: 0
@@ -101,7 +138,7 @@ atoms:
     helpful: 0
     id: r-0c8056d9f6
     placements:
-      - headingPath: *ref_1
+      - headingPath: *ref_3
     precedence: 0
     probeIds:
       - holdout-references-librarian-02
@@ -125,11 +162,51 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-f20c053012
+    id: r-7fcad6d0bd
     placements:
       - headingPath:
           - Librarian workflow
           - 3. check
+    precedence: 0
+    probeIds:
+      - pool-04
+    status: active
+    tags: []
+    textSha256: 7fcad6d0bd7d629990386cba603573aa94f24b709aea4c14bbbe270ae03aa0d3
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f1ab475c62
+    placements:
+      - headingPath:
+          - Librarian workflow
+          - 3. check
+    precedence: 0
+    probeIds:
+      - pool-06
+    status: active
+    tags: []
+    textSha256: f1ab475c627066cbb00b243160d7e2c60846cb379afa4f551f10f04a6dbc0e25
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-c640010ff2
+    placements:
+      - headingPath: &ref_4
+          - Librarian workflow
+          - 3. check
+    precedence: 0
+    probeIds:
+      - pool-05
+    status: active
+    tags: []
+    textSha256: c640010ff25f0958b4bf2bbba5bc744add5773ba480b42c8858650354a2cd7eb
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f20c053012
+    placements:
+      - headingPath: *ref_4
     precedence: 0
     probeIds:
       - validation-06
@@ -141,7 +218,7 @@ atoms:
     helpful: 0
     id: r-f2f6fca2e5
     placements:
-      - headingPath: &ref_2
+      - headingPath: &ref_5
           - Librarian workflow
           - 3. check
     precedence: 0
@@ -155,7 +232,7 @@ atoms:
     helpful: 0
     id: r-21fc9296b7
     placements:
-      - headingPath: *ref_2
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-09
@@ -168,7 +245,7 @@ atoms:
     helpful: 0
     id: r-301799f239
     placements:
-      - headingPath:
+      - headingPath: &ref_6
           - Librarian workflow
           - 4. commit
     precedence: 0
@@ -180,9 +257,21 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-d954b555fc
+    placements:
+      - headingPath: *ref_6
+    precedence: 0
+    probeIds:
+      - pool-07
+    status: active
+    tags: []
+    textSha256: d954b555fcc8f40e11b5356d91e698eaac4be70319708d80bca3bf9f4f8598fa
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-db0976a40f
     placements:
-      - headingPath: &ref_3
+      - headingPath: &ref_7
           - Librarian workflow
           - 4. commit
     precedence: 0
@@ -196,7 +285,7 @@ atoms:
     helpful: 0
     id: r-a916fadf9c
     placements:
-      - headingPath: *ref_3
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - validation-05
@@ -217,6 +306,20 @@ atoms:
     status: active
     tags: []
     textSha256: 0bc3575033ef43ae8ff648740229cddd7824410404a6564ca6f4171981eba820
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-f3a4119bea
+    placements:
+      - headingPath:
+          - Librarian workflow
+          - 5. Behavior seals
+    precedence: 0
+    probeIds:
+      - pool-08
+    status: active
+    tags: []
+    textSha256: f3a4119beaee28f420e4c0f1d400cf14afd28e0df0453f1a13ef808de5b44eaf
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -283,18 +386,26 @@ Atoms for `skills/skill-manager/references/librarian.md`.
 | Atom | Placements | Probes |
 | --- | --- | --- |
 | `r-2867431096` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
+| `r-5fa1186841` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-bad9ce18ee` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-1a09aa7155` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
+| `r-4c0696b28b` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-b97ed788c7` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
-| `r-ee1dbf9b3d` | Librarian workflow > 2. propose | 1 |
+| `r-ee1dbf9b3d` | Librarian workflow > 2. propose | 2 |
+| `r-056d353fc0` | Librarian workflow > 2. propose | 1 |
 | `r-fe1c0fec46` | Librarian workflow > 2. propose | 1 |
 | `r-c4dd19a42b` | Librarian workflow > 3. check | 1 |
 | `r-0c8056d9f6` | Librarian workflow > 3. check | 1 |
 | `r-9a73b24146` | Librarian workflow > 3. check | 1 |
+| `r-7fcad6d0bd` | Librarian workflow > 3. check | 1 |
+| `r-f1ab475c62` | Librarian workflow > 3. check | 1 |
+| `r-c640010ff2` | Librarian workflow > 3. check | 1 |
 | `r-f20c053012` | Librarian workflow > 3. check | 1 |
 | `r-f2f6fca2e5` | Librarian workflow > 3. check | 1 |
 | `r-21fc9296b7` | Librarian workflow > 3. check | 2 |
 | `r-301799f239` | Librarian workflow > 4. commit | 1 |
+| `r-d954b555fc` | Librarian workflow > 4. commit | 1 |
 | `r-db0976a40f` | Librarian workflow > 4. commit | 1 |
 | `r-a916fadf9c` | Librarian workflow > 4. commit | 1 |
 | `r-0bc3575033` | Librarian workflow > 4. commit | 1 |
+| `r-f3a4119bea` | Librarian workflow > 5. Behavior seals | 1 |

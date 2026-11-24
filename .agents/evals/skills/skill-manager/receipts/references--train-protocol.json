@@ -24,9 +24,9 @@
       "train-22",
       "train-23"
     ],
-    "validationPassed": 16
+    "validationPassed": 18
   },
-  "decision": "improved",
+  "decision": "perfect",
   "document": "skills/skill-manager/references/train-protocol.md",
   "documentSha256": "d92207ff99427c656939d2214fa6ae6303006b2ce8df492c8346f587856d6f6a",
   "fingerprint": {
@@ -66,7 +66,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "c74063eb1ce88e76a52b4b2ea44bcaa7c6b403f3357bdffe5b71698102644ed1",
+  "selfSha256": "21aaeaf3ce62a69c3aa13683af5f10c66ae09c278041a9117e9cb72f27daa90f",
   "setPath": "evals/skills/skill-manager/comprehension/references-train-protocol.json",
   "setSha256": "d1dec2aa0a9bd35b74f61113f61ea033554a055c6f5c280fac3f72beaae06a4e"
 }

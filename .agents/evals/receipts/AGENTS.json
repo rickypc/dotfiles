@@ -76,13 +76,19 @@
       "train-73",
       "train-74",
       "train-75",
-      "train-76"
+      "train-76",
+      "train-77",
+      "train-78",
+      "train-79",
+      "train-84",
+      "train-85",
+      "train-86"
     ],
     "validationPassed": 35
   },
-  "decision": "improved",
+  "decision": "perfect",
   "document": "AGENTS.md",
-  "documentSha256": "24580a10f8a1aee1b172ed02fd2e773d2bce1604bbb9ae9aff257b10a5eda16e",
+  "documentSha256": "63546299e8abcf66adb0c90004323a7745eaac09a3438e42ad7550f5498b6063",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
     "maxNewTokens": 8,
@@ -180,7 +186,7 @@
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "dc15f4375a45c4242afe56ed2c60e49ee9a10d88151243ae829e0e6a5cfdca12",
+  "selfSha256": "c544619346b0fed47712e6986612dada518dd49d2743256dc4a6e423df9d9040",
   "setPath": "evals/comprehension/AGENTS.json",
-  "setSha256": "95a6b074d11e3c3c9bc2450c0bee6e359b5c67f26b4bc91e07da412679e7abba"
+  "setSha256": "2ce504dda7516f9c49051bd418046d908b280572f2a5cba860934e603de41f41"
 }

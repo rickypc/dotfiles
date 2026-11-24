@@ -7,6 +7,7 @@ import type { CommandBody, CommandDeclaration, ParsedInput } from '../../utils/c
 import { CliError } from '../../utils/cli/errors.js';
 import { runMain } from '../../utils/cli/index.js';
 import { type BatchHooks, runBatch } from './batch.js';
+import { retainReader, withReaderSession } from './pool.js';
 
 export interface ChatMessage {
   readonly content: string;
@@ -800,37 +801,29 @@ export const ensureCache = async (
   };
 };
 
-const prepareModel = async (
+const loadForPool = async (
   deps: ReaderDependencies,
   bundle: ReaderBundle,
 ): Promise<{
-  readonly context: { readonly capacity: number; readonly needed: number };
-  readonly loadedAt: number;
+  readonly capacity: number;
   readonly model: ModelHandle;
   readonly provenance: Provenance;
-  readonly startedLoad: number;
 }> => {
   const cache = await ensureCache(deps);
   await installGpu(deps);
-  const startedLoad = deps.now();
-  const { capacity, model, needed } = await loadModel(deps, cache.snapshotDir, bundle);
-  return {
-    context: { capacity, needed },
-    loadedAt: deps.now(),
-    model,
-    provenance: cache.provenance,
-    startedLoad,
-  };
+  const { capacity, model } = await loadModel(deps, cache.snapshotDir, bundle);
+  return { capacity, model, provenance: cache.provenance };
 };
 
 const batchHooks = (deps: ReaderDependencies): BatchHooks => ({
   answerAll: (model, bundle) => answerAll(model, bundle, deps),
   fail: (message) => new ReaderError(message, EXIT_CODES.failure),
   parseBundle,
-  prepare: async (bundle) => (await prepareModel(deps, bundle)).model,
+  retain: (bundle) => retainReader(deps, loadForPool, bundle),
   suggest: (model, bundle, failure) =>
     completeText(model, suggestionMessages(bundle.document, failure), SUGGEST_MAX_NEW_TOKENS),
   usage,
+  withSession: (bundle, session) => withReaderSession(deps, loadForPool, bundle, session),
 });
 
 const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Promise<number> => {
@@ -840,30 +833,33 @@ const runSuggest = async (args: readonly string[], deps: ReaderDependencies): Pr
   }
   const bundle = parseBundle(await deps.readText(bundlePath), bundlePath);
   const failures = parseFailures(await deps.readText(failuresPath), failuresPath);
-  const { context, loadedAt, model, provenance, startedLoad } = await prepareModel(deps, bundle);
-  try {
-    const generationStarted = deps.now();
-    const lines: string[] = [];
-    for (const failure of failures) {
-      const suggestion = await completeText(
-        model,
-        suggestionMessages(bundle.document, failure),
-        SUGGEST_MAX_NEW_TOKENS,
+  return withReaderSession(
+    deps,
+    loadForPool,
+    bundle,
+    async (model, context, provenance, timing) => {
+      const { startedLoad, loadedAt } = timing;
+      const generationStarted = deps.now();
+      const lines: string[] = [];
+      for (const failure of failures) {
+        const suggestion = await completeText(
+          model,
+          suggestionMessages(bundle.document, failure),
+          SUGGEST_MAX_NEW_TOKENS,
+        );
+        lines.push(JSON.stringify({ id: failure.id, suggestion }));
+      }
+      await deps.writeText(suggestionsPath, lines.map((line) => `${line}\n`).join(''));
+      const endedAt = deps.now();
+      deps.log(
+        `GPU ready; context ${context.needed}/${context.capacity} tokens; generated ${lines.length} suggestions; `
+          + `load ${secondsOf(loadedAt - startedLoad)}, generation ${secondsOf(endedAt - generationStarted)}, `
+          + `total ${secondsOf(endedAt - startedLoad)}; model revision ${provenance.modelRevision}; `
+          + `runtime bundle ${provenance.bundleSha256}`,
       );
-      lines.push(JSON.stringify({ id: failure.id, suggestion }));
-    }
-    await deps.writeText(suggestionsPath, lines.map((line) => `${line}\n`).join(''));
-    const endedAt = deps.now();
-    deps.log(
-      `GPU ready; context ${context.needed}/${context.capacity} tokens; generated ${lines.length} suggestions; `
-        + `load ${secondsOf(loadedAt - startedLoad)}, generation ${secondsOf(endedAt - generationStarted)}, `
-        + `total ${secondsOf(endedAt - startedLoad)}; model revision ${provenance.modelRevision}; `
-        + `runtime bundle ${provenance.bundleSha256}`,
-    );
-  } finally {
-    await model.dispose?.();
-  }
-  return EXIT_CODES.answered;
+      return EXIT_CODES.answered;
+    },
+  );
 };
 
 export const run = async (args: readonly string[], deps: ReaderDependencies): Promise<number> => {
@@ -876,28 +872,31 @@ export const run = async (args: readonly string[], deps: ReaderDependencies): Pr
   }
   const { answersPath, bundlePath, rawRepliesPath } = pathsForAnswerRun(args);
   const bundle = parseBundle(await deps.readText(bundlePath), bundlePath);
-  const { context, loadedAt, model, provenance, startedLoad } = await prepareModel(deps, bundle);
-  try {
-    await model.warmup();
-    const warmAt = deps.now();
-    const { lines, rawLines, timings } = await answerAll(model, bundle, deps);
-    const endedAt = deps.now();
-    await deps.writeText(answersPath, lines.map((line) => `${line}\n`).join(''));
-    if (rawRepliesPath !== undefined) {
-      await deps.writeText(rawRepliesPath, rawLines.map((line) => `${line}\n`).join(''));
-    }
-    deps.log(
-      `GPU ready; context ${context.needed}/${context.capacity} tokens; `
-        + `answered ${lines.length} probes from ${timings.length} queries; `
-        + `load ${secondsOf(loadedAt - startedLoad)}, warmup ${secondsOf(warmAt - loadedAt)}, `
-        + `total ${secondsOf(endedAt - startedLoad)}; last query first token `
-        + `${secondsOf(timings.at(-1)?.firstTokenMs ?? 0)}, total ${secondsOf(timings.at(-1)?.totalMs ?? 0)}; `
-        + `model revision ${provenance.modelRevision}; runtime bundle ${provenance.bundleSha256}`,
-    );
-  } finally {
-    await model.dispose?.();
-  }
-  return EXIT_CODES.answered;
+  return withReaderSession(
+    deps,
+    loadForPool,
+    bundle,
+    async (model, context, provenance, timing) => {
+      const { startedLoad, loadedAt } = timing;
+      await model.warmup();
+      const warmAt = deps.now();
+      const { lines, rawLines, timings } = await answerAll(model, bundle, deps);
+      const endedAt = deps.now();
+      await deps.writeText(answersPath, lines.map((line) => `${line}\n`).join(''));
+      if (rawRepliesPath !== undefined) {
+        await deps.writeText(rawRepliesPath, rawLines.map((line) => `${line}\n`).join(''));
+      }
+      deps.log(
+        `GPU ready; context ${context.needed}/${context.capacity} tokens; `
+          + `answered ${lines.length} probes from ${timings.length} queries; `
+          + `load ${secondsOf(loadedAt - startedLoad)}, warmup ${secondsOf(warmAt - loadedAt)}, `
+          + `total ${secondsOf(endedAt - startedLoad)}; last query first token `
+          + `${secondsOf(timings.at(-1)?.firstTokenMs ?? 0)}, total ${secondsOf(timings.at(-1)?.totalMs ?? 0)}; `
+          + `model revision ${provenance.modelRevision}; runtime bundle ${provenance.bundleSha256}`,
+      );
+      return EXIT_CODES.answered;
+    },
+  );
 };
 
 const READER_REASONS: ReadonlyMap<number, string> = new Map([

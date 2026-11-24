@@ -10,13 +10,17 @@ export interface BatchHooks {
   ) => Promise<{ readonly lines: readonly string[]; readonly rawLines: readonly string[] }>;
   readonly fail: (message: string) => Error;
   readonly parseBundle: (content: string, sourcePath: string) => ReaderBundle;
-  readonly prepare: (bundle: ReaderBundle) => Promise<ModelHandle>;
+  readonly retain: (bundle: ReaderBundle) => Promise<() => Promise<void>>;
   readonly suggest: (
     model: ModelHandle,
     bundle: ReaderBundle,
     failure: ReaderFailure,
   ) => Promise<string>;
   readonly usage: () => string;
+  readonly withSession: <Value>(
+    bundle: ReaderBundle,
+    run: (model: ModelHandle) => Promise<Value>,
+  ) => Promise<Value>;
 }
 
 export interface BatchItem {
@@ -92,14 +96,11 @@ const answerDocument = async (
   deps: ReaderDependencies,
   hooks: BatchHooks,
 ): Promise<void> => {
-  const model = await hooks.prepare(entry.bundle);
-  try {
+  await hooks.withSession(entry.bundle, async (model) => {
     await model.warmup();
     const probes = await answerItem(model, entry, deps, hooks);
     deps.log(`GPU ready; answered ${probes} probes for ${entry.item.bundlePath}`);
-  } finally {
-    await model.dispose?.();
-  }
+  });
 };
 
 const isBatchItem = (value: unknown): value is BatchItem => {
@@ -159,7 +160,15 @@ export const runBatch = async (
       item,
     })),
   );
-  for (const entry of loaded) {
-    await answerDocument(entry, deps, hooks);
+  const holds: (() => Promise<void>)[] = [];
+  try {
+    for (const entry of loaded) {
+      holds.push(await hooks.retain(entry.bundle));
+      await answerDocument(entry, deps, hooks);
+    }
+  } finally {
+    for (const release of holds.reverse()) {
+      await release();
+    }
   }
 };

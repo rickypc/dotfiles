@@ -1,5 +1,6 @@
 import { expect, mock, test } from 'bun:test';
 import * as realPath from 'node:path';
+import type { BatchHooks } from '../../../scripts/weak-reader/batch.js';
 import type {
   ModelHandle,
   ReaderBundle,
@@ -64,11 +65,21 @@ const setup = (files: Record<string, string>, models: ModelHandle[]) => {
       writes.set(target, content);
     }),
   };
-  const prepare = mock(async (_bundle: ReaderBundle) => models.shift() as ModelHandle);
+  const withSession = mock(
+    async (_bundle: ReaderBundle, run: (model: ModelHandle) => Promise<unknown>) => {
+      const model = models.shift() as ModelHandle;
+      try {
+        return await run(model);
+      } finally {
+        await model.dispose?.();
+      }
+    },
+  );
   const suggest = mock(
     async (_model: ModelHandle, _bundle: ReaderBundle, failure: ReaderFailure) =>
       `fix ${failure.id}`,
   );
+  const retain = mock(async (_bundle: ReaderBundle) => async () => undefined);
   const hooks: Hooks = {
     answerAll: async (_model, bundle) => ({
       lines: bundle.prompts.map(({ query_id: id }) =>
@@ -82,17 +93,18 @@ const setup = (files: Record<string, string>, models: ModelHandle[]) => {
     }),
     fail: failWith,
     parseBundle: (content) => bundleOf(content),
-    prepare,
+    retain,
     suggest,
     usage: () => 'USAGE',
+    withSession: withSession as unknown as BatchHooks['withSession'],
   };
-  return { deps, hooks, logs, prepare, suggest, writes };
+  return { deps, hooks, logs, retain, suggest, withSession, writes };
 };
 
 test('answers bundles of equal capacity in one model session with optional outputs', async () => {
   const model = modelOf();
   const second = modelOf();
-  const { deps, hooks, logs, prepare, suggest, writes } = setup(
+  const { deps, hooks, logs, withSession, suggest, writes } = setup(
     {
       '/in/a.json': 'doc a',
       '/in/b.json': 'doc b',
@@ -110,7 +122,7 @@ test('answers bundles of equal capacity in one model session with optional outpu
     [model, second],
   );
   await runBatch(['/in/batch.json'], deps, hooks);
-  expect(prepare).toHaveBeenCalledTimes(2);
+  expect(withSession).toHaveBeenCalledTimes(2);
   expect(model.warmup).toHaveBeenCalledTimes(1);
   expect(model.dispose).toHaveBeenCalledTimes(1);
   expect(second.dispose).toHaveBeenCalledTimes(1);

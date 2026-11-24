@@ -56,8 +56,14 @@ editor's `expectedBehavior` beside it. The raw reader rows stay in the store as 
 gains, and the later `gate record` needs the same flag.
 
 A candidate is admissible only when it loses no core train probe, loses no held-out validation pass,
-and either gains a train probe or proves its intents. `check` selects the unique frontier winner,
-and equal vectors are ordered by fewest changed atoms, then smallest token delta, then candidate id.
+and either gains a train probe or proves its intents. A non-additive edit declares its gain
+instrument in the candidate: a compression (negative token delta) carries move-type intents, one per
+merged rule cluster, each an information question the weak reader answers correctly before and after
+the edit, proving the rules survived the rewording; pre-verify the set with evaluate-batch before
+spending a check round. An edit that loses no probe and proves all its intents is admissible even
+with no new passing probe, while word-shuffling that proves no information preservation is not.
+`check` selects the unique frontier winner, and equal vectors are ordered by fewest changed atoms,
+then smallest token delta, then candidate id.
 
 When the frontier holds incomparable vectors, `check` selects none and reports a trade-off. After
 the third round `check` stops with the budget reason instead of asking for another round.

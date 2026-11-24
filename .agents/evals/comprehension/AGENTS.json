@@ -149,7 +149,7 @@
    "split": "train"
   },
   {
-   "evidence": "- For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, use the real SUT,",
+   "evidence": "- For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, then use the real SUT - the system under test itself - with every external boundary mocked, run `validate-boundaries`, and then use `/biome-checker` on selected paths. A passing test, coverage result, or skill validation cannot substitute for the required generator receipt.",
    "expected": "B",
    "id": "train-22",
    "query": "The user asks to add a unit test to a TypeScript file. What is the first required step?\nA) Write the test, then run Biome.\nB) Invoke `/bun-test-generator` first.\nC) Invoke `/biome-checker` first.\nD) Invoke `/playwright-test-generator` first.",
@@ -177,7 +177,7 @@
    "split": "train"
   },
   {
-   "evidence": "1. **Obtain the output path.** Run standalone `mktemp` alone and retain the absolute path it prints.",
+   "evidence": "1. **Obtain the output path.** Run standalone `mktemp` alone and use exactly the absolute path it prints; the writer rejects any output path outside `os.tmpdir()` and refuses relative or guessed paths.",
    "expected": "B",
    "id": "train-26",
    "query": "The agent must write backtick-rich JSON to disk. What is step 1 of the four-step procedure?\nA) Build the JSON string in memory.\nB) Run standalone `mktemp` alone and retain the absolute path it prints.\nC) Guess a `/tmp` path for the file.\nD) Pipe the JSON to the writer directly.",
@@ -352,7 +352,7 @@
    "split": "train"
   },
   {
-   "evidence": "Pick the final gate in this order: 1. The `finalGate` string in the project's `aidx.json`, when that file sets one. 2. Otherwise the `bun run test` of `.agents`.",
+   "evidence": "Pick the final gate in this order: 1. The `finalGate` string in the project's `aidx.json`, when that file sets one. 2. Otherwise the `bun run test` of `.agents` - with no `finalGate` set in `aidx.json` and both roots defining `bun run test`, this `.agents` gate is the final gate. 3. Otherwise the `bun run test` of the project root. A project root `bun run test` is not the gate while `.agents` defines one.",
    "expected": "B",
    "id": "train-35",
    "query": "A project has an `aidx.json` with no `finalGate` field. Both the project root and `.agents` define `bun run test`. Which gate is the final gate?\nA) The project root `bun run test`.\nB) The `.agents` `bun run test`.\nC) No gate; the agent must ask the user to define one.\nD) Both gates, run concurrently.",
@@ -387,14 +387,14 @@
    "split": "train"
   },
   {
-   "evidence": "editor `write` tool (the content is TypeScript source, not JSON, so the schema accepts it).",
+   "evidence": "**Method A (preferred): TypeScript builder.** Write a small `.ts` file to `os.tmpdir()` with the editor `write` tool; the content is TypeScript source, not JSON, so the schema accepts it.",
    "expected": "C",
    "id": "train-40",
    "query": "Which file may the agent create with the built-in editor `write` tool in the JSON-writing procedure?\nA) The JSON request source file.\nB) The final JSON output file.\nC) The `.ts` builder script in `os.tmpdir()`.\nD) Any JSON payload, if it is passed as a string.",
    "split": "train"
   },
   {
-   "evidence": "Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`",
+   "evidence": "where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1` - the suffix appended after the complete basename. Retiring `/work/notes.md` while `~/.Trash/notes.md` already exists therefore runs `mv /work/notes.md ~/.Trash/notes.md.1`.",
    "expected": "D",
    "id": "train-41",
    "query": "The agent retires `/work/notes.md`, but `~/.Trash/notes.md` already exists. What is the sanctioned shell action?\nA) `rm` the old trash entry, then move the file.\nB) `mv` over `~/.Trash/notes.md`.\nC) `mv` to `~/.Trash/<suffix>.notes.md`.\nD) `mv` to `~/.Trash/notes.md.<suffix>`.",
@@ -464,7 +464,7 @@
    "split": "train"
   },
   {
-   "evidence": "mock every external boundary, run `validate-boundaries`, and then use `/biome-checker` on selected",
+   "evidence": "- For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, then use the real SUT - the system under test itself - with every external boundary mocked, run `validate-boundaries`, and then use `/biome-checker` on selected paths. A passing test, coverage result, or skill validation cannot substitute for the required generator receipt.",
    "expected": "D",
    "id": "train-51",
    "query": "Which sequence applies to a JavaScript/TypeScript test change?\nA) Write the test, run `/biome-checker`, then invoke `/bun-test-generator`.\nB) Invoke the generator, run `/biome-checker`, then `validate-boundaries`.\nC) Invoke the generator, mock the SUT, `validate-boundaries`, then `/biome-checker`.\nD) Invoke the generator, use the real SUT with external boundaries mocked, run `validate-boundaries`, then `/biome-checker`.",
@@ -717,28 +717,28 @@
    "split": "validation"
   },
   {
-   "evidence": "When a tool or script accepts a string containing JSON, pass a string, never an object. The built-in write tool schema-rejects `{`-prefixed string content with `Expected string, got {...}` at `[\"content\"]` because the tool re-types JSON-shaped strings as objects during argument validation. Never reuse the editor for JSON payloads; always use the shared TypeScript writer.",
+   "evidence": "When a tool or script accepts a string containing JSON, pass a string, never an object. The built-in write tool schema-rejects `{`-prefixed string content with `Expected string, got {...}` at `[\"content\"]` because it re-types JSON-shaped strings as objects during argument validation. Never reuse the editor for JSON payloads; always use the shared TypeScript writer.",
    "expected": "B",
    "id": "train-59",
    "query": "A script argument accepts a string containing JSON. Per the policy, what do you pass and which writer handles JSON payloads?\nA) An object, because the write tool re-types JSON-shaped strings during validation.\nB) A string, and the shared TypeScript writer (entrypoint write-json.ts) is the only route for JSON payloads.\nC) A string written with the built-in write tool directly.\nD) An object serialized by JSON.stringify and written to a guessed temp path.",
    "split": "train"
   },
   {
-   "evidence": "For backtick-, dollar-, quote-, or newline-rich JSON that must be written to disk, use the four-step procedure below. Step 3 has one explicit recovery for an executor-denied stdout redirect; all other unlisted workarounds remain prohibited. If both the normal path and its stated recovery fail, stop and report the exact blocker. 1. **Obtain the output path.** Run standalone `mktemp` alone and retain the absolute path it prints. The writer rejects any output path outside `os.tmpdir()` and refuses relative or guessed paths. Never guess `/tmp` or `/private/tmp`; always use the exact path `mktemp` prints.",
+   "evidence": "For backtick-, dollar-, quote-, or newline-rich JSON that must be written to disk, use the four-step procedure below. Step 3 has one explicit recovery for an executor-denied stdout redirect; all other unlisted workarounds remain prohibited. If both the normal path and its stated recovery fail, stop and report the exact blocker. 1. **Obtain the output path.** Run standalone `mktemp` alone and use exactly the absolute path it prints; the writer rejects any output path outside `os.tmpdir()` and refuses relative or guessed paths.",
    "expected": "B",
    "id": "train-60",
    "query": "Rich JSON must be written to disk, and both the normal write path and its stated recovery failed. Where must the output path come from, and what happens after both paths fail?\nA) Guess /private/tmp since it equals os.tmpdir(); then retry the same command.\nB) Use exactly the absolute path printed by standalone mktemp; after both paths fail, stop and report the exact blocker.\nC) Reuse the previous workflow's temporary path to save a mktemp call.\nD) Switch to the built-in write tool, which accepts any temp path.",
    "split": "train"
   },
   {
-   "evidence": "2. **Build the JSON string in memory.** JSON is whitespace-insensitive; keep newlines inside string bodies as literal `\\n` escapes. Encode Markdown backticks as `\\u0060` and dollar signs as `\\u0024` if they appear inside string bodies.",
+   "evidence": "2. **Build the JSON string in memory.** JSON is whitespace-insensitive; keep newlines inside string bodies as literal `\\n` escapes, and encode Markdown backticks as `\\u0060` and dollar signs as `\\u0024` if they appear inside string bodies.",
    "expected": "B",
    "id": "train-61",
    "query": "Inside JSON string bodies, how must newlines, Markdown backticks, and dollar signs be represented?\nA) Literally, exactly as they appear in the source text.\nB) Newlines as literal \\n escapes; backticks as \\u0060 and dollar signs as \\u0024 when they appear inside string bodies.\nC) Newlines as \\n; backticks and dollar signs never need encoding.\nD) All three must be double-escaped only when the JSON exceeds 200 bytes.",
    "split": "train"
   },
   {
-   "evidence": "3. **Write the source file.** There are two methods, in priority order: **Method A (preferred): TypeScript builder.** Write a small `.ts` file to `os.tmpdir()` using the editor `write` tool (the content is TypeScript source, not JSON, so the schema accepts it). The script builds the JSON object in memory and calls `console.log(JSON.stringify(obj))`. Run it with `bun` and redirect stdout to the source file: ```text bun <absolute-builder-script-path> > <absolute-request-source-path> ``` If the executor rejects that redirect with an approval-required or sandbox-denied error, use this one recovery with the same exact paths printed or derived from `mktemp -d`: ```text bun <absolute-builder-script-path> | tee <absolute-request-source-path> | wc -c ```",
+   "evidence": "3. **Write the source file** by one of two methods, in priority order. **Method A (preferred): TypeScript builder.** Write a small `.ts` file to `os.tmpdir()` with the editor `write` tool; the content is TypeScript source, not JSON, so the schema accepts it. The script builds the JSON object in memory and calls `console.log(JSON.stringify(obj))`. Run `bun <absolute-builder-script-path> > <absolute-request-source-path>`; if the executor rejects that redirect with an approval-required or sandbox-denied error, use this one recovery with the same exact paths printed or derived from `mktemp -d`: `bun <absolute-builder-script-path> | tee <absolute-request-source-path> | wc -c`. Preserve the exact temporary path as printed by `mktemp -d`; do not rewrite `/var/...` as `/private/var/...` or guess another temporary path. **Method B (fallback): printf for short JSON.** Only for JSON under 200 bytes with no special characters. Pipe the literal string to a temp file with `printf '%s' '<json-string>' > <absolute-request-source-path>`. Single-quoted printf avoids shell variable, heredoc, command substitution, and backtick interpretation. **If printf fails or the JSON is long, use Method A.**",
    "expected": "B",
    "id": "train-62",
    "query": "For the JSON request source file, what is Method A and what is the sanctioned response if the executor denies the builder's stdout redirect?\nA) Method A is echoing JSON.stringify output; on denial, fall back to a heredoc.\nB) Method A is a small TypeScript builder written to os.tmpdir() with the write tool and run via bun with stdout redirect; on denial, one recovery with the same exact paths: bun <builder> | tee <source> | wc -c.\nC) Method A is printf with single quotes; on denial, use Python to write the file.\nD) Method A writes JSON directly with the write tool; on denial, abort the whole workflow.",
@@ -752,14 +752,14 @@
    "split": "train"
   },
   {
-   "evidence": "4. **Materialize then invoke the owner.** Run the writer pipe: ```text cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path> ``` The writer reads stdin, validates JSON, pretty-prints it, and writes only inside the OS temp directory. After materialization succeeds, invoke the owning command separately with the same literal output path. Only the writer reads stdin; the owner command takes the JSON path as an argument. Never chain the owner command with the writer in one command. For the knowledge-base skill, the reconcile command takes two arguments: the private-KB root first, the JSON output path second: ```text bun <agents-root>/scripts/knowledge-base.ts reconcile <private-kb-root> <absolute-json-output-path> ``` The argument order is fixed: the private-KB root is the first argument and the JSON output path is the second argument. Run this reconcile command separately after materialization succeeds.",
+   "evidence": "4. **Materialize, then invoke the owner.** Run `cat <absolute-request-source-path> | bun <agents-root>/scripts/write-json.ts <absolute-json-output-path>`; the writer reads stdin, validates JSON, pretty-prints it, and writes only inside the OS temp directory. After materialization succeeds, invoke the owning command separately with the same literal output path. Only the writer reads stdin; the owner command takes the JSON path as an argument. Never chain the owner command with the writer in one command. For the knowledge-base skill, run `bun <agents-root>/scripts/knowledge-base.ts reconcile <private-kb-root> <absolute-json-output-path>` separately after materialization succeeds; the argument order is fixed, the private-KB root first and the JSON output path second.",
    "expected": "B",
    "id": "train-64",
    "query": "How is the JSON materialized and then handed to the owner, and in what order does the knowledge-base reconcile command take its arguments?\nA) Chain the writer and owner in one command; reconcile takes the JSON path first.\nB) Run the write-json.ts writer pipe (reads stdin, writes only inside the OS temp directory), then invoke the owner separately with the same literal JSON path; reconcile takes the private-KB root first and the JSON output path second.\nC) Let the owner command read stdin directly to save a step.\nD) Materialize with echo; the two reconcile arguments are interchangeable.",
    "split": "train"
   },
   {
-   "evidence": "Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON boundary: heredoc, shell variables, command substitution, inline writers, Python, object-valued tool calls, direct `JSON.stringify` or `echo` source writing, guessed temp paths such as `/tmp` or `/private/tmp`, and the built-in write tool for JSON payloads; `JSON.stringify(request)` is not a fallback. The only allowed source-file paths are the documented builder redirect, the short-JSON `printf` method, and the stated `tee` recovery after a denied redirect; the writer pipe and separate owner invocation remain mandatory. If an unlisted method was used, that output is INVALID; discard it and redo from step 1. The writer entrypoint remains `write-json.ts`; the owning skill determines the `request` schema and lifecycle, and the `request` itself follows that owner's contract.",
+   "evidence": "Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON boundary: heredoc, shell variables, command substitution, inline writers, Python, object-valued tool calls, direct `JSON.stringify` or `echo` source writing, guessed temp paths such as `/tmp` or `/private/tmp`, and the built-in write tool for JSON payloads; `JSON.stringify(request)` is not a fallback. The only allowed source-file paths are the documented builder redirect, the short-JSON `printf` method, and the stated `tee` recovery after a denied redirect; the writer pipe and separate owner invocation remain mandatory. If an unlisted method was used, that output is INVALID: discard it and redo from step 1. The writer entrypoint remains `write-json.ts`; the owning skill determines the `request` schema and lifecycle, and the `request` itself follows that owner's contract.",
    "expected": "A",
    "id": "train-65",
    "query": "Which source-file method is allowed at a fixed JSON boundary, and what happens to output written by an unlisted method?\nA) The short-JSON printf method; unlisted output is INVALID and must be discarded and redone from step 1.\nB) A heredoc; unlisted output is kept if the JSON parses.\nC) The built-in write tool; unlisted output is repaired in place.\nD) Direct JSON.stringify(request); unlisted output is kept as a documented fallback.",
@@ -815,7 +815,7 @@
    "split": "train"
   },
   {
-   "evidence": "The only sanctioned retirement path is **move to trash**: ```text mv <absolute-source-path> <trash-destination> ``` where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`, which would prepend the suffix. For any collision question, substitute the concrete basename and suffix into the pattern and compare each proposed destination exactly. Use the `trash.ts` module's `defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for shell-level retirement. Never skip this rule for \"trivial\" temp files - the OS tmpdir janitor handles those, and any other file must be trashed, not deleted.",
+   "evidence": "The only sanctioned retirement path is **move to trash**: ```text mv <absolute-source-path> <trash-destination> ``` where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1` - the suffix appended after the complete basename. Retiring `/work/notes.md` while `~/.Trash/notes.md` already exists therefore runs `mv /work/notes.md ~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`, which would prepend the suffix. For any collision question, substitute the concrete basename and suffix into the pattern and compare each proposed destination exactly. Use the `trash.ts` module's `defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for shell-level retirement. Never skip this rule for \"trivial\" temp files - the OS tmpdir janitor handles those, and any other file must be trashed, not deleted.",
    "expected": "B",
    "id": "train-73",
    "query": "`/work/report.md` must be retired and `~/.Trash/report.md` already exists. What is the sanctioned action?\nA) `mv /work/report.md ~/.Trash/1.report.md`.\nB) `mv /work/report.md ~/.Trash/report.md.1` (or the trash.ts module's defaultMoveSourceToTrash programmatically): the complete basename is preserved and the suffix appended at its right edge - never prepended; for any collision question substitute the concrete basename and suffix; never skip this rule for trivial temp files.\nC) `rm ~/.Trash/report.md` first, then move.\nD) Overwrite `~/.Trash/report.md` with the new file.",
@@ -843,21 +843,21 @@
    "split": "train"
   },
   {
-   "evidence": "where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`, which would prepend the suffix.",
+   "evidence": "where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1` - the suffix appended after the complete basename. Retiring `/work/notes.md` while `~/.Trash/notes.md` already exists therefore runs `mv /work/notes.md ~/.Trash/notes.md.1`.",
    "expected": "A",
    "id": "train-77",
    "query": "Retiring `/work/notes.md` while `~/.Trash/notes.md` already exists: which exact action does the policy spell out?\nA) `mv /work/notes.md ~/.Trash/notes.md.1`\nB) `mv /work/notes.md ~/.Trash/1.notes.md`\nC) `rm ~/.Trash/notes.md` first, then move\nD) No concrete action is spelled out",
    "split": "train"
   },
   {
-   "evidence": "- For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, use the real SUT, mock every external boundary, run `validate-boundaries`, and then use `/biome-checker` on selected paths. A passing test, coverage result, or skill validation cannot substitute for the required generator receipt. Do not use `mock.restore()` as proof that a shared same-process mock is isolated.",
+   "evidence": "- For every JavaScript/TypeScript test change, invoke `/bun-test-generator` first, then use the real SUT - the system under test itself - with every external boundary mocked, run `validate-boundaries`, and then use `/biome-checker` on selected paths. A passing test, coverage result, or skill validation cannot substitute for the required generator receipt.",
    "expected": "B",
    "id": "train-78",
    "query": "Per the policy, is the SUT itself mocked in the required test-change sequence?\nA) Yes, mock the SUT\nB) No - use the real SUT, the system under test itself, with every external boundary mocked\nC) Only in shared suites\nD) The policy does not say",
    "split": "train"
   },
   {
-   "evidence": "**Write the source file.** There are two methods, in priority order: **Method A (preferred): TypeScript builder.** Write a small `.ts` file to `os.tmpdir()` using the editor `write` tool (the content is TypeScript source, not JSON, so the schema accepts it). The script builds the JSON object in memory and calls `console.log(JSON.stringify(obj))`. Run it with `bun` and redirect stdout to the source file: ```text bun <absolute-builder-script-path> > <absolute-request-source-path> ``` If the executor rejects that redirect with an approval-required or sandbox-denied error, use this one recovery with the same exact paths printed or derived from `mktemp -d`: ```text bun <absolute-builder-script-path> | tee <absolute-request-source-path> | wc -c ``` Preserve the exact temporary path as printed by `mktemp -d`; do not rewrite `/var/...` as `/private/var/...` or guess another temporary path. **Method B (fallback): printf for short JSON.** Only for JSON under 200 bytes with no special characters.",
+   "evidence": "3. **Write the source file** by one of two methods, in priority order. **Method A (preferred): TypeScript builder.** Write a small `.ts` file to `os.tmpdir()` with the editor `write` tool; the content is TypeScript source, not JSON, so the schema accepts it. The script builds the JSON object in memory and calls `console.log(JSON.stringify(obj))`. Run `bun <absolute-builder-script-path> > <absolute-request-source-path>`; if the executor rejects that redirect with an approval-required or sandbox-denied error, use this one recovery with the same exact paths printed or derived from `mktemp -d`: `bun <absolute-builder-script-path> | tee <absolute-request-source-path> | wc -c`. Preserve the exact temporary path as printed by `mktemp -d`; do not rewrite `/var/...` as `/private/var/...` or guess another temporary path. **Method B (fallback): printf for short JSON.** Only for JSON under 200 bytes with no special characters. Pipe the literal string to a temp file with `printf '%s' '<json-string>' > <absolute-request-source-path>`. Single-quoted printf avoids shell variable, heredoc, command substitution, and backtick interpretation. **If printf fails or the JSON is long, use Method A.**",
    "expected": "A",
    "id": "train-79",
    "query": "In the four-step JSON procedure, where do the Method A and Method B write commands sit?\nA) Method A under step 3 and Method B in a separate later paragraph, each shown as fenced command blocks\nB) Both methods inline inside step 3, every command as backticked inline code\nC) In step 4\nD) In the forbidden list",
@@ -903,7 +903,7 @@
    "split": "train"
   },
   {
-   "evidence": "The only sanctioned retirement path is **move to trash**: ```text mv <absolute-source-path> <trash-destination> ``` where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`, which would prepend the suffix. For any collision question, substitute the concrete basename and suffix into the pattern and compare each proposed destination exactly. Use the `trash.ts` module's `defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for shell-level retirement. Never skip this rule for \"trivial\" temp files - the OS tmpdir janitor handles those, and any other file must be trashed, not deleted.",
+   "evidence": "The only sanctioned retirement path is **move to trash**: ```text mv <absolute-source-path> <trash-destination> ``` where `<trash-destination>` is `~/.Trash/<basename>` or, on collision, `~/.Trash/<basename>.<suffix>`. Collision handling is literal: preserve the complete `<basename>` first, then append `.<suffix>` at its right edge. Expand the pattern before choosing an option: the full basename is `notes.md` and the suffix is `1`, producing `~/.Trash/notes.md.1` - the suffix appended after the complete basename. Retiring `/work/notes.md` while `~/.Trash/notes.md` already exists therefore runs `mv /work/notes.md ~/.Trash/notes.md.1`. This never produces `~/.Trash/1.notes.md`, which would prepend the suffix. For any collision question, substitute the concrete basename and suffix into the pattern and compare each proposed destination exactly. Use the `trash.ts` module's `defaultMoveSourceToTrash` for programmatic retirement; use `mv` directly for shell-level retirement. Never skip this rule for \"trivial\" temp files - the OS tmpdir janitor handles those, and any other file must be trashed, not deleted.",
    "expected": "A",
    "id": "train-85",
    "query": "How is the move-to-trash retirement rule presented?\nA) As one merged passage with the `mv` command inline in the sentence\nB) With the `mv` command in its own fenced code block\nC) As a numbered step\nD) Not stated",
