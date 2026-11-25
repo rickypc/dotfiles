@@ -11,6 +11,7 @@ atoms:
     precedence: 0
     probeIds:
       - validation-10
+      - validation-14
     status: active
     tags:
       - rule_meaning
@@ -35,14 +36,27 @@ atoms:
   - behavioral: true
     harmful: 0
     helpful: 0
-    id: r-c04c8e1a78
+    id: r-f66d1f24f1
     placements:
       - headingPath: &ref_0
           - Content Writer
           - 3. Immutable Operational Rules
     precedence: 0
     probeIds:
+      - validation-15
+    status: active
+    tags: []
+    textSha256: f66d1f24f17a68dccaaefb78e051efbbe1062e04a93a54a2312f9b48f3b56969
+  - behavioral: true
+    harmful: 0
+    helpful: 0
+    id: r-c04c8e1a78
+    placements:
+      - headingPath: *ref_0
+    precedence: 0
+    probeIds:
       - train-01
+      - validation-15
     status: active
     tags:
       - boundary
@@ -114,19 +128,6 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-b86d50ccc4
-    placements:
-      - headingPath: *ref_2
-    precedence: 0
-    probeIds:
-      - train-22
-    status: active
-    tags:
-      - rule_meaning
-    textSha256: b86d50ccc4ce4db23a0850e6d5b7fb38cb5f0aaf0991d8db2e187b0df6ebc013
-  - behavioral: false
-    harmful: 0
-    helpful: 0
     id: r-0b3b05e012
     placements:
       - headingPath: *ref_2
@@ -137,6 +138,20 @@ atoms:
     tags:
       - rule_meaning
     textSha256: 0b3b05e0129b44ed5d1bf089ee074d6fbb3a41e9169703dfce867c2b2700d8b9
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-e9cbcb1e4b
+    placements:
+      - headingPath:
+          - Content Writer
+          - 3. Immutable Operational Rules
+    precedence: 0
+    probeIds:
+      - train-28
+    status: active
+    tags: []
+    textSha256: e9cbcb1e4b9a4f4029960d467b9232a4b9ef11fe000f8ff350733be678feee30
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -311,6 +326,7 @@ atoms:
     precedence: 0
     probeIds:
       - validation-03
+      - validation-16
     status: active
     tags:
       - combined_pressure
@@ -333,6 +349,32 @@ atoms:
       - precedence_order
       - rule_meaning
     textSha256: 5dde61f843c37a58b0b7ba8c22df9cce59a6323f08454a724e533228994bcfab
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-a8faa1c58f
+    placements:
+      - headingPath: &ref_7
+          - Content Writer
+          - 5. Ordered Execution Chain
+    precedence: 0
+    probeIds:
+      - validation-17
+    status: active
+    tags: []
+    textSha256: a8faa1c58f97bf6c1d58dded02a8b7f38dd7bfd5c84290f456ca4163ab69be28
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-5f1c182b7e
+    placements:
+      - headingPath: *ref_7
+    precedence: 0
+    probeIds:
+      - validation-17
+    status: active
+    tags: []
+    textSha256: 5f1c182b7e5ab7915ab7cbe3127e9ecb795cceaeed5618e2ab25dd905d8f1fe1
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -414,7 +456,7 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: 2e92f2272aeeaa14bf88a4f522cdd48ad5c609800bcc0c9be21e93fc1aa380ce
-  - behavioral: false
+  - behavioral: true
     harmful: 0
     helpful: 0
     id: r-70cd77ce72
@@ -438,7 +480,7 @@ atoms:
     helpful: 0
     id: r-2e15fdd775
     placements:
-      - headingPath: &ref_7
+      - headingPath: &ref_8
           - Content Writer
           - 5. Ordered Execution Chain
           - Refresh and research distillation
@@ -455,7 +497,7 @@ atoms:
     helpful: 0
     id: r-cab96e599f
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - train-12
@@ -464,7 +506,7 @@ atoms:
       - boundary
       - rule_meaning
     textSha256: cab96e599f247a20393ab0874277cdfdf76dbf16ff25ed56a49490decac295f1
-  - behavioral: true
+  - behavioral: false
     harmful: 0
     helpful: 0
     id: r-0b4902121c
@@ -475,6 +517,7 @@ atoms:
     precedence: 0
     probeIds:
       - validation-04
+      - validation-18
     status: active
     tags:
       - rule_meaning
@@ -562,7 +605,7 @@ atoms:
     tags:
       - rule_meaning
     textSha256: 01a42638f62b77cffc6501e291357c704d2a2520d99d03fdc65312824f62bd46
-  - behavioral: false
+  - behavioral: true
     harmful: 0
     helpful: 0
     id: r-4ebc69c606
@@ -579,7 +622,7 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: 4ebc69c606b31426951213a7dd3fdee16c74ed81907946a24867e123b26cd1ab
-  - behavioral: true
+  - behavioral: false
     harmful: 0
     helpful: 0
     id: r-3fe5732c80
@@ -596,6 +639,20 @@ atoms:
       - exception_failure
       - rule_meaning
     textSha256: 3fe5732c8092664c084427431c6400ba8b671b49abd4142be767417011761d33
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-b86d50ccc4
+    placements:
+      - headingPath:
+          - Content Writer
+          - 3. Immutable Operational Rules
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags:
+      - rule_meaning
+    textSha256: b86d50ccc4ce4db23a0850e6d5b7fb38cb5f0aaf0991d8db2e187b0df6ebc013
 description: >-
   Rule atoms placed in skills/content-writer/SKILL.md; derived from
   comprehension probe evidence.
@@ -635,15 +692,16 @@ Atoms for `skills/content-writer/SKILL.md`.
 
 | Atom | Placements | Probes |
 | --- | --- | --- |
-| `r-995ba849ea` | Content Writer > 1. Role & Scope | 1 |
+| `r-995ba849ea` | Content Writer > 1. Role & Scope | 2 |
 | `r-05e38e852e` | Content Writer > 3. Immutable Operational Rules | 1 |
-| `r-c04c8e1a78` | Content Writer > 3. Immutable Operational Rules | 1 |
+| `r-f66d1f24f1` | Content Writer > 3. Immutable Operational Rules | 1 |
+| `r-c04c8e1a78` | Content Writer > 3. Immutable Operational Rules | 2 |
 | `r-ef62369af9` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-a68c27bdaa` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-d66913f8bc` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-80a3f8f6cd` | Content Writer > 3. Immutable Operational Rules | 1 |
-| `r-b86d50ccc4` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-0b3b05e012` | Content Writer > 3. Immutable Operational Rules | 1 |
+| `r-e9cbcb1e4b` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-c6656391e2` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-94ecc8d759` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-5aabb81452` | Content Writer > 3. Immutable Operational Rules | 1 |
@@ -655,8 +713,10 @@ Atoms for `skills/content-writer/SKILL.md`.
 | `r-c6364c807e` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-2b546fe228` | Content Writer > 3. Immutable Operational Rules | 1 |
 | `r-d05c2f7f69` | Content Writer > 4. Input & Context Schema | 1 |
-| `r-cd11e7ee3b` | Content Writer > 4. Input & Context Schema | 1 |
+| `r-cd11e7ee3b` | Content Writer > 4. Input & Context Schema | 2 |
 | `r-5dde61f843` | Content Writer > 5. Ordered Execution Chain | 1 |
+| `r-a8faa1c58f` | Content Writer > 5. Ordered Execution Chain | 1 |
+| `r-5f1c182b7e` | Content Writer > 5. Ordered Execution Chain | 1 |
 | `r-2b93b5e2b7` | Content Writer > 5. Ordered Execution Chain | 1 |
 | `r-e0ee759637` | Content Writer > 5. Ordered Execution Chain | 1 |
 | `r-a59f23317d` | Content Writer > 5. Ordered Execution Chain | 1 |
@@ -665,7 +725,7 @@ Atoms for `skills/content-writer/SKILL.md`.
 | `r-70cd77ce72` | Content Writer > 5. Ordered Execution Chain > Refresh and research distillation | 1 |
 | `r-2e15fdd775` | Content Writer > 5. Ordered Execution Chain > Refresh and research distillation | 1 |
 | `r-cab96e599f` | Content Writer > 5. Ordered Execution Chain > Refresh and research distillation | 1 |
-| `r-0b4902121c` | Content Writer > 6. Output & Completion Contract | 1 |
+| `r-0b4902121c` | Content Writer > 6. Output & Completion Contract | 2 |
 | `r-9a310b93eb` | Content Writer > 6. Output & Completion Contract > Content quality matrix | 1 |
 | `r-f4b4615c4a` | Content Writer > 6. Output & Completion Contract > Content quality matrix | 1 |
 | `r-bf63878a9c` | Content Writer > 6. Output & Completion Contract > Content quality matrix | 1 |

@@ -338,14 +338,18 @@ const updateManifest = async (
 ): Promise<boolean> => {
   const text = await fileSystem.readFile(path, 'utf8');
   const manifest = JSON.parse(text) as Record<string, unknown>;
-  if (`${JSON.stringify(manifest, null, 2)}\n` !== text) {
+  const indentation = text.match(/(?:^|\r?\n)([ \t]+)"/u)?.[1] ?? '  ';
+  const lineEnding = text.includes('\r\n') ? '\r\n' : '\n';
+  const serialize = (value: Record<string, unknown>): string =>
+    `${JSON.stringify(value, null, indentation)}\n`.replaceAll('\n', lineEnding);
+  if (serialize(manifest) !== text) {
     throw new Error(`Manifest does not round-trip byte-identically: ${path}`);
   }
   if (!(await edit(manifest))) {
     return false;
   }
   if (write) {
-    await fileSystem.writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+    await fileSystem.writeFile(path, serialize(manifest), 'utf8');
   }
   return true;
 };

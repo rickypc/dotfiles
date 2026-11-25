@@ -77,8 +77,13 @@ const hooks: Hooks = {
 // case train-01 gets the wrong letter; it also writes raw replies and suggestions like the real one.
 const failedReader = (exitCode: number): CommandResult => ({
   code: 1,
-  stderr: 'boom',
-  stdout: exitCode === 2 ? '{"data":{"reason":"no-adapter"}}' : '',
+  stderr: exitCode === 3 ? '' : 'boom',
+  stdout:
+    exitCode === 2
+      ? '{"data":{"reason":"no-adapter"}}'
+      : exitCode === 3
+        ? '{"data":{"reason":"integrity"}}'
+        : '',
 });
 
 const letterFor = (
@@ -268,6 +273,9 @@ test('reports a failed reader with the sandbox hint only for a no-adapter envelo
   );
   await expect(evaluateBatch(request1, readerSetup({}, 1).deps, hooks)).rejects.toThrow(
     'weak reader exited 1: boom',
+  );
+  await expect(evaluateBatch(request1, readerSetup({}, 3).deps, hooks)).rejects.toThrow(
+    'weak reader exited 1: {"data":{"reason":"integrity"}}',
   );
 });
 

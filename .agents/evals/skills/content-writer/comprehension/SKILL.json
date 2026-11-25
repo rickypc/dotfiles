@@ -202,7 +202,8 @@
       "expected": "C",
       "id": "train-22",
       "query": "Which sentence breaks the human-voice rule about repeated tics?\nA) \"The lab trains analysts and also hosts talks.\"\nB) \"Funding grew in 2020.\"\nC) \"The lab is a hub, not a classroom.\"\nD) \"Three teams share the space.\"",
-      "split": "train"
+      "split": "train",
+      "retired": "The blanket contrast rule was replaced by contextual guidance; see train-28."
     },
     {
       "evidence": "cannot meet the standard, retain the gap and stop.",
@@ -280,6 +281,48 @@
       "id": "validation-13",
       "query": "A quotation block has lines longer than 100 characters. What happens to it during wrapping?\nA) Wrap it at 100\nB) Leave it byte-identical\nC) Wrap it at 80\nD) Wrap it but keep every word",
       "split": "validation"
+    },
+    {
+      "id": "train-28",
+      "split": "train",
+      "evidence": "keep it when both sides are real and the difference matters.",
+      "expected": "B",
+      "query": "An article describes a lab as \"a hub, not a classroom.\" The research confirms that the lab performs both roles, and the distinction matters to readers. How should this contrast be handled?\nA) Remove it automatically because all contrast phrasing is disallowed.\nB) Keep it because both sides describe real roles and their distinction matters.\nC) Keep it only if \"classroom\" is an unasserted strawman.\nD) Replace it with a claim that the lab is solely a classroom."
+    },
+    {
+      "id": "validation-14",
+      "split": "validation",
+      "evidence": "It produces a credible draft and evidence record; it does not invent facts, silently translate quotations, or replace domain approval and publication ownership.",
+      "expected": "B",
+      "query": "A team asks for a sourced draft and says the writer may fill gaps with invented facts and publish it without the domain owner's approval. Which response follows the skill?\nA) Publish the draft if the evidence record is attached.\nB) Produce the credible draft and evidence record, while leaving unsupported facts out and domain approval and publication ownership with their owner.\nC) Decline to draft because the skill only checks sources.\nD) Translate quotations silently and treat publication as part of drafting."
+    },
+    {
+      "id": "validation-15",
+      "split": "validation",
+      "evidence": "**Preserve all quotations exactly**. Keep the original non-English quotation and ask before adding translation or transliteration when audience needs it.",
+      "expected": "C",
+      "query": "A draft contains a non-English quotation, and the intended audience may need a translation. What should the writer do?\nA) Replace the quotation with an English paraphrase.\nB) Add a translation immediately and omit the original.\nC) Keep the original quotation exactly and ask before adding a translation or transliteration if the audience needs one.\nD) Remove the quotation and report its meaning from memory."
+    },
+    {
+      "id": "validation-16",
+      "split": "validation",
+      "evidence": "Unsupported claims, missing refresh facts, unresolved language handling, inadequate source quality, or missing approval is `needs-input` or `blocked`, not an invitation to write plausible prose.",
+      "expected": "D",
+      "query": "The brief includes a material claim with no supporting evidence. What should the writer do with that gap?\nA) Add the most plausible wording and leave the source for later.\nB) Treat the claim as established because it appears in the brief.\nC) Omit the gap from the ledger and return a polished draft.\nD) Treat the work as `needs-input` or `blocked` and avoid writing plausible prose for the unsupported claim."
+    },
+    {
+      "id": "validation-17",
+      "split": "validation",
+      "evidence": "The order never changes: source research comes before the evidence ledger, and the evidence ledger comes before the draft. The draft is never written before the ledger exists.",
+      "expected": "A",
+      "query": "Source research is finished, but the evidence ledger has not yet been created. What is the next permitted sequence?\nA) Build the evidence ledger, then write the draft.\nB) Write the draft now and add the ledger afterward.\nC) Draft from the brief, then research only the claims that readers question.\nD) Skip the ledger if the sources are already open."
+    },
+    {
+      "id": "validation-18",
+      "split": "validation",
+      "evidence": "Completion requires every material claim to have an admissible source, each citation to support its claim, structure to fit the audience, and the result to be exactly `ready`.",
+      "expected": "A",
+      "query": "A polished draft has citations, but one material claim has no admissible source. Does it meet the completion contract?\nA) No. Every material claim needs an admissible source, citations must support their claims, the structure must fit the audience, and the result must be exactly `ready`.\nB) Yes, if the draft is fluent and has several citations.\nC) Yes, because an outline is enough to establish completion.\nD) Yes, if any discovery result mentions the claim."
     }
   ],
   "runs_per_query": 3,

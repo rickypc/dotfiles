@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/content-writer/SKILL.md",
-      "sha256": "954cc140f893ef0383dbe66af246965899602df867cba73fd052b675c2b4e2d7"
+      "sha256": "ddb380af49f36ba317dd73cac2be8868595d5b5ea8876781faa6be43af125aff"
     },
     {
       "sourcePath": "evals/skills/content-writer/rubric.md",
@@ -44,7 +44,7 @@
       {
         "sourcePath": "skills/content-writer/SKILL.md",
         "setPath": "evals/skills/content-writer/comprehension/SKILL.json",
-        "queryCount": 40,
+        "queryCount": 46,
         "queryIds": [
           "train-01",
           "train-02",
@@ -85,7 +85,13 @@
           "validation-10",
           "validation-11",
           "validation-12",
-          "validation-13"
+          "validation-13",
+          "train-28",
+          "validation-14",
+          "validation-15",
+          "validation-16",
+          "validation-17",
+          "validation-18"
         ]
       },
       {
@@ -133,7 +139,7 @@
   "inventory": {
     "contractCases": 4,
     "activationQueries": 62,
-    "comprehensionQueries": 54,
+    "comprehensionQueries": 60,
     "behaviorCases": 3
   },
   "fingerprints": {

@@ -34,13 +34,20 @@ delta rewrites the description line is rejected by `propose`.
 
 ## 3. check
 
-A no-admissible verdict is a repair input, not a stop: read the complete verdict output first - the
-per-atom probe vectors, every reader diagnosis, and the measured baseline beside the candidate. The
-weak reader is the judge: when it cannot distinguish the candidate from the current text, the edit
-has no reader-visible behavior change, so restate the candidate toward reader-visible behavior or
-repair the wrong-shaped assertion; never rerun an unchanged measurement. Keep an intent ledger of
-every change the edit must deliver, verify each intent item against the accepted text before
-closeout, and never drop an intent item because an earlier round rejected it.
+First inspect the whole no-admissible verdict: per-atom probe vectors, all reader diagnoses, and the
+measured baseline for each candidate. The pinned weak reader consistently judges comprehension on
+the frozen probe set. Its score does not decide policy truth or action compliance: an independent
+policy owner verifies probe labels against governing rules, and deterministic behavior seals plus
+the instruction gate assess actions. Use diagnoses as hypotheses, verifying each quoted rule against
+the source before editing. If the reader cannot distinguish a candidate from current text, the edit
+has no reader-visible behavior change; restate it or repair the assertion, and do not rerun
+unchanged text. Maintain the intent ledger through every round, verify each change against accepted
+text, and never drop an intent because an earlier round rejected it. The weak reader is the judge:
+when it cannot distinguish the candidate from the current text, the edit has no reader-visible
+behavior change, so restate the candidate toward reader-visible behavior or repair the wrong-shaped
+assertion; never rerun an unchanged measurement. Keep an intent ledger of every change the edit must
+deliver, verify each intent item against the accepted text before closeout, and never drop an intent
+item because an earlier round rejected it.
 
 `check` runs the structural checks first, then one batched reader run over every candidate, and then
 prints one verdict for the round. A structural failure skips the reader run and is reported with the

@@ -266,6 +266,17 @@ test.each([
   );
 });
 
+test('rebuild accepts and preserves canonical one-space manifest formatting', async () => {
+  const manifest = `${JSON.stringify({ artifacts: { atoms: [] } }, null, 1)}\n`;
+  const { fileSystem, files } = world({ '/r/evals/skills/demo/manifest.json': manifest });
+
+  await rebuildAtomMaps(fileSystem, '/r', { ownerId: 'skill:demo', write: true });
+
+  const written = files.get('/r/evals/skills/demo/manifest.json') ?? '';
+  expect(written).toBe(`${JSON.stringify(JSON.parse(written), null, 1)}\n`);
+  expect(written).toContain('\n "artifacts"');
+});
+
 test('rebuild refreshes the source hashes of a skill manifest together with the map list', async () => {
   const rubric = '# Rubric\n';
   const stale = json({

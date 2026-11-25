@@ -109,7 +109,7 @@
   {
    "id": "holdout-references-librarian-01",
    "split": "validation",
-   "evidence": "A no-admissible verdict is a repair input, not a stop: read the complete verdict output first - the per-atom probe vectors, every reader diagnosis, and the measured baseline beside the candidate.",
+   "evidence": "First inspect the whole no-admissible verdict: per-atom probe vectors, all reader diagnoses, and the measured baseline for each candidate.",
    "query": "A check round returns a no-admissible verdict. What must the editor do first?\nA) Stop the edit and close the document as unrepairable.\nB) Read the complete verdict output, including probe vectors, diagnoses, and the measured baseline beside the candidate.\nC) Rerun the same candidates without changing anything.\nD) Ask commit to select the least-bad candidate.",
    "expected": "B"
   },

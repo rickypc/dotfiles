@@ -49,9 +49,21 @@ need research, citations, quotation preservation, or refresh verification.
   as the tradition presents it and keep the caveat out of reader-facing prose.
 - **Write in a natural human voice**. Vary sentence openers across parallel items, and never repeat
   one template sentence down a list. Never use the contrast tic: drop "not X but Y", "X, not Y", and
-  "X rather than Y". Example: "The lab is a hub, not a classroom." breaks the rule;
-  "The lab trains analysts." does not. Reader-facing prose does not discuss the writing, research,
-  or verification process.
+  "X rather than Y". Example: "The lab is a hub, not a classroom" is empty if "classroom" is an
+  unasserted strawman; keep it when the lab does both jobs and the distinction matters.
+  Reader-facing prose does not discuss the writing, research, or verification process.
+- **Use contrasts only when they carry a distinction.** In the preceding rule, a "contrast tic"
+  means an empty setup: remove it when X is an unasserted strawman and Y is the supported point;
+  keep it when both sides are real and the difference matters.
+
+- **Run a full-draft editorial pass.** Check openings and endings, inflated importance, stock
+  metaphors, vague attributions, unsupported benefits, padded lists, repeated framing, empty
+  contrasts, and process narration. Treat these as cues; edit only where wording adds no sourced
+  fact, necessary connection, uncertainty, technical meaning, register, or author voice. Scan the
+  complete draft with `bun <agents-root>/scripts/prose-cues.ts scan <draft-path>` or pass draft text
+  on stdin with `scan -`. The read-only scanner uses a fixed, versioned local list. Review each hit
+  in context; do not optimize for zero hits or treat the report as an authorship or fact-checking
+  result.
 - **Match the register of the source text**. Explanatory content (essays, articles, guides) gets
   full prose treatment: rewrite clumsy sentences and run-ons freely. Instructional, procedural, or
   liturgical text gets prose corrections only (grammar, punctuation, and run-ons); its procedure,

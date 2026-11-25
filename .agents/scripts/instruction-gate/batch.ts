@@ -390,7 +390,8 @@ export const evaluateBatch = async <Fingerprint>(
     const hint = isNoAdapterFailure(read.stdout)
       ? ' (no GPU adapter: run this command outside the sandbox)'
       : '';
-    throw new Error(`weak reader exited ${read.code}${hint}: ${read.stderr.trim().slice(-300)}`);
+    const details = read.stderr.trim() || read.stdout.trim();
+    throw new Error(`weak reader exited ${read.code}${hint}: ${details.slice(-300)}`);
   }
   const results = await Promise.all(made.map(({ entry }) => scoreOf(entry, deps, hooks)));
   return {

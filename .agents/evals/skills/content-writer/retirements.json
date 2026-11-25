@@ -1,0 +1,9 @@
+{
+  "retirements": [
+    {
+      "caseId": "atom:r-b86d50ccc4",
+      "reason": "Update the example so it demonstrates both an empty contrast and a meaningful distinction."
+    }
+  ],
+  "schemaVersion": 1
+}

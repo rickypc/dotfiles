@@ -122,7 +122,7 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-c4dd19a42b
+    id: r-1c31483039
     placements:
       - headingPath: &ref_3
           - Librarian workflow
@@ -132,7 +132,7 @@ atoms:
       - holdout-references-librarian-01
     status: active
     tags: []
-    textSha256: c4dd19a42b8ba6da38b472c6ca7c1fe2b55181155276399582ddcd01ff086ee1
+    textSha256: 1c314830394e620e5aca5ea4f7dbbda070d6efe4e94d61ef7c02cb100125f402
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -323,6 +323,19 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-c4dd19a42b
+    placements:
+      - headingPath:
+          - Librarian workflow
+          - 3. check
+    precedence: 0
+    probeIds: []
+    status: retired
+    tags: []
+    textSha256: c4dd19a42b8ba6da38b472c6ca7c1fe2b55181155276399582ddcd01ff086ee1
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-47a4d8d2aa
     placements:
       - headingPath:
@@ -394,7 +407,7 @@ Atoms for `skills/skill-manager/references/librarian.md`.
 | `r-ee1dbf9b3d` | Librarian workflow > 2. propose | 2 |
 | `r-056d353fc0` | Librarian workflow > 2. propose | 1 |
 | `r-fe1c0fec46` | Librarian workflow > 2. propose | 1 |
-| `r-c4dd19a42b` | Librarian workflow > 3. check | 1 |
+| `r-1c31483039` | Librarian workflow > 3. check | 1 |
 | `r-0c8056d9f6` | Librarian workflow > 3. check | 1 |
 | `r-9a73b24146` | Librarian workflow > 3. check | 1 |
 | `r-7fcad6d0bd` | Librarian workflow > 3. check | 1 |
