@@ -84,7 +84,7 @@
       "train-85",
       "train-86"
     ],
-    "validationPassed": 35
+    "validationPassed": 42
   },
   "decision": "perfect",
   "document": "AGENTS.md",
@@ -177,16 +177,15 @@
       "train-77",
       "train-78",
       "train-79",
-      "train-84",
       "train-85",
       "train-86"
     ],
-    "validationPassed": 35,
+    "validationPassed": 42,
     "validationTotal": 43
   },
   "reason": "",
   "schema": 1,
-  "selfSha256": "c544619346b0fed47712e6986612dada518dd49d2743256dc4a6e423df9d9040",
+  "selfSha256": "b349cac51dc67aae6f7ef8e9e6becccf87a1a1ec04d7d71baf3f7e1c0f754263",
   "setPath": "evals/comprehension/AGENTS.json",
-  "setSha256": "2ce504dda7516f9c49051bd418046d908b280572f2a5cba860934e603de41f41"
+  "setSha256": "88b19f2c37108f941271926337c2b56e615ef409618b0c98c4a97ea692ba5f8a"
 }
