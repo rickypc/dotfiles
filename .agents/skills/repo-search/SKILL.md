@@ -1,13 +1,13 @@
 ---
 name: repo-search
 description: >-
-  Use for ANY question about where things are in a codebase or what a file contains: find, locate,
-  or list a file, symbol, config, definition, or usage; who calls what or where something is used or
-  defined; how a repo or monorepo is structured or wired together (architecture, big picture);
-  whether a dependency or string appears anywhere, including Docker images or several repos; or what
-  an unknown, packed, or garbled binary, executable, or blob file is and what it contains. Mandatory
-  first step for repository discovery. Do NOT use to edit code, review changes, or look up private
-  knowledge-base notes.
+  Use only when the requested result requires discovering or inspecting information in an identified
+  repository: find or read its files, symbols, configuration, or usages; trace callers or
+  dependencies; or explain its architecture from repository evidence. Do NOT use to explain a pasted
+  snippet or draw a call graph from pasted code; the prompt already contains that material. Do NOT
+  use when asked to change source, even if a file is named, or to assess an existing diff; those
+  requests ask for implementation or review, not discovery. For Agent Skill or AGENTS.md work use
+  skill-manager; for private knowledge-base records use knowledge-base.
 argument-hint: <root> <query...> | read <root> <target> [query...] | inspect <root> <jsonl-path>
 capabilities:
   [

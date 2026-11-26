@@ -3,11 +3,23 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
-    id: r-9d710b2d7a
+    id: r-3fd6651f39
     placements:
-      - headingPath:
+      - headingPath: &ref_0
           - In-session training protocol
           - 2. Metric definitions
+    precedence: 0
+    probeIds:
+      - rotation-train-protocol-01
+    status: active
+    tags: []
+    textSha256: 3fd6651f3927bacde62b000483b48096ed7e1acf1f959ff7889ae21a35b54c0c
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-9d710b2d7a
+    placements:
+      - headingPath: *ref_0
     precedence: 0
     probeIds:
       - train-14
@@ -55,7 +67,7 @@ atoms:
     helpful: 0
     id: r-552cc8cfa0
     placements:
-      - headingPath: &ref_0
+      - headingPath: &ref_1
           - In-session training protocol
           - 2. Metric definitions
     precedence: 0
@@ -72,7 +84,7 @@ atoms:
     helpful: 0
     id: r-e8e91408b5
     placements:
-      - headingPath: *ref_0
+      - headingPath: *ref_1
     precedence: 0
     probeIds:
       - train-03
@@ -120,7 +132,7 @@ atoms:
     helpful: 0
     id: r-e1327abc06
     placements:
-      - headingPath: &ref_1
+      - headingPath: &ref_2
           - In-session training protocol
           - 2. Metric definitions
     precedence: 0
@@ -135,7 +147,7 @@ atoms:
     helpful: 0
     id: r-a3741eaa40
     placements:
-      - headingPath: *ref_1
+      - headingPath: *ref_2
     precedence: 0
     probeIds:
       - validation-14
@@ -164,7 +176,7 @@ atoms:
     helpful: 0
     id: r-cbb95a5c5c
     placements:
-      - headingPath: &ref_2
+      - headingPath: &ref_3
           - In-session training protocol
           - 3. Why this design
     precedence: 0
@@ -180,7 +192,7 @@ atoms:
     helpful: 0
     id: r-51142b9da2
     placements:
-      - headingPath: *ref_2
+      - headingPath: *ref_3
     precedence: 0
     probeIds:
       - validation-11
@@ -194,7 +206,7 @@ atoms:
     helpful: 0
     id: r-43d9e6d68f
     placements:
-      - headingPath: &ref_3
+      - headingPath: &ref_4
           - In-session training protocol
           - 4. Blind measurement
     precedence: 0
@@ -210,7 +222,7 @@ atoms:
     helpful: 0
     id: r-3a521302ee
     placements:
-      - headingPath: *ref_3
+      - headingPath: *ref_4
     precedence: 0
     probeIds:
       - train-06
@@ -239,7 +251,7 @@ atoms:
     helpful: 0
     id: r-60982e139d
     placements:
-      - headingPath: &ref_4
+      - headingPath: &ref_5
           - In-session training protocol
           - 4. Blind measurement
     precedence: 0
@@ -255,7 +267,7 @@ atoms:
     helpful: 0
     id: r-b7255e698f
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - train-13
@@ -284,11 +296,12 @@ atoms:
     helpful: 0
     id: r-ddf2e75b8e
     placements:
-      - headingPath:
+      - headingPath: &ref_6
           - In-session training protocol
           - 5. Loop for one skill
     precedence: 0
     probeIds:
+      - rotation-train-protocol-02
       - validation-15
     status: active
     tags: []
@@ -296,9 +309,21 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-f340cc9b93
+    placements:
+      - headingPath: *ref_6
+    precedence: 0
+    probeIds:
+      - rotation-train-protocol-03
+    status: active
+    tags: []
+    textSha256: f340cc9b9328f2d45948461d81618b43b6120eee6498a76e2d6c4c9aee52f1cf
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-472554a80a
     placements:
-      - headingPath: &ref_5
+      - headingPath: &ref_7
           - In-session training protocol
           - 5. Loop for one skill
     precedence: 0
@@ -315,7 +340,7 @@ atoms:
     helpful: 0
     id: r-9f6e300dcc
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - validation-05
@@ -330,7 +355,7 @@ atoms:
     helpful: 0
     id: r-2aa805d3d4
     placements:
-      - headingPath: &ref_6
+      - headingPath: &ref_8
           - In-session training protocol
           - 6. Suite runs and noise
     precedence: 0
@@ -348,7 +373,7 @@ atoms:
     helpful: 0
     id: r-1e32e96846
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - validation-12
@@ -369,6 +394,7 @@ atoms:
           - 6. Suite runs and noise
     precedence: 0
     probeIds:
+      - rotation-train-protocol-04
       - train-11
     status: active
     tags:
@@ -426,6 +452,20 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-c7438261ce
+    placements:
+      - headingPath:
+          - In-session training protocol
+          - 8. Documents and the weak reader
+    precedence: 0
+    probeIds:
+      - rotation-train-protocol-05
+    status: active
+    tags: []
+    textSha256: c7438261ce2313f74b06036bc6bc823b3cd3227057373864da6026fe474438de
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-797fe5f052
     placements:
       - headingPath:
@@ -442,7 +482,7 @@ atoms:
     helpful: 0
     id: r-652ef361c1
     placements:
-      - headingPath: &ref_7
+      - headingPath: &ref_9
           - In-session training protocol
           - 8. Documents and the weak reader
     precedence: 0
@@ -456,13 +496,40 @@ atoms:
     helpful: 0
     id: r-075f98a43a
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_9
     precedence: 0
     probeIds:
       - validation-21
     status: active
     tags: []
     textSha256: 075f98a43a14d11ff7ea82aa1b0abfb6b211e79367cfab3899ebd6c99d467bac
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-6f72535c8b
+    placements:
+      - headingPath: &ref_10
+          - In-session training protocol
+          - 8. Documents and the weak reader
+    precedence: 0
+    probeIds:
+      - train-25
+    status: active
+    tags: []
+    textSha256: 6f72535c8b34f0dbd0ac6c3cb9380c36f2e7204c1622ca5817c61694669b27e2
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-e584f8fae1
+    placements:
+      - headingPath: *ref_10
+    precedence: 0
+    probeIds:
+      - train-25
+      - train-26
+    status: active
+    tags: []
+    textSha256: e584f8fae1439a0492dcb855093a2293afa0ebb79de3e6b5b76ad352f222d5ac
   - behavioral: false
     harmful: 0
     helpful: 0
@@ -587,7 +654,7 @@ atoms:
     helpful: 0
     id: r-e9691048e5
     placements:
-      - headingPath: &ref_8
+      - headingPath: &ref_11
           - In-session training protocol
           - 11. Retiring queries
     precedence: 0
@@ -601,9 +668,10 @@ atoms:
     helpful: 0
     id: r-9b073e2f1c
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_11
     precedence: 0
     probeIds:
+      - rotation-train-protocol-06
       - train-16
     status: active
     tags:
@@ -617,7 +685,7 @@ atoms:
     helpful: 0
     id: r-d3d7bcd4f8
     placements:
-      - headingPath: *ref_8
+      - headingPath: *ref_11
     precedence: 0
     probeIds:
       - train-17
@@ -630,7 +698,7 @@ atoms:
     helpful: 0
     id: r-bb6a3ba0b8
     placements:
-      - headingPath: &ref_9
+      - headingPath: &ref_12
           - In-session training protocol
           - '12. Atom maps, audit, and batch scoring'
     precedence: 0
@@ -644,7 +712,7 @@ atoms:
     helpful: 0
     id: r-4ef527a2b4
     placements:
-      - headingPath: *ref_9
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-02
@@ -656,7 +724,7 @@ atoms:
     helpful: 0
     id: r-70d8c4c22e
     placements:
-      - headingPath: *ref_9
+      - headingPath: *ref_12
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-02
@@ -682,7 +750,7 @@ atoms:
     helpful: 0
     id: r-d5cc74256a
     placements:
-      - headingPath: &ref_10
+      - headingPath: &ref_13
           - In-session training protocol
           - '12. Atom maps, audit, and batch scoring'
     precedence: 0
@@ -696,7 +764,7 @@ atoms:
     helpful: 0
     id: r-90f22a9e1a
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-01
@@ -708,7 +776,7 @@ atoms:
     helpful: 0
     id: r-bb3bbb1ef7
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-01
@@ -720,7 +788,7 @@ atoms:
     helpful: 0
     id: r-c690bbb4aa
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-01
@@ -732,7 +800,7 @@ atoms:
     helpful: 0
     id: r-7cfbe0b464
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-01
@@ -744,7 +812,7 @@ atoms:
     helpful: 0
     id: r-a55c9ed78b
     placements:
-      - headingPath: *ref_10
+      - headingPath: *ref_13
     precedence: 0
     probeIds:
       - holdout-references-train-protocol-01
@@ -793,6 +861,7 @@ Atoms for `skills/skill-manager/references/train-protocol.md`.
 
 | Atom | Placements | Probes |
 | --- | --- | --- |
+| `r-3fd6651f39` | In-session training protocol > 2. Metric definitions | 1 |
 | `r-9d710b2d7a` | In-session training protocol > 2. Metric definitions | 2 |
 | `r-e7f0dc87e4` | In-session training protocol > 2. Metric definitions | 1 |
 | `r-a1287376b8` | In-session training protocol > 2. Metric definitions | 1 |
@@ -811,18 +880,22 @@ Atoms for `skills/skill-manager/references/train-protocol.md`.
 | `r-60982e139d` | In-session training protocol > 4. Blind measurement | 1 |
 | `r-b7255e698f` | In-session training protocol > 4. Blind measurement | 1 |
 | `r-06b09c2043` | In-session training protocol > 4. Blind measurement | 1 |
-| `r-ddf2e75b8e` | In-session training protocol > 5. Loop for one skill | 1 |
+| `r-ddf2e75b8e` | In-session training protocol > 5. Loop for one skill | 2 |
+| `r-f340cc9b93` | In-session training protocol > 5. Loop for one skill | 1 |
 | `r-472554a80a` | In-session training protocol > 5. Loop for one skill | 1 |
 | `r-9f6e300dcc` | In-session training protocol > 5. Loop for one skill | 1 |
 | `r-2aa805d3d4` | In-session training protocol > 6. Suite runs and noise | 1 |
 | `r-1e32e96846` | In-session training protocol > 6. Suite runs and noise | 1 |
-| `r-78b7b2a7bf` | In-session training protocol > 6. Suite runs and noise | 1 |
+| `r-78b7b2a7bf` | In-session training protocol > 6. Suite runs and noise | 2 |
 | `r-3d7f426d72` | In-session training protocol > 7. Resuming | 1 |
 | `r-5ec4ca9087` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-f46ccf6526` | In-session training protocol > 8. Documents and the weak reader | 1 |
+| `r-c7438261ce` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-797fe5f052` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-652ef361c1` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-075f98a43a` | In-session training protocol > 8. Documents and the weak reader | 1 |
+| `r-6f72535c8b` | In-session training protocol > 8. Documents and the weak reader | 1 |
+| `r-e584f8fae1` | In-session training protocol > 8. Documents and the weak reader | 2 |
 | `r-c9247acab9` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-379768fa88` | In-session training protocol > 8. Documents and the weak reader | 1 |
 | `r-3deafff4aa` | In-session training protocol > 8. Documents and the weak reader | 1 |
@@ -832,7 +905,7 @@ Atoms for `skills/skill-manager/references/train-protocol.md`.
 | `r-3081526d4d` | In-session training protocol > 9. Edit cap and rejected-edit buffer | 1 |
 | `r-c73545b063` | In-session training protocol > 10. Contract track | 1 |
 | `r-e9691048e5` | In-session training protocol > 11. Retiring queries | 1 |
-| `r-9b073e2f1c` | In-session training protocol > 11. Retiring queries | 1 |
+| `r-9b073e2f1c` | In-session training protocol > 11. Retiring queries | 2 |
 | `r-d3d7bcd4f8` | In-session training protocol > 11. Retiring queries | 1 |
 | `r-bb6a3ba0b8` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |
 | `r-4ef527a2b4` | In-session training protocol > 12. Atom maps, audit, and batch scoring | 1 |

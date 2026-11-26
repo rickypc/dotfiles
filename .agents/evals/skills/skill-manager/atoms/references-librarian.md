@@ -50,6 +50,7 @@ atoms:
           - 1. Edits are deltas over atoms
     precedence: 0
     probeIds:
+      - pool-references-librarian-09
       - train-03
     status: active
     tags: []
@@ -108,6 +109,58 @@ atoms:
   - behavioral: false
     harmful: 0
     helpful: 0
+    id: r-ab6ddb0c90
+    placements:
+      - headingPath: &ref_3
+          - Librarian workflow
+          - 2. propose
+    precedence: 0
+    probeIds:
+      - train-10
+    status: active
+    tags: []
+    textSha256: ab6ddb0c905846a3b33ea218a842e79218c291ce1fe018f46a6d805bc627f033
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-8f4dd819f0
+    placements:
+      - headingPath: *ref_3
+    precedence: 0
+    probeIds:
+      - train-10
+    status: active
+    tags: []
+    textSha256: 8f4dd819f0d0b775aecd102515ce62cb6a4593302ec1b253032f3e540a34db78
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-7dd5155058
+    placements:
+      - headingPath: *ref_3
+    precedence: 0
+    probeIds:
+      - train-12
+    status: active
+    tags: []
+    textSha256: 7dd515505848fbdcf9f6a8745cf83512ba89d3006c9ffde95d54062384183cb8
+  - behavioral: false
+    harmful: 0
+    helpful: 0
+    id: r-b1eaa15c67
+    placements:
+      - headingPath:
+          - Librarian workflow
+          - 2. propose
+    precedence: 0
+    probeIds:
+      - train-11
+    status: active
+    tags: []
+    textSha256: b1eaa15c674b3eaa07dad413ff59203ba3bbf653d3c7bd0d66b56a1d0ec043a0
+  - behavioral: false
+    harmful: 0
+    helpful: 0
     id: r-fe1c0fec46
     placements:
       - headingPath:
@@ -124,7 +177,7 @@ atoms:
     helpful: 0
     id: r-1c31483039
     placements:
-      - headingPath: &ref_3
+      - headingPath: &ref_4
           - Librarian workflow
           - 3. check
     precedence: 0
@@ -138,7 +191,7 @@ atoms:
     helpful: 0
     id: r-0c8056d9f6
     placements:
-      - headingPath: *ref_3
+      - headingPath: *ref_4
     precedence: 0
     probeIds:
       - holdout-references-librarian-02
@@ -192,7 +245,7 @@ atoms:
     helpful: 0
     id: r-c640010ff2
     placements:
-      - headingPath: &ref_4
+      - headingPath: &ref_5
           - Librarian workflow
           - 3. check
     precedence: 0
@@ -206,7 +259,7 @@ atoms:
     helpful: 0
     id: r-f20c053012
     placements:
-      - headingPath: *ref_4
+      - headingPath: *ref_5
     precedence: 0
     probeIds:
       - validation-06
@@ -218,7 +271,7 @@ atoms:
     helpful: 0
     id: r-f2f6fca2e5
     placements:
-      - headingPath: &ref_5
+      - headingPath: &ref_6
           - Librarian workflow
           - 3. check
     precedence: 0
@@ -232,7 +285,7 @@ atoms:
     helpful: 0
     id: r-21fc9296b7
     placements:
-      - headingPath: *ref_5
+      - headingPath: *ref_6
     precedence: 0
     probeIds:
       - train-09
@@ -245,7 +298,7 @@ atoms:
     helpful: 0
     id: r-301799f239
     placements:
-      - headingPath: &ref_6
+      - headingPath: &ref_7
           - Librarian workflow
           - 4. commit
     precedence: 0
@@ -259,7 +312,7 @@ atoms:
     helpful: 0
     id: r-d954b555fc
     placements:
-      - headingPath: *ref_6
+      - headingPath: *ref_7
     precedence: 0
     probeIds:
       - pool-07
@@ -271,7 +324,7 @@ atoms:
     helpful: 0
     id: r-db0976a40f
     placements:
-      - headingPath: &ref_7
+      - headingPath: &ref_8
           - Librarian workflow
           - 4. commit
     precedence: 0
@@ -285,7 +338,7 @@ atoms:
     helpful: 0
     id: r-a916fadf9c
     placements:
-      - headingPath: *ref_7
+      - headingPath: *ref_8
     precedence: 0
     probeIds:
       - validation-05
@@ -401,11 +454,15 @@ Atoms for `skills/skill-manager/references/librarian.md`.
 | `r-2867431096` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-5fa1186841` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-bad9ce18ee` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
-| `r-1a09aa7155` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
+| `r-1a09aa7155` | Librarian workflow > 1. Edits are deltas over atoms | 2 |
 | `r-4c0696b28b` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-b97ed788c7` | Librarian workflow > 1. Edits are deltas over atoms | 1 |
 | `r-ee1dbf9b3d` | Librarian workflow > 2. propose | 2 |
 | `r-056d353fc0` | Librarian workflow > 2. propose | 1 |
+| `r-ab6ddb0c90` | Librarian workflow > 2. propose | 1 |
+| `r-8f4dd819f0` | Librarian workflow > 2. propose | 1 |
+| `r-7dd5155058` | Librarian workflow > 2. propose | 1 |
+| `r-b1eaa15c67` | Librarian workflow > 2. propose | 1 |
 | `r-fe1c0fec46` | Librarian workflow > 2. propose | 1 |
 | `r-1c31483039` | Librarian workflow > 3. check | 1 |
 | `r-0c8056d9f6` | Librarian workflow > 3. check | 1 |

@@ -360,6 +360,19 @@ Report residual exceptions as counted classes with the reason each is irreducibl
 the negative: state how many remaining lines were wrappable, so "every line complies" is a measured
 claim rather than an impression.
 
+### Durable prose review
+
+Before a durable Markdown write, scan the complete proposed text with
+`bun <agents-root>/scripts/prose-cues.ts scan <draft-path>`. If the candidate has no saved path,
+send all of it on stdin with `scan -`. Read each marker beside its full paragraph. Revise only where
+context shows padding, vagueness, repetition, or unsupported claims; preserve evidence, quotations,
+exact commands, scope boundaries, uncertainty, technical precision, register, and voice. For a
+`/md-compress` edit, finish this review before `begin`, then make the reviewed edit and run the
+returned `finalize` immediately. For a Skill Manager proposal, scan its complete snapshot before
+`check` or `commit`, never the live baseline or changed atom alone. The read-only fixed marker list
+prompts review; it does not identify authorship or set a zero-hit target. Existing gates decide
+acceptance.
+
 ## 8. Command, script, and structured-data contracts
 
 Before invoking any script or skill command, read its owning command catalog and parser/entrypoint.
@@ -418,8 +431,6 @@ and report the exact blocker.
 1. **Obtain the output path.** Run standalone `mktemp` alone and use exactly the absolute path it
    prints; the writer rejects any output path outside `os.tmpdir()` and refuses relative or guessed
    paths.
-  
-  
 2. **Build the JSON string in memory.** JSON is whitespace-insensitive; keep newlines inside string
    bodies as literal `\n` escapes, and encode Markdown backticks as `\u0060` and dollar signs as
    `\u0024` if they appear inside string bodies.
@@ -432,12 +443,6 @@ and report the exact blocker.
    that redirect with an approval-required or sandbox-denied error, use this one recovery with the
    same exact paths printed or derived from `mktemp -d`:
    `bun <absolute-builder-script-path> | tee <absolute-request-source-path> | wc -c`.
-
-  
-
-  
-
-  
 
    Preserve the exact temporary path as printed by `mktemp -d`; do not rewrite `/var/...` as
    `/private/var/...` or guess another temporary path.
@@ -452,8 +457,6 @@ and report the exact blocker.
    the writer reads stdin, validates JSON, pretty-prints it, and writes only inside the OS temp
    directory.
 
-  
-
    After materialization succeeds, invoke the owning command separately with the same literal output
    path. Only the writer reads stdin; the owner command takes the JSON path as an argument. Never
    chain the owner command with the writer in one command. For the knowledge-base skill, run
@@ -461,9 +464,6 @@ and report the exact blocker.
    separately after materialization succeeds; the argument order is fixed, the private-KB root first
    and the JSON output path second.
 
-  
-
-   
 Forbidden for every KB reconciliation, AIDP capture, or other fixed JSON boundary: heredoc, shell
 variables, command substitution, inline writers, Python, object-valued tool calls, direct
 `JSON.stringify` or `echo` source writing, guessed temp paths such as `/tmp` or `/private/tmp`, and

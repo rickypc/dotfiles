@@ -9,18 +9,19 @@
       "train-06",
       "train-07",
       "train-08",
-      "train-09"
+      "train-09",
+      "train-10"
     ],
     "validationPassed": 5
   },
-  "decision": "improved",
+  "decision": "rebaseline",
   "document": "skills/repo-search/references/usage-patterns.md",
   "documentSha256": "a7174ddd614c5c574128c263afc202abaa6bd0e2a2b5615b337c439f040a2539",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
     "trainFailed": [],
@@ -39,9 +40,9 @@
     "validationPassed": 5,
     "validationTotal": 5
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "8609be3456f5143fd485f55e7f727f90eb5e6f817a168a3f3ff417f0922204b4",
+  "selfSha256": "6a094a7916641a10ccb18f6def0d28a933152567d966724819071c6ce49b30f7",
   "setPath": "evals/skills/repo-search/comprehension/references-usage-patterns.json",
   "setSha256": "1f7847848da0a6206f8f528ca8cd0d94760f10b2decf3fbbec59e1b32f5bb3a1"
 }

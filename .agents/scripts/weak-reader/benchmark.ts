@@ -8,10 +8,10 @@ import { CliError } from '../../utils/cli/errors.js';
 import { runMain } from '../../utils/cli/index.js';
 import { UsageError } from '../../utils/cli/usage-error.js';
 import {
+  DOCUMENT_READER_VERSION,
   MAX_NEW_TOKENS,
   MODEL_ID,
   MODEL_REVISION,
-  READER_VERSION,
   VENDORED_BUNDLE_PATH,
   VENDORED_BUNDLE_SHA256,
 } from './index.js';
@@ -291,7 +291,7 @@ const profileFromReader = (): ReaderProfile => ({
   maxNewTokens: MAX_NEW_TOKENS,
   modelId: MODEL_ID,
   modelRevision: MODEL_REVISION,
-  readerVersion: READER_VERSION,
+  readerVersion: DOCUMENT_READER_VERSION,
   runtimeBundleSha256: VENDORED_BUNDLE_SHA256,
   vendorArchivePath: path.resolve(ROOT, VENDORED_BUNDLE_PATH),
 });

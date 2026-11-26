@@ -12,14 +12,14 @@
     ],
     "validationPassed": 5
   },
-  "decision": "perfect",
+  "decision": "rebaseline",
   "document": "evals/skills/biome-checker/rubric.md",
   "documentSha256": "894ffb6a1547dd32fc64403b61f052a03df8e7ffbb69b83c9ef43e52076fa86c",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
     "trainFailed": [],
@@ -36,9 +36,9 @@
     "validationPassed": 5,
     "validationTotal": 5
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "5b066db220c7067a3b13eef5caea61e7bccc8a5ebf8abe66c37cfd103eb69cba",
+  "selfSha256": "32c17dd525e721a57cfcc05c5693a86a02035b3d31d2cea6fe0d41b046f09bc6",
   "setPath": "evals/skills/biome-checker/comprehension/evals-rubric.json",
   "setSha256": "079a430fb03bb272653859c15a3382dbdc874124b87f92fe87f66926ac5ce9e3"
 }

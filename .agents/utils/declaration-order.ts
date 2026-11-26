@@ -464,14 +464,24 @@ const importsEndFor = (filePath: string, source: string): number => {
 const applyTypeGroup = (filePath: string, source: string, group: DeclarationOrderGroup): string => {
   const typeText = reorderedText(source, group);
   if (!group.needsPlacement) {
-    const range = rangeFor(group.items);
-    return replaceRange(source, range.start, range.end, typeText);
+    const sourceByName = new Map(
+      group.items.map((item) => [item.name, source.slice(item.start, item.end).trim()]),
+    );
+    const slots = [...group.items].sort((left, right) => left.start - right.start);
+    let next = source;
+    for (const [index, item] of [...slots.entries()].reverse()) {
+      const replacement = sourceByName.get(group.desiredOrder[index] ?? '');
+      if (replacement !== undefined) {
+        next = replaceRange(next, item.start, item.end, replacement);
+      }
+    }
+    return next;
   }
-  const importsEnd = importsEndFor(filePath, source);
   let withoutTypes = source;
   for (const item of [...group.items].sort((left, right) => right.start - left.start)) {
     withoutTypes = replaceRange(withoutTypes, item.start, item.end, '');
   }
+  const importsEnd = importsEndFor(filePath, withoutTypes);
   const before = withoutTypes.slice(0, importsEnd).trimEnd();
   const after = withoutTypes.slice(importsEnd).trimStart();
   return [before, typeText, after].filter(Boolean).join('\n\n');

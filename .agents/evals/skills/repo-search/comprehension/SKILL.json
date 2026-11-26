@@ -343,6 +343,13 @@
       "id": "train-33",
       "split": "train",
       "query": "Per the skill, what does the backend child's pinned working directory actually fix?\nA) Cache resolution only; it does not authorize the caller's sandbox to write that cache root.\nB) Both cache resolution and the caller's sandbox write boundary.\nC) Nothing; the pin is advisory only.\nD) It authorizes writes but not reads."
+    },
+    {
+      "id": "pool-repo-search-01",
+      "split": "validation",
+      "query": "A multi-token search has no accepted graph identity matches, and compact code search also returns no results. Which stage follows?\nA) The staged local fallback, using its defined search order.\nB) A fresh index build, regardless of the current index status.\nC) The same graph search repeated with the unchanged query.\nD) An empty answer immediately, without the remaining fallback.",
+      "expected": "A",
+      "evidence": "Multi-token queries run graph search first and accept identity fields only (`name`, `qualified_name`, `file_path`, `path`). If none remain, compact code search runs and merges its results with the directory cluster."
     }
   ],
   "runs_per_query": 3,

@@ -45,8 +45,8 @@ afterEach(() => {
 const bundle = (document: string): string =>
   JSON.stringify({
     document,
-    instructions: 'Answer.',
-    prompts: [{ query: 'Q1?', query_id: 'q1', run: 1 }],
+    instructions: 'Output one exact answer line.',
+    prompts: [{ query: 'Q1?\nA) alpha\nB) beta', query_id: 'q1', run: 1 }],
   });
 
 const modelOf = (encoded = 3): ModelHandle => ({
@@ -54,7 +54,20 @@ const modelOf = (encoded = 3): ModelHandle => ({
   encodePrompt: () => new Array(encoded).fill(1),
   generate: (_messages: readonly ChatMessage[], options: { maxNewTokens: number }) =>
     (async function* () {
-      yield { text: options.maxNewTokens === SUGGEST_MAX_NEW_TOKENS ? ' Why. ' : 'B' };
+      yield {
+        text:
+          options.maxNewTokens === SUGGEST_MAX_NEW_TOKENS
+            ? [
+                'Issue: reader',
+                'Rule: Rule one.',
+                'Derived answer: A',
+                'Option text: alpha',
+                'Reader answer: B',
+                'Repair: none',
+                'Check: true',
+              ].join('\n')
+            : 'Answer: B',
+      };
     })(),
   warmup: mock(async () => undefined),
 });
@@ -107,10 +120,26 @@ const batch = JSON.stringify({
 
 test('run dispatches batch through the reader hooks and writes answers and suggestions', async () => {
   const model = modelOf();
-  const { deps, writes } = setup(model, { '/in/a.json': bundle('doc'), '/in/batch.json': batch });
+  const { deps, writes } = setup(model, {
+    '/in/a.json': bundle('Rule one.'),
+    '/in/batch.json': batch,
+  });
   expect(await run(['batch', '/in/batch.json'], deps)).toBe(EXIT_CODES.answered);
   expect(writes.get('/o/a')).toBe('{"answer":"B","query_id":"q1","run":1}\n');
-  expect(writes.get('/o/s')).toBe('{"id":"q1","suggestion":"Why."}\n');
+  expect(writes.get('/o/s')).toBe(
+    `${JSON.stringify({
+      id: 'q1',
+      suggestion: [
+        'Issue: reader',
+        'Rule: Rule one.',
+        'Derived answer: A',
+        'Option text: alpha',
+        'Reader answer: B',
+        'Repair: none',
+        'Check: true',
+      ].join('\n'),
+    })}\n`,
+  );
   expect(model.dispose).toHaveBeenCalledTimes(1);
   expect(consoleError).not.toHaveBeenCalled();
   expect(consoleLog).not.toHaveBeenCalled();
@@ -118,7 +147,10 @@ test('run dispatches batch through the reader hooks and writes answers and sugge
 });
 
 test('run batch reports a document over the context capacity and invalid input', async () => {
-  const { deps } = setup(modelOf(9000), { '/in/a.json': bundle('doc'), '/in/batch.json': batch });
+  const { deps } = setup(modelOf(9000), {
+    '/in/a.json': bundle('Rule one.'),
+    '/in/batch.json': batch,
+  });
   await expect(run(['batch', '/in/batch.json'], deps)).rejects.toMatchObject({
     exitCode: EXIT_CODES.tooLong,
   });

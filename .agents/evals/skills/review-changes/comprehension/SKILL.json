@@ -266,6 +266,13 @@
       "id": "validation-12",
       "query": "In the whole-diff omission sweep, the third pass adds one new finding. What happens next?\nA) Stop, because three passes are enough\nB) Send that finding as a later addendum\nC) Repeat the sweep until a complete pass adds no findings\nD) Run exactly one more pass and then stop",
       "split": "validation"
+    },
+    {
+      "id": "pool-review-changes-01",
+      "split": "validation",
+      "query": "A parent prepares a fresh child session for a review. Should it attach the full parent conversation transcript in addition to the review packet?\nA) Yes, because the child needs all conversational context.\nB) Yes, but only after removing user names.\nC) No; pass only the complete review packet with the required review evidence.\nD) No; pass only a summary and omit the diff.",
+      "expected": "C",
+      "evidence": "Start the child task packet with `NEVER change anything.` Pass only the complete review packet: full diff, requirements source, user-provided documents, applicable repo instructions and standards, language/version evidence, and minimum nearby source context."
     }
   ],
   "runs_per_query": 3,

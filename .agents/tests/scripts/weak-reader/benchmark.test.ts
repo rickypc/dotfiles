@@ -44,7 +44,8 @@ const pathMock = {
 };
 mock.module('node:path', () => ({ default: pathMock }));
 mock.module('../../../scripts/weak-reader/index.js', () => ({
-  MAX_NEW_TOKENS: 8,
+  DOCUMENT_READER_VERSION: 'reader-v11',
+  MAX_NEW_TOKENS: 16,
   MODEL_ID: 'test/model',
   MODEL_REVISION: 'a'.repeat(40),
   READER_VERSION: 'reader-v1',
@@ -252,10 +253,10 @@ const fakeHost = (hostOptions: FakeHostOptions = {}): FakeHost => {
 };
 
 const profile = {
-  maxNewTokens: 8,
+  maxNewTokens: 16,
   modelId: 'test/model',
   modelRevision: 'a'.repeat(40),
-  readerVersion: 'reader-v1',
+  readerVersion: 'reader-v3',
   runtimeBundleSha256: 'c'.repeat(64),
   vendorArchivePath: '/agents/vendor/gemma.js.gz',
 };

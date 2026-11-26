@@ -72,6 +72,298 @@
     {
       "caseId": "atom:r-c4dd19a42b",
       "reason": "Retain all intent-ledger obligations while stating the weak reader's scope and treating diagnoses as source-checked evidence."
+    },
+    {
+      "caseId": "atom:r-3930484af5",
+      "reason": "Make the package path predicate explicit for nested Markdown and same-named root files."
+    },
+    {
+      "caseId": "atom:r-1b140f3af7",
+      "reason": "State the root instruction filename predicate beside its explicit exclusions."
+    },
+    {
+      "caseId": "atom:r-0d7faf6325",
+      "reason": "The selected v5 scope rewrite replaces this atom's package and root file-scope wording with explicit package-depth and root filename-prefix predicates; the rebuilt atom map retains the revised rules under their new hashes."
+    },
+    {
+      "caseId": "atom:r-0458d14c6b",
+      "reason": "The placement repair consolidates the package and root instruction predicates into one direct scope rule so the reader sees both conditions together; the old atom text no longer exists."
+    },
+    {
+      "caseId": "atom:r-e6aa3d3973",
+      "reason": "The placement repair consolidates the package and root instruction predicates into one direct scope rule so the reader sees both conditions together; the old atom text no longer exists."
+    },
+    {
+      "caseId": "atom:r-9da91f41c7",
+      "reason": "The premeasurement path-check wording was condensed to meet the SKILL.md line budget while preserving the package-depth and root-prefix rules."
+    },
+    {
+      "caseId": "atom:r-3c65f92948",
+      "reason": "The premeasurement path-check wording was condensed to meet the SKILL.md line budget while preserving the package-depth and root-prefix rules."
+    },
+    {
+      "caseId": "atom:r-edef4a68e0",
+      "reason": "The premeasurement path-check wording was condensed to meet the SKILL.md line budget while preserving the package-depth and root-prefix rules."
+    },
+    {
+      "caseId": "atom:r-ea566a02fb",
+      "reason": "The Skill Manager description now permits its own training and evaluation loop and narrows the exclusion to running another skill; the previous broad frontmatter atom no longer represents that boundary."
+    },
+    {
+      "caseId": "atom:r-539005b1db",
+      "reason": "The description was rewritten to put skill and policy lifecycle work first and state that activation tuning and the training loop belong to Skill Manager, even when the target skill is named. The retired atom had no probes; its current intent is retained in the revised description."
+    },
+    {
+      "caseId": "atom:r-db4b9c518f",
+      "reason": "The prior role summary is absent after the authorized scope rewrite and had no linked probes. The rebuilt map retains the current lifecycle and owner-boundary rules."
+    },
+    {
+      "caseId": "atom:r-8c6001551d",
+      "reason": "The detailed Markdown transaction text is now owned by Immutable Operational Rules; this section points to that owner. The retired atom had no linked probes."
+    },
+    {
+      "caseId": "atom:r-5ec19f9e3e",
+      "reason": "The exact prior Usage atom is absent from the current source and had no linked probes. The rebuilt map records the current invocation contract."
+    },
+    {
+      "caseId": "atom:r-7b6819638c",
+      "reason": "The exact prior Usage atom is absent from the current source and had no linked probes. The rebuilt map records the current invocation contract."
+    },
+    {
+      "caseId": "atom:r-6957d7b224",
+      "reason": "The exact prior Usage atom is absent from the current source and had no linked probes. The rebuilt map records the current invocation contract."
+    },
+    {
+      "caseId": "atom:r-d0b015593c",
+      "reason": "The exact prior Usage atom is absent from the current source and had no linked probes. The rebuilt map records the current invocation contract."
+    },
+    {
+      "caseId": "atom:r-5d30231d88",
+      "reason": "The exact prior Usage atom is absent from the current source and had no linked probes. The rebuilt map records the current invocation contract."
+    },
+    {
+      "caseId": "atom:r-0a282f4a01",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-87797fcf9a",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-e82fa3eb10",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-d446e4fd18",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-8713c1c4d6",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-deb8a42ed6",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-6e8f122830",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-67c734393e",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-105bd729a4",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-21c61cdf8b",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-f946c73f32",
+      "reason": "The exact prior atom is absent after the authorized rule consolidation and had no linked probes. The rebuilt map records the current operational rules."
+    },
+    {
+      "caseId": "atom:r-b9d8d240fc",
+      "reason": "The exact prior atom is absent from current Evaluation Anchors and had no linked probes. The rebuilt map retains the current independent-verifier and boundary criteria."
+    },
+    {
+      "caseId": "atom:r-c0c2076f60",
+      "reason": "The Usage catalog now names the review override as an optional additional static root, replacing the prior wording."
+    },
+    {
+      "caseId": "atom:r-4bb6e89824",
+      "reason": "The Usage reader contract now states that no-adapter returns no answers, blocks the run, and writes no receipt."
+    },
+    {
+      "caseId": "atom:r-863a993fd1",
+      "reason": "The Usage reader contract now names the pinned Gemma reader and states that in-session child agents cannot replace it."
+    },
+    {
+      "caseId": "atom:r-c8b33dccd5",
+      "reason": "The immutable rules now give the exact guard command for no-edit Markdown passes in the review set."
+    },
+    {
+      "caseId": "atom:r-585c96c0eb",
+      "reason": "The record procedure now states that rejection is diagnosis only and receipts must never be edited by hand."
+    },
+    {
+      "caseId": "atom:r-fbb000a6c1",
+      "reason": "The GPU fallback now directs the user to run the logged command outside the sandbox and return its output."
+    },
+    {
+      "caseId": "atom:r-6810e84c83",
+      "reason": "The Usage section now states the no-adapter outcome, pinned-reader requirement, and child-agent boundary in separate sentences; the prior combined sentence was retired after that clarity rewrite."
+    },
+    {
+      "caseId": "atom:r-db4468c1c6",
+      "reason": "The Usage section now separates training with in-session child agents from the rule that their answers cannot substitute for the pinned reader; the earlier combined atom is retired."
+    },
+    {
+      "caseId": "atom:r-4708274ad1",
+      "reason": "The phase guidance was rewritten as route-specific allowed-phase rules; this old atom text left the document and the rebuilt map records the current rules."
+    },
+    {
+      "caseId": "atom:r-d23d86baa0",
+      "reason": "The phase guidance was rewritten as route-specific allowed-phase rules; this old atom text left the document and the rebuilt map records the current rules."
+    },
+    {
+      "caseId": "atom:r-8b1b771d90",
+      "reason": "The comprehension scope was rewritten as separate package-path and root-name predicates with explicit examples and exclusions; the rebuilt map records the current rules."
+    },
+    {
+      "caseId": "atom:r-5a99c2e017",
+      "reason": "The comprehension scope was rewritten as separate package-path and root-name predicates with explicit examples and exclusions; the rebuilt map records the current rules."
+    },
+    {
+      "caseId": "atom:r-c3e172426d",
+      "reason": "The comprehension scope was rewritten as separate package-path and root-name predicates with explicit examples and exclusions; the rebuilt map records the current rules."
+    },
+    {
+      "caseId": "atom:r-2854865296",
+      "reason": "The ordered execution chain now points to Immutable Operational Rules for Markdown guard details; its duplicate guard atom left step 3 and the rebuilt map records the owning rule."
+    },
+    {
+      "caseId": "atom:r-c21b5b61ed",
+      "reason": "The ordered execution chain now points to Immutable Operational Rules for Markdown guard details; its duplicate guard atom left step 3 and the rebuilt map records the owning rule."
+    },
+    {
+      "caseId": "atom:r-7e86165ae5",
+      "reason": "The 500-line and 5,000-token budget is now explicitly for the skill body, matching the fixed verifier that measures body lines separately from frontmatter; the prior atom text was replaced."
+    },
+    {
+      "caseId": "atom:r-fae7515b2e",
+      "reason": "The Markdown guard rule now states explicitly that the command returns the `guarded` receipt and read-only passes require it; the prior atom text was replaced."
+    },
+    {
+      "caseId": "atom:r-bbab661ac1",
+      "reason": "The Markdown guard rule now states explicitly that the command returns the `guarded` receipt and read-only passes require it; the prior atom text was replaced."
+    },
+    {
+      "caseId": "atom:r-91e7251609",
+      "reason": "The no-edit Markdown guard moved from Immutable Operational Rules to Step 1 at the read boundary and was rewritten to name the pre-read command, guarded receipt, and read-only coverage. The previous atom text no longer exists."
+    },
+    {
+      "caseId": "atom:r-f121884324",
+      "reason": "The comprehension-scope lead-in changed from an abstract either-path statement to an instruction to select the rule by the actual file path. The package and root predicates remain; the previous sentence was replaced."
+    },
+    {
+      "caseId": "atom:r-dcd17773bc",
+      "reason": "The root README and package.json exclusion changed from an exclusion plus explanation to the direct outcome that they do not qualify. The root rule is preserved; the previous sentence was replaced."
+    },
+    {
+      "caseId": "atom:r-d7013ebd5c",
+      "reason": "The phase rule now separates evaluate's challenge phase from batch's baseline and candidate phases; the earlier route text was replaced."
+    },
+    {
+      "caseId": "atom:r-e88ab9ea81",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-d98b9d4ea9",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-b9a318e751",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-293d2ac3f4",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-119ba227bb",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-f6df7ff949",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-79075575e6",
+      "reason": "The comprehension-set scope now states package-depth and direct-root predicates, exclusions, and path separation explicitly; the earlier scope atom was replaced."
+    },
+    {
+      "caseId": "atom:r-a42e65b706",
+      "reason": "The Step 1 no-edit guard now names the command, the required guarded receipt, and the read-only review condition before file access."
+    },
+    {
+      "caseId": "atom:r-1bece8e427",
+      "reason": "The Step 1 no-edit guard was moved to the read boundary and now requires the guarded receipt before reading, including read-only review."
+    },
+    {
+      "caseId": "atom:r-111b8fa906",
+      "reason": "The prior transaction recovery rule was consolidated into the current Markdown transaction and failure-recovery steps; the old atom text is replaced."
+    },
+    {
+      "caseId": "atom:r-679db0fecc",
+      "reason": "The former protected-path and review-scope material was consolidated under the current immutable rules and input-scope sections; the old atom text is replaced."
+    },
+    {
+      "caseId": "atom:r-823ad665ae",
+      "reason": "The no-edit Markdown guard moved to the read boundary and now requires a guarded receipt before opening the file."
+    },
+    {
+      "caseId": "atom:r-28a35c9cd8",
+      "reason": "The read-only guard requirement was merged into the same pre-read rule, preserving its command and receipt condition."
+    },
+    {
+      "caseId": "atom:r-b67ca97420",
+      "reason": "Document training target guidance is now stated in the command contract as an absolute comprehension-set JSON path; the older training-loop wording is replaced."
+    },
+    {
+      "caseId": "atom:r-aa9d5e38c3",
+      "reason": "The clear-state predicate was restated as every query passing on every run, preserving the all-runs condition."
+    },
+    {
+      "caseId": "atom:r-469803f823",
+      "reason": "The description-change cap now states its 25 percent default against the baseline description characters."
+    },
+    {
+      "caseId": "atom:r-2ea2c0d973",
+      "reason": "The training edit rule now ties one guarded edit to a train failure and limits body edits to routing changes."
+    },
+    {
+      "caseId": "atom:r-be03a04501",
+      "reason": "The prior one-edit guidance was consolidated with the description-first and routing-only body boundary."
+    },
+    {
+      "caseId": "atom:r-09258bda46",
+      "reason": "The training closeout report was condensed while retaining ledger IDs, snapshots, select receipt, gains and losses, ratchet, and post-change result."
+    },
+    {
+      "caseId": "atom:r-002a2e5ed7",
+      "reason": "The final-gate priority order is restated with the same project finalGate, agents-root test, and package test fallbacks."
+    },
+    {
+      "caseId": "atom:r-57c2049005",
+      "reason": "The description-change limit now explicitly identifies the baseline-character basis for its 25 percent default."
+    },
+    {
+      "caseId": "skill-manager-gpu-user-handoff",
+      "reason": "The handoff now saves output to a known log, asks the user only for a completion signal, and has the agent read the log; the earlier paste-output contract is superseded."
     }
   ]
 }

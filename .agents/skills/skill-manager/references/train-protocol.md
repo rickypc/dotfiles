@@ -258,6 +258,14 @@ question with one option letter in an `answer` field.
 - Write fixes for failing probes as short sentences, one rule per sentence, with numbered lists for
   order and an example for any rule that mixes two conditions.
 - A document is clear when the weak reader answers every probe correctly on every run.
+- **Prose adaptation:** For a governed instruction edit, use verified train misses to draft up to
+  three small, atom-anchored text candidates. Hold the baseline, reader, and probe set fixed while
+  the reader scores comprehension; check labels against the source and actions with deterministic
+  gates. Compare the candidates' train and validation results as separate vectors. Keep every hard
+  gate and select none if no candidate dominates. `check` is provisional: commit the chosen
+  snapshot, then require a fresh never-worse receipt and the required map, structure, link, and
+  behavior checks. This is a single librarian batch, separate from §5's sequential `train measure`
+  attempts; the model weights do not change.
 
 ## 9. Edit cap and rejected-edit buffer
 

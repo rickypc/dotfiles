@@ -796,7 +796,9 @@ test('bundles a blind document request with the live document text', async () =>
   }>(world, ['train', 'bundle', SKILL_SET]);
   expect(bundle.document).toBe(skillSource());
   expect(bundle.prompts).toHaveLength(12);
-  expect(bundle.instructions).toContain('option letter');
+  expect(bundle.instructions).toContain('Output exactly one line');
+  expect(bundle.instructions).toContain('Compare every option with the resulting facts');
+  expect(bundle.instructions).toContain('one uppercase option label A-F');
   expect(JSON.stringify(bundle)).not.toContain('expected');
   await expect(
     run(

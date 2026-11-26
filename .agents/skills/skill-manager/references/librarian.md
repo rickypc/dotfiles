@@ -26,7 +26,14 @@ OS-temp directory of the shell, so set `INSTRUCTION_LIBRARIAN_STORE` to one abso
 `propose` and `check` run in different shells.
 
 `propose` rejects a proposal that carries more than three candidates, so four candidates produce no
-snapshot at all. A document text gets at most three propose rounds.
+snapshot at all. The round budget is keyed by the exact document and comprehension-set fingerprints.
+Existing attempts remain recorded, and each batch with fewer than three candidates includes the
+current document as a baseline. The three-round limit is counted independently for each exact
+document-text and probe-set fingerprint pair; rows for a different set hash remain recorded but do
+not consume this pair budget. A new useful probe set therefore starts its own three-round budget.
+
+Prior round rows without a set fingerprint must resolve through a matching batch manifest; if the
+manifest is absent, unreadable, or mismatched, round accounting fails closed rather than guessing.
 
 `propose` itself rejects a candidate that changes the skill description or leaves the document text
 unchanged. That rejection is `propose`'s own decision and never passes to `check`. A candidate whose

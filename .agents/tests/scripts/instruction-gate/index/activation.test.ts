@@ -173,6 +173,10 @@ describe('routing helpers', () => {
 
   test('the routing fingerprint carries the router version; documents do not', () => {
     expect(currentFingerprint(true).readerVersion).toContain('+router-');
+    expect(currentFingerprint(true).readerVersion).toContain('+router-v7');
+    expect(currentFingerprint(true).maxNewTokens).toBe(12);
+    expect(currentFingerprint().readerVersion).toBe('reader-v11');
+    expect(currentFingerprint().maxNewTokens).toBe(16);
     expect(currentFingerprint().readerVersion).not.toContain('+');
   });
 

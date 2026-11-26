@@ -322,6 +322,20 @@
       "retired": "Evidence quotes a refinement the weak reader judged already behaviorally covered by the retry loop (two no-admissible verdicts); the rule lives in references/librarian.md instead."
     },
     {
+      "id": "train-25",
+      "split": "train",
+      "evidence": "For every miss the reader quotes the sentence it relied on, says what was hard to read, and proposes a clearer replacement. Treat the output as a lead: check each proposal against the document before editing.",
+      "query": "A document suggestion has an `Option text` that does not match its derived label, although the raw `Answer: A` and source support expected A. What should the editor conclude?\nA) The source is wrong and must be rewritten.\nB) The diagnosis failed deterministic evidence checks; preserve the source and answer key, then repair the reader or suggestion path.\nC) Change the expected label to fit the invalid field.\nD) Repeat the same suggestion call until `Check` becomes true.",
+      "expected": "B"
+    },
+    {
+      "id": "train-26",
+      "split": "train",
+      "evidence": "Treat the output as a lead: check each proposal against the document before editing.",
+      "query": "Which exact field order does the deterministic validator require from a document `train suggest` result?\nA) `Issue`, `Rule`, `Derived answer`, `Option text`, `Reader answer`, `Repair`, `Check`.\nB) `Rule`, `Application`, `Selected option`, `Answer`, `Explanation`, `Repair`, `Check`.\nC) `id`, `query`, `expected`, `given`, `rawReply`.\nD) `Issue`, `Evidence`, `Suggestion`.",
+      "expected": "A"
+    },
+    {
       "id": "holdout-references-train-protocol-01",
       "split": "validation",
       "evidence": "Every distinct text of a document scored against its held-out probes is a look, whether the record is accepted or rejected. `evals/held-out-looks.jsonl` (`evals/skills/<skill>/held-out-looks.jsonl` for a skill) holds one line per look or rotation, and `policy.heldOutLooksPerEpoch` in the root manifest sets the limit (2). Recording the same text again is not a new look. The next distinct text after the limit is refused before any reader run. A fresh session that sees the atoms but no candidate diff authors a new held-out pool, then `record --rotate-pool <pool-file>` hashes it, starts a new epoch, and the record proceeds. Add the pool's probes to the set by §11 and `ratchet`.",
@@ -334,6 +348,48 @@
       "evidence": "An `add` or `modify` is proven when the reader misses it on the current text and gets it on the candidate; a `retire` is the reverse; a `move` must be answered correctly on both. An unproven intent means the reader cannot see the edit. Intent probes are scored in the same run and are never added to the document's held-out set.",
       "query": "Which intent result is proven under the evaluate-batch contract?\nA) An add intent that the reader answers correctly on both current and candidate texts.\nB) A move intent missed on the current text but answered correctly on the candidate.\nC) A retire intent missed on the current text and answered correctly on the candidate.\nD) A modify intent missed on the current text and answered correctly on the candidate.",
       "expected": "D"
+    },
+    {
+      "id": "rotation-train-protocol-01",
+      "split": "validation",
+      "query": "When does a should-trigger query pass?\nA) At least one run names the skill under test.\nB) Every run names the skill under test.\nC) The majority of runs name the skill under test.\nD) Every run avoids naming the skill under test.",
+      "expected": "B",
+      "evidence": "A should-trigger query needs all runs to name the skill under test; a near-miss query needs no run to name it."
+    },
+    {
+      "id": "rotation-train-protocol-02",
+      "split": "validation",
+      "query": "How does a blocked measurement affect the candidate-attempt limit?\nA) It does not count as an attempt.\nB) It counts as an attempt.\nC) It counts only if the candidate was accepted.\nD) It can be repeated without using an attempt.",
+      "expected": "B",
+      "evidence": "A blocked measurement counts as an attempt."
+    },
+    {
+      "id": "rotation-train-protocol-03",
+      "split": "validation",
+      "query": "Before an edit, if `train select` has no winner, which snapshot should be restored?\nA) The most recently rejected snapshot.\nB) The baseline snapshot.\nC) The live file as it is.\nD) The candidate with the highest train score, even if rejected.",
+      "expected": "B",
+      "evidence": "Before each edit, restore the snapshot named by the latest `train select` winner; when there is no winner, restore the baseline."
+    },
+    {
+      "id": "rotation-train-protocol-04",
+      "split": "validation",
+      "query": "After the final description edit anywhere in the suite, including a repair, what should happen?\nA) Remeasure only the skill whose description changed last.\nB) Restore every skill to its baseline.\nC) Repeat step 3 for every skill in the suite against the final catalog.\nD) Run only the train split for the changed skill.",
+      "expected": "C",
+      "evidence": "After the final description edit anywhere, including a repair, repeat step 3 for every skill in the suite against the final catalog."
+    },
+    {
+      "id": "rotation-train-protocol-05",
+      "split": "validation",
+      "query": "Which reader is the pinned local reader for document bundles?\nA) A fresh child agent for each probe.\nB) The built-in local Gemma reader.\nC) A provider-hosted model selected for the run.\nD) A human reviewer answering each question.",
+      "expected": "B",
+      "evidence": "The built-in reader is the pinned local Gemma reader."
+    },
+    {
+      "id": "rotation-train-protocol-06",
+      "split": "validation",
+      "query": "After a baseline, if a query's label is wrong, how should the query be handled?\nA) Edit its label in place.\nB) Delete it from the set.\nC) Keep it and add a `retired` field with a reason.\nD) Change its split and retain its label.",
+      "expected": "C",
+      "evidence": "After a baseline, never edit or delete a query: add `\"retired\": \"<reason>\"` to it."
     }
   ],
   "runs_per_query": 3,

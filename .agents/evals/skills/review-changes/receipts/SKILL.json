@@ -22,25 +22,24 @@
       "train-19",
       "train-20",
       "train-21",
-      "train-22",
       "train-23",
       "train-24",
       "train-25",
       "train-26"
     ],
-    "validationPassed": 12
+    "validationPassed": 13
   },
-  "decision": "perfect",
+  "decision": "rebaseline",
   "document": "skills/review-changes/SKILL.md",
-  "documentSha256": "a69db7e983e669d3e79eb6bfebf1483f308d73dc181d3ccfb1d2d093a3e82633",
+  "documentSha256": "17a45ba9501b323f8141888499386f6f6d2f389c9f7010a69e4717008d585ad9",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
-    "trainFailed": [],
+    "trainFailed": ["train-22"],
     "trainPassed": [
       "train-01",
       "train-02",
@@ -63,18 +62,17 @@
       "train-19",
       "train-20",
       "train-21",
-      "train-22",
       "train-23",
       "train-24",
       "train-25",
       "train-26"
     ],
-    "validationPassed": 12,
-    "validationTotal": 12
+    "validationPassed": 13,
+    "validationTotal": 13
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "e0ea5e686c9e02af0ac84d1cbdd8998cfd19ea5626a9b5d963272c1674702d9a",
+  "selfSha256": "d479cb1a8b2de666d58d399777c89dea3b50072f96dc8efbab749f0d19db8729",
   "setPath": "evals/skills/review-changes/comprehension/SKILL.json",
-  "setSha256": "1dd91884e030a2d21b26eccf6b3ea16ece3969f2c866aa89c15519602ecbe8e8"
+  "setSha256": "382537cdad01e753970c4e14889c701bd0c0b4e9364810089799c944f93589da"
 }

@@ -427,6 +427,7 @@ atoms:
       - headingPath: *ref_5
     precedence: 0
     probeIds:
+      - pool-repo-search-01
       - train-13
       - train-19
       - validation-07
@@ -444,6 +445,7 @@ atoms:
       - headingPath: *ref_5
     precedence: 0
     probeIds:
+      - pool-repo-search-01
       - train-19
       - validation-07
     status: active
@@ -773,8 +775,8 @@ Atoms for `skills/repo-search/SKILL.md`.
 | `r-eaed68213a` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-338424597a` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-ed011f9601` | Repo Search > 3. Immutable Operational Rules; Repo Search > 3. Immutable Operational Rules | 1 |
-| `r-bbf858bf74` | Repo Search > 3. Immutable Operational Rules | 3 |
-| `r-1ea9591430` | Repo Search > 3. Immutable Operational Rules | 2 |
+| `r-bbf858bf74` | Repo Search > 3. Immutable Operational Rules | 4 |
+| `r-1ea9591430` | Repo Search > 3. Immutable Operational Rules | 3 |
 | `r-fe5882ef74` | Repo Search > 3. Immutable Operational Rules | 2 |
 | `r-77b52fae58` | Repo Search > 3. Immutable Operational Rules | 1 |
 | `r-1f049a21cd` | Repo Search > 3. Immutable Operational Rules | 1 |

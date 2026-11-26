@@ -149,6 +149,7 @@ export interface ProposeReport {
   }[];
   readonly document: string;
   readonly round: number;
+  readonly setSha256: string;
 }
 
 export interface Snapshot {
@@ -182,7 +183,12 @@ const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,40}$/u;
 
 const appendRound = async (
   deps: LibrarianDeps,
-  row: { readonly batchId: string; readonly baselineSha256: string; readonly document: string },
+  row: {
+    readonly batchId: string;
+    readonly baselineSha256: string;
+    readonly document: string;
+    readonly setSha256: string;
+  },
 ): Promise<void> => {
   const file = path.join(deps.storeRoot, 'rounds.jsonl');
   const existing = (await deps.readText(file)) ?? '';
@@ -399,17 +405,43 @@ const addRetirements = async (
   return fresh.length;
 };
 
-const roundOf = async (
-  deps: LibrarianDeps,
-  document: string,
-  baselineSha256: string,
-): Promise<number> => {
-  const ledger = (await deps.readText(path.join(deps.storeRoot, 'rounds.jsonl'))) ?? '';
-  const prior = ledger
-    .split('\n')
-    .filter((line) => line.includes(`"${baselineSha256}"`) && line.includes(`"${document}"`));
-  return prior.length + 1;
+const roundRowOf = (
+  line: string,
+): {
+  readonly baselineSha256: string;
+  readonly batchId: string;
+  readonly document: string;
+  readonly setSha256?: string;
+} => {
+  let value: unknown;
+  try {
+    value = JSON.parse(line);
+  } catch {
+    throw new Error('The librarian round ledger contains invalid JSON.');
+  }
+  if (
+    !isRecord(value)
+    || typeof value.baselineSha256 !== 'string'
+    || typeof value.batchId !== 'string'
+    || typeof value.document !== 'string'
+    || (value.setSha256 !== undefined
+      && (typeof value.setSha256 !== 'string' || !/^[a-f0-9]{64}$/u.test(value.setSha256)))
+  ) {
+    throw new Error('The librarian round ledger contains an invalid entry.');
+  }
+  return {
+    baselineSha256: value.baselineSha256,
+    batchId: value.batchId,
+    document: value.document,
+    ...(typeof value.setSha256 === 'string' ? { setSha256: value.setSha256 } : {}),
+  };
 };
+
+const roundRowsOf = (ledger: string) =>
+  ledger
+    .split('\n')
+    .filter((entry) => entry.trim() !== '')
+    .map(roundRowOf);
 
 const sealsPathOf = (setPath: string): string =>
   `${setPath.slice(0, setPath.indexOf('comprehension/'))}behavior-seals.jsonl`;
@@ -444,6 +476,49 @@ const behaviorProblems = async (
     cases,
     snapshot.candidateSha256,
   ).map((id) => `Behavior case ${id} has no passing seal for this candidate.`);
+};
+
+const setSha256OfRound = async (
+  deps: LibrarianDeps,
+  row: { readonly batchId: string; readonly baselineSha256: string; readonly document: string },
+): Promise<string> => {
+  if (!/^[a-f0-9]{16}$/u.test(row.batchId)) {
+    throw new Error('The librarian round ledger has an invalid batch id.');
+  }
+  const text = await deps.readText(path.join(deps.storeRoot, row.batchId, 'manifest.json'));
+  let value: unknown;
+  try {
+    value = text === undefined ? undefined : JSON.parse(text);
+  } catch {
+    throw new Error('A prior librarian round has an unreadable manifest.');
+  }
+  if (
+    !isRecord(value)
+    || value.batchId !== row.batchId
+    || value.document !== row.document
+    || value.baselineSha256 !== row.baselineSha256
+    || typeof value.setSha256 !== 'string'
+    || !/^[a-f0-9]{64}$/u.test(value.setSha256)
+  ) {
+    throw new Error('A prior librarian round has no verifiable probe-set fingerprint.');
+  }
+  return value.setSha256;
+};
+
+const roundOf = async (
+  deps: LibrarianDeps,
+  document: string,
+  baselineSha256: string,
+  setSha256: string,
+): Promise<number> => {
+  const ledger = (await deps.readText(path.join(deps.storeRoot, 'rounds.jsonl'))) ?? '';
+  const relevant = roundRowsOf(ledger).filter(
+    (row) => row.document === document && row.baselineSha256 === baselineSha256,
+  );
+  const priorSetSha256s = await Promise.all(
+    relevant.map((row) => row.setSha256 ?? setSha256OfRound(deps, row)),
+  );
+  return priorSetSha256s.filter((prior) => prior === setSha256).length + 1;
 };
 
 const storeFile = (deps: LibrarianDeps, batchId: string, name: string): string =>
@@ -679,9 +754,11 @@ const evaluateRows = async (
 export const propose = async (deps: LibrarianDeps, requestText: string): Promise<ProposeReport> => {
   const { candidates, document } = parseProposal(requestText);
   const inputs = await readInputs(deps, document);
-  const round = await roundOf(deps, document, inputs.baselineSha256);
+  const round = await roundOf(deps, document, inputs.baselineSha256, inputs.setSha256);
   if (round > MAX_ROUNDS) {
-    throw new Error(`The ${MAX_ROUNDS}-round budget for this document text is spent; escalate.`);
+    throw new Error(
+      `The ${MAX_ROUNDS}-round budget for this document text and probe set is spent; escalate.`,
+    );
   }
   const snapshots = candidates.map((candidate) => buildSnapshot(deps, inputs, candidate));
   if (new Set(snapshots.map(({ candidateSha256 }) => candidateSha256)).size !== snapshots.length) {
@@ -692,6 +769,7 @@ export const propose = async (deps: LibrarianDeps, requestText: string): Promise
       JSON.stringify([
         document,
         inputs.baselineSha256,
+        inputs.setSha256,
         round,
         snapshots.map((s) => s.candidateSha256),
       ]),
@@ -710,7 +788,12 @@ export const propose = async (deps: LibrarianDeps, requestText: string): Promise
     snapshots.map((snapshot) => writeStore(deps, batchId, `${snapshot.id}.json`, snapshot)),
   );
   await writeStore(deps, batchId, 'manifest.json', manifest);
-  await appendRound(deps, { baselineSha256: inputs.baselineSha256, batchId, document });
+  await appendRound(deps, {
+    baselineSha256: inputs.baselineSha256,
+    batchId,
+    document,
+    setSha256: inputs.setSha256,
+  });
   return {
     baselineSha256: inputs.baselineSha256,
     batchId,
@@ -723,6 +806,7 @@ export const propose = async (deps: LibrarianDeps, requestText: string): Promise
     })),
     document,
     round,
+    setSha256: inputs.setSha256,
   };
 };
 

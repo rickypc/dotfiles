@@ -1,11 +1,12 @@
 ---
 name: review-changes
 description: >-
-  Review requested code changes against a supplied requirements source and repository/language
-  standards; if the source is missing, ask for it before reviewing. Use for diff, branch,
-  pull-request, and working-tree reviews, including requests with missing context; start an isolated
-  child session, keep the review target unchanged, and retain durable user corrections through the
-  owning knowledge workflow.
+  Use only when the user explicitly asks for findings or an assessment of the correctness,
+  compliance, or quality of already-written code changes in a diff, branch, pull request, or working
+  tree. A mention of a PR, diff, or review is not by itself a review request. Do NOT use to explain
+  or summarize changes, implement review comments, write PR text, approve, merge, or rebase a PR, or
+  run tests. Do NOT use for Agent Skill or AGENTS.md policy review or maintenance; use
+  skill-manager.
 argument-hint: "[diff-scope] [requirements-source] [context]"
 ---
 

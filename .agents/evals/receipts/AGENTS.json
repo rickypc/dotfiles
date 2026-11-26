@@ -80,23 +80,23 @@
       "train-77",
       "train-78",
       "train-79",
-      "train-84",
-      "train-85",
-      "train-86"
+      "train-86",
+      "train-87",
+      "train-88"
     ],
-    "validationPassed": 42
+    "validationPassed": 47
   },
-  "decision": "perfect",
+  "decision": "rebaseline",
   "document": "AGENTS.md",
-  "documentSha256": "63546299e8abcf66adb0c90004323a7745eaac09a3438e42ad7550f5498b6063",
+  "documentSha256": "acb003d54400f8f399d21fb976dc4b5a4608a4988585a71284af9b3de2c962bd",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
-    "trainFailed": [],
+    "trainFailed": ["train-35", "train-36"],
     "trainPassed": [
       "train-01",
       "train-02",
@@ -132,8 +132,6 @@
       "train-32",
       "train-33",
       "train-34",
-      "train-35",
-      "train-36",
       "train-37",
       "train-38",
       "train-39",
@@ -178,14 +176,16 @@
       "train-78",
       "train-79",
       "train-85",
-      "train-86"
+      "train-86",
+      "train-87",
+      "train-88"
     ],
-    "validationPassed": 42,
-    "validationTotal": 43
+    "validationPassed": 48,
+    "validationTotal": 49
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "b349cac51dc67aae6f7ef8e9e6becccf87a1a1ec04d7d71baf3f7e1c0f754263",
+  "selfSha256": "48873232b5107f95f563e37111173684b9ae6b6b28780f5318c03f2694145e8e",
   "setPath": "evals/comprehension/AGENTS.json",
-  "setSha256": "88b19f2c37108f941271926337c2b56e615ef409618b0c98c4a97ea692ba5f8a"
+  "setSha256": "47f5d66def9c4797443ac2f43edda3d79108808708c90c4fde4b6d9b77c0a546"
 }

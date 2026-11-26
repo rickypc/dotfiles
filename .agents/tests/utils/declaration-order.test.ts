@@ -225,13 +225,34 @@ test('applies only safe type and runtime declaration moves idempotently', () => 
       '/repo/types.ts',
       "import { value } from './value.js';\ntype Zebra = typeof value;\ninterface Alpha {}",
     ).source,
-  ).toBe("import { value } from './value.js';\ninterface Alpha {}\n\ntype Zebra = typeof value;");
+  ).toBe("import { value } from './value.js';\ninterface Alpha {}\ntype Zebra = typeof value;");
   expect(
     fixDeclarationOrder(
       '/repo/no-import.ts',
       'const value = 1;\ntype Zebra = number;\ninterface Alpha {}',
     ).source.trim(),
-  ).toBe('const value = 1;\ninterface Alpha {}\n\ntype Zebra = number;');
+  ).toBe('const value = 1;\ninterface Alpha {}\ntype Zebra = number;');
+  const interleavedTypes = fixDeclarationOrder(
+    '/repo/interleaved.ts',
+    [
+      "import { value } from './value.js';",
+      'interface Zebra { value: string }',
+      'const runtime = value;',
+      'interface Alpha { value: string }',
+    ].join('\n'),
+  );
+  expect(interleavedTypes).toEqual(
+    expect.objectContaining({
+      changed: true,
+      report: expect.objectContaining({ blockers: [], violations: [] }),
+      source: [
+        "import { value } from './value.js';",
+        'interface Alpha { value: string }',
+        'const runtime = value;',
+        'interface Zebra { value: string }',
+      ].join('\n'),
+    }),
+  );
   expect(
     fixDeclarationOrder(
       '/repo/two-groups.ts',
@@ -284,7 +305,7 @@ test('covers type group placement hoisting and zero-import fallbacks', () => {
   const noImportFixed = fixDeclarationOrder('/repo/no-imports-coverage.ts', noImportSource);
 
   expect(noImportFixed.changed).toBe(true);
-  expect(noImportFixed.source).toBe('type Alpha = string;\n\ntype Zebra = number;');
+  expect(noImportFixed.source).toBe('type Alpha = string;\ntype Zebra = number;');
 
   const placementSource = [
     "import { value } from './value.js';",

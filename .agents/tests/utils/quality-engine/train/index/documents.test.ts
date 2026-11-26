@@ -114,6 +114,7 @@ test('builds a blind document bundle without expected answers or retired probes'
   expect(bundle.document).toBe('# Doc\nRule one.');
   expect(bundle.prompts).toHaveLength(12);
   expect(bundle.prompts.some(({ query_id }) => query_id === 't2')).toBe(false);
+  expect(bundle.instructions).toBe(realProvider.DOCUMENT_INSTRUCTIONS);
   expect(JSON.stringify(bundle)).not.toContain('expected');
   expect(bundle.responseContract).toContain('answer');
   expect(blindBundleFor(set, []).prompts).toHaveLength(12);

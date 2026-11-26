@@ -1,16 +1,5 @@
 {
-  "baseline": null,
-  "decision": "baseline",
-  "document": "skills/bun-test-generator/references/lessons-learned.md",
-  "documentSha256": "a31c6daa4d28b5b6dc9b3c1dbae00ff3d650e0b45ed4ff55363151631d13bfaf",
-  "fingerprint": {
-    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
-    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
-  },
-  "measurement": {
-    "trainFailed": [],
+  "baseline": {
     "trainPassed": [
       "train-01",
       "train-02",
@@ -25,12 +14,38 @@
       "train-11",
       "train-12"
     ],
+    "validationPassed": 6
+  },
+  "decision": "rebaseline",
+  "document": "skills/bun-test-generator/references/lessons-learned.md",
+  "documentSha256": "a31c6daa4d28b5b6dc9b3c1dbae00ff3d650e0b45ed4ff55363151631d13bfaf",
+  "fingerprint": {
+    "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
+    "maxNewTokens": 16,
+    "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
+    "readerVersion": "reader-v11"
+  },
+  "measurement": {
+    "trainFailed": ["train-10"],
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-11",
+      "train-12"
+    ],
     "validationPassed": 6,
     "validationTotal": 6
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "327e7ff1f51d3902bcc110590ceb6dd230d639324eb1a717e167df14fa043f46",
+  "selfSha256": "d4d9f47f3bdc2d2ae29a0455c3466d058a3ca157032a75fd61f72aa061f5aa8c",
   "setPath": "evals/skills/bun-test-generator/comprehension/references-lessons-learned.json",
   "setSha256": "cadc0d2c3e68eb4f1b014133f2b897aa37801bf3d81f8d37a570fdf658e3e31c"
 }

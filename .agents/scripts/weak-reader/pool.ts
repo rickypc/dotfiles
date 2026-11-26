@@ -9,6 +9,7 @@ import {
   type ReaderBundle,
   type ReaderDependencies,
   ReaderError,
+  ROUTER_MAX_NEW_TOKENS,
 } from './index.js';
 
 export interface LoadedReader {
@@ -101,7 +102,7 @@ const acquireReader = async (
   const needed =
     slot.model.encodePrompt(
       buildMessages(bundle.instructions, bundle.document, longestPromptOf(bundle)),
-    ).length + MAX_NEW_TOKENS;
+    ).length + (bundle.names ? ROUTER_MAX_NEW_TOKENS : MAX_NEW_TOKENS);
   if (needed > slot.capacity) {
     await releaseReader(slot);
     throw capacityError(needed, slot.capacity);
@@ -132,7 +133,7 @@ export const retainReader = async (
   const longestQuery = longestPromptOf(bundle);
   const needed =
     slot.model.encodePrompt(buildMessages(bundle.instructions, bundle.document, longestQuery))
-      .length + MAX_NEW_TOKENS;
+      .length + (bundle.names ? ROUTER_MAX_NEW_TOKENS : MAX_NEW_TOKENS);
   if (needed > slot.capacity) {
     await releaseReader(slot);
     throw capacityError(needed, slot.capacity);

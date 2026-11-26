@@ -18,7 +18,7 @@
   "sources": [
     {
       "sourcePath": "skills/repo-search/SKILL.md",
-      "sha256": "c01ae9444bdb4e7802a24de06bc25ace6588ea833d92aa20e87c485cec0f2222"
+      "sha256": "c1e65ffc5510dbd08f6c6bd14896a9d40488081b73c8fd8820ab30f9b96e65c9"
     },
     {
       "sourcePath": "evals/skills/repo-search/rubric.md",
@@ -97,7 +97,7 @@
       {
         "sourcePath": "skills/repo-search/SKILL.md",
         "setPath": "evals/skills/repo-search/comprehension/SKILL.json",
-        "queryCount": 49,
+        "queryCount": 50,
         "queryIds": [
           "train-28",
           "train-29",
@@ -147,7 +147,8 @@
           "holdout-SKILL-01",
           "holdout-SKILL-02",
           "train-32",
-          "train-33"
+          "train-33",
+          "pool-repo-search-01"
         ]
       },
       {

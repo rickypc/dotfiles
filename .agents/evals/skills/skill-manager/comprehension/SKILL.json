@@ -2,11 +2,12 @@
   "kind": "comprehension",
   "queries": [
     {
-      "evidence": "GPU unavailability in the sandbox does not block an authorized edit: complete it and the available checks, then ask the user to run the exact GPU command in a fenced block with its working directory and wait for them to paste its output.",
+      "evidence": "Complete the edit and available checks, then use the GPU handoff in the execution chain. Never claim a gate passed before checking its output.",
       "expected": "B",
       "id": "train-37",
       "query": "The sandbox has no GPU adapter, but an authorized instruction edit is still needed. What should the agent do?\nA) Stop before editing and report the blocker.\nB) Finish the edit and available checks, then ask the user in a fenced block to run the exact GPU command from the stated working directory, and wait for pasted output before closing.\nC) Substitute child-agent answers and record a pass.\nD) Skip the gate and claim acceptance.",
-      "split": "train"
+      "split": "train",
+      "retired": "The authorized handoff now saves the full command output to a known log and asks only for a completion signal; the old pasted-output action is obsolete."
     },
     {
       "evidence": "Apply the seven-section contract only to Agent Skill `SKILL.md` files; do not force instruction files into the skill template.",
@@ -38,7 +39,7 @@
       "split": "train"
     },
     {
-      "evidence": "For `batch`, the phase is only `baseline` or `candidate`. `challenge` is not allowed for `batch`.",
+      "evidence": "Phase sets belong to their route. `evaluate` accepts `baseline`, `candidate`, and `challenge`; `batch` accepts only `baseline` and `candidate`. Never carry `evaluate`'s `challenge` phase into `batch`.",
       "expected": "A",
       "id": "train-05",
       "query": "The agent runs `batch` evaluation. Which phases may it use?\nA) `baseline` or `candidate` only\nB) `baseline`, `candidate`, or `challenge`\nC) `challenge` only\nD) Any phase the matrix names",
@@ -66,7 +67,7 @@
       "split": "train"
     },
     {
-      "evidence": "For no-edit Markdown passes, use `/md-compress guard <absolute-markdown-path>`. The guard returns `guarded`; require that receipt before continuing.",
+      "evidence": "For no-edit Markdown passes in the review set, use `/md-compress guard <absolute-markdown-path>` before reading and require its `guarded` receipt.",
       "expected": "A",
       "id": "train-09",
       "query": "The agent reads a Markdown file in the review set and will not edit it. Which command applies, and what receipt must it require?\nA) `/md-compress guard <absolute-markdown-path>` and the `guarded` receipt\nB) `/md-compress begin <absolute-markdown-path>` and the `done` receipt\nC) `/md-compress finalize <absolute-markdown-path>` and the `guarded` receipt\nD) No command is needed for read-only passes",
@@ -101,7 +102,7 @@
       "split": "train"
     },
     {
-      "evidence": "the final gate is the project-approved `finalGate` in `aidx.json`, otherwise `.agents`'s `bun run test`, otherwise `bun run test`.",
+      "evidence": "Use `finalGate` in `aidx.json`, otherwise `.agents`'s `bun run test`, otherwise `bun run test`; run it fully and retain command/result.",
       "expected": "B",
       "id": "train-14",
       "query": "A skill package has no `finalGate` in `aidx.json`, but `.agents` has a `bun run test` script. Which final gate applies?\nA) A subset of unit tests the agent chooses\nB) `.agents`'s `bun run test`\nC) No gate; matrix receipts are enough\nD) `bun run lint` only",
@@ -122,7 +123,7 @@
       "split": "validation"
     },
     {
-      "evidence": "If review state cannot be prepared, state the exact blocker and pause the governed edit.",
+      "evidence": "Resume or prepare the matching quality-engine review before editing. Missing review state blocks a governed edit; missing GPU access does not block authorized work.",
       "expected": "A",
       "id": "validation-03",
       "query": "Before editing a skill package, the matching quality-engine review state or a required verifier is unavailable. What must the agent do?\nA) State the exact blocker and stop before the governed edit\nB) Edit anyway and run the review afterward\nC) Invent a substitute verifier\nD) Skip the review and run only the final gate",
@@ -157,7 +158,7 @@
       "split": "train"
     },
     {
-      "evidence": "ledger statuses are `baseline`, `attempt`, `applied`, `post-change`, and `rollback`.",
+      "evidence": "The valid `[flags]` are `--measure-only`, `--attempt <n>`, `--status <ledger-status>`, `--runs <n>`, `--ledger-root <path>`, and `--skills-root <path>`; statuses are `baseline`, `attempt`, `applied`, `post-change`, and `rollback`.",
       "expected": "B",
       "id": "train-16",
       "query": "The agent records a training measurement with `--status`. Which value is one of the listed ledger statuses?\nA) accepted\nB) post-change\nC) winner\nD) measured",
@@ -202,7 +203,7 @@
       "split": "train"
     },
     {
-      "evidence": "make one edit to `SKILL.md` through the Markdown transaction. Prefer the description; edit the body only for routing text.",
+      "evidence": "Use each train failure for one guarded edit; prefer the description, changing the body only for routing.",
       "expected": "D",
       "id": "train-22",
       "query": "Train failures remain after a baseline. How does the Reflect step say to edit?\nA) Rewrite several body sections to improve general style.\nB) Edit the descriptions of every neighbor skill at once.\nC) Edit the body first and the description last.\nD) Make one edit through the Markdown transaction, preferring the description and editing the body only for routing text.",
@@ -216,7 +217,7 @@
       "split": "train"
     },
     {
-      "evidence": "Markdown guards prove token preservation, not correct authority or meaning.",
+      "evidence": "guards prove token preservation, not authority or meaning.",
       "expected": "B",
       "id": "train-24",
       "query": "A Markdown guard returned `guarded` for a document in the review set. What does that receipt prove?\nA) The authority and meaning of the document are correct.\nB) Token preservation only.\nC) Policy inheritance was verified.\nD) Every link in the document is valid.",
@@ -244,14 +245,14 @@
       "split": "validation"
     },
     {
-      "evidence": "For a training run, also return the baseline and final ledger entry ids, snapshot paths, the `train select` receipt, gained and regressed counts, the `ratchet` result, and the post-change check.",
+      "evidence": "for training, ledger ids, snapshots, `train select`, gains and regressions, ratchet, post-change result, and accepted/restored state.",
       "expected": "D",
       "id": "validation-08",
       "query": "Besides the changed-file lists, which items must a training-run report also return?\nA) Ledger entry ids, a score, and the ratchet result.\nB) Snapshot paths, validation query text, and gained counts.\nC) Only the baseline score and the winner's name.\nD) Baseline and final ledger entry ids, snapshot paths, the `train select` receipt, gained and regressed counts, the `ratchet` result, and the post-change check.",
       "split": "validation"
     },
     {
-      "evidence": "`[additional-root]` is an optional absolute static root used when a runtime adapter or neighboring static consumer must be reviewed.",
+      "evidence": "`[additional-root]` is an optional additional static root used when a runtime adapter or neighboring static consumer must be reviewed.",
       "expected": "A",
       "id": "validation-09",
       "query": "The runtime adapter of a skill lives in a different folder and must be reviewed. How is it passed to `review`?\nA) As the optional absolute `[additional-root]`.\nB) As `<root>`, replacing the skill folder.\nC) As a relative path after the skill name.\nD) It is validated separately with `validate`.",
@@ -265,7 +266,7 @@
       "split": "validation"
     },
     {
-      "evidence": "Domain skills may supply knowledge or execute delegated work, but they do not mutate a skill package.",
+      "evidence": "Domain skills may advise or perform delegated work but cannot mutate packages.",
       "expected": "A",
       "id": "validation-11",
       "query": "A domain skill that supplied knowledge now offers to rewrite a skill package's SKILL.md. What does the document say?\nA) It may supply knowledge or execute delegated work but must not mutate the skill package.\nB) It may rewrite the file when the work was delegated.\nC) It may rewrite the file once the matrix is frozen.\nD) It may rewrite only the references folder.",
@@ -294,14 +295,14 @@
       "split": "train"
     },
     {
-      "evidence": "The same routes train a document: pass an absolute comprehension set `.json` path as the target and answer with an `answer` field holding one option letter.",
+      "evidence": "absolute comprehension set `.json` path (document track).",
       "expected": "D",
       "id": "train-29",
       "query": "The agent must train the probes of one Markdown document. Its comprehension set is the absolute file /abs/evals/AGENTS.json. Which command emits the blind bundle?\nA) /skill-manager train bundle /abs/AGENTS.md\nB) /skill-manager train bundle /abs/skills\nC) /skill-manager train measure /abs/evals/AGENTS.json --measure-only\nD) /skill-manager train bundle /abs/evals/AGENTS.json",
       "split": "train"
     },
     {
-      "evidence": "- every Markdown file inside a skill package; - every `AGENTS*`, `CLAUDE*`, or `GEMINI*` instruction file in the agents root or at the project root, including dotted names such as `AGENTS.override.md`. No other file needs one: not `README.md` in the agents root, and not `package.json`.",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
       "expected": "A",
       "id": "train-30",
       "query": "The agents root holds GEMINI.md, README.md, and package.json. A skill package holds references/index.md. Which of these files need a comprehension set?\nA) GEMINI.md and references/index.md only.\nB) GEMINI.md only.\nC) All four files.\nD) references/index.md and README.md only.",
@@ -329,14 +330,14 @@
       "split": "validation"
     },
     {
-      "evidence": "`clear` is true when every query passes on every run; that is the goal state for every skill and every document.",
+      "evidence": "`clear` means every query passes on every run.",
       "expected": "C",
       "id": "validation-15",
       "query": "A train measure on a document comprehension set shows 29 of 30 probes pass on every run. The last probe passes in 2 of 3 runs. Is `clear` true?\nA) Yes, because 29 of 30 is nearly all.\nB) Yes, because most runs of the last probe pass.\nC) No, because `clear` needs every query to pass on every run.\nD) No, but only the validation split must pass every run.",
       "split": "validation"
     },
     {
-      "evidence": "Do NOT use to install or run a skill.",
+      "evidence": "Do NOT use to install or execute another skill",
       "expected": "B",
       "id": "train-32",
       "query": "The user asks the Skill Manager to run the PDF skill. Which response follows the source?\nA) Use Skill Manager to launch it from the catalog.\nB) Do not use Skill Manager to install or run a skill.\nC) Ask Skill Manager to write the PDF content.\nD) Use Skill Manager only to validate the output.",
@@ -371,7 +372,7 @@
       "split": "train"
     },
     {
-      "evidence": "/skill-manager commit <agents-root> <batch-id>",
+      "evidence": "`commit` writes the selected candidate\nbut does not refresh its instruction-gate receipt. After commit, run `gate record`; the old receipt\nis stale until that command accepts the new text.",
       "expected": "B",
       "id": "train-38",
       "query": "After `/skill-manager commit` writes the selected candidate, what state is the receipt of that document in?\nA) Current, because commit seals it\nB) Stale until `gate record` seals the new text\nC) Deleted by commit\nD) Rebaselined automatically",
@@ -406,7 +407,7 @@
       "split": "train"
     },
     {
-      "evidence": "For `batch`, the phase is only `baseline` or `candidate`.",
+      "evidence": "Phase sets belong to their route. `evaluate` accepts `baseline`, `candidate`, and `challenge`; `batch` accepts only `baseline` and `candidate`. Never carry `evaluate`'s `challenge` phase into `batch`.",
       "expected": "A",
       "id": "validation-16",
       "query": "Which phases may the `batch` evaluation route use?\nA) `baseline` or `candidate` only\nB) `baseline`, `candidate`, or `challenge`\nC) `challenge` only\nD) `candidate` or `challenge`",
@@ -435,7 +436,7 @@
       "split": "validation"
     },
     {
-      "evidence": "Keep `SKILL.md` below 500 lines and about 5,000 tokens.",
+      "evidence": "Keep the skill body below 500 lines and about 5,000 tokens.",
       "expected": "A",
       "id": "validation-20",
       "query": "What size limit applies to a `SKILL.md` file?\nA) Below 500 lines and about 5,000 tokens\nB) Below 1,000 lines and about 10,000 tokens\nC) Below 300 lines and about 2,000 tokens\nD) Below 500 lines and about 20,000 tokens",
@@ -463,7 +464,7 @@
       "split": "validation"
     },
     {
-      "evidence": "`challenge` is not allowed for `batch`.",
+      "evidence": "Phase sets belong to their route. `evaluate` accepts `baseline`, `candidate`, and `challenge`; `batch` accepts only `baseline` and `candidate`. Never carry `evaluate`'s `challenge` phase into `batch`.",
       "expected": "A",
       "id": "validation-24",
       "query": "You want to evaluate several skill targets at once with the batch route and run the challenge phase. What happens?\nA) Not allowed; batch accepts only baseline or candidate\nB) Allowed, since batch accepts all three phases\nC) Allowed only when a review id is supplied\nD) Allowed only for instruction documents",
@@ -484,14 +485,14 @@
       "split": "validation"
     },
     {
-      "evidence": "Do not use in-session child agents as a Gemma substitute; child-agent answers do not replace the Gemma reader.",
+      "evidence": "Rule: child-agent answers do not replace the Gemma reader.",
       "expected": "D",
       "id": "validation-27",
       "query": "No GPU is available in the sandbox for the weak reader. May you have fresh child agents answer the probes in its place?\nA) Yes, if they answer blind\nB) Yes, if three of them agree\nC) Yes, but only for held-out probes\nD) No; child-agent answers do not replace the Gemma reader",
       "split": "validation"
     },
     {
-      "evidence": "Require that receipt before continuing; never skip the guard because the pass is read-only.",
+      "evidence": "For no-edit Markdown passes in the review set, use `/md-compress guard <absolute-markdown-path>` before reading and require its `guarded` receipt.",
       "expected": "C",
       "id": "validation-28",
       "query": "You only need to read a Markdown file in the review set and will not edit it. What is required?\nA) Nothing, since it is read-only\nB) A begin and finalize transaction\nC) The guard command and its guarded receipt\nD) A comprehension set for the file",
@@ -505,14 +506,14 @@
       "split": "validation"
     },
     {
-      "evidence": "A sandboxed process fails with reason `no-adapter` when no GPU adapter is available.",
+      "evidence": "the failure envelope `data.reason` is `failure`, `integrity`, `missing-dependency`, `no-adapter`, or `too-long`.",
       "expected": "B",
       "id": "validation-30",
       "query": "The `train read` route runs the weak reader in a sandbox with no GPU adapter. Which `data.reason` does its failure envelope carry?\nA) `failure`\nB) `no-adapter`\nC) `integrity`\nD) `too-long`",
       "split": "validation"
     },
     {
-      "evidence": "No-edit does not mean no command.",
+      "evidence": "For no-edit Markdown passes in the review set, use `/md-compress guard <absolute-markdown-path>` before reading and require its `guarded` receipt.",
       "expected": "A",
       "id": "validation-31",
       "query": "A pass only reads a Markdown file and edits nothing. What is required?\nA) The md-compress guard command and its guarded receipt\nB) Nothing, because the pass is read-only\nC) The md-compress begin command, then finalize\nD) A frozen matrix and a ratchet check",
@@ -554,7 +555,7 @@
       "split": "validation"
     },
     {
-      "evidence": "`--max-description-change <percent>` defaults to 25 of the baseline description characters;",
+      "evidence": "`--max-description-change <percent>` defaults to 25 of the baseline description characters.",
       "expected": "C",
       "id": "validation-36",
       "query": "What is the default for the maximum description change in one training attempt?\nA) 10 percent of the baseline description\nB) 50 percent of the baseline description\nC) 25 percent of the baseline description\nD) 40 percent of the baseline description",
@@ -573,6 +574,153 @@
       "id": "validation-38",
       "query": "A weak reader fails a probe on a document. What does the file conclude?\nA) The reader is too small and should be replaced\nB) The document is unclear and should be rewritten\nC) The probe should be deleted\nD) The failure should be ignored if other probes pass",
       "split": "validation"
+    },
+    {
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "expected": "A",
+      "id": "train-44",
+      "query": "A review finds `CLAUDE.override.md`, `README.md`, and `package.json` at the agents root, plus `references/setup.md` inside a skill package. Which files need comprehension sets?\nA) `CLAUDE.override.md` and `references/setup.md` only.\nB) All four files.\nC) `CLAUDE.override.md` and `README.md` only.\nD) `references/setup.md` and `package.json` only.",
+      "split": "train"
+    },
+    {
+      "evidence": "  Before GREEN, scan the complete candidate snapshot produced by `propose`, not the live baseline\n  file or only the changed atom. If the candidate has no saved path, pass all of its text to\n  `bun <agents-root>/scripts/prose-cues.ts scan -`. Read each marker with the surrounding rule and\n  nearby steps. Revise only where context shows padding, repetition, vagueness, or an unsupported\n  claim; keep evidence, quotations, command contracts, scope, exceptions, technical precision,\n  uncertainty, register, and useful voice. A hit does not imply authorship or alter the score;\n  frozen probes and the owner gate decide acceptance.",
+      "expected": "B",
+      "id": "train-45",
+      "query": "A policy candidate is still unsaved and includes a necessary quotation and command. The scanner reports a cue in that passage. What is the correct review?\nA) Scan only that paragraph, remove the quotation, and require zero hits.\nB) Send the complete candidate to `scan -`, review the cue in context, preserve the needed quotation and command, and judge the candidate with its frozen checks and owner gate.\nC) Treat the hit as an authorship detector and reject the candidate.\nD) Skip the scan and use the hit count from the prior draft.",
+      "split": "train"
+    },
+    {
+      "evidence": "  Before GREEN, scan the complete candidate snapshot produced by `propose`, not the live baseline\n  file or only the changed atom. If the candidate has no saved path, pass all of its text to\n  `bun <agents-root>/scripts/prose-cues.ts scan -`.",
+      "expected": "A",
+      "id": "train-46",
+      "query": "`propose` produced candidate C, while the on-disk instruction is still baseline B and only one atom changed. Which text should receive the advisory prose-cue scan before `check`?\nA) The complete candidate C, using stdin if it has no saved path.\nB) The on-disk baseline B.\nC) Only the changed atom.\nD) No scan; `check` performs it automatically.",
+      "split": "train"
+    },
+    {
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "expected": "A",
+      "id": "train-47",
+      "query": "A skill package contains `skills/demo/README.md` and `skills/demo/references/index.md`. The agents root contains `README.md`, `package.json`, and `CLAUDE.override.md`. Which files need comprehension sets?\nA) Both package Markdown files and `CLAUDE.override.md` only.\nB) Both README files and `package.json` only.\nC) `skills/demo/references/index.md` and the root `README.md` only.\nD) All five files.",
+      "split": "train"
+    },
+    {
+      "id": "validation-39",
+      "split": "validation",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "query": "Which file qualifies even though its name does not begin with AGENTS, CLAUDE, or GEMINI?\nA) `skills/demo/references/index.md` inside a skill package\nB) `project-root/docs/README.md` outside any skill package\nC) `agents-root/README.md`\nD) `project-root/docs/GEMINI.md` outside any skill package",
+      "expected": "A"
+    },
+    {
+      "id": "validation-40",
+      "split": "validation",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "query": "An instruction file named `CLAUDE.override.md` is located directly at the agents root. Does the suffix after `CLAUDE` prevent it from qualifying?\nA) Yes; only the exact name `CLAUDE.md` qualifies.\nB) No; dotted names beginning with a listed prefix qualify at the root.\nC) No; every Markdown file anywhere qualifies.\nD) Yes; dotted names qualify only inside a skill package.",
+      "expected": "B"
+    },
+    {
+      "id": "validation-41",
+      "split": "validation",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "query": "Which pair reflects the different README.md boundary for a skill package and a root?\nA) `skills/demo/README.md` qualifies; `<agents-root>/README.md` does not.\nB) Both qualify because both files are Markdown.\nC) Neither qualifies because README.md does not begin with a listed prefix.\nD) `<agents-root>/README.md` qualifies; `skills/demo/README.md` does not.",
+      "expected": "A"
+    },
+    {
+      "id": "validation-42",
+      "split": "validation",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "query": "Which candidate qualifies through the root instruction-file condition, while the nested alternatives are outside any skill package?\nA) `<project-root>/CLAUDE.md`, an instruction file directly at the project root\nB) `<project-root>/docs/CLAUDE.md`, an instruction file nested under docs\nC) `<project-root>/docs/README.md`, a Markdown file nested under docs\nD) `<project-root>/package.json`",
+      "expected": "A"
+    },
+    {
+      "id": "validation-43",
+      "split": "validation",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "query": "Which candidate satisfies neither condition: it is not Markdown inside a skill package, and it is not a listed-prefix instruction file at either root?\nA) `<agents-root>/skills/demo/references/config.json`\nB) `<agents-root>/skills/demo/references/index.md`\nC) `<project-root>/GEMINI.override.md`, an instruction file at the project root\nD) `<agents-root>/CLAUDE.md`, an instruction file at the agents root",
+      "expected": "A"
+    },
+    {
+      "id": "train-48",
+      "split": "train",
+      "evidence": "**Inside a skill package:** include every Markdown file below that package root, at any depth. This includes `skills/demo/README.md`, `skills/demo/references/index.md` (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).",
+      "query": "A skill package has a nested Markdown file at skills/demo/references/setup.md. Does it need a comprehension set?\nA) Yes, every Markdown file below the package directory qualifies at any depth.\nB) No, only SKILL.md files qualify.\nC) No, references files are excluded.\nD) Only if another file links to it.",
+      "expected": "A"
+    },
+    {
+      "id": "train-49",
+      "split": "train",
+      "evidence": "**Directly at a root:** include only instruction files located directly at the agents root or project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as `GEMINI.md` and `CLAUDE.override.md` qualify. Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope because a review lists it beside a package file. A nested file outside a skill package does not qualify under the root rule.",
+      "query": "The agents root contains `CLAUDE.override.md`, `README.md`, and `package.json`. Which files need a comprehension set?\nA) All three.\nB) `CLAUDE.override.md` only.\nC) `README.md` and `package.json` only.\nD) None of them.",
+      "expected": "B"
+    },
+    {
+      "id": "train-50",
+      "split": "train",
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "query": "The agents root contains `README.md`; a skill package contains `references/index.md`. Which file needs a comprehension set?\nA) `references/index.md` only.\nB) Both files.\nC) `README.md` only.\nD) Neither file.",
+      "expected": "A"
+    },
+    {
+      "id": "pool-skill-manager-01",
+      "split": "validation",
+      "query": "Skill Manager is authoring a new Agent Skill `SKILL.md` from scratch. Which body structure should it use?\nA) The complete seven-section skill structure.\nB) The structure reserved for `AGENTS.md` instruction files.\nC) Any structure, as long as it has a Usage section.\nD) A two-section shell with the prior body appended after it.",
+      "expected": "A",
+      "evidence": "Keep the target document's existing format and governing requirements. Apply the seven-section contract only to Agent Skill `SKILL.md` files; do not force instruction files into the skill template."
+    },
+    {
+      "evidence": "- Train every document, not only `SKILL.md`. Decide separately from each file's actual path:\n  1. **Inside a skill package:** include every Markdown file below that package root, at any depth.\n     This includes `skills/demo/README.md`, `skills/demo/references/index.md`\n     (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).\n  2. **Directly at a root:** include only instruction files located directly at the agents root or\n     project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as\n     `GEMINI.md` and `CLAUDE.override.md` qualify.\n\n  Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope\n  because a review lists it beside a package file. A nested file outside a skill package does not\n  qualify under the root rule.",
+      "expected": "A",
+      "id": "pool-skill-manager-02",
+      "query": "Which files belong in the comprehension set?\n\nInventory: `skills/calendar-audit/guide/rotation.md`; `skills/calendar-audit/data/sample.csv`; `docs/calendar-audit.md`; project-root `AGENTS.review.md`; project-root `CLAUDE.local.md`; global-root `GEMINI.notes.md`; project-root `README.md`; global-root `package.json`.\n\nA) `skills/calendar-audit/guide/rotation.md`, project-root `AGENTS.review.md`, project-root `CLAUDE.local.md`, global-root `GEMINI.notes.md`\nB) A, plus `docs/calendar-audit.md`\nC) `skills/calendar-audit/guide/rotation.md`, project-root `AGENTS.review.md`, project-root `README.md`\nD) Project-root `AGENTS.review.md`, project-root `CLAUDE.local.md`, global-root `GEMINI.notes.md`, project-root `README.md`, global-root `package.json`",
+      "split": "validation"
+    },
+    {
+      "id": "pool-skill-manager-03",
+      "split": "validation",
+      "evidence": "Phase sets belong to their route. `evaluate` accepts `baseline`, `candidate`, and `challenge`; `batch` accepts only `baseline` and `candidate`. Never carry `evaluate`'s `challenge` phase into `batch`.",
+      "query": "A runner is preparing a batch for the candidate evaluation phase. Which phase set is accepted by `batch`?\nA) baseline and candidate\nB) baseline and challenge\nC) candidate and challenge\nD) baseline, candidate, and challenge",
+      "expected": "A"
+    },
+    {
+      "id": "pool-skill-manager-04",
+      "split": "validation",
+      "evidence": "For no-edit Markdown passes in the review set, use `/md-compress guard <absolute-markdown-path>` before reading and require its `guarded` receipt.",
+      "query": "A reviewer wants to open `/work/review/AGENTS.md` to inspect it without editing it. What must happen first?\nA) Run `/md-compress guard /work/review/AGENTS.md` and require a `guarded` receipt\nB) Run `/md-compress guard /work/review/AGENTS.md` and accept any receipt\nC) Open the file first, then run `/md-compress guard /work/review/AGENTS.md`\nD) No guard is needed for a read-only review",
+      "expected": "A"
+    },
+    {
+      "id": "pool-skill-manager-05",
+      "split": "validation",
+      "evidence": "**Inside a skill package:** include every Markdown file below that package root, at any depth. This includes `skills/demo/README.md`, `skills/demo/references/index.md` (`references/index.md`), and `skills/demo/references/setup.md` (`references/setup.md`).",
+      "query": "A review set includes `skills/example/docs/archive/notes.md`, several directories below a skill package. Which scope applies to this Markdown file?\nA) It qualifies because it is at any depth inside a skill package\nB) It qualifies only if its filename begins with `AGENTS`, `CLAUDE`, or `GEMINI`\nC) It qualifies only if it is directly at the project root\nD) It does not qualify because it is below the package's top level",
+      "expected": "A"
+    },
+    {
+      "id": "pool-skill-manager-06",
+      "split": "validation",
+      "evidence": "**Directly at a root:** include only instruction files located directly at the agents root or project root whose names begin with `AGENTS`, `CLAUDE`, or `GEMINI`. Dotted names such as `GEMINI.md` and `CLAUDE.override.md` qualify. Root `README.md` and `package.json` do not qualify. A root file does not inherit package scope because a review lists it beside a package file. A nested file outside a skill package does not qualify under the root rule.",
+      "query": "Which listed Markdown file meets the direct-root instruction-file condition?\nA) `project-root/CLAUDE.local.md`\nB) `project-root/docs/CLAUDE.local.md`\nC) `project-root/README.md`\nD) `project-root/notes.md`",
+      "expected": "A"
+    },
+    {
+      "id": "train-51",
+      "split": "train",
+      "evidence": "Do not stop the edit. Finish authorized edits and checks despite the missing GPU route, then give one exact GPU command for the full batch in a fenced block with its working directory. Save its output and status to a unique absolute log path known to the agent. Ask the user to run this one command outside the sandbox and signal completion. When they say it is done, read the saved log. Never ask them to paste long output. Do not claim the gate passed before checking the log.",
+      "query": "The sandbox cannot run a required GPU record, but the instruction edit is authorized. What should the agent do?\nA) Stop before editing and report the blocker.\nB) Finish the edits and local checks, give one full-batch GPU command with its working directory and a known absolute log path, ask the user only to signal completion, then read the saved log.\nC) Ask the user to paste the full command output.\nD) Use child-agent answers to record acceptance.",
+      "expected": "B"
+    },
+    {
+      "id": "train-52",
+      "split": "train",
+      "evidence": "The diagnosis is separate from the reader's raw answer and may misstate the source. For each miss, compare the probe, expected answer, reader reply, and governing source rule; use the diagnosis as evidence, repair the source, then record the changed text.",
+      "query": "Expected label A and an independent source check both support option A. The saved raw reply is `Answer: A`, but the suggestion reports `Reader answer: B` and recommends changing the source. What should the editor do?\nA) Change the source to match the suggestion.\nB) Preserve the source and expected label; repair the conflicting reader or suggestion path before recording again.\nC) Change the expected label to B.\nD) Rerun the unchanged record.",
+      "expected": "B"
+    },
+    {
+      "id": "train-53",
+      "split": "train",
+      "evidence": "The diagnosis is separate from the reader's raw answer and may misstate the source.",
+      "query": "The source and expected key both support A. The raw reader reply is a multiline explanation ending with `Answer: A`, but the parser records `NONE`. What should the editor repair?\nA) Rewrite the source because the parser did not find its rule.\nB) Preserve the verified source and key; fix the reader's one-line output contract, and keep the strict parser.\nC) Loosen the parser to extract any `Answer:` line from an explanation.\nD) Change the expected key to `NONE`.",
+      "expected": "B"
     }
   ],
   "runs_per_query": 3,

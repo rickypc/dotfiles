@@ -1,13 +1,28 @@
 {
-  "baseline": null,
-  "decision": "baseline",
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10",
+      "train-11"
+    ],
+    "validationPassed": 6
+  },
+  "decision": "rebaseline",
   "document": "skills/skill-manager/references/skill-template.md",
   "documentSha256": "4b947a56af34923de40441c33d803b4af0c90f58a799435fd9dcd0530af94e13",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
     "trainFailed": [],
@@ -27,9 +42,9 @@
     "validationPassed": 6,
     "validationTotal": 6
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "f227269d1795edd437a22f39a718d37179e1b94b646d91bd553539ec52d56459",
+  "selfSha256": "f08611db39f49d1faef16b9de7c7a25dd2c95b16009ffef80406ed1cd5c7c2d0",
   "setPath": "evals/skills/skill-manager/comprehension/references-skill-template.json",
   "setSha256": "e16f8e0c1e35c83b831d48e2ddec867d5eea26fa6fd49b68f2863ee6344da73f"
 }

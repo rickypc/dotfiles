@@ -1,11 +1,11 @@
 ---
 name: react
 description: >-
-  Use when the user builds, fixes, or reviews React or React Native code: screens, components, hooks
-  such as useEffect and useState, re-renders and list performance, forms and dialogs with keyboard
-  and screen reader support, navigation, platform-specific behavior, view transitions, or tests of
-  what the user sees. Do NOT use for visual design decisions before any code exists, or for code
-  that is not React.
+  Use only for implementation, tests, or code review when the target is specifically React or React
+  Native. A generic request for a component or screen does not imply React; select this only when
+  the user or supplied project identifies React or React Native. Never select it for Vue, Svelte,
+  Angular, or another framework, even when the request mentions components, hooks, or porting an
+  interface. Do NOT use for visual design decisions before implementation.
 argument-hint: <react-or-react-native-scope> <approved-design> <acceptance-criteria>
 ---
 

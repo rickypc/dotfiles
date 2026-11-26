@@ -32,19 +32,18 @@
     ],
     "validationPassed": 13
   },
-  "decision": "perfect",
+  "decision": "rebaseline",
   "document": "skills/aidp/SKILL.md",
   "documentSha256": "6544eb680fb4bf7c1244686b2704bb2ddbf7c2d76f8c2f93bfc70f21c82e8d38",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
-    "trainFailed": [],
+    "trainFailed": ["train-01"],
     "trainPassed": [
-      "train-01",
       "train-02",
       "train-03",
       "train-04",
@@ -76,9 +75,9 @@
     "validationPassed": 13,
     "validationTotal": 13
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "c82c4ed59d98eeb73987c688379e680400373a3947db54478410bc0fbda40470",
+  "selfSha256": "fe1f1866d6d1d29a22308859cbcf94e4079e44d82f3a6fa73ec56e780ed1882a",
   "setPath": "evals/skills/aidp/comprehension/SKILL.json",
   "setSha256": "5e13f980b0503977940a9bed344baba71b5a32efecb2ad90cac3565ee68c2096"
 }

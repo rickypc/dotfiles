@@ -1,7 +1,6 @@
 {
   "baseline": {
     "trainPassed": [
-      "train-01",
       "train-02",
       "train-03",
       "train-04",
@@ -19,14 +18,14 @@
     ],
     "validationPassed": 9
   },
-  "decision": "perfect",
+  "decision": "rebaseline",
   "document": "skills/repo-search/references/binary-router.md",
   "documentSha256": "ee93f2df0561e82a8d9cb1c7e8ff4443f5c0ecb3cb828334163e6ea087cbfd46",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
     "trainFailed": [],
@@ -50,9 +49,9 @@
     "validationPassed": 9,
     "validationTotal": 10
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "571d39c6d0cf1510b34da4a4e593710af3ad95af51b62b57a12f4e26194c8e9f",
+  "selfSha256": "f6e5a949a73998b7f17f19801c56979235854551bf61ce895565c19d50a623e7",
   "setPath": "evals/skills/repo-search/comprehension/references-binary-router.json",
   "setSha256": "4c5c23de4b724a45bd0be9ff536c4bbf8ad74dd92b8959492a97a92c497bb5d0"
 }

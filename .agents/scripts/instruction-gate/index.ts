@@ -10,10 +10,12 @@ import { runMain } from '../../utils/cli/index.js';
 import type { CommandExecutor } from '../../utils/process.js';
 import { bunExecutor } from '../../utils/process.js';
 import {
+  DOCUMENT_READER_VERSION,
   isNoAdapterFailure,
   MAX_NEW_TOKENS,
   MODEL_REVISION,
   READER_VERSION,
+  ROUTER_MAX_NEW_TOKENS,
   ROUTER_VERSION,
   VENDORED_BUNDLE_SHA256,
 } from '../weak-reader/index.js';
@@ -193,9 +195,9 @@ const baselineOf = (previous: Receipt | undefined): Baseline | null =>
 
 export const currentFingerprint = (routing = false): Fingerprint => ({
   bundleSha256: VENDORED_BUNDLE_SHA256,
-  maxNewTokens: MAX_NEW_TOKENS,
+  maxNewTokens: routing ? ROUTER_MAX_NEW_TOKENS : MAX_NEW_TOKENS,
   modelRevision: MODEL_REVISION,
-  readerVersion: routing ? `${READER_VERSION}+${ROUTER_VERSION}` : READER_VERSION,
+  readerVersion: routing ? `${READER_VERSION}+${ROUTER_VERSION}` : DOCUMENT_READER_VERSION,
 });
 
 export const defaultDependencies = (agentsRoot = PACKAGE_ROOT): GateDependencies => ({
@@ -275,6 +277,27 @@ const measurementOf = (stdout: string): Measurement => {
   };
 };
 
+const optionValue = (args: readonly string[], flag: string): string | undefined => {
+  const index = args.indexOf(flag);
+  const value = index === -1 ? undefined : args[index + 1];
+  return value?.startsWith('--') ? undefined : value;
+};
+
+const parseReceipt = (content: string): Receipt | undefined => {
+  try {
+    const value: unknown = JSON.parse(content);
+    return isRecord(value) && value.schema === 1 ? (value as unknown as Receipt) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const readerFailureDetails = (stdout: string, stderr: string): string => {
+  const text = stdout.trim();
+  const details = text.startsWith('{') ? text : stderr.trim() || text;
+  return details.slice(0, 500) || '(no output captured)';
+};
+
 const measureDocument = async (target: GateTarget, deps: GateDependencies): Promise<Measured> => {
   const work = await deps.makeTempDir();
   const set = target.skill
@@ -301,7 +324,8 @@ const measureDocument = async (target: GateTarget, deps: GateDependencies): Prom
     const hint = isNoAdapterFailure(read.stdout)
       ? ' (no GPU adapter: run this command outside the sandbox)'
       : '';
-    throw new Error(`weak reader exited ${read.code}${hint}: ${read.stderr.trim().slice(-300)}`);
+    const details = readerFailureDetails(read.stdout, read.stderr);
+    throw new Error(`weak reader exited ${read.code}${hint}: ${details}`);
   }
   const measured = await deps.executor({
     args: [
@@ -329,21 +353,6 @@ const measureDocument = async (target: GateTarget, deps: GateDependencies): Prom
     readerLog: read.stderr,
     work,
   };
-};
-
-const optionValue = (args: readonly string[], flag: string): string | undefined => {
-  const index = args.indexOf(flag);
-  const value = index === -1 ? undefined : args[index + 1];
-  return value?.startsWith('--') ? undefined : value;
-};
-
-const parseReceipt = (content: string): Receipt | undefined => {
-  try {
-    const value: unknown = JSON.parse(content);
-    return isRecord(value) && value.schema === 1 ? (value as unknown as Receipt) : undefined;
-  } catch {
-    return undefined;
-  }
 };
 
 const reasonProblems = (receipt: Receipt): string[] =>

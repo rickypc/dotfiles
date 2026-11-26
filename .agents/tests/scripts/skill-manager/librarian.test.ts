@@ -215,9 +215,9 @@ test('propose writes snapshots to the store and never touches the repository', a
   expect([...files.keys()].filter((file) => file.startsWith(ROOT))).toEqual(before);
 });
 
-test('propose counts rounds per document text and stops after three', async () => {
-  const { deps } = harness();
-  const texts = ['Alpha one.', 'Beta two.', 'Gamma three.', 'Delta four.'];
+test('propose counts rounds per document text and probe set, including legacy round rows', async () => {
+  const { deps, files } = harness();
+  const texts = ['Alpha one.', 'Beta two.', 'Gamma three.', 'Delta four.', 'Epsilon five.'];
   const run = (text: string) =>
     sut.propose(
       deps,
@@ -231,10 +231,59 @@ test('propose counts rounds per document text and stops after three', async () =
         },
       ]),
     );
-  expect((await run(texts[0] as string)).round).toBe(1);
+  const first = await run(texts[0] as string);
+  expect(first.round).toBe(1);
+  expect(first.setSha256).toBe(sha('{"queries":[]}'));
+  const roundsPath = `${STORE}/rounds.jsonl`;
+  const legacy = JSON.parse(files.get(roundsPath)?.trim().split('\n')[0] ?? '{}') as Record<
+    string,
+    unknown
+  >;
+  delete legacy.setSha256;
+  files.set(roundsPath, `${JSON.stringify(legacy)}\n`);
   expect((await run(texts[1] as string)).round).toBe(2);
   expect((await run(texts[2] as string)).round).toBe(3);
   await expect(run(texts[3] as string)).rejects.toThrow('round budget');
+  files.set(`${ROOT}/evals/comprehension/AGENTS.json`, '{"queries":[{"id":"fresh-probe"}]}');
+  const fresh = await run(texts[4] as string);
+  expect(fresh.round).toBe(1);
+  expect(fresh.setSha256).toBe(sha('{"queries":[{"id":"fresh-probe"}]}'));
+});
+
+test('propose fails closed when prior round history cannot be verified', async () => {
+  const { deps, files } = harness();
+  const roundsPath = `${STORE}/rounds.jsonl`;
+  const request = proposal([tighten]);
+  files.set(roundsPath, '{broken\n');
+  await expect(sut.propose(deps, request)).rejects.toThrow('round ledger contains invalid JSON');
+
+  files.set(roundsPath, `${JSON.stringify({})}\n`);
+  await expect(sut.propose(deps, request)).rejects.toThrow(
+    'round ledger contains an invalid entry',
+  );
+
+  const legacy = {
+    baselineSha256: sha(DOC),
+    batchId: 'bad',
+    document: 'AGENTS.md',
+  };
+  files.set(roundsPath, `${JSON.stringify(legacy)}\n`);
+  await expect(sut.propose(deps, request)).rejects.toThrow('invalid batch id');
+
+  legacy.batchId = '1111111111111111';
+  files.set(roundsPath, `${JSON.stringify(legacy)}\n`);
+  files.set(`${STORE}/${legacy.batchId}/manifest.json`, '{broken');
+  await expect(sut.propose(deps, request)).rejects.toThrow('unreadable manifest');
+
+  files.set(
+    `${STORE}/${legacy.batchId}/manifest.json`,
+    JSON.stringify({
+      baselineSha256: legacy.baselineSha256,
+      batchId: legacy.batchId,
+      document: legacy.document,
+    }),
+  );
+  await expect(sut.propose(deps, request)).rejects.toThrow('no verifiable probe-set fingerprint');
 });
 
 test('propose rejects malformed, oversized, duplicated, and cross-document proposals', async () => {

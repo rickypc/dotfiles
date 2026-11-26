@@ -1,13 +1,27 @@
 {
-  "baseline": null,
-  "decision": "baseline",
+  "baseline": {
+    "trainPassed": [
+      "train-01",
+      "train-02",
+      "train-03",
+      "train-04",
+      "train-05",
+      "train-06",
+      "train-07",
+      "train-08",
+      "train-09",
+      "train-10"
+    ],
+    "validationPassed": 5
+  },
+  "decision": "rebaseline",
   "document": "evals/skills/frontend-design/rubric.md",
   "documentSha256": "112c8b352889c0adee43390019a323ad3c93a504b022445bc15271d4f75ee7f9",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
     "trainFailed": [],
@@ -26,9 +40,9 @@
     "validationPassed": 5,
     "validationTotal": 5
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "b54a4e01b83ec777d81e62ad2b49aa6e37115071e97ffe2841eecdaca262c524",
+  "selfSha256": "50dd8a860155af499830aa92457bdda2ec1f49bd0b5b557b01a1b870ee1b3c8d",
   "setPath": "evals/skills/frontend-design/comprehension/evals-rubric.json",
   "setSha256": "e06fb8ef47cdd1425a4c75a867aa1651dd3a44ea1a8c58182b4a30ec0a23e04f"
 }

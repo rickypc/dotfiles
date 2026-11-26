@@ -2,3 +2,14 @@
 {"at":"2026-11-18T09:02:25.403Z","document":"skills/aidx/SKILL.md","documentSha256":"7d3e2ab59cf73524b86799cc0d69c70ad3d61164ab6f9d5b4ec49e881eb1c605","kind":"look"}
 {"at":"2026-11-18T11:19:38.702Z","document":"skills/aidx/SKILL.md","kind":"rotation","poolSha256":"9bef7c1e8aa29ec742955662eafbbbbc16e48d5ba5945cd11fb8640dadc16674"}
 {"at":"2026-11-18T11:20:03.013Z","document":"skills/aidx/SKILL.md","documentSha256":"288aaf701fd3c2274df5b2f5afca6cc188f98f4702904a0eaaebfae70b32dd3f","kind":"look"}
+{"at":"2026-11-25T22:51:12.597Z","document":"evals/skills/aidx/rubric.md","documentSha256":"a0e03dd10c608f2f2dfe082887055d1af53fd419ac0b981901e90000fad26c6d","kind":"look"}
+{"at":"2026-11-25T23:01:30.774Z","document":"skills/aidx/references/engineering-execution-contract.md","documentSha256":"98810d55bf884f40bc7e0c1faa3b051b0b60bd8a9b8c1cba560b09bd9258f976","kind":"look"}
+{"at":"2026-11-25T23:02:06.128Z","document":"skills/aidx/references/execution-contract.md","documentSha256":"f59c37e9fe815c16dc3d2437d503d70681a42e784e78c2417391e1b3ce37bba3","kind":"look"}
+{"at":"2026-11-26T06:36:16.765Z","document":"evals/skills/aidx/rubric.md","kind":"rotation","poolSha256":"c237839ec08c273baca9b0093371dbfd53881c6d081b0bd2a3955b00cf7bbdcd"}
+{"at":"2026-11-26T06:36:23.238Z","document":"evals/skills/aidx/rubric.md","documentSha256":"a0e03dd10c608f2f2dfe082887055d1af53fd419ac0b981901e90000fad26c6d","kind":"look"}
+{"at":"2026-11-26T06:38:27.182Z","document":"skills/aidx/SKILL.md","kind":"rotation","poolSha256":"c237839ec08c273baca9b0093371dbfd53881c6d081b0bd2a3955b00cf7bbdcd"}
+{"at":"2026-11-26T06:38:53.098Z","document":"skills/aidx/SKILL.md","documentSha256":"288aaf701fd3c2274df5b2f5afca6cc188f98f4702904a0eaaebfae70b32dd3f","kind":"look"}
+{"at":"2026-11-26T06:38:53.119Z","document":"skills/aidx/references/engineering-execution-contract.md","kind":"rotation","poolSha256":"c237839ec08c273baca9b0093371dbfd53881c6d081b0bd2a3955b00cf7bbdcd"}
+{"at":"2026-11-26T06:39:05.780Z","document":"skills/aidx/references/engineering-execution-contract.md","documentSha256":"98810d55bf884f40bc7e0c1faa3b051b0b60bd8a9b8c1cba560b09bd9258f976","kind":"look"}
+{"at":"2026-11-26T06:39:05.786Z","document":"skills/aidx/references/execution-contract.md","kind":"rotation","poolSha256":"c237839ec08c273baca9b0093371dbfd53881c6d081b0bd2a3955b00cf7bbdcd"}
+{"at":"2026-11-26T06:39:13.461Z","document":"skills/aidx/references/execution-contract.md","documentSha256":"f59c37e9fe815c16dc3d2437d503d70681a42e784e78c2417391e1b3ce37bba3","kind":"look"}

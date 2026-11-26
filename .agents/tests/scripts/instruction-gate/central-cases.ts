@@ -437,7 +437,11 @@ const registerNoGpuReceiptTest = (context: CentralTestContext): void => {
       agentsRoot: globalRoot,
       overrides: (spec) =>
         spec.args.some((arg) => arg.endsWith('/weak-reader/index.ts'))
-          ? { code: 1, stderr: 'no GPU adapter', stdout: '{"data":{"reason":"no-adapter"}}' }
+          ? {
+              code: 1,
+              stderr: '',
+              stdout: '{"data":{"reason":"no-adapter"},"diagnostics":["GPU adapter unavailable"]}',
+            }
           : undefined,
       toolsRoot: globalRoot,
       tree: globalTreeFor(globalRoot, join),
@@ -454,6 +458,7 @@ const registerNoGpuReceiptTest = (context: CentralTestContext): void => {
     expect(harness.files.get(join(globalRoot, CATALOG_LEDGER_PATH))).toBe('');
     expect([...harness.files.keys()].some((file) => file.includes('/runs/'))).toBe(false);
     expect(harness.output.join('')).toContain('weak reader exited 1');
+    expect(harness.output.join('')).toContain('GPU adapter unavailable');
   });
 };
 

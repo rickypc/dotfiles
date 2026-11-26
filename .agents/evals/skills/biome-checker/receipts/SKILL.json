@@ -29,19 +29,19 @@
       "train-26",
       "train-27"
     ],
-    "validationPassed": 12
+    "validationPassed": 17
   },
-  "decision": "improved",
+  "decision": "rebaseline",
   "document": "skills/biome-checker/SKILL.md",
   "documentSha256": "d3ec90703e73d6d9ba38ab83f230fdbcd931f90be1ed9c8061ee4c4a31dcda71",
   "fingerprint": {
     "bundleSha256": "12fe95ea0c606d8aee70337f472289c17feb098f966de6a4c0a9f4da9f63f40a",
-    "maxNewTokens": 8,
+    "maxNewTokens": 16,
     "modelRevision": "dd693ff40353f057ca5f07e945ad867f4afbf2ec",
-    "readerVersion": "reader-v1"
+    "readerVersion": "reader-v11"
   },
   "measurement": {
-    "trainFailed": [],
+    "trainFailed": ["train-17", "train-26"],
     "trainPassed": [
       "train-01",
       "train-02",
@@ -59,7 +59,6 @@
       "train-14",
       "train-15",
       "train-16",
-      "train-17",
       "train-18",
       "train-19",
       "train-20",
@@ -68,15 +67,14 @@
       "train-23",
       "train-24",
       "train-25",
-      "train-26",
       "train-27"
     ],
-    "validationPassed": 16,
+    "validationPassed": 17,
     "validationTotal": 17
   },
-  "reason": "",
+  "reason": "User-approved refresh for the current reader fingerprint and active comprehension probes.",
   "schema": 1,
-  "selfSha256": "dfa7e0d5e7d2065e6ed83a645eab9988862f844e27f6e25d3a420c0aca60f51b",
+  "selfSha256": "99d086c9edc8d1747742dafc815ccda485dc8e5070c073383b21a5b74e40f187",
   "setPath": "evals/skills/biome-checker/comprehension/SKILL.json",
   "setSha256": "c5dc1b345adbeb0c277113e1056aea5ae150f24422734186bb76ed84acd687ca"
 }
